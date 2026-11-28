@@ -8,7 +8,7 @@
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -471,7 +471,6 @@ export default class mercado extends Exchange {
         const timestamp = this.safeTimestamp2(trade, 'date', 'executed_timestamp');
         const marketResolved = this.safeMarket(undefined, market);
         const id = this.safeString2(trade, 'tid', 'operation_id');
-        const type = undefined;
         const side = this.safeString(trade, 'type');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString2(trade, 'amount', 'quantity');
@@ -482,9 +481,13 @@ export default class mercado extends Exchange {
             const rate = Precise.stringDiv(feeRate, '100');
             const isBuy = (side === 'buy');
             const feeBase = (isBuy) ? amount : Precise.stringMul(amount, price);
+            let feeCurrency = this.safeString(marketResolved, 'quote');
+            if (isBuy) {
+                feeCurrency = this.safeString(marketResolved, 'base');
+            }
             fee = {
                 'cost': Precise.stringMul(feeBase, rate),
-                'currency': (isBuy) ? marketResolved['base'] : marketResolved['quote'],
+                'currency': feeCurrency,
                 'rate': rate,
             };
         }
@@ -495,7 +498,7 @@ export default class mercado extends Exchange {
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
@@ -589,13 +592,14 @@ export default class mercado extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'coin_pair': market['id'],
         };
         let response = undefined;
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision(market['symbol'], price);
-            request['quantity'] = this.amountToPrecision(market['symbol'], amount);
+            request['limit_price'] = this.priceToPrecision(precisionSymbol, price);
+            request['quantity'] = this.amountToPrecision(precisionSymbol, amount);
             if (side === 'buy') {
                 response = await this.privatePostPlaceBuyOrder(this.extend(request, params));
             }
@@ -610,11 +614,11 @@ export default class mercado extends Exchange {
                 }
                 const amountString = this.numberToString(amount);
                 const priceString = this.numberToString(price);
-                request['cost'] = this.priceToPrecision(market['symbol'], this.parseToNumeric(Precise.stringMul(amountString, priceString)));
+                request['cost'] = this.priceToPrecision(precisionSymbol, this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, params));
             }
             else {
-                request['quantity'] = this.amountToPrecision(market['symbol'], amount);
+                request['quantity'] = this.amountToPrecision(precisionSymbol, amount);
                 response = await this.privatePostPlaceMarketSellOrder(this.extend(request, params));
             }
         }
@@ -671,7 +675,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeDict(response, 'response_data', {});
         const order = this.safeDict(responseData, 'order', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -733,7 +737,7 @@ export default class mercado extends Exchange {
             // operations carry no side, parseTrade reads it from 'type' like in public trades
             rawTrades.push(this.extend(operations[i], { 'type': side }));
         }
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -782,7 +786,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const responseData = this.safeDict(response, 'response_data', {});
         const order = this.safeDict(responseData, 'order');
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -804,7 +808,7 @@ export default class mercado extends Exchange {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'quantity': amount.toFixed(10),
+            'quantity': this.decimalToPrecision(amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address': address,
         };
         if (code === 'BRL') {

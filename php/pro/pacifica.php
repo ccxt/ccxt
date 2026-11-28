@@ -84,7 +84,11 @@ class pacifica extends \ccxt\async\pacifica {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
-        $this->options['ws']['options']['headers'] = $headers;
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
+        $wsSubOptions['headers'] = $headers;
+        $wsOptions['options'] = $wsSubOptions;
+        $this->options['ws'] = $wsOptions;
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -322,7 +326,7 @@ class pacifica extends \ccxt\async\pacifica {
         $results = $this->safe_list($data, 'results', array());
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
-            $order = $this->safe_dict($results, $i);
+            $order = $this->safe_dict($results, $i, array());
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $marketId = $this->safe_string($order, 'symbol');
@@ -595,7 +599,7 @@ class pacifica extends \ccxt\async\pacifica {
         $entry = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $levels = $this->safe_list($entry, 'l', array());
         $result = array(
             'bids' => $this->safe_list($levels, 0, array()),
@@ -842,21 +846,16 @@ class pacifica extends \ccxt\async\pacifica {
         $parsedTickers = array();
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $info = $data[$i];
-            $marketId = $this->safe_string($info, 'symbol');
+            $marketId = $this->safe_string($data[$i], 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
-            $ticker = $this->parse_ws_ticker($info, $market);
+            $symbol = $this->safe_string($market, 'symbol', '');
+            $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()), $market);
             $this->tickers[$symbol] = $ticker;
             $parsedTickers[] = $ticker;
         }
         $tickers = $this->index_by($parsedTickers, 'symbol');
         $client->resolve($tickers, 'tickers');
         return true;
-    }
-
-    public function parse_ws_ticker(array $rawTicker, ?array $market = null): array {
-        return $this->parse_ticker($rawTicker, $market);
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -898,7 +897,7 @@ class pacifica extends \ccxt\async\pacifica {
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $symbols[$symbol] = true;
             }
@@ -934,7 +933,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbolValue;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
@@ -981,7 +980,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'trade:' . $symbolValue;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
@@ -1028,7 +1027,7 @@ class pacifica extends \ccxt\async\pacifica {
         $first = $this->safe_dict($entry, 0, array());
         $marketId = $this->safe_string($first, 's');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbol;
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1084,7 +1083,7 @@ class pacifica extends \ccxt\async\pacifica {
         $amount = $this->safe_string($trade, 'a');
         $marketId = $this->safe_string($trade, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string($trade, 'h');
         $fee = $this->safe_string($trade, 'f');
         $side = $this->safe_string_2($trade, 'ts', 'd');
@@ -1145,7 +1144,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $isTestnet = $this->isSandboxModeEnabled;
         $parsedTf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $urlKey = 'api';
@@ -1195,7 +1194,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {
@@ -1421,7 +1420,7 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1437,7 +1436,7 @@ class pacifica extends \ccxt\async\pacifica {
         $wsHeaders = $this->safe_dict($wsOptions, 'options', array());
         $wsHeadersFinal = $this->safe_dict($wsHeaders, 'headers', array());
         try {
-            $this->handle_errors(0, $error, '', $postType, $wsHeadersFinal, $this->json($data), $message, array(), '');
+            $this->handle_errors(0, $error, '', $postType, $wsHeadersFinal, $this->json($data), $message, array(), null);
         } catch (Exception $e) {
             $client->reject($e, $id);
             return true;

@@ -626,7 +626,7 @@ class paradex extends Exchange {
         // the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
         $assetKinds = array();
         for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+            $marketType = $this->safe_string($types, $i, '');
             if ($marketType === 'swap') {
                 $assetKinds['PERP'] = true;
             } elseif ($marketType === 'spot') {
@@ -865,37 +865,37 @@ class paradex extends Exchange {
         //
         $parts = explode('-', $symbol);
         $partsLength = count($parts);
-        $base = null;
-        $quote = null;
+        $base = '';
+        $quote = '';
         $settle = null;
         $expiryDate = null;
-        $strike = null;
-        $optionType = null;
+        $strike = '';
+        $optionType = '';
         if (mb_strpos($symbol, '/') > -1) {
             if ($partsLength !== 4) {
                 throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
             }
             $pair = $parts[0];
             $pairParts = explode('/', $pair);
-            $base = $this->safe_string($pairParts, 0);
+            $base = $this->safe_string($pairParts, 0, '');
             $quoteAndSettle = $this->safe_string($pairParts, 1, '');
             $quoteParts = explode(':', $quoteAndSettle);
-            $quote = $this->safe_string($quoteParts, 0);
+            $quote = $this->safe_string($quoteParts, 0, '');
             $settle = $this->safe_string($quoteParts, 1, $quote);
             $expiryDate = $this->safe_string($parts, 1);
-            $strike = $this->safe_string($parts, 2);
-            $optionType = $this->safe_string($parts, 3);
+            $strike = $this->safe_string($parts, 2, '');
+            $optionType = $this->safe_string($parts, 3, '');
         } else {
             if ($partsLength !== 5) {
                 throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
             }
-            $base = $this->safe_string($parts, 0);
-            $quote = $this->safe_string($parts, 1);
+            $base = $this->safe_string($parts, 0, '');
+            $quote = $this->safe_string($parts, 1, '');
             $settle = 'USDC'; // every option on the venue settles in USDC
             $expiryDate = $this->convert_market_id_expire_date($this->safe_string($parts, 2));
             $strikeId = $parts[3];
             $strike = str_replace('_', '.', $strikeId);
-            $optionType = $this->safe_string($parts, 4);
+            $optionType = $this->safe_string($parts, 4, '');
         }
         // the id carries the day without a leading zero, 6NOV26
         $idDate = $this->convert_expire_date_to_market_id_date($expiryDate);
@@ -909,13 +909,12 @@ class paradex extends Exchange {
         if (($timestamp !== null) && ($this->sum($timestamp, 86400000) <= $this->milliseconds())) {
             $active = false;
         }
-        $strikeInId = '';
-        if ($strike !== null) {
-            $strikeInId = str_replace('.', '_', $strike);
-        }
+        $strikeInId = str_replace('.', '_', $strike);
+        $idTail = '-' . $strikeInId . '-' . $optionType;
+        $symbolTail = '-' . $strike . '-' . $optionType;
         return array(
-            'id' => $base . '-' . $quote . '-' . $idDate . '-' . $strikeInId . '-' . $optionType,
-            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiryDate . '-' . $strike . '-' . $optionType,
+            'id' => $base . '-' . $quote . '-' . $idDate . $idTail,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiryDate . $symbolTail,
             'base' => $base,
             'quote' => $quote,
             'settle' => $settle,
@@ -1101,8 +1100,8 @@ class paradex extends Exchange {
         $loadedFees = $this->filter_loaded_summaries($fees);
         $result = array();
         for ($i = 0; $i < count($loadedFees); $i++) {
-            $fee = $this->parse_trading_fee($loadedFees[$i]);
-            $symbol = $fee['symbol'];
+            $fee = $this->parse_trading_fee($this->extend(array(), $loadedFees[$i]));
+            $symbol = $this->safe_string($fee, 'symbol');
             $result[$symbol] = $fee;
         }
         return $result;
@@ -1148,7 +1147,7 @@ class paradex extends Exchange {
             $request['price_kind'] = ($price === 'index') ? 'underlying' : $price;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsPaginate);
-        $hasEnd = (is_array($requestUntil) && array_key_exists('end_at' ?? '', $requestUntil));
+        $hasEnd = ($this->safe_integer($requestUntil, 'end_at') !== null);
         $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         $limitResolved = (($limit === null) || ($limit > 1000)) ? 1000 : $limit;
@@ -1156,16 +1155,17 @@ class paradex extends Exchange {
         if ($since !== null) {
             $requestUntil['start_at'] = $since;
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            $windowEnd = $this->sum($this->parse_to_int($since), $windowLength - 1);
-            $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
-            if (!$hasEnd || ($endAt > $windowEnd)) {
-                $requestUntil['end_at'] = $windowEnd;
+            $barWindowEnd = $this->sum($this->parse_to_int($since), $windowLength - 1);
+            $clampedEndAt = $this->safe_integer($requestUntil, 'end_at', $barWindowEnd);
+            if (!$hasEnd || ($clampedEndAt > $barWindowEnd)) {
+                $requestUntil['end_at'] = $barWindowEnd;
             }
         } else {
             $endAtRaw = $this->safe_integer($requestUntil, 'end_at', $this->milliseconds());
             $endAt = $this->parse_to_int($endAtRaw);
+            $startAt = $endAt - ($windowLength - 1);
             $requestUntil['end_at'] = $endAt;
-            $requestUntil['start_at'] = $endAt - $windowLength + 1;
+            $requestUntil['start_at'] = $startAt;
         }
         $response = Async\await($this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted)));
         //
@@ -1251,8 +1251,10 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data) : $data;
-        return $this->parse_tickers($rows, $symbolsNormalized);
+        if ($this->safe_string($request, 'market') === 'ALL') {
+            return $this->parse_tickers($this->filter_loaded_summaries($data), $symbolsNormalized);
+        }
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function summary_market_id(?array $symbols = null): string {
@@ -1265,7 +1267,7 @@ class paradex extends Exchange {
         if ($symbols !== null) {
             $symbolsLength = count($symbols);
             if ($symbolsLength === 1) {
-                return $this->market($symbols[0])['id'];
+                return $this->safe_string($this->market($symbols[0]), 'id', '');
             }
         }
         return 'ALL';
@@ -1292,7 +1294,7 @@ class paradex extends Exchange {
                     $result[] = $summary;
                 } else {
                     $market = $this->safe_market($marketId);
-                    if ($market['type'] === $marketType) {
+                    if ($this->safe_string($market, 'type') === $marketType) {
                         $result[] = $summary;
                     }
                 }
@@ -1374,7 +1376,7 @@ class paradex extends Exchange {
         $last = $this->safe_string($ticker, 'last_traded_price');
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'created_at');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1426,8 +1428,10 @@ class paradex extends Exchange {
         $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
         $data = $this->safe_list($response, 'results', array());
         // only a perpetual funds, the other rows are dropped before they are parsed
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data, 'swap') : $data;
-        return $this->parse_funding_rates($rows, $symbolsNormalized);
+        if ($this->safe_string($request, 'market') === 'ALL') {
+            return $this->parse_funding_rates($this->filter_loaded_summaries($data, 'swap'), $symbolsNormalized);
+        }
+        return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -1448,8 +1452,9 @@ class paradex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $rates = Async\await($this->fetch_funding_rates(array( $market['symbol'] ), $params));
-        $rate = $this->safe_dict($rates, $market['symbol']);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $rates = Async\await($this->fetch_funding_rates(array( $marketSymbol ), $params));
+        $rate = $this->safe_dict($rates, $marketSymbol);
         if ($rate === null) {
             throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding rate for ' . $symbol);
         }
@@ -1618,10 +1623,11 @@ class paradex extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'results', array());
+        $tagged = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trades[$i]['next'] = $this->safe_string($response, 'next');
+            $tagged[] = $this->extend($trades[$i], array( 'next' => $this->safe_string($response, 'next') ));
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($tagged, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1764,7 +1770,7 @@ class paradex extends Exchange {
         $timestamp = $this->safe_integer($interest, 'created_at');
         $marketId = $this->safe_string($interest, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'openInterestAmount' => $this->safe_string($interest, 'open_interest'),
@@ -1782,8 +1788,8 @@ class paradex extends Exchange {
 
     public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -1872,10 +1878,12 @@ class paradex extends Exchange {
         );
         $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $req, $this->safe_string($account, 'address'));
         $signature = $this->starknet_sign($msg, $account['privateKey']);
-        $params['signature'] = $signature;
-        $params['account'] = $this->safe_string($account, 'address');
-        $params['public_key'] = $this->safe_string($account, 'publicKey');
-        $response = Async\await($this->privatePostOnboarding($params));
+        $request = array(
+            'signature' => $signature,
+            'account' => $this->safe_string($account, 'address'),
+            'public_key' => $this->safe_string($account, 'publicKey'),
+        );
+        $response = Async\await($this->privatePostOnboarding($this->extend($params, $request)));
         return $response;
     }
 
@@ -1917,11 +1925,13 @@ class paradex extends Exchange {
         );
         $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $req, $this->safe_string($account, 'address'));
         $signature = $this->starknet_sign($msg, $account['privateKey']);
-        $params['signature'] = $signature;
-        $params['account'] = $this->safe_string($account, 'address');
-        $params['timestamp'] = $req['timestamp'];
-        $params['expiration'] = $req['expiration'];
-        $response = Async\await($this->privatePostAuth($params));
+        $request = array(
+            'signature' => $signature,
+            'account' => $this->safe_string($account, 'address'),
+            'timestamp' => $now,
+            'expiration' => $expires,
+        );
+        $response = Async\await($this->privatePostAuth($this->extend($params, $request)));
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -1971,7 +1981,7 @@ class paradex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
         $orderType = $this->safe_string($order, 'type');
@@ -2104,7 +2114,8 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnlyParam = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = ($reduceOnlyParam === true);
         $orderType = strtoupper($type);
         $orderSide = strtoupper($side);
         $request = array(
@@ -2120,7 +2131,7 @@ class paradex extends Exchange {
         $isStopLossOrder = ($stopLossPrice !== null);
         $isStopOrder = ($triggerPrice !== null) || $isTakeProfitOrder || $isStopLossOrder;
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $postOnly = $this->is_post_only($isMarket, false, $params);
         $instruction = 'GTC';
         if ($timeInForce !== null) {
             $instruction = $this->encode_time_in_force($timeInForce);
@@ -2153,7 +2164,8 @@ class paradex extends Exchange {
         $isTakeProfitOrStopLoss = $isStopLossOrder || $isTakeProfitOrder;
         $sizeString = '0';
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if (!$isTakeProfitOrStopLoss || (($amount !== null) && ($amount > 0))) {
+        $amountStr = $this->number_to_string($amount);
+        if (!$isTakeProfitOrStopLoss || (($amountStr !== null) && Precise::string_gt($amountStr, '0'))) {
             $sizeString = $this->amount_to_precision($symbol, $amount);
         }
         $stopPrice = null;
@@ -2198,13 +2210,17 @@ class paradex extends Exchange {
             throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
         }
         $isMarket = (mb_strpos($orderType, 'MARKET') !== false);
+        $orderPrice = '0';
+        if (!$isMarket) {
+            $orderPrice = $this->scale_number($this->safe_string($request, 'price'));
+        }
         $orderReq = array(
             'timestamp' => $now,
             'market' => $this->string_to_base16($this->safe_string($request, 'market')),
             'side' => ($this->safe_string($request, 'side') === 'BUY') ? '1' : '2',
             'orderType' => $this->string_to_base16($this->safe_string($request, 'type')),
             'size' => $this->scale_number($this->safe_string($request, 'size')),
-            'price' => ($isMarket) ? '0' : $this->scale_number($this->safe_string($request, 'price')),
+            'price' => $orderPrice,
         );
         $orderFields = array(
             array( 'name' => 'timestamp', 'type' => 'felt' ),
@@ -2340,9 +2356,8 @@ class paradex extends Exchange {
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->omit($request, array( 'instruction', 'client_id', 'flags', 'recv_window' ));
-        $request['order_id'] = $id;
-        $request['id'] = $id;
-        $request = Async\await($this->sign_order_request($request, true));
+        $editRequest = $this->extend($request, array( 'order_id' => $id, 'id' => $id ));
+        $request = Async\await($this->sign_order_request($editRequest, true));
         $response = Async\await($this->privatePutOrdersOrderId($request));
         //
         //     {
@@ -2445,7 +2460,7 @@ class paradex extends Exchange {
         for ($i = 0; $i < count($orders); $i++) {
             $responseOrder = $this->safe_dict($responseOrders, $i);
             if ($responseOrder !== null) {
-                $result[] = $this->parse_order($responseOrder);
+                $result[] = $this->parse_order($this->extend(array(), $responseOrder));
             } else {
                 $error = $this->safe_dict($errors, $i);
                 $result[] = $this->safe_order(array(
@@ -2516,7 +2531,7 @@ class paradex extends Exchange {
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $hasOrderIds = ($ids !== null);
-        $hasClientOrderIds = ($clientOrderIds !== null) && ((gettype($clientOrderIds) === 'array' && array_keys($clientOrderIds) === array_keys(array_keys($clientOrderIds))));
+        $hasClientOrderIds = ($clientOrderIds !== null);
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
         }
@@ -2749,8 +2764,7 @@ class paradex extends Exchange {
         $paginationCursor = $this->safe_string($response, 'next');
         $ordersLength = count($orders);
         if (($paginationCursor !== null) && ($ordersLength > 0)) {
-            $first = $orders[0];
-            $first['next'] = $paginationCursor;
+            $first = $this->extend($orders[0], array( 'next' => $paginationCursor ));
             $orders[0] = $first;
         }
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -2931,10 +2945,11 @@ class paradex extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'results', array());
+        $tagged = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trades[$i]['next'] = $this->safe_string($response, 'next');
+            $tagged[] = $this->extend($trades[$i], array( 'next' => $this->safe_string($response, 'next') ));
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($tagged, $market, $since, $limit);
     }
 
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {
@@ -2960,12 +2975,14 @@ class paradex extends Exchange {
         $data = $this->safe_list($response, 'results', array());
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         $matching = array();
+        $marketId = $this->safe_string($market, 'id', '');
         for ($i = 0; $i < count($data); $i++) {
-            if ($this->safe_string($data[$i], 'market') === $market['id']) {
+            $rowMarketId = $this->safe_string($data[$i], 'market', '');
+            if ($rowMarketId === $marketId) {
                 $matching[] = $data[$i];
             }
         }
-        $positions = $this->parse_positions($matching, array( $market['symbol'] ));
+        $positions = $this->parse_positions($matching, array( $this->safe_string($market, 'symbol', '') ));
         return $this->safe_dict($positions, 0, array());
     }
 
@@ -3056,7 +3073,7 @@ class paradex extends Exchange {
         //
         $marketId = $this->safe_string($position, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower($position, 'side');
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         $quantity = Precise::string_abs($this->safe_string($position, 'size'));
@@ -3226,14 +3243,11 @@ class paradex extends Exchange {
         $rows = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
-        for ($i = 0; $i < count($rows); $i++) {
-            $rows[$i]['next'] = $next;
-        }
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            if ($allKinds || ($this->safe_string($row, 'kind') === 'DEPOSIT')) {
-                $deposits[] = $row;
+            if ($allKinds || ($this->safe_string($rows[$i], 'kind') === 'DEPOSIT')) {
+                $withCursor = $this->extend($rows[$i], array( 'next' => $next ));
+                $deposits[] = $withCursor;
             }
         }
         return $this->parse_transactions($deposits, null, $since, $limit);
@@ -3303,14 +3317,11 @@ class paradex extends Exchange {
         $rows = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
-        for ($i = 0; $i < count($rows); $i++) {
-            $rows[$i]['next'] = $next;
-        }
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            if ($allKinds || ($this->safe_string($row, 'kind') === 'WITHDRAWAL')) {
-                $deposits[] = $row;
+            if ($allKinds || ($this->safe_string($rows[$i], 'kind') === 'WITHDRAWAL')) {
+                $withCursor = $this->extend($rows[$i], array( 'next' => $next ));
+                $deposits[] = $withCursor;
             }
         }
         return $this->parse_transactions($deposits, null, $since, $limit);
@@ -3379,10 +3390,11 @@ class paradex extends Exchange {
         $rows = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
+        $tagged = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $rows[$i]['next'] = $next;
+            $tagged[] = $this->extend($rows[$i], array( 'next' => $next ));
         }
-        return $this->parse_transfers($rows, $currency, $since, $limit);
+        return $this->parse_transfers($tagged, $currency, $since, $limit);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -3537,7 +3549,7 @@ class paradex extends Exchange {
         // }
         //
         $configs = $this->safe_list($response, 'configs');
-        return $this->parse_margin_mode($this->safe_dict($configs, 0), $market);
+        return $this->parse_margin_mode($this->safe_dict($configs, 0, array()), $market);
     }
 
     public function parse_margin_mode(array $rawMarginMode, ?array $market = null): array {
@@ -3577,7 +3589,8 @@ class paradex extends Exchange {
         $leverage = $leverageOption;
         if ($leverage === null) {
             // the endpoint always sets the leverage too, keep the current one instead of resetting it
-            $currentLeverage = Async\await($this->fetch_leverage($symbol));
+            $leverageSymbol = $this->safe_string($market, 'symbol', '');
+            $currentLeverage = Async\await($this->fetch_leverage($leverageSymbol));
             $leverage = $this->safe_integer($currentLeverage, 'longLeverage');
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a params.leverage argument, the current leverage of ' . $market['symbol'] . ' could not be fetched');
@@ -3627,7 +3640,7 @@ class paradex extends Exchange {
         // }
         //
         $configs = $this->safe_list($response, 'configs');
-        return $this->parse_leverage($this->safe_dict($configs, 0), $market);
+        return $this->parse_leverage($this->safe_dict($configs, 0, array()), $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3801,8 +3814,10 @@ class paradex extends Exchange {
         //
         $results = $this->safe_list($response, 'results', array());
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($results, 'option') : $results;
-        return $this->parse_all_greeks($rows, $symbolsNormalized);
+        if ($this->safe_string($request, 'market') === 'ALL') {
+            return $this->parse_all_greeks($this->filter_loaded_summaries($results, 'option'), $symbolsNormalized);
+        }
+        return $this->parse_all_greeks($results, $symbolsNormalized);
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {
@@ -3838,7 +3853,7 @@ class paradex extends Exchange {
         //
         $marketId = $this->safe_string($greeks, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, 'option');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($greeks, 'created_at');
         $greeksData = $this->safe_dict($greeks, 'greeks', array());
         return array(
@@ -3952,14 +3967,14 @@ class paradex extends Exchange {
         $result = array();
         $prefix = $code . '-';
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $marketId = $this->safe_string($entry, 'symbol', '');
+            $marketId = $this->safe_string($data[$i], 'symbol', '');
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if (str_starts_with($marketId, $prefix)) {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 $market = $this->safe_market($marketId);
                 if ($market['option'] === true) {
-                    $result[$market['symbol']] = $this->parse_option($entry, null, $market);
+                    $optionSymbol = $this->safe_string($market, 'symbol', '');
+                    $result[$optionSymbol] = $this->parse_option($this->safe_dict($data, $i, array()), null, $market);
                 }
             }
         }
@@ -4084,10 +4099,11 @@ class paradex extends Exchange {
         $results = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
+        $tagged = array();
         for ($i = 0; $i < count($results); $i++) {
-            $results[$i]['next'] = $next;
+            $tagged[] = $this->extend($results[$i], array( 'next' => $next ));
         }
-        return $this->parse_incomes($results, $market, $since, $limit);
+        return $this->parse_incomes($tagged, $market, $since, $limit);
     }
 
     public function parse_income(array $income, ?array $market = null): array {
@@ -4131,7 +4147,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of funding $rate structures
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times, back from until (default now) to $since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times, back from $until (default now) to $since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
@@ -4149,9 +4165,15 @@ class paradex extends Exchange {
             // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             list($paginationCalls, $paramsCalls) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
-            $endAt = $this->safe_integer($paramsCalls, 'until');
-            if ($endAt === null) {
-                $endAt = min($this->milliseconds(), $this->sum($since, $paginationCalls * 5000 * $rowSpacing));
+            $until = $this->safe_integer($paramsCalls, 'until');
+            $pageSpan = $this->parse_to_int($paginationCalls * 25000000); // 5000 rows per page * 5000ms rowSpacing
+            $sinceEnd = $this->sum($since, $pageSpan);
+            $endAt = $this->milliseconds();
+            if ($sinceEnd < $endAt) {
+                $endAt = $sinceEnd;
+            }
+            if ($until !== null) {
+                $endAt = $until;
             }
             $paramsEndAt = $this->extend($this->omit($paramsPaginate, 'until'), array( 'end_at' => $endAt ));
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
@@ -4173,10 +4195,10 @@ class paradex extends Exchange {
             $requestUntil['start_at'] = $since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            $windowEnd = $this->sum($since, $pageSize * $rowSpacing);
-            $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
-            if (!(is_array($requestUntil) && array_key_exists('end_at' ?? '', $requestUntil)) || ($endAt > $windowEnd)) {
-                $requestUntil['end_at'] = $windowEnd;
+            $pageWindowEnd = $this->sum($this->parse_to_int($since), $pageSize * $rowSpacing);
+            $pageEndAt = $this->safe_integer($requestUntil, 'end_at', $pageWindowEnd);
+            if (($this->safe_integer($requestUntil, 'end_at') === null) || ($pageEndAt > $pageWindowEnd)) {
+                $requestUntil['end_at'] = $pageWindowEnd;
             }
         }
         $response = Async\await($this->publicGetFundingData($this->extend($requestUntil, $paramsUntil)));
@@ -4204,7 +4226,7 @@ class paradex extends Exchange {
         $next = $this->safe_string($response, 'next');
         $rates = array();
         for ($i = 0; $i < count($results); $i++) {
-            $rate = $results[$i];
+            $rate = $this->extend(array(), $results[$i]);
             if ($next !== null) {
                 $rate['next'] = $next; // the cursor helper reads it from info, the last page has none
             }
@@ -4294,7 +4316,7 @@ class paradex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

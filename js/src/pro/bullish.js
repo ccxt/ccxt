@@ -168,7 +168,9 @@ export default class bullish extends bullishRest {
         const cookies = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const id = this.requestId().toString();
         const message = {
             'jsonrpc': '2.0',
@@ -198,7 +200,9 @@ export default class bullish extends bullishRest {
         const cookies = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const tradingAccountId = this.safeString(params, 'tradingAccountId');
         let paramsOmitted = params;
         let requestParams = request;
@@ -401,7 +405,7 @@ export default class bullish extends bullishRest {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let parsed = this.parseTicker(data, market);
         if (updateType === 'update') {
             const ticker = this.safeDict(this.tickers, symbol, {});
@@ -499,8 +503,9 @@ export default class bullish extends bullishRest {
         };
         const parsed = this.parseOrderBook(snapshot, symbol, timestamp);
         const sequenceNumberRange = this.safeList(data, 'sequenceNumberRange', []);
-        if (sequenceNumberRange.length > 0) {
-            const lastIndex = sequenceNumberRange.length - 1;
+        const sequenceNumberRangeLength = sequenceNumberRange.length;
+        if (sequenceNumberRangeLength > 0) {
+            const lastIndex = sequenceNumberRangeLength - 1;
             parsed['nonce'] = this.safeInteger(sequenceNumberRange, lastIndex);
         }
         orderbook.reset(parsed);
@@ -642,7 +647,7 @@ export default class bullish extends bullishRest {
             const orders = this.orders;
             const symbols = {};
             for (let i = 0; i < rawOrders.length; i++) {
-                const parsedOrder = this.parseOrder(rawOrders[i]);
+                const parsedOrder = this.parseOrder(this.safeDict(rawOrders, i, {}));
                 orders.append(parsedOrder);
                 const symbol = this.safeString(parsedOrder, 'symbol');
                 if (symbol !== undefined) {
@@ -772,7 +777,7 @@ export default class bullish extends bullishRest {
             const trades = this.myTrades;
             const symbols = {};
             for (let i = 0; i < rawTrades.length; i++) {
-                const parsedTrade = this.parseTrade(rawTrades[i]);
+                const parsedTrade = this.parseTrade(this.safeDict(rawTrades, i, {}));
                 trades.append(parsedTrade);
                 const symbol = this.safeString(parsedTrade, 'symbol');
                 if (symbol !== undefined) {
@@ -868,11 +873,12 @@ export default class bullish extends bullishRest {
             const data = this.safeList(message, 'data', []);
             const parsed = this.parseBalanceList(data);
             const parsedKeys = Object.keys(parsed);
+            const balance = this.safeDict(this.balance, tradingAccountId, {});
             for (let i = 0; i < parsedKeys.length; i++) {
                 const parsedKey = parsedKeys[i];
-                this.balance[tradingAccountId][parsedKey] = parsed[parsedKey];
+                balance[parsedKey] = parsed[parsedKey];
             }
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance(balance);
         }
         else {
             const data = this.safeDict(message, 'data', {});
@@ -881,11 +887,12 @@ export default class bullish extends bullishRest {
             account['total'] = this.safeString(data, 'availableQuantity');
             account['used'] = this.safeString(data, 'lockedQuantity');
             const code = this.safeCurrencyCode(assetId);
+            const deltaBalance = this.safeDict(this.balance, tradingAccountId, {});
+            deltaBalance['info'] = message;
             if ((tradingAccountId !== undefined) && (code !== undefined)) {
-                this.balance[tradingAccountId][code] = account;
+                deltaBalance[code] = account;
             }
-            this.balance[tradingAccountId]['info'] = message;
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance(deltaBalance);
         }
         const messageHash = 'balance';
         const tradingAccountIdHash = '::' + tradingAccountId;
@@ -913,8 +920,6 @@ export default class bullish extends bullishRest {
         let symbolsNormalized = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (hasSymbols && (symbolsNormalized !== undefined)) {
             messageHash += '::' + symbolsNormalized.join(',');
         }
         const request = {
@@ -964,7 +969,7 @@ export default class bullish extends bullishRest {
         const positions = this.positions;
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const position = this.parsePosition(rawPositions[i]);
+            const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
             positions.append(position);
             newPositions.push(position);
         }
@@ -1005,6 +1010,7 @@ export default class bullish extends bullishRest {
         catch (e) {
             client.reject(e);
         }
+        return false;
     }
     handleUnSubscriptionError(client, message) {
         //

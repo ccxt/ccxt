@@ -225,8 +225,8 @@ class mudrex extends Exchange {
         return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
-        if ($response === null || gettype($response) !== 'array') {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
+        if ($response === null) {
             return null;
         }
         $success = $this->safe_bool($response, 'success', true);
@@ -310,12 +310,18 @@ class mudrex extends Exchange {
         $now = $this->seconds();
         $windowLength = $duration * $requestLimit;
         $defaultStart = $now - $windowLength;
-        $startTime = $this->parse_to_int(($since !== null) ? ($since / 1000) : $defaultStart);
+        $startTime = $this->parse_to_int($defaultStart);
+        if ($since !== null) {
+            $startTime = $this->parse_to_int($since / 1000);
+        }
         $windowEnd = $this->parse_to_int($startTime . $duration * $requestLimit);
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
         $cappedEnd = ($windowEnd > $now) ? $now : $windowEnd;
-        $endTime = $this->parse_to_int(($until !== null) ? ($until / 1000) : $cappedEnd);
+        $endTime = $this->parse_to_int($cappedEnd);
+        if ($until !== null) {
+            $endTime = $this->parse_to_int($until / 1000);
+        }
         $request['start_time'] = $startTime;
         $request['end_time'] = $endTime;
         if ($priceType === 'mark') {
@@ -405,12 +411,11 @@ class mudrex extends Exchange {
         }
         $request = array();
         $response = Async\await($this->privateGetFutures($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
         $rows = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $rows = $this->to_array($data);
-        } else {
-            $rows = $this->safe_list($data, 'items', array());
+        $rows = $this->safe_list($response, 'data', array());
+        $rowsLength = count($rows);
+        if ($rowsLength === 0) {
+            $rows = $this->safe_list($this->safe_dict($response, 'data', array()), 'items', array());
         }
         $resultTickers = array();
         for ($i = 0; $i < count($rows); $i++) {
@@ -420,11 +425,11 @@ class mudrex extends Exchange {
                 continue;
             }
             $m = $this->safe_market($sym);
-            $symbol = $m['symbol'];
+            $symbol = $this->safe_string($m, 'symbol', '');
             if ($symbols !== null && !$this->in_array($symbol, $symbols)) {
                 continue;
             }
-            $resultTickers[$symbol] = $this->parse_ticker($t, $m);
+            $resultTickers[$symbol] = $this->parse_ticker($this->safe_dict($rows, $i, array()), $m);
         }
         return $this->filter_by_array_tickers($resultTickers, 'symbol', $symbols);
     }
@@ -432,7 +437,7 @@ class mudrex extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $ms = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($ms, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $pct = $this->safe_number($ticker, 'change_perc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -464,12 +469,12 @@ class mudrex extends Exchange {
 
     private function do_fetch_markets($params = array()) {
         /**
-         * retrieves $data on all markets for the exchange
+         * retrieves data on all markets for the exchange
          *
          * @see https://docs.trade.mudrex.com/docs
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market $data
+         * @return {array[]} an array of objects representing market data
          */
         $aggregated = array();
         $offset = 0;
@@ -478,21 +483,21 @@ class mudrex extends Exchange {
         while ($paging) {
             $q = $this->extend(array( 'limit' => $pageLimit, 'offset' => $offset ), $params);
             $response = Async\await($this->privateGetFutures($q));
-            $data = $this->safe_value($response, 'data', array());
+            $dataDict = $this->safe_dict($response, 'data');
             $items = array();
-            if (gettype($data) === 'array' && (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-                $items = $this->safe_list($data, 'items', array());
+            if ($dataDict !== null) {
+                $items = $this->safe_list($dataDict, 'items', array());
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 $itemsLength = count($items);
                 if ($itemsLength === 0) {
-                    $items = $this->safe_list($data, 'results', array());
+                    $items = $this->safe_list($dataDict, 'results', array());
                     $itemsLength = count($items);
                 }
-                if (($itemsLength === 0) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
-                    $items = array( $data );
+                if (($itemsLength === 0) && (is_array($dataDict) && array_key_exists('symbol' ?? '', $dataDict))) {
+                    $items = array( $dataDict );
                 }
             } else {
-                $items = $this->to_array($data);
+                $items = $this->safe_list($response, 'data', array());
             }
             $numItems = count($items);
             if ($numItems === 0) {
@@ -768,7 +773,7 @@ class mudrex extends Exchange {
             }
             $riskResponse = Async\await($this->privatePostFuturesPositionsPositionIdRiskorder($this->extend($riskRequest, $paramsOmitted)));
             $riskData = $this->safe_dict($riskResponse, 'data', $riskResponse);
-            return $this->parse_order($riskData, $market);
+            return $this->parse_order($this->extend(array(), $riskData), $market);
         }
         $lev = $this->safe_integer($params, 'leverage', 1);
         if (($type === 'market') && ($price === null)) {
@@ -842,7 +847,7 @@ class mudrex extends Exchange {
         }
         $response = Async\await($this->privatePatchFuturesOrdersOrderId($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -898,7 +903,7 @@ class mudrex extends Exchange {
         }
         $ts = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string_lower($order, 'status'));
-        $sym = $marketResolved['symbol'];
+        $sym = $this->safe_string($marketResolved, 'symbol', '');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $oid,
@@ -956,7 +961,7 @@ class mudrex extends Exchange {
         );
         $response = Async\await($this->privateDeleteFuturesOrdersOrderId($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -986,7 +991,7 @@ class mudrex extends Exchange {
         );
         $response = Async\await($this->privateGetFuturesOrdersOrderId($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_orders_by_state(string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1017,15 +1022,14 @@ class mudrex extends Exchange {
         } else {
             $response = Async\await($this->privateGetFuturesOrders($request));
         }
-        $data = $this->safe_value($response, 'data', array());
-        $rows = $this->to_array($data);
+        $rows = $this->safe_list($response, 'data', array());
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $orders = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $orders[] = $this->parse_order($rows[$i], $market);
+            $orders[] = $this->parse_order($this->safe_dict($rows, $i, array()), $market);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
@@ -1107,17 +1111,12 @@ class mudrex extends Exchange {
         }
         $q = array();
         $response = Async\await($this->privateGetFuturesPositions($this->extend($q, $params)));
-        $data = $this->safe_value($response, 'data', array());
-        if ($data === null) {
-            return array();
-        }
-        $rows = $this->to_array($data);
+        $rows = $this->safe_list($response, 'data', array());
         $outPos = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $p = $rows[$i];
-            $symRaw = $this->safe_string($p, 'symbol');
+            $symRaw = $this->safe_string($rows[$i], 'symbol');
             $m = $this->safe_market($symRaw);
-            $pos = $this->parse_position($p, $m);
+            $pos = $this->parse_position($this->safe_dict($rows, $i, array()), $m);
             $outPos[] = $pos;
         }
         return $this->filter_by_array_positions($outPos, 'symbol', $symbols);
@@ -1281,12 +1280,12 @@ class mudrex extends Exchange {
             $partialParams = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
             $partialResponse = Async\await($this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $partialParams)));
             $partialData = $this->safe_dict($partialResponse, 'data', $partialResponse);
-            return $this->parse_order($partialData, $market);
+            return $this->parse_order($this->extend(array(), $partialData), $market);
         }
         $closeParams = $this->omit($params, array( 'position_id' ));
         $response = Async\await($this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $closeParams)));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
@@ -1395,7 +1394,7 @@ class mudrex extends Exchange {
                 $allRows[] = $entry;
                 if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
+                    if (($market === null) || ($this->safe_string($entry, 'symbol') === $this->safe_string($market, 'id'))) {
                         $transactionsCount = $transactionsCount + 1;
                     }
                 }
@@ -1431,8 +1430,9 @@ class mudrex extends Exchange {
         $rows = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $rebate = null;
+            $transactionKey = $this->safe_string($transactionKeys, $i);
             for ($j = 0; $j < count($rebateKeys); $j++) {
-                if ($rebateKeys[$j] === $transactionKeys[$i]) {
+                if ($this->safe_string($rebateKeys, $j) === $transactionKey) {
                     $rebate = $this->safe_string($rebateAmounts, $j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     $rebateKeys[$j] = '';
@@ -1466,7 +1466,7 @@ class mudrex extends Exchange {
         //
         $ms = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($ms, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $ts = $this->parse8601($this->safe_string($trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         $side = $this->safe_string_lower($trade, 'order_type');

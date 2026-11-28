@@ -42,7 +42,8 @@ class OrderBook implements CustomOrderBookProp {
 
     symbol: Str;
 
-    declare outcome: Str;
+    // only set on prediction books (see reset); typed as the prediction structure declares it
+    declare outcome: string;
 
     declare outcomeId: Str;
 

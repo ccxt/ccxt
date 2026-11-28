@@ -436,7 +436,7 @@ class hashkey extends \ccxt\async\hashkey {
         $messageHash = 'orders';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash = 'orders' . ':' . $symbolResolved;
+            $messageHash = 'orders' . ':' . $this->symbol($symbol);
         }
         $orders = Async\await($this->watch_private($messageHash));
         $limitResolved = $limit;
@@ -500,13 +500,12 @@ class hashkey extends \ccxt\async\hashkey {
         $marketId = $this->safe_string($order, 's');
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'O');
-        $side = $this->safe_string_lower($order, 'S');
-        $reduceOnly = null;
-        list($side, $reduceOnly) = $this->parseOrderSideAndReduceOnly($side);
-        $type = $this->parseOrderType($this->safe_string($order, 'o'));
-        $timeInForce = $this->safe_string($order, 'f');
-        $postOnly = null;
-        list($type, $timeInForce, $postOnly) = $this->parseOrderTypeTimeInForceAndPostOnly($type, $timeInForce);
+        $rawSide = $this->safe_string_lower($order, 'S');
+        $side = $this->parseOrderSideValue($rawSide);
+        $rawType = $this->parseOrderType($this->safe_string($order, 'o'));
+        $rawTimeInForce = $this->safe_string($order, 'f');
+        $timeInForce = $this->parseOrderTimeInForceValue($rawType, $rawTimeInForce);
+        $type = $this->parseOrderType($rawType);
         if ($this->safe_bool($marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             $type = null;
         }
@@ -537,8 +536,8 @@ class hashkey extends \ccxt\async\hashkey {
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'N')),
                 'amount' => $this->omit_zero(($this->safe_string($order, 'n'))),
             ),
-            'reduceOnly' => $reduceOnly,
-            'postOnly' => $postOnly,
+            'reduceOnly' => $this->parseOrderReduceOnlyValue($rawSide),
+            'postOnly' => $this->parseOrderPostOnlyValue($rawType, $rawTimeInForce),
             'info' => $order,
         ), $marketResolved);
     }
@@ -565,7 +564,7 @@ class hashkey extends \ccxt\async\hashkey {
         $messageHash = 'myTrades';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash = 'myTrades' . ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $this->symbol($symbol);
         }
         $trades = Async\await($this->watch_private($messageHash));
         $limitResolved = $limit;
@@ -815,7 +814,7 @@ class hashkey extends \ccxt\async\hashkey {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $snapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', true);
         if ($snapshot) {
-            $messageHash = $type . ':' . 'fetchBalanceSnapshot';
+            $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
@@ -867,19 +866,17 @@ class hashkey extends \ccxt\async\hashkey {
         if ($isSpot) {
             $type = 'spot';
         }
-        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
-            $this->balance[$type] = array();
-        }
-        $this->balance[$type]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $type, array());
+        $balance['info'] = $message;
         $currencyId = $this->safe_string($balanceUpdate, 'a');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string($balanceUpdate, 'f');
         $account['used'] = $this->safe_string($balanceUpdate, 'l');
         if ($code !== null) {
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $messageHash = 'balance:' . $type;
         $client->resolve($this->balance[$type], $messageHash);
     }

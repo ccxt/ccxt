@@ -133,9 +133,9 @@ function helper_test_properties() {
     assert((exchange_prop($exchange, 'apiKey') === null) || (exchange_prop($exchange, 'apiKey') === ''), 'apiKey should be empty string');
     assert(($exchange->secret === null) || ($exchange->secret === ''), 'secret should be empty string');
     assert(($exchange->uid === null) || ($exchange->uid === ''), 'uid should be empty string');
-    assert($exchange->login === null, 'login should be empty string');
+    assert(($exchange->login === null) || ($exchange->login === ''), 'login should be empty string');
     assert(($exchange->password === null) || ($exchange->password === ''), 'password should be empty string');
-    assert($exchange->twofa === null, 'twofa should be undefined');
+    assert(($exchange->twofa === null) || ($exchange->twofa === ''), 'twofa should be undefined');
     assert((exchange_prop($exchange, 'privateKey') === null) || (exchange_prop($exchange, 'privateKey') === ''), 'privateKey should be empty string');
     assert((exchange_prop($exchange, 'walletAddress') === null) || (exchange_prop($exchange, 'walletAddress') === ''), 'walletAddress should be empty string');
     assert($exchange->token === null, 'token should be empty string');

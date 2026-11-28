@@ -270,11 +270,7 @@ class limitless extends limitless$1["default"] {
                     page = this.sum(page, 1);
                     request['page'] = page;
                     const response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-                    let responseRows = [];
-                    if (Array.isArray(response)) {
-                        responseRows = response;
-                    }
-                    const page_markets = this.safeList(response, 'data', responseRows);
+                    const page_markets = this.safeList(response, 'data', []);
                     const pageMarketsLength = page_markets.length;
                     if (pageMarketsLength === 0) {
                         break;
@@ -298,31 +294,22 @@ class limitless extends limitless$1["default"] {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            let eventKey = undefined;
-            if (groupId !== undefined && groupId !== '') {
-                eventKey = this.shortenSlug(groupId);
-            }
+            const eventKey = this.shortenSlug(groupId);
             const m = this.parseMarket(raw);
             markets.push(m);
-            if ((eventKey !== undefined) && (eventKey !== '')) {
-                if (!(eventKey in eventGroups)) {
-                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
-                }
-                const eventGroup = eventGroups[eventKey];
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+            if (eventKey !== '') {
+                const eventGroup = this.safeDict(eventGroups, eventKey, { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] });
                 const groupMarkets = eventGroup['markets'];
                 groupMarkets.push(m);
                 eventGroup['markets'] = groupMarkets;
+                eventGroups[eventKey] = eventGroup;
             }
         }
         const eventsDict = {};
         const eventKeys = Object.keys(eventGroups);
         for (let i = 0; i < eventKeys.length; i++) {
             const eventKey = eventKeys[i];
-            const g = eventGroups[eventKey];
-            eventsDict[eventKey] = this.parseEvent(g);
+            eventsDict[eventKey] = this.parseEvent(this.safeDict(eventGroups, eventKey, {}));
         }
         this.events = eventsDict;
         const marketsLength = markets.length;
@@ -442,8 +429,7 @@ class limitless extends limitless$1["default"] {
         const tokenEntries = Object.keys(tokens);
         for (let i = 0; i < tokenEntries.length; i++) {
             const outcomeLabel = tokenEntries[i];
-            const tokenData = tokens[outcomeLabel];
-            const tokenId = tokenData;
+            const tokenId = this.safeString(tokens, outcomeLabel);
             const outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1058,10 +1044,8 @@ class limitless extends limitless$1["default"] {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             const rawBids = this.safeList(book, 'bids', []);
             const rawAsks = this.safeList(book, 'asks', []);
-            const rawBidsLength = rawBids.length;
-            const rawAsksLength = rawAsks.length;
-            const yesBestBid = (rawBidsLength > 0) ? rawBids[0] : undefined;
-            const yesBestAsk = (rawAsksLength > 0) ? rawAsks[0] : undefined;
+            const yesBestBid = this.safeDict(rawBids, 0);
+            const yesBestAsk = this.safeDict(rawAsks, 0);
             const yesBidPrice = this.safeString(yesBestBid, 'price');
             const yesBidSize = this.safeString(yesBestBid, 'size');
             const yesAskPrice = this.safeString(yesBestAsk, 'price');
@@ -1476,17 +1460,19 @@ class limitless extends limitless$1["default"] {
                 bucketOrder.push(key);
             }
             else {
-                const candle = candles[key];
-                const prevHigh = this.safeNumber(candle, 2);
-                if ((prevHigh === undefined) || (pPrice > prevHigh)) {
-                    candle[2] = pPrice;
+                const prevHigh = this.safeNumber(candles[key], 2, pPrice);
+                const prevLow = this.safeNumber(candles[key], 3, pPrice);
+                const openTs = this.safeInteger(candles[key], 0);
+                const openPrice = this.safeNumber(candles[key], 1);
+                if ((prevHigh !== undefined) && (pPrice > prevHigh)) {
+                    candles[key] = [openTs, openPrice, pPrice, prevLow, pPrice, 0];
                 }
-                const prevLow = this.safeNumber(candle, 3);
-                if ((prevLow === undefined) || (prevLow > pPrice)) {
-                    candle[3] = pPrice;
+                else if ((prevLow !== undefined) && (prevLow > pPrice)) {
+                    candles[key] = [openTs, openPrice, prevHigh, pPrice, pPrice, 0];
                 }
-                candle[4] = pPrice;
-                candles[key] = candle; // php arrays are value types - write the mutation back
+                else {
+                    candles[key] = [openTs, openPrice, prevHigh, prevLow, pPrice, 0];
+                }
             }
         }
         const result = [];
@@ -2149,7 +2135,10 @@ class limitless extends limitless$1["default"] {
                 }
                 else {
                     const quoteAmount = this.parseToNumeric(Precise["default"].stringMul(amountString, priceString));
-                    const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                    let costRequest = quoteAmount;
+                    if (cost !== undefined) {
+                        costRequest = cost;
+                    }
                     makerAmount = this.costToPredictionPrecision(outcome, costRequest);
                 }
             }
@@ -2238,8 +2227,8 @@ class limitless extends limitless$1["default"] {
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         const rPadded = r.padStart(64, '0');
         const sPadded = s.padStart(64, '0');
@@ -2266,10 +2255,8 @@ class limitless extends limitless$1["default"] {
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        rHex = this.padHexToEven(rHex);
-        sHex = this.padHexToEven(sHex);
+        const rHex = this.padHexToEven(this.safeString(signature, 'r', ''));
+        const sHex = this.padHexToEven(this.safeString(signature, 's', ''));
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {
@@ -2428,8 +2415,8 @@ class limitless extends limitless$1["default"] {
     async cancelAllOrders(outcome = undefined, params = {}) {
         let paramsValue = params;
         if (outcome !== undefined) {
-            let warn = true;
-            [warn, paramsValue] = this.handleOptionAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            const [warn, paramsWarn] = this.handleOptionBoolAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', true);
+            paramsValue = paramsWarn;
             if (warn) {
                 throw new errors.BadRequest(this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
@@ -2469,13 +2456,11 @@ class limitless extends limitless$1["default"] {
             const outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, 'outcome');
         }
-        let paginate = false;
         const maxLimit = 100;
-        let paramsValue = params;
-        [paginate, paramsValue] = this.handleOptionAndParams(paramsValue, 'fetchMyTrades', 'paginate', paginate);
+        const [paginate, paramsValue] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            paramsValue = this.omit(paramsValue, 'paginate');
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', undefined, maxLimit);
+            const paramsCursor = this.omit(paramsValue, 'paginate');
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', undefined, maxLimit);
         }
         const request = {};
         if (limit !== undefined) {
@@ -2815,10 +2800,9 @@ class limitless extends limitless$1["default"] {
         const result = [];
         const labels = ['yes', 'no'];
         for (let i = 0; i < clob.length; i++) {
-            const entry = this.safeDict(clob, i);
             for (let j = 0; j < labels.length; j++) {
                 const label = this.safeString(labels, j);
-                const position = this.getPositionFromClobEntry(label, entry);
+                const position = this.getPositionFromClobEntry(label, this.safeDict(clob, i, {}));
                 if (position !== undefined) {
                     result.push(position);
                 }
@@ -2826,10 +2810,7 @@ class limitless extends limitless$1["default"] {
         }
         return result;
     }
-    getPositionFromClobEntry(label, entry = undefined) {
-        if (entry === undefined) {
-            return undefined;
-        }
+    getPositionFromClobEntry(label, entry) {
         const tokensBalance = this.safeDict(entry, 'tokensBalance');
         const contracts = this.omitZero(this.safeString(tokensBalance, label));
         if (contracts === undefined) {
@@ -2988,26 +2969,18 @@ class limitless extends limitless$1["default"] {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            let eventKey = undefined;
-            if (groupId !== undefined && groupId !== '') {
-                eventKey = this.shortenSlug(groupId);
-            }
+            const eventKey = this.shortenSlug(groupId);
             const m = this.parseMarket(raw);
             if (m === undefined) {
                 throw new errors.ExchangeError(this.id + ' fetchEvents() missing m');
             }
             this.markets[m['market']] = m;
-            if ((eventKey !== undefined) && (eventKey !== '')) {
-                if (!(eventKey in eventGroups)) {
-                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
-                }
-                const eventGroup = eventGroups[eventKey];
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+            if (eventKey !== '') {
+                const eventGroup = this.safeDict(eventGroups, eventKey, { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] });
                 const groupMarkets = eventGroup['markets'];
                 groupMarkets.push(m);
                 eventGroup['markets'] = groupMarkets;
+                eventGroups[eventKey] = eventGroup;
             }
         }
         const result = [];
@@ -3093,7 +3066,8 @@ class limitless extends limitless$1["default"] {
         }
         const wanted = [];
         for (let i = 0; i < tags.length; i++) {
-            wanted.push(tags[i].toLowerCase());
+            const tag = this.safeString(tags, i, '');
+            wanted.push(tag.toLowerCase());
         }
         const categoryIds = [];
         const categoriesLength = categories.length;
@@ -3103,9 +3077,6 @@ class limitless extends limitless$1["default"] {
             const categoryId = this.safeString(category, 'id');
             let matched = false;
             for (let wi = 0; wi < wanted.length; wi++) {
-                if (name === undefined) {
-                    throw new errors.ExchangeError(this.id + ' fetchRawMarketsByTags() missing name');
-                }
                 if (name.indexOf(wanted[wi]) >= 0) {
                     matched = true;
                     break;
@@ -3153,8 +3124,7 @@ class limitless extends limitless$1["default"] {
      */
     sign(path, api = ['limitless'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
+        const baseUrl = this.safeString(this.urls['api'], apiGroup, this.safeString(this.urls['api'], 'limitless', ''));
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const querystring = this.urlencodeWithArrayRepeat(query);

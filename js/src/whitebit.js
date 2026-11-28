@@ -554,6 +554,10 @@ export default class whitebit extends Exchange {
         const makerFeeRate = this.safeString(market, 'makerFee');
         const maker = Precise.stringDiv(makerFeeRate, '100');
         const isSpot = !swap;
+        let contractSize = this.parseNumber('1');
+        if (isSpot) {
+            contractSize = undefined;
+        }
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -575,7 +579,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': isSpot ? undefined : this.parseNumber('1'), // perpetual amounts are denominated in base currency units
+            'contractSize': contractSize, // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -917,7 +921,8 @@ export default class whitebit extends Exchange {
         //
         const depositWithdrawFees = {};
         const codesValue = this.marketCodes(codes);
-        const currencyIds = Object.keys(response);
+        const feesById = this.extend({}, response);
+        const currencyIds = Object.keys(feesById);
         for (let i = 0; i < currencyIds.length; i++) {
             const entry = currencyIds[i];
             const splitEntry = entry.split(' ');
@@ -929,7 +934,10 @@ export default class whitebit extends Exchange {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
+                const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                feeEntryInfo[entry] = feeInfo;
+                feeEntry['info'] = feeEntryInfo;
                 const networkId = this.safeString(splitEntry, 1);
                 const withdraw = this.safeDict(feeInfo, 'withdraw');
                 const deposit = this.safeDict(feeInfo, 'deposit');
@@ -944,19 +952,21 @@ export default class whitebit extends Exchange {
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length - 0;
-                    const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
+                    const networkCode = this.networkIdToCode(networkId.slice(1, -1), code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                        feeEntryNetworks[networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         };
+                        feeEntry['networks'] = feeEntryNetworks;
                     }
                 }
                 else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    feeEntry['withdraw'] = withdrawResult;
+                    feeEntry['deposit'] = depositResult;
                 }
+                depositWithdrawFees[code] = feeEntry;
             }
         }
         const depositWithdrawCodes = Object.keys(depositWithdrawFees);
@@ -1207,7 +1217,7 @@ export default class whitebit extends Exchange {
         const currencyKeys = Object.keys(currenciesData);
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
-            const currency = currenciesData[code];
+            const currency = this.safeDict(currenciesData, code);
             if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
@@ -1482,7 +1492,7 @@ export default class whitebit extends Exchange {
                     if (orderId === id) {
                         const marketId = this.safeString(order, 'market');
                         const marketNew = this.safeMarket(marketId, undefined, '_');
-                        return this.parseOrder(order, marketNew);
+                        return this.parseOrder(this.safeDict(orders, i, {}), marketNew);
                     }
                 }
             }
@@ -1497,7 +1507,8 @@ export default class whitebit extends Exchange {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted));
                 // Search for order in executed orders response (object format)
-                const marketIds = Object.keys(response);
+                const executedById = this.extend({}, response);
+                const marketIds = Object.keys(executedById);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket(marketId, undefined, '_');
@@ -1506,7 +1517,7 @@ export default class whitebit extends Exchange {
                         const order = marketOrders[j];
                         const orderId = this.safeString(order, 'id', '');
                         if (orderId === id) {
-                            return this.parseOrder(order, marketNew);
+                            return this.parseOrder(this.safeDict(marketOrders, j, {}), marketNew);
                         }
                     }
                 }
@@ -1631,8 +1642,8 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const ticker = this.parseTicker(this.safeValue(response, marketId), market);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker(this.safeDict(response, marketId, {}), market);
+            const symbol = this.safeString(ticker, 'symbol');
             result[symbol] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -1779,7 +1790,8 @@ export default class whitebit extends Exchange {
         }
         else {
             let results = [];
-            const keys = Object.keys(response);
+            const tradesById = this.extend({}, response);
+            const keys = Object.keys(tradesById);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket(marketId, undefined, '_');
@@ -1843,7 +1855,7 @@ export default class whitebit extends Exchange {
         const amount = this.safeString2(trade, 'amount', 'quote_volume');
         const id = this.safeString2(trade, 'id', 'tradeID');
         const side = this.safeString2(trade, 'type', 'side');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const role = this.safeInteger(trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
@@ -1895,8 +1907,14 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
-        const limitResolved = (since !== undefined) ? cappedLimit : limit;
+        let cappedLimit = 1440;
+        if ((limit !== undefined) && (limit < 1440)) {
+            cappedLimit = limit;
+        }
+        let limitResolved = limit;
+        if (since !== undefined) {
+            limitResolved = cappedLimit;
+        }
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         if ((since !== undefined) || (until !== undefined)) {
@@ -1906,12 +1924,12 @@ export default class whitebit extends Exchange {
             const duration = this.parseTimeframe(timeframe);
             let endTime = undefined;
             if (until !== undefined) {
-                endTime = this.sum(this.parseToInt(until / 1000), duration);
+                endTime = this.parseToInt(this.sum(this.parseToInt(until / 1000), duration));
             }
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                const rangeEnd = this.sum(start, duration * cappedLimit);
+                const rangeEnd = this.parseToInt(this.sum(start, duration * cappedLimit));
                 if ((endTime === undefined) || (rangeEnd < endTime)) {
                     endTime = rangeEnd;
                 }
@@ -2342,7 +2360,8 @@ export default class whitebit extends Exchange {
         // Sort by timestamp (most recent first)
         const sortedOrders = this.sortBy(allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (limit !== undefined && sortedOrders.length > limit) {
+        const sortedOrdersLength = sortedOrders.length;
+        if (limit !== undefined && sortedOrdersLength > limit) {
             return this.arraySlice(sortedOrders, 0, limit);
         }
         return sortedOrders;
@@ -2568,7 +2587,7 @@ export default class whitebit extends Exchange {
             const marketNew = this.safeMarket(marketId, undefined, '_');
             const orders = this.safeList(response, marketId, []);
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], marketNew);
+                const order = this.parseOrder(this.safeDict(orders, j, {}), marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
@@ -2629,7 +2648,7 @@ export default class whitebit extends Exchange {
         //
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const side = this.safeString(order, 'side');
         const filled = this.safeString(order, 'dealStock');
         let remaining = this.safeString(order, 'left');
@@ -3106,7 +3125,9 @@ export default class whitebit extends Exchange {
         //
         //    []
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer({}, currency), {
+            'info': response,
+        });
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -3207,15 +3228,23 @@ export default class whitebit extends Exchange {
         const currencyId = this.safeString(transaction, 'ticker');
         const status = this.safeString(transaction, 'status');
         const method = this.safeString(transaction, 'method');
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if (method === '1') {
+            addressFrom = address;
+        }
+        else if (method === '2') {
+            addressTo = address;
+        }
         return {
             'id': this.safeString(transaction, 'uniqueId'),
             'txid': this.safeString(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'network': this.networkIdToCode(this.safeString(transaction, 'network'), this.safeCurrencyCode(currencyId, currencyResolved)),
-            'addressFrom': (method === '1') ? address : undefined,
+            'addressFrom': addressFrom,
             'address': address,
-            'addressTo': (method === '2') ? address : undefined,
+            'addressTo': addressTo,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (method === '1') ? 'deposit' : 'withdrawal',
             'currency': this.safeCurrencyCode(currencyId, currencyResolved),

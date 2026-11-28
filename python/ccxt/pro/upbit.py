@@ -40,8 +40,9 @@ class upbit(ccxt.async_support.upbit):
     async def watch_public_multiple(self, symbols: Strings, channel: Str, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
-        symbolsRequested = self.symbols if (symbols is None) else symbols
-        symbolsNormalized = self.market_symbols(symbolsRequested)
+        symbolsNormalized = self.symbols
+        if symbols is not None:
+            symbolsNormalized = self.market_symbols(symbols)
         marketIds = self.market_ids(symbolsNormalized)
         url = self.implode_params(self.safe_string(self.urls['api'], 'ws'), {
             'hostname': self.hostname,
@@ -209,11 +210,11 @@ class upbit(ccxt.async_support.upbit):
         #   "acc_trade_volume_24h": 118.38798416,
         #   "stream_type": "SNAPSHOT" }
         ticker = self.parse_ticker(message)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.tickers[symbol] = ticker
-        messageHash = 'ticker:' + symbol
-        client.resolve(ticker, messageHash)
+            messageHash = 'ticker:' + symbol
+            client.resolve(ticker, messageHash)
 
     def handle_order_book(self, client: Client, message: dict):
         # { type: "orderbook",
@@ -282,7 +283,7 @@ class upbit(ccxt.async_support.upbit):
         #   "sequential_id": 1584508285000002,
         #   "stream_type": "REALTIME" }
         trade = self.parse_trade(message)
-        symbol = trade['symbol']
+        symbol = self.safe_string(trade, 'symbol')
         if symbol is None:
             return
         stored = self.safe_value(self.trades, symbol)

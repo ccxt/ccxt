@@ -24,9 +24,9 @@ public class TestFetchFundingRateHistory extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol);
         for (var i = 0; i < ((List<?>)fundingRatesHistory).size(); i++)
         {
-            TestFundingRateHistory.testFundingRateHistory(exchange, skippedProperties, method, (fundingRatesHistory == null || i < 0 || i >= ((List<?>)fundingRatesHistory).size() ? null : ((List<?>)fundingRatesHistory).get(i)), (String) (symbol));
+            TestFundingRateHistory.testFundingRateHistory(exchange, skippedProperties, method, (fundingRatesHistory == null || i < 0 || i >= ((List<?>)fundingRatesHistory).size() ? null : ((List<?>)fundingRatesHistory).get(i)), symbol);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), fundingRatesHistory);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory);
         return true;
         });
 

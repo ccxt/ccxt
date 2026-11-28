@@ -204,7 +204,8 @@ class lbank(ccxt.async_support.lbank):
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [[market['symbol'], timeframe]],
         }
-        return await self.un_subscribe('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params)
+        symbolValue = self.safe_string(market, 'symbol', '')
+        return await self.un_subscribe('ohlcv:' + symbolValue + ':' + timeframeId, request, subscription, params)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -516,7 +517,8 @@ class lbank(ccxt.async_support.lbank):
             'topic': 'trades',
             'symbols': [market['symbol']],
         }
-        return await self.un_subscribe('trades:' + market['symbol'], request, subscription, params)
+        symbolValue = self.safe_string(market, 'symbol', '')
+        return await self.un_subscribe('trades:' + symbolValue, request, subscription, params)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -955,7 +957,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        SERVER: 'V2',
@@ -967,6 +969,7 @@ class lbank(ccxt.async_support.lbank):
         errMsg = self.safe_string(message, 'message', '')
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
+        return False
 
     async def handle_ping(self, client: Client, message: dict):
         #

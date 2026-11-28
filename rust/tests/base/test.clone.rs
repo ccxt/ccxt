@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,7 +15,7 @@ pub fn testClone() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut obj1: Value = Value::Map({
+    let obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]));
@@ -44,7 +45,7 @@ pub fn testClone() {
             m.insert("other1".to_string(), Value::Str("x".into()));
         m
     });
-    let mut obj2: Value = Value::Map({
+    let obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -75,8 +76,8 @@ pub fn testClone() {
         m
     });
     // deepExtend
-    let mut deepExtended: Value = exchange.deep_extend(obj1, &[obj2.clone()]);
-    let mut compareTo: Value = Value::Map({
+    let deepExtended: Value = exchange.deep_extend(obj1, &[obj2]);
+    let compareTo: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -110,7 +111,7 @@ pub fn testClone() {
     });
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".into()).clone(), deepExtended.clone(), compareTo.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testDeepExtend".into()), deepExtended, compareTo]);
     // -------------------------------------------------------------------------
     // test immutability / no cross-mutation between clone and original
     // -------------------------------------------------------------------------
@@ -123,16 +124,16 @@ pub fn testClone() {
         m
     });
     let mut simpleClone: Value = exchange.clone(simpleOrig.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".into())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&simpleClone, &Value::Str("y".into())).as_str() == Some("hello")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&simpleClone, &Value::Str("z".into())) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".into())), &Value::Int(1))))));
+    assert!(crate::test_helpers::is_true(&((get_value(&simpleClone, &Value::Str("y".into())).as_str() == Some("hello")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&simpleClone, &Value::Str("z".into())) == Value::Null))));
     add_element_to_object(&mut simpleClone, &Value::Str("x".into()), Value::Int(999));
     add_element_to_object(&mut simpleClone, &Value::Str("y".into()), Value::Str("mutated".into()));
-    assert!(ccxt::runtime::is_true(&((simpleOrig.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&((simpleOrig.as_map().and_then(|__m| __m.get("y")).cloned().unwrap_or(Value::Null).as_str() == Some("hello")))));
+    assert!(crate::test_helpers::is_true(&((simpleOrig.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
+    assert!(crate::test_helpers::is_true(&((simpleOrig.as_map().and_then(|__m| __m.get("y")).cloned().unwrap_or(Value::Null).as_str() == Some("hello")))));
     // mutating the original must not affect an already-taken clone
     if let Value::Dict(__d) = &mut simpleOrig { std::sync::Arc::make_mut(__d).insert("x".into(), Value::Int(42)); }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".into())), &Value::Int(999))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".into())), &Value::Int(999))))));
     // -------------------------------------------------------------------------
     // --- test B: nested object – verify clone is a shallow copy (top-level keys independent) ---
     let mut nestedOrig: Value = Value::Map({
@@ -149,39 +150,39 @@ pub fn testClone() {
     let mut nestedClone: Value = exchange.clone(nestedOrig.clone());
     // top-level scalar: independent
     add_element_to_object(&mut nestedClone, &Value::Str("top".into()), Value::Str("cloned".into()));
-    assert!(ccxt::runtime::is_true(&((nestedOrig.as_map().and_then(|__m| __m.get("top")).cloned().unwrap_or(Value::Null).as_str() == Some("original")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&nestedClone, &Value::Str("top".into())).as_str() == Some("cloned")))));
+    assert!(crate::test_helpers::is_true(&((nestedOrig.as_map().and_then(|__m| __m.get("top")).cloned().unwrap_or(Value::Null).as_str() == Some("original")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&nestedClone, &Value::Str("top".into())).as_str() == Some("cloned")))));
     if let Value::Dict(__d) = &mut nestedOrig { std::sync::Arc::make_mut(__d).insert("top".into(), Value::Str("changed_orig".into())); }
-    assert!(ccxt::runtime::is_true(&((get_value(&nestedClone, &Value::Str("top".into())).as_str() == Some("cloned")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&nestedClone, &Value::Str("top".into())).as_str() == Some("cloned")))));
     // -------------------------------------------------------------------------
     // --- test C: cloning an empty object ---
     let mut emptyClone: Value = exchange.clone(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }));
-    assert!(ccxt::runtime::is_true(&((Value::Int(object_keys(&emptyClone).len() as i64).as_f64() == Some(0.0)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(object_keys(&emptyClone).len() as i64).as_f64() == Some(0.0)))));
     add_element_to_object(&mut emptyClone, &Value::Str("newKey".into()), Value::Str("injected".into()));
     // confirm the operation didn't throw and the value was set
-    assert!(ccxt::runtime::is_true(&((get_value(&emptyClone, &Value::Str("newKey".into())).as_str() == Some("injected")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&emptyClone, &Value::Str("newKey".into())).as_str() == Some("injected")))));
     // -------------------------------------------------------------------------
     // --- test D: cloning an object with undefined values preserves those keys ---
-    let mut withUndef: Value = Value::Map({
+    let withUndef: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("present".to_string(), Value::Str("yes".into()));
             m.insert("absent".to_string(), Value::Null);
         m
     });
     let mut undefClone: Value = exchange.clone(withUndef.clone());
-    assert!(ccxt::runtime::is_true(&((in_op(&undefClone, &Value::Str("present".into()))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&undefClone, &Value::Str("present".into())).as_str() == Some("yes")))));
-    assert!(ccxt::runtime::is_true(&((in_op(&undefClone, &Value::Str("absent".into()))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&undefClone, &Value::Str("absent".into())) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&((in_op(&undefClone, &Value::Str("present".into()))))));
+    assert!(crate::test_helpers::is_true(&((get_value(&undefClone, &Value::Str("present".into())).as_str() == Some("yes")))));
+    assert!(crate::test_helpers::is_true(&((in_op(&undefClone, &Value::Str("absent".into()))))));
+    assert!(crate::test_helpers::is_true(&((get_value(&undefClone, &Value::Str("absent".into())) == Value::Null))));
     // mutate clone – original untouched
     add_element_to_object(&mut undefClone, &Value::Str("present".into()), Value::Str("no".into()));
-    assert!(ccxt::runtime::is_true(&((withUndef.as_map().and_then(|__m| __m.get("present")).cloned().unwrap_or(Value::Null).as_str() == Some("yes")))));
+    assert!(crate::test_helpers::is_true(&((withUndef.as_map().and_then(|__m| __m.get("present")).cloned().unwrap_or(Value::Null).as_str() == Some("yes")))));
     // -------------------------------------------------------------------------
     // --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
-    let mut masterOrig: Value = Value::Map({
+    let masterOrig: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::Int(2));
@@ -192,14 +193,14 @@ pub fn testClone() {
     add_element_to_object(&mut clone1, &Value::Str("a".into()), Value::Int(100));
     add_element_to_object(&mut clone1, &Value::Str("d".into()), Value::Int(999)); // add extra key
     // original still pristine
-    assert!(ccxt::runtime::is_true(&((masterOrig.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&masterOrig, Value::Dict(__d) if __d.contains_key("d"))))))));
+    assert!(crate::test_helpers::is_true(&((masterOrig.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(matches!(&masterOrig, Value::Dict(__d) if __d.contains_key("d"))))))));
     // second independent clone from the still-pristine original
     let mut clone2: Value = exchange.clone(masterOrig.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&clone2, &Value::Str("a".into())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&clone2, &Value::Str("d".into()))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&clone2, &Value::Str("a".into())), &Value::Int(1))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(in_op(&clone2, &Value::Str("d".into()))))))));
     // mutate clone2 differently
     add_element_to_object(&mut clone2, &Value::Str("b".into()), Value::Int(200));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&clone1, &Value::Str("b".into())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&((masterOrig.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&clone1, &Value::Str("b".into())), &Value::Int(2))))));
+    assert!(crate::test_helpers::is_true(&((masterOrig.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_f64() == Some(2.0)))));
 }

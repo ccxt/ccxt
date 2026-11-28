@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -113,83 +114,90 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<String> ibkrConnect()
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrConnectCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private String ibkrConnectCore()
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
-            Object url = null;
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Boolean useGateway = this.safeBool(this.options, "useGateway", false);
+        String url = null;
+        String wsUrl = this.safeString(this.urls.get("api"), "ws", "");
+        if (Boolean.TRUE.equals(useGateway))
+        {
+            // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
+            String gatewayUrl = this.safeString(this.options, "gatewayUrl");
+            String replacedUrl = wsUrl.replaceFirst("wss://", "https://");
+            String restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
+            url = (restUrl == null ? null : ((String)restUrl).replaceFirst("https://", "wss://"));
+            url = (url == null ? null : ((String)url).replaceFirst("http://", "ws://"));
+        } else
+        {
+            // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
+            url = ((wsUrl + "?oauth_token=") + this.apiKey);
+        }
+        if (!(((Map<?, ?>)this.clients).containsKey(url)))
+        {
+            Map<String, Object> response = (this.webapiPostV1ApiTickle(new HashMap<String, Object>() {{}})).join();
+            //
+            //     { "session": "bb665d0f55b6289d70bc8a7f4fd2d3d0", "iserver": { "authStatus": { "authenticated": true, ... } }, ... }
+            //
+            String session = this.safeString(response, "session");
+            if (java.util.Objects.equals(session, null))
+            {
+                throw new AuthenticationError(((this.id + " ibkrConnect() POST /tickle returned no session ") + this.json(response))) ;
+            }
+            Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "options", new HashMap<String, Object>() {{
+                        put( "headers", new HashMap<String, Object>() {{}} );
+                    }} );
+                }} );
+            }};
+            this.extendExchangeOptions(defaultOptions);
+            Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
+            // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
+            String userAgent = this.safeString(this.options, "wsUserAgent", "ClientPortalGW/1");
+            String cookie = ("api=" + session);
             if (Boolean.TRUE.equals(useGateway))
             {
-                // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
-                String gatewayUrl = this.safeString(this.options, "gatewayUrl");
-                String replacedUrl = Helpers.replace(((String)((Map<String, Object>)this.urls.get("api")).get("ws")), "wss://", "https://");
-                Object restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
-                url = (restUrl == null ? null : ((String)restUrl).replaceFirst("https://", "wss://"));
-                url = (url == null ? null : ((String)url).replaceFirst("http://", "ws://"));
-            } else
-            {
-                // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
-                url = Helpers.add(Helpers.add(((Map<String, Object>)this.urls.get("api")).get("ws"), "?oauth_token="), this.apiKey);
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("session", session);
+                cookie = ("api=" + this.json(mapLiteral1));
             }
-            if (!(((Map<?, ?>)this.clients).containsKey(url)))
-            {
-                Map<String, Object> response = (this.webapiPostV1ApiTickle(new HashMap<String, Object>() {{}})).join();
-                //
-                //     { "session": "bb665d0f55b6289d70bc8a7f4fd2d3d0", "iserver": { "authStatus": { "authenticated": true, ... } }, ... }
-                //
-                String session = this.safeString(response, "session");
-                if (java.util.Objects.equals(session, null))
-                {
-                    throw new AuthenticationError(((this.id + " ibkrConnect() POST /tickle returned no session ") + this.json(response))) ;
-                }
-                Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
-                    put( "ws", new HashMap<String, Object>() {{
-                        put( "options", new HashMap<String, Object>() {{
-                            put( "headers", new HashMap<String, Object>() {{}} );
-                        }} );
-                    }} );
-                }};
-                this.extendExchangeOptions(defaultOptions);
-                Object originalHeaders = Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers");
-                // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
-                // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
-                String userAgent = this.safeString(this.options, "wsUserAgent", "ClientPortalGW/1");
-                String cookie = ("api=" + session);
-                if (Boolean.TRUE.equals(useGateway))
-                {
-                    HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                    mapLiteral1.put("session", session);
-                    cookie = ("api=" + this.json(mapLiteral1));
-                }
-                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                mapLiteral2.put("Cookie", cookie);
-                mapLiteral2.put("User-Agent", userAgent);
-                Map<String, Object> headers = this.extend(originalHeaders, mapLiteral2);
-                Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
-                // instantiate client
-                Client newClient = this.client(url);
-                Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
-                Long tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
-                this.scheduleCallback(tickleInterval, "ibkrKeepAliveSession", newClient);
-            }
-            Client client = this.client(url);
-            Boolean awaitAuthenticated = (Boolean) this.safeBool(this.options, "awaitAuthenticated", true);
-            Boolean isAuthenticated = (Boolean) this.safeBool(client.subscriptions, "ibkrAuthenticated", false);
-            // watch () dials the connection, the raw sends (ibkrSubscribe, ibkrUnsubscribe) need it open
-            if (Boolean.TRUE.equals(awaitAuthenticated) && !Boolean.TRUE.equals(isAuthenticated))
-            {
-                // resolved by the sts message
-                String messageHash = "authenticated";
-                (this.watch(url, messageHash, null, messageHash, null)).join();
-            } else if (!Boolean.TRUE.equals(this.safeBool(client.subscriptions, "ibkrConnected", false)))
-            {
-                // resolved by the first system message, sent by IBKR right after the connection opens
-                String messageHash = "connected";
-                (this.watch(url, messageHash, null, messageHash, null)).join();
-            }
-            return (String) url;
-        });
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("Cookie", cookie);
+            mapLiteral2.put("User-Agent", userAgent);
+            Map<String, Object> headers = this.extend(this.safeDict(this.safeDict(wsOptions, "options", null), "headers", null), mapLiteral2);
+            this.options.put("ws", this.extend(wsOptions, new HashMap<String, Object>() {{
+    put( "options", Interactivebrokers.this.extend(Interactivebrokers.this.safeDict(wsOptions, "options", null), new HashMap<String, Object>() {{
+        put( "headers", headers );
+    }}) );
+}}));
+            // instantiate client
+            Client newClient = this.client(url);
+            this.options.put("ws", wsOptions);
+            Long tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
+            this.scheduleCallback(tickleInterval, "ibkrKeepAliveSession", newClient);
+        }
+        Client client = this.client(url);
+        Boolean awaitAuthenticated = this.safeBool(this.options, "awaitAuthenticated", true);
+        Boolean isAuthenticated = this.safeBool(client.subscriptions, "ibkrAuthenticated", false);
+        // watch () dials the connection, the raw sends (ibkrSubscribe, ibkrUnsubscribe) need it open
+        if (Boolean.TRUE.equals(awaitAuthenticated) && !Boolean.TRUE.equals(isAuthenticated))
+        {
+            // resolved by the sts message
+            String messageHash = "authenticated";
+            (this.watch(url, messageHash, null, messageHash, null)).join();
+        } else if (!Boolean.TRUE.equals(this.safeBool(client.subscriptions, "ibkrConnected", false)))
+        {
+            // resolved by the first system message, sent by IBKR right after the connection opens
+            String messageHash = "connected";
+            (this.watch(url, messageHash, null, messageHash, null)).join();
+        }
+        return url;
 
     }
 
@@ -203,55 +211,53 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrKeepAliveSession(Client client)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrKeepAliveSessionCore(client));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrKeepAliveSessionCore(Client client)
+    {
 
-            Object current = this.safeValue(this.clients, client.url);
-            if (!Helpers.isEqual(current, client))
+        Object current = this.safeValue(this.clients, client.url);
+        if ((current != client))
+        {
+            return null;  // the connection was closed or replaced
+        }
+        try
+        {
+            (this.webapiPostV1ApiTickle(new HashMap<String, Object>() {{}})).join();
+        } catch(Exception e)
+        {
+            // a failing tickle is retried on the next interval
+            if (this.verbose)
             {
-                return null;  // the connection was closed or replaced
+                this.log(("ibkrKeepAliveSession tickle failed " + this.exceptionMessage(e, true)));
             }
-            try
+        }
+        // resubscribe the market data streams before they expire
+        Map<String, Object> sent = new HashMap<String, Object>() {{}};
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
+        for (var i = 0; i < keys.size(); i++)
+        {
+            String request = this.safeString((client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))), "request");
+            if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+") && !(sent.containsKey(request)))
             {
-                (this.webapiPostV1ApiTickle(new HashMap<String, Object>() {{}})).join();
-            } catch(Exception e)
-            {
-                // a failing tickle is retried on the next interval
-                if (this.verbose)
+                sent.put(request, true);
+                try
                 {
-                    this.log(("ibkrKeepAliveSession tickle failed " + this.exceptionMessage(e, true)));
-                }
-            }
-            // resubscribe the market data streams before they expire
-            Map<String, Object> sent = new HashMap<String, Object>() {{}};
-            List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-            for (var i = 0; i < keys.size(); i++)
-            {
-                Object subscription = Helpers.GetValue(client.subscriptions, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
-                if ((subscription instanceof Map))
+                    (client.send(request)).join();
+                } catch(Exception e)
                 {
-                    String request = this.safeString(subscription, "request");
-                    if ((!java.util.Objects.equals(request, null)) && (request.startsWith(((String)"smd+"))) && !(sent.containsKey(request)))
+                    // the connection is gone, the client reconnects on the next watch call
+                    if (this.verbose)
                     {
-                        sent.put(request, true);
-                        try
-                        {
-                            (client.send(request)).join();
-                        } catch(Exception e)
-                        {
-                            // the connection is gone, the client reconnects on the next watch call
-                            if (this.verbose)
-                            {
-                                this.log(("ibkrKeepAliveSession resubscribe failed " + this.exceptionMessage(e, true)));
-                            }
-                        }
+                        this.log(("ibkrKeepAliveSession resubscribe failed " + this.exceptionMessage(e, true)));
                     }
                 }
             }
-            Long tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
-            this.scheduleCallback(tickleInterval, "ibkrKeepAliveSession", client);
-            return null;
-        });
+        }
+        Long tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
+        this.scheduleCallback(tickleInterval, "ibkrKeepAliveSession", client);
+        return null;
 
     }
 
@@ -268,26 +274,28 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrSubscribe(Client client, String subscribeHash, String request, Map<String, Object> subscription)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrSubscribeCore(client, subscribeHash, request, subscription));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrSubscribeCore(Client client, String subscribeHash, String request, Map<String, Object> subscription)
+    {
 
-            if (client.subscriptions.containsKey(subscribeHash))
-            {
-                return null;
-            }
-            client.subscriptions.put(subscribeHash, this.extend(subscription, new HashMap<String, Object>() {{
-        put( "request", request );
-    }}));
-            try
-            {
-                (client.send(request)).join();
-            } catch(Exception e)
-            {
-                client.subscriptions.remove((String)subscribeHash);
-                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-            }
+        if (client.subscriptions.containsKey(subscribeHash))
+        {
             return null;
-        });
+        }
+        client.subscriptions.put(subscribeHash, this.extend(subscription, new HashMap<String, Object>() {{
+    put( "request", request );
+}}));
+        try
+        {
+            (client.send(request)).join();
+        } catch(Exception e)
+        {
+            client.subscriptions.remove((String)subscribeHash);
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+        }
+        return null;
 
     }
 
@@ -304,22 +312,24 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrUnsubscribe(Client client, Object subHashes, String request, Map<String, Object> subscription)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrUnsubscribeCore(client, subHashes, request, subscription));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrUnsubscribeCore(Client client, Object subHashes, String request, Map<String, Object> subscription)
+    {
 
-            for (var i = 0; i < ((List<?>)subHashes).size(); i++)
-            {
-                String subHash = (String) (subHashes == null || i < 0 || i >= ((List<?>)subHashes).size() ? null : ((List<?>)subHashes).get(i));
-                this.cleanUnsubscription(client, subHash, ("unsubscribe::" + subHash), false);
-            }
-            this.cleanCache(subscription);
-            if (!java.util.Objects.equals(request, null))
-            {
-                // the connection is open, the callers get the client from ibkrConnect ()
-                (client.send(request)).join();
-            }
-            return true;
-        });
+        for (var i = 0; i < ((List<?>)subHashes).size(); i++)
+        {
+            String subHash = (String) (subHashes == null || i < 0 || i >= ((List<?>)subHashes).size() ? null : ((List<?>)subHashes).get(i));
+            this.cleanUnsubscription(client, subHash, ("unsubscribe::" + subHash), false);
+        }
+        this.cleanCache(subscription);
+        if (!java.util.Objects.equals(request, null))
+        {
+            // the connection is open, the callers get the client from ibkrConnect ()
+            (client.send(request)).join();
+        }
+        return true;
 
     }
 
@@ -334,28 +344,29 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrUnsubscribeMarketData(Client client, String marketId)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrUnsubscribeMarketDataCore(client, marketId));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrUnsubscribeMarketDataCore(Client client, String marketId)
+    {
 
-            List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-            for (var i = 0; i < keys.size(); i++)
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
+        for (var i = 0; i < keys.size(); i++)
+        {
+            String request = this.safeString((client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))), "request");
+            if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+"))
             {
-                Object subscription = Helpers.GetValue(client.subscriptions, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
-                if ((subscription instanceof Map))
+                String conid = this.safeString((client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))), "conid");
+                if (java.util.Objects.equals(conid, marketId))
                 {
-                    String request = this.safeString(subscription, "request");
-                    String conid = this.safeString(subscription, "conid");
-                    if ((!java.util.Objects.equals(request, null)) && (request.startsWith(((String)"smd+"))) && (java.util.Objects.equals(conid, marketId)))
-                    {
-                        return null;  // still in use
-                    }
+                    return null;  // still in use
                 }
             }
-            // the connection is open, the callers get the client from ibkrConnect ()
-            String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
-            (client.send(((("umd+" + marketId) + "+") + emptyArgs))).join();
-            return null;
-        });
+        }
+        // the connection is open, the callers get the client from ibkrConnect ()
+        String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        (client.send(((("umd+" + marketId) + "+") + emptyArgs))).join();
+        return null;
 
     }
 
@@ -369,16 +380,16 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    public List<Object> ibkrMarketDataRequest(String marketId, Map<String, Object> parameters)
+    public Pair<String, Map<String, Object>> ibkrMarketDataRequest(String marketId, Map<String, Object> parameters)
     {
         Map<String, Object> options = this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
         List<Object> defaultFields = this.safeList(options, "fields", new ArrayList<Object>(Arrays.asList()));
         List<Object> fields = (List<Object>) this.safeList(parameters, "fields", defaultFields);
-        Map<String, Object> query = this.omit(parameters, "fields");
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, "fields"));
         String request = ((("smd+" + marketId) + "+") + this.json(new HashMap<String, Object>() {{
     put( "fields", fields );
 }}));
-        return new ArrayList<Object>(Arrays.asList(request, query));
+        return new Pair<>(request, query);
     }
 
     /**
@@ -393,19 +404,21 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            Object ticker = (this.ibkrWatchMarketData("ticker", symbols, parameters)).join();
-            if (this.newUpdates)
-            {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                String tickerSymbol = ((String)((Map<String, Object>)ticker).get("symbol"));
-                result.put(tickerSymbol, ticker);
-                return result;
-            }
-            return this.filterByArray(this.tickers, "symbol", symbols, true);
-        }).thenApply(Tickers::new);
+        Object ticker = (this.ibkrWatchMarketData("ticker", symbols, parameters)).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            String tickerSymbol = this.safeString(ticker, "symbol", "");
+            result.put(tickerSymbol, ticker);
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols, true);
 
     }
 
@@ -420,19 +433,21 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBidsAsksCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            Object ticker = (this.ibkrWatchMarketData("bidask", symbols, parameters)).join();
-            if (this.newUpdates)
-            {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                String tickerSymbol = ((String)((Map<String, Object>)ticker).get("symbol"));
-                result.put(tickerSymbol, ticker);
-                return result;
-            }
-            return this.filterByArray(this.bidsasks, "symbol", symbols, true);
-        }).thenApply(Tickers::new);
+        Object ticker = (this.ibkrWatchMarketData("bidask", symbols, parameters)).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            String tickerSymbol = this.safeString(ticker, "symbol", "");
+            result.put(tickerSymbol, ticker);
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols, true);
 
     }
 
@@ -448,40 +463,42 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrWatchMarketData(String topic, List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrWatchMarketDataCore(topic, symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrWatchMarketDataCore(String topic, List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, false);
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < marketSymbols.size(); i++)
-            {
-                messageHashes.add(((topic + "::") + (marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i))));
-            }
-            // the futures are created before the raw sends, so no update can be missed in between,
-            // reusableFuture (), not watchMultiple () - the connection is already open (ibkrConnect), and go's watch* yields a channel
-            List<Object> futures = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < messageHashes.size(); i++)
-            {
-                ((List<Object>)futures).add(client.reusableFuture((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))));
-            }
-            for (var i = 0; i < marketSymbols.size(); i++)
-            {
-                Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
-                var requestqueryVariable = this.ibkrMarketDataRequest((String) (market.get("id")), parameters);
-                var request = ((List<Object>) requestqueryVariable).get(0);
-                var query = ((List<Object>) requestqueryVariable).get(1);
-                Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
-                    put( "conid", market.get("id") );
-                    put( "symbol", market.get("symbol") );
-                }}, query);
-                (this.ibkrSubscribe(client, (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), (String) (request), subscription)).join();
-            }
-            Object ticker = (this.watchMultiple(url, messageHashes, null, null, null)).join();
-            return ticker;
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        List<String> marketSymbols = this.marketSymbols(symbols, null, false, false, false);
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < marketSymbols.size(); i++)
+        {
+            messageHashes.add(((topic + "::") + (marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i))));
+        }
+        // the futures are created before the raw sends, so no update can be missed in between,
+        // reusableFuture (), not watchMultiple () - the connection is already open (ibkrConnect), and go's watch* yields a channel
+        List<Object> futures = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < messageHashes.size(); i++)
+        {
+            futures.add(client.reusableFuture((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))));
+        }
+        for (var i = 0; i < marketSymbols.size(); i++)
+        {
+            Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
+            Pair<String, Map<String, Object>> requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id", ""), parameters);
+            var request = ((List<Object>) requestqueryVariable).get(0);
+            Map<String, Object> query = requestqueryVariable.second();
+            Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
+                put( "conid", market.get("id") );
+                put( "symbol", market.get("symbol") );
+            }}, query);
+            (this.ibkrSubscribe(client, (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), (String) (request), subscription)).join();
+        }
+        Object ticker = (this.watchMultiple(url, messageHashes, null, null, null)).join();
+        return ticker;
 
     }
 
@@ -496,11 +513,13 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTickersCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.ibkrUnWatchMarketData("ticker", symbols, parameters)).join();
-        });
+        return (this.ibkrUnWatchMarketData("ticker", symbols, parameters)).join();
 
     }
 
@@ -515,11 +534,13 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchBidsAsksCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.ibkrUnWatchMarketData("bidask", symbols, parameters)).join();
-        });
+        return (this.ibkrUnWatchMarketData("bidask", symbols, parameters)).join();
 
     }
 
@@ -535,29 +556,31 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrUnWatchMarketData(String topic, List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrUnWatchMarketDataCore(topic, symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrUnWatchMarketDataCore(String topic, List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, false);
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            List<String> subHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < marketSymbols.size(); i++)
-            {
-                subHashes.add(((topic + "::") + (marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i))));
-            }
-            Map<String, Object> subscription = new HashMap<String, Object>();
-            subscription.put("topic", (((java.util.Objects.equals(topic, "bidask")))) ? "bidsasks" : "ticker");
-            subscription.put("symbols", marketSymbols);
-            (this.ibkrUnsubscribe(client, subHashes, (String) (null), subscription)).join();
-            for (var i = 0; i < marketSymbols.size(); i++)
-            {
-                Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
-                (this.ibkrUnsubscribeMarketData(client, (String) (market.get("id")))).join();
-            }
-            return true;
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        List<String> marketSymbols = this.marketSymbols(symbols, null, false, false, false);
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        List<String> subHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < marketSymbols.size(); i++)
+        {
+            subHashes.add(((topic + "::") + (marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i))));
+        }
+        Map<String, Object> subscription = new HashMap<String, Object>();
+        subscription.put("topic", (((java.util.Objects.equals(topic, "bidask")))) ? "bidsasks" : "ticker");
+        subscription.put("symbols", marketSymbols);
+        (this.ibkrUnsubscribe(client, subHashes, null, subscription)).join();
+        for (var i = 0; i < marketSymbols.size(); i++)
+        {
+            Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
+            (this.ibkrUnsubscribeMarketData(client, this.safeString(market, "id"))).join();
+        }
+        return true;
 
     }
 
@@ -579,8 +602,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String topic = this.safeString(message, "topic", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("+"))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        String symbol = this.safeString(market, "symbol", "");
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         Map<String, Object> previous = this.safeDict(this.tickers, symbol, null);
@@ -600,7 +623,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         Boolean hasBidAsk = (message.containsKey("84")) || (message.containsKey("85")) || (message.containsKey("86")) || (message.containsKey("88"));
-        Boolean hasQuote = (!java.util.Objects.equals(ticker.get("bid"), null)) || (!java.util.Objects.equals(ticker.get("ask"), null));
+        Boolean hasQuote = (!java.util.Objects.equals(this.safeString(ticker, "bid"), null)) || (!java.util.Objects.equals(this.safeString(ticker, "ask"), null));
         if (Boolean.TRUE.equals(hasBidAsk) && Boolean.TRUE.equals(hasQuote))
         {
             Ticker bidAsk = this.safeTicker(new HashMap<String, Object>() {{
@@ -636,65 +659,72 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String unifiedSymbol = (String) market.get("symbol");
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            String messageHash = ((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
-            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            // the last price stream, it builds the current candles
-            var marketDataRequestqueryVariable = this.ibkrMarketDataRequest((String) (market.get("id")), parameters);
-            var marketDataRequest = ((List<Object>) marketDataRequestqueryVariable).get(0);
-            var query = ((List<Object>) marketDataRequestqueryVariable).get(1);
-            (this.ibkrSubscribe(client, messageHash, (String) (marketDataRequest), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("conid", market.get("id"));
-                j39v2.put("symbol", unifiedSymbol);
-                j39v2.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                yield j39v2; } }))).join();
-            // the history, it seeds the candles
-            String historyHash = ((("smh::" + market.get("id")) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            if (!(client.subscriptions.containsKey(historyHash)))
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String unifiedSymbol = this.safeString(market, "symbol", "");
+        String historyMarketId = this.safeString(market, "id", "");
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        String messageHash = ((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+        // the last price stream, it builds the current candles
+        Pair<String, Map<String, Object>> marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id", ""), parameters);
+        var marketDataRequest = ((List<Object>) marketDataRequestqueryVariable).get(0);
+        Map<String, Object> query = marketDataRequestqueryVariable.second();
+        (this.ibkrSubscribe(client, messageHash, (String) (marketDataRequest), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("conid", market.get("id"));
+            j39v2.put("symbol", unifiedSymbol);
+            j39v2.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            yield j39v2; } }))).join();
+        // the history, it seeds the candles
+        String historyHash = ((("smh::" + historyMarketId) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        if (!(client.subscriptions.containsKey(historyHash)))
+        {
+            if (!(((Map<?, ?>)this.ohlcvs).containsKey(unifiedSymbol)))
             {
-                if (!(((Map<?, ?>)this.ohlcvs).containsKey(unifiedSymbol)))
-                {
-                    this.ohlcvs.put(unifiedSymbol, new HashMap<String, Object>() {{}});
-                }
-                Long ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(unifiedSymbol)).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1m"))))
-                {
-                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(unifiedSymbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
-                }
-                Map<String, Object> options = this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
-                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                Long historyLimit = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
-                Map<String, Object> historyRequest = new HashMap<String, Object>();
-                historyRequest.put("exchange", this.safeString(options, "exchange", "SMART"));
-                historyRequest.put("period", this.ibkrWsPeriod(duration, historyLimit));
-                historyRequest.put("bar", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-                historyRequest.put("outsideRth", this.safeBool(options, "outsideRth", false));
-                historyRequest.put("source", this.safeString(options, "source", "trades"));
-                // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-                String request = ((("smh+" + market.get("id")) + "+") + this.json(this.keysort(this.extend(historyRequest, query))));
-                (this.ibkrSubscribe(client, historyHash, request, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("conid", market.get("id"));
-                    j39v1.put("symbol", unifiedSymbol);
-                    j39v1.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                    j39v1.put("duration", duration);
-                    yield j39v1; } }))).join();
+                this.ohlcvs.put(unifiedSymbol, new HashMap<String, Object>() {{}});
             }
-            Object ohlcv = future.getFuture().join();
-            Long resultLimit = limit;
-            if (this.newUpdates)
+            Long ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(unifiedSymbol)).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1m"))))
             {
-                resultLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, unifiedSymbol, limit);
+                this.ohlcvs.get(unifiedSymbol).put(java.util.Objects.requireNonNullElse(timeframe, "1m"), new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
             }
-            return this.filterBySinceLimit(ohlcv, since, resultLimit, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+            Map<String, Object> options = this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
+            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Long historyLimit = 100L;
+            if (!java.util.Objects.equals(limit, null))
+            {
+                historyLimit = this.parseToInt(limit);
+            }
+            Map<String, Object> historyRequest = new HashMap<String, Object>();
+            historyRequest.put("exchange", this.safeString(options, "exchange", "SMART"));
+            historyRequest.put("period", this.ibkrWsPeriod(((long) duration), historyLimit));
+            historyRequest.put("bar", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            historyRequest.put("outsideRth", this.safeBool(options, "outsideRth", false));
+            historyRequest.put("source", this.safeString(options, "source", "trades"));
+            // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
+            String request = ((("smh+" + historyMarketId) + "+") + this.json(this.keysort(this.extend(historyRequest, query))));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("conid", market.get("id"));
+            j39v1.put("symbol", unifiedSymbol);
+            j39v1.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            j39v1.put("duration", duration);
+            (this.ibkrSubscribe(client, historyHash, request, j39v1)).join();
+        }
+        Object ohlcv = future.getFuture().join();
+        Long resultLimit = limit;
+        if (this.newUpdates)
+        {
+            resultLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, unifiedSymbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, resultLimit, 0, true);
 
     }
 
@@ -710,23 +740,26 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOHLCVCore(symbol, timeframe, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOHLCVCore(String symbol, String timeframe, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String unifiedSymbol = (String) market.get("symbol");
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            List<String> subHashes = new ArrayList<String>(Arrays.asList(((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m")), ((("smh::" + market.get("id")) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"))));
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "topic", "ohlcv" );
-                put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(unifiedSymbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
-            }};
-            (this.ibkrUnsubscribe(client, subHashes, (String) (null), subscription)).join();
-            (this.ibkrUnsubscribeMarketData(client, (String) (market.get("id")))).join();
-            return true;
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String unifiedSymbol = this.safeString(market, "symbol", "");
+        String historyMarketId = this.safeString(market, "id", "");
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        List<String> subHashes = new ArrayList<String>(Arrays.asList(((("ohlcv::" + unifiedSymbol) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m")), ((("smh::" + historyMarketId) + "::") + java.util.Objects.requireNonNullElse(timeframe, "1m"))));
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "topic", "ohlcv" );
+            put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(unifiedSymbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
+        }};
+        (this.ibkrUnsubscribe(client, subHashes, null, subscription)).join();
+        (this.ibkrUnsubscribeMarketData(client, historyMarketId)).join();
+        return true;
 
     }
 
@@ -746,23 +779,23 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         //
         String topic = this.safeString(message, "topic", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("+"))));
-        String marketId = this.safeString(parts, 1);
+        String marketId = this.safeString(parts, 1, "");
         String serverId = this.safeString(message, "serverId");
         if (!java.util.Objects.equals(serverId, null))
         {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
-            this.spawn(() -> { try { this.ibkrCancelHistory(client, (String) (serverId)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.ibkrCancelHistory(client, serverId);
         }
         Long barLength = this.safeInteger(message, "barLength");
         // several timeframes of a market share the topic, they are told apart by the bar length
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         Object subscription = null;
         for (var i = 0; i < keys.size(); i++)
         {
-            String key = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             // the base watch () stores internal futures (connected/authenticated) under an undefined
             // subscription hash, which is a None dict key in python, so it cannot be assumed a string
-            if ((!java.util.Objects.equals(key, null)) && (key.startsWith(((String)(("smh::" + marketId) + "::")))))
+            if ((!java.util.Objects.equals(key, null)) && key.startsWith(((String)(("smh::" + marketId) + "::"))))
             {
                 Object candidate = (client.subscriptions == null || key == null ? null : client.subscriptions.get(key));
                 Long duration = this.safeInteger(candidate, "duration");
@@ -778,46 +811,50 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         }
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}), timeframe);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             return;
         }
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> bars = new ArrayList<Object>(Arrays.asList());
-        Object lastHistoryTimestamp = null;
+        Long lastHistoryTimestamp = null;
         for (var i = 0; i < data.size(); i++)
         {
-            List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
-            Object timestamp = ((List<Object>)parsed).get(0);
-            if (java.util.Objects.equals(timestamp, null))
+            List<Object> parsed = this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            if (java.util.Objects.equals(this.safeInteger(parsed, 0), null))
             {
                 continue;
             }
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(timestamp, 100000000000L))
+            Long timestamp = this.safeInteger(parsed, 0, 0);
+            if (((timestamp == null || timestamp < 100000000000L)))
             {
-                timestamp = Helpers.multiply(timestamp, 1000); // seconds
-                Helpers.addElementToObject(parsed, 0, timestamp);
+                timestamp = (timestamp * 1000L); // seconds
+                parsed.set(0, timestamp);
             }
-            ((List<Object>)bars).add(parsed);
-            if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(timestamp, lastHistoryTimestamp)))
+            bars.add(parsed);
+            if (java.util.Objects.equals(lastHistoryTimestamp, null))
+            {
+                lastHistoryTimestamp = timestamp;
+            } else if ((timestamp != null && (lastHistoryTimestamp == null || timestamp > lastHistoryTimestamp)))
             {
                 lastHistoryTimestamp = timestamp;
             }
         }
         // the live candles built from smd before the history arrived are kept only when they are newer than the history
-        for (var i = 0; i < (switch ((Object)(stored)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
+        for (var i = 0; i < (stored == null ? 0 : stored.size()); i++)
         {
-            Object candle = Helpers.GetValue(stored, i);
-            if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(Helpers.GetValue(candle, 0), lastHistoryTimestamp)))
+            Object candle = (stored == null || i < 0 || i >= stored.size() ? null : stored.get(i));
+            Long candleTimestamp = this.safeInteger(candle, 0, 0);
+            if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || ((candleTimestamp != null && (lastHistoryTimestamp == null || candleTimestamp > lastHistoryTimestamp))))
             {
-                ((List<Object>)bars).add(candle);
+                bars.add(candle);
             }
         }
         List<Object> sorted = this.sortBy(bars, 0);
         Long ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
+        this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         for (var i = 0; i < sorted.size(); i++)
         {
@@ -836,36 +873,44 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      * @param {int} limit the number of bars
      * @returns {string} the period, e.g. '2h'
      */
-    public String ibkrWsPeriod(Object duration, Object limit)
+    public String ibkrWsPeriod(Long duration, Long limit)
     {
-        Object total = Helpers.multiply(duration, limit);
-        Long minutes = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v7 -> (Object) (hx4J40v7 + 59L); case Integer hx4J40v7 -> (Object) (hx4J40v7.longValue() + 59L); case Double hx4J40v7 -> (Object) (hx4J40v7 + ((double) 59L)); case String hx4J40v7 -> (Object) (hx4J40v7 + "59"); default -> (Object) null; }))), 60));
+        Long total = (duration * limit);
+        Long minutes = this.parseToInt((((double) ((total + 59L))) / ((double) 60)));
         if ((minutes == null || minutes <= 30))
         {
-            return (this.numberToString(Math.max(minutes, 1)) + "min");
+            if (((minutes == null || minutes < 1)))
+            {
+                return "1min";
+            }
+            return (this.numberToString(minutes) + "min");
         }
-        Long hours = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v6 -> (Object) (hx4J40v6 + 3599L); case Integer hx4J40v6 -> (Object) (hx4J40v6.longValue() + 3599L); case Double hx4J40v6 -> (Object) (hx4J40v6 + ((double) 3599L)); case String hx4J40v6 -> (Object) (hx4J40v6 + "3599"); default -> (Object) null; }))), 3600));
+        Long hours = this.parseToInt((((double) ((total + 3599L))) / ((double) 3600)));
         if ((hours == null || hours <= 8))
         {
             return (this.numberToString(hours) + "h");
         }
-        Long days = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v5 -> (Object) (hx4J40v5 + 86399L); case Integer hx4J40v5 -> (Object) (hx4J40v5.longValue() + 86399L); case Double hx4J40v5 -> (Object) (hx4J40v5 + ((double) 86399L)); case String hx4J40v5 -> (Object) (hx4J40v5 + "86399"); default -> (Object) null; }))), 86400));
+        Long days = this.parseToInt((((double) ((total + 86399L))) / ((double) 86400)));
         if ((days == null || days <= 1000))
         {
             return (this.numberToString(days) + "d");
         }
-        Long weeks = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 604799L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 604799L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 604799L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "604799"); default -> (Object) null; }))), 604800));
+        Long weeks = this.parseToInt((((double) ((total + 604799L))) / ((double) 604800)));
         if ((weeks == null || weeks <= 792))
         {
             return (this.numberToString(weeks) + "w");
         }
-        Long months = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v3 -> (Object) (hx4J40v3 + 2591999L); case Integer hx4J40v3 -> (Object) (hx4J40v3.longValue() + 2591999L); case Double hx4J40v3 -> (Object) (hx4J40v3 + ((double) 2591999L)); case String hx4J40v3 -> (Object) (hx4J40v3 + "2591999"); default -> (Object) null; }))), 2592000));
+        Long months = this.parseToInt((((double) ((total + 2591999L))) / ((double) 2592000)));
         if ((months == null || months <= 182))
         {
             return (this.numberToString(months) + "m");
         }
-        Long years = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 31535999L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 31535999L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 31535999L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "31535999"); default -> (Object) null; }))), 31536000));
-        return (this.numberToString(Math.min(years, 15)) + "y");
+        Long years = this.parseToInt((((double) ((total + 31535999L))) / ((double) 31536000)));
+        if ((years != null && years > 15))
+        {
+            return "15y";  // the documented maximum period
+        }
+        return (this.numberToString(years) + "y");
     }
 
     /**
@@ -879,12 +924,14 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> ibkrCancelHistory(Client client, String serverId)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrCancelHistoryCore(client, serverId));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrCancelHistoryCore(Client client, String serverId)
+    {
 
-            (client.send(("umh+" + serverId))).join();
-            return null;
-        });
+        (client.send(("umh+" + serverId))).join();
+        return null;
 
     }
 
@@ -899,7 +946,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public void ibkrUpdateOHLCVs(Client client, String symbol, Map<String, Object> delta)
     {
-        Object lastString = this.ibkrParseValue(this.safeString(delta, "31"));
+        String lastString = this.ibkrParseValue(this.safeString(delta, "31"));
         if (java.util.Objects.equals(lastString, null))
         {
             return;
@@ -910,7 +957,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             return;
         }
         Double price = this.parseNumber(lastString);
-        Object sizeString = this.ibkrParseValue(this.safeString(delta, "7059"));
+        String sizeString = this.ibkrParseValue(this.safeString(delta, "7059"));
         Object size = 0;
         if (!java.util.Objects.equals(sizeString, null))
         {
@@ -921,31 +968,42 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < timeframes.size(); i++)
         {
             String timeframe = (timeframes == null || i < 0 || i >= timeframes.size() ? null : timeframes.get(i));
-            Object stored = (ohlcvsBySymbol == null || timeframe == null ? null : ohlcvsBySymbol.get(timeframe));
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (ohlcvsBySymbol == null || timeframe == null ? null : ohlcvsBySymbol.get(timeframe));
             Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-            Long candleTimestamp = (Long) Helpers.multiply(this.parseToInt((((double) timestamp) / ((double) duration))), duration);
-            Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; });
+            Long candleTimestamp = (this.parseToInt((((double) timestamp) / ((double) duration))) * duration);
+            Integer length = stored.size();
             Object candle = null;
             if ((length != null && length > 0))
             {
-                Object lastCandle = Helpers.GetValue(stored, (length - 1L));
-                if (Helpers.isEqual(Helpers.GetValue(lastCandle, 0), candleTimestamp))
+                Object lastCandle = (stored == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= stored.size() ? null : stored.get(((int) (((long) length) - 1L))));
+                Long lastTimestamp = this.safeInteger(lastCandle, 0, 0);
+                if (java.util.Objects.equals(lastTimestamp, candleTimestamp))
                 {
                     candle = lastCandle;
-                } else if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(Helpers.GetValue(lastCandle, 0), candleTimestamp))
+                } else if ((lastTimestamp != null && (candleTimestamp == null || lastTimestamp > candleTimestamp)))
                 {
                     continue;
                 }
             }
             if (java.util.Objects.equals(candle, null))
             {
-                ((io.github.ccxt.ws.ArrayCache) stored).append(new ArrayList<Object>(Arrays.asList(candleTimestamp, price, price, price, price, size)));
+                stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, price, price, price, price, size)));
             } else
             {
-                Object high = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(Helpers.GetValue(candle, 2), price);
-                Object low = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(Helpers.GetValue(candle, 3), price);
+                Double high = price;
+                Double prevHigh = this.safeNumber(candle, 2, null);
+                if ((!java.util.Objects.equals(prevHigh, null)) && (!java.util.Objects.equals(price, null)) && ((prevHigh != null && (price == null || prevHigh > price))))
+                {
+                    high = prevHigh;
+                }
+                Double low = price;
+                Double prevLow = this.safeNumber(candle, 3, null);
+                if ((!java.util.Objects.equals(prevLow, null)) && (!java.util.Objects.equals(price, null)) && ((price != null && (prevLow == null || price > prevLow))))
+                {
+                    low = prevLow;
+                }
                 Object volume = this.sum(Helpers.GetValue(candle, 5), size);
-                ((io.github.ccxt.ws.ArrayCache) stored).append(new ArrayList<Object>(Arrays.asList(candleTimestamp, Helpers.GetValue(candle, 1), high, low, price, volume)));
+                stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, Helpers.GetValue(candle, 1), high, low, price, volume)));
             }
             client.resolve(stored, ((("ohlcv::" + symbol) + "::") + timeframe));
         }
@@ -965,34 +1023,36 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String unifiedSymbol = (String) market.get("symbol");
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            String bookExchange = this.safeString(query, "exchange");
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            String messageHash = ("orderbook::" + unifiedSymbol);
-            // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
-            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            String request = ((("sbd+" + accountId) + "+") + market.get("id"));
-            if (!java.util.Objects.equals(bookExchange, null))
-            {
-                request = ((request + "+") + bookExchange);
-            }
-            (this.ibkrSubscribe(client, messageHash, request, new HashMap<String, Object>() {{
-                put( "conid", market.get("id") );
-                put( "symbol", unifiedSymbol );
-                put( "accountId", accountId );
-            }})).join();
-            Object orderbook = future.getFuture().join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String unifiedSymbol = this.safeString(market, "symbol", "");
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
+        String bookExchange = this.safeString(query, "exchange");
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        String messageHash = ("orderbook::" + unifiedSymbol);
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+        String request = ((("sbd+" + accountId) + "+") + market.get("id"));
+        if (!java.util.Objects.equals(bookExchange, null))
+        {
+            request = ((request + "+") + bookExchange);
+        }
+        (this.ibkrSubscribe(client, messageHash, request, new HashMap<String, Object>() {{
+            put( "conid", market.get("id") );
+            put( "symbol", unifiedSymbol );
+            put( "accountId", accountId );
+        }})).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) future.getFuture().join();
+        return orderbook.limit();
 
     }
 
@@ -1006,25 +1066,27 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
      * @returns {boolean} true
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
+    }
+
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String unifiedSymbol = (String) market.get("symbol");
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
-                put( "topic", "orderbook" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(unifiedSymbol)) );
-            }}, query);
-            return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList(("orderbook::" + unifiedSymbol))), (String) (("ubd+" + accountId)), subscription)).join();
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String unifiedSymbol = this.safeString(market, "symbol", "");
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
+        Map<String, Object> query = accountIdqueryVariable.second();
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
+            put( "topic", "orderbook" );
+            put( "symbols", new ArrayList<Object>(Arrays.asList(unifiedSymbol)) );
+        }}, query);
+        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList(("orderbook::" + unifiedSymbol))), ("ubd+" + accountId), subscription)).join();
 
     }
 
@@ -1050,7 +1112,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String topic = this.safeString(message, "topic", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("+"))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String messageHash = ("orderbook::" + symbol);
         Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, null);
@@ -1090,8 +1152,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         List<String> rowIds = new ArrayList<String>(ladder.keySet());
         for (var i = 0; i < rowIds.size(); i++)
         {
-            Object row = Helpers.GetValue(ladder, (rowIds == null || i < 0 || i >= rowIds.size() ? null : rowIds.get(i)));
-            Object rawPrice = this.safeString(row, "price");
+            Object row = (ladder == null || (rowIds == null || i < 0 || i >= rowIds.size() ? null : rowIds.get(i)) == null ? null : ladder.get((rowIds == null || i < 0 || i >= rowIds.size() ? null : rowIds.get(i))));
+            String rawPrice = this.safeString(row, "price");
             if (java.util.Objects.equals(rawPrice, null))
             {
                 continue;
@@ -1104,27 +1166,27 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 List<String> priceWords = new ArrayList<String>(Arrays.asList(pricePart.split(java.util.regex.Pattern.quote(" "))));
                 rawPrice = String.join("", priceWords);
             }
-            Object price = this.ibkrParseValue((String) (rawPrice));
+            String price = this.ibkrParseValue(rawPrice);
             if (java.util.Objects.equals(price, null))
             {
                 continue;
             }
-            Object bid = this.ibkrParseValue(this.safeString(row, "bid"));
-            Object ask = this.ibkrParseValue(this.safeString(row, "ask"));
+            String bid = this.ibkrParseValue(this.safeString(row, "bid"));
+            String ask = this.ibkrParseValue(this.safeString(row, "ask"));
             if (!java.util.Objects.equals(bid, null))
             {
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, bid)));
+                bids.add(new ArrayList<Object>(Arrays.asList(price, bid)));
             }
             if (!java.util.Objects.equals(ask, null))
             {
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, ask)));
+                asks.add(new ArrayList<Object>(Arrays.asList(price, ask)));
             }
         }
         // the placeholder ladder sent right after subscribing has no sizes, it is not emitted
         Integer bidsLength = bids.size();
         Integer asksLength = asks.size();
         Boolean isEmpty = (java.util.Objects.equals(bidsLength, 0)) && (java.util.Objects.equals(asksLength, 0));
-        Boolean emitted = (Boolean) this.safeBool(subscription, "emitted", false);
+        Boolean emitted = this.safeBool(subscription, "emitted", false);
         if (Boolean.TRUE.equals(isEmpty) && !Boolean.TRUE.equals(emitted))
         {
             client.subscriptions.put(messageHash, subscription);
@@ -1135,7 +1197,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (!Boolean.TRUE.equals(emitted))
         {
             Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
-            Boolean skipFirstItem = (Boolean) this.safeBool(options, "skipFirstItem", true);
+            Boolean skipFirstItem = this.safeBool(options, "skipFirstItem", true);
             Boolean isTopOfBookOnly = ((bidsLength == null || bidsLength <= 1)) && ((asksLength == null || asksLength <= 1));
             if (Boolean.TRUE.equals(skipFirstItem) && Boolean.TRUE.equals(isTopOfBookOnly))
             {
@@ -1153,7 +1215,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         subscription.put("emitted", true);
         client.subscriptions.put(messageHash, subscription);
         Long timestamp = this.milliseconds();
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+        Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );
         }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -1182,68 +1244,70 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            String messageHash = "orders";
-            String unifiedSymbol = null;
-            if (!java.util.Objects.equals(symbol, null))
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        String messageHash = "orders";
+        String unifiedSymbol = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> watchOrdersOptions = this.safeDict(this.options, "watchOrders", new HashMap<String, Object>() {{}});
+            Boolean warnIfWithoutSymbol = this.safeBool(watchOrdersOptions, "warnIfWithoutSymbol", true);
+            if (Boolean.TRUE.equals(warnIfWithoutSymbol))
             {
-                Map<String, Object> watchOrdersOptions = this.safeDict(this.options, "watchOrders", new HashMap<String, Object>() {{}});
-                Boolean warnIfWithoutSymbol = (Boolean) this.safeBool(watchOrdersOptions, "warnIfWithoutSymbol", true);
-                if (Boolean.TRUE.equals(warnIfWithoutSymbol))
-                {
-                    throw new ExchangeError((this.id + " watchOrders() with a symbol argument can miss order updates: the orders from previous sessions are not fetched, and the sor updates of the orders not created on this connection carry only the orderId and the status (no conid), so they can not be matched to a symbol. It is recommended to call watchOrders() without the symbol argument and filter the results by symbol. To proceed with the symbol argument anyway and acknowledge this, set exchange.options[\"watchOrders\"][\"warnIfWithoutSymbol\"] = false")) ;
-                }
-                unifiedSymbol = this.symbol(symbol);
-                messageHash = ((messageHash + "::") + unifiedSymbol);
+                throw new ExchangeError((this.id + " watchOrders() with a symbol argument can miss order updates: the orders from previous sessions are not fetched, and the sor updates of the orders not created on this connection carry only the orderId and the status (no conid), so they can not be matched to a symbol. It is recommended to call watchOrders() without the symbol argument and filter the results by symbol. To proceed with the symbol argument anyway and acknowledge this, set exchange.options[\"watchOrders\"][\"warnIfWithoutSymbol\"] = false")) ;
             }
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            // the sor updates of the orders that were not created on this connection carry only the orderId and the status,
-            // the full raw orders are seeded from the rest snapshot, the updates are merged into them by orderId
-            Map<String, Object> rawOrders = new HashMap<String, Object>() {{}};
-            if (!(client.subscriptions.containsKey("sor")))
+            unifiedSymbol = this.symbol(symbol);
+            messageHash = ((messageHash + "::") + unifiedSymbol);
+        }
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        // the sor updates of the orders that were not created on this connection carry only the orderId and the status,
+        // the full raw orders are seeded from the rest snapshot, the updates are merged into them by orderId
+        Map<String, Object> rawOrders = new HashMap<String, Object>() {{}};
+        if (!(client.subscriptions.containsKey("sor")))
+        {
+            Map<String, Object> options = this.safeDict(this.options, "watchOrders", new HashMap<String, Object>() {{}});
+            Boolean fetchOrdersSnapshot = this.safeBool(options, "fetchOrdersSnapshot", true);
+            if (Boolean.TRUE.equals(fetchOrdersSnapshot))
             {
-                Map<String, Object> options = this.safeDict(this.options, "watchOrders", new HashMap<String, Object>() {{}});
-                Boolean fetchOrdersSnapshot = (Boolean) this.safeBool(options, "fetchOrdersSnapshot", true);
-                if (Boolean.TRUE.equals(fetchOrdersSnapshot))
+                List<Object> snapshot = (this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}})).join();
+                for (var i = 0; i < snapshot.size(); i++)
                 {
-                    Object snapshot = (this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}})).join();
-                    for (var i = 0; i < ((List<?>)snapshot).size(); i++)
+                    Object rawOrder = (snapshot == null || i < 0 || i >= snapshot.size() ? null : snapshot.get(i));
+                    String orderId = this.safeString(rawOrder, "orderId");
+                    if (!java.util.Objects.equals(orderId, null))
                     {
-                        Object rawOrder = (snapshot == null || i < 0 || i >= ((List<?>)snapshot).size() ? null : ((List<?>)snapshot).get(i));
-                        String orderId = this.safeString(rawOrder, "orderId");
-                        if (!java.util.Objects.equals(orderId, null))
-                        {
-                            rawOrders.put(orderId, rawOrder);
-                        }
+                        rawOrders.put(orderId, rawOrder);
                     }
                 }
             }
-            // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
-            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            List<Object> filters = this.safeList(parameters, "filters", null);
-            // an empty dict is json-encoded as [] in php, so the empty arguments are sent as a literal
-            String requestArgs = "{}";
-            if (!java.util.Objects.equals(filters, null))
-            {
-                Map<String, Object> requestParams = new HashMap<String, Object>();
-                requestParams.put("filters", filters);
-                requestArgs = this.json(requestParams);
-            }
-            (this.ibkrSubscribe(client, "sor", ("sor+" + requestArgs), new HashMap<String, Object>() {{
-                put( "rawOrders", rawOrders );
-            }})).join();
-            Object orders = future.getFuture().join();
-            Long resultLimit = limit;
-            if (this.newUpdates)
-            {
-                resultLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, unifiedSymbol, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, resultLimit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+        List<Object> filters = this.safeList(parameters, "filters", null);
+        // an empty dict is json-encoded as [] in php, so the empty arguments are sent as a literal
+        String requestArgs = "{}";
+        if (!java.util.Objects.equals(filters, null))
+        {
+            Map<String, Object> requestParams = new HashMap<String, Object>();
+            requestParams.put("filters", filters);
+            requestArgs = this.json(requestParams);
+        }
+        (this.ibkrSubscribe(client, "sor", ("sor+" + requestArgs), new HashMap<String, Object>() {{
+            put( "rawOrders", rawOrders );
+        }})).join();
+        Object orders = future.getFuture().join();
+        Long resultLimit = limit;
+        if (this.newUpdates)
+        {
+            resultLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, unifiedSymbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, resultLimit, true);
 
     }
 
@@ -1258,17 +1322,19 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrdersCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            this.cleanUnsubscription(client, "orders", "unsubscribe::orders", true);
-            String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
-            return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("sor")), ("uor+" + emptyArgs), new HashMap<String, Object>() {{
-                put( "topic", "orders" );
-            }})).join();
-        });
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        this.cleanUnsubscription(client, "orders", "unsubscribe::orders", true);
+        String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("sor")), ("uor+" + emptyArgs), new HashMap<String, Object>() {{
+            put( "topic", "orders" );
+        }})).join();
 
     }
 
@@ -1322,11 +1388,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             {
                 Map<String, Object> previous = this.safeDict(rawOrders, orderId, new HashMap<String, Object>() {{}});
                 merged = this.extend(previous, rawOrder);
-                Helpers.addElementToObject(rawOrders, orderId, merged);
+                rawOrders.put(orderId, merged);
             }
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, merged), null);
             orders.append(parsed);
-            String orderSymbol = (String) parsed.get("symbol");
+            String orderSymbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(orderSymbol, null))
             {
                 symbols.put(orderSymbol, true);
@@ -1360,43 +1426,45 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            String messageHash = "myTrades";
-            String unifiedSymbol = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                unifiedSymbol = this.symbol(symbol);
-                messageHash = ((messageHash + "::") + unifiedSymbol);
-            }
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
-            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Map<String, Object> options = this.safeDict(this.options, "watchMyTrades", new HashMap<String, Object>() {{}});
-            Boolean realtimeUpdatesOnly = (Boolean) this.safeBool(parameters, "realtimeUpdatesOnly", this.safeBool(options, "realtimeUpdatesOnly", true));
-            // the server handles realtimeUpdatesOnly=true unreliably, sometimes it replays the executions of the last days anyway,
-            // sometimes it sends no executions at all (not even the new ones), so the stream is always requested with
-            // realtimeUpdatesOnly=false and the executions older than the subscription are dropped on the client side instead
-            Map<String, Object> requestParams = new HashMap<String, Object>() {{
-                put( "realtimeUpdatesOnly", false );
-                put( "days", Interactivebrokers.this.safeInteger(parameters, "days", Interactivebrokers.this.safeInteger(options, "days", 1)) );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "realtimeUpdatesOnly", realtimeUpdatesOnly );
-                put( "subscribedAt", Interactivebrokers.this.milliseconds() );
-            }};
-            (this.ibkrSubscribe(client, "str", ("str+" + this.json(requestParams)), subscription)).join();
-            Object trades = future.getFuture().join();
-            Long resultLimit = limit;
-            if (this.newUpdates)
-            {
-                resultLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, unifiedSymbol, limit);
-            }
-            return this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, resultLimit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        String messageHash = "myTrades";
+        String unifiedSymbol = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            unifiedSymbol = this.symbol(symbol);
+            messageHash = ((messageHash + "::") + unifiedSymbol);
+        }
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+        Map<String, Object> options = this.safeDict(this.options, "watchMyTrades", new HashMap<String, Object>() {{}});
+        Boolean realtimeUpdatesOnly = (Boolean) this.safeBool(parameters, "realtimeUpdatesOnly", this.safeBool(options, "realtimeUpdatesOnly", true));
+        // the server handles realtimeUpdatesOnly=true unreliably, sometimes it replays the executions of the last days anyway,
+        // sometimes it sends no executions at all (not even the new ones), so the stream is always requested with
+        // realtimeUpdatesOnly=false and the executions older than the subscription are dropped on the client side instead
+        Map<String, Object> requestParams = new HashMap<String, Object>() {{
+            put( "realtimeUpdatesOnly", false );
+            put( "days", Interactivebrokers.this.safeInteger(parameters, "days", Interactivebrokers.this.safeInteger(options, "days", 1)) );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "realtimeUpdatesOnly", realtimeUpdatesOnly );
+            put( "subscribedAt", Interactivebrokers.this.milliseconds() );
+        }};
+        (this.ibkrSubscribe(client, "str", ("str+" + this.json(requestParams)), subscription)).join();
+        Object trades = future.getFuture().join();
+        Long resultLimit = limit;
+        if (this.newUpdates)
+        {
+            resultLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, unifiedSymbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, resultLimit, true);
 
     }
 
@@ -1411,16 +1479,18 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMyTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMyTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            this.cleanUnsubscription(client, "myTrades", "unsubscribe::myTrades", true);
-            return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("str")), "utr", new HashMap<String, Object>() {{
-                put( "topic", "myTrades" );
-            }})).join();
-        });
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        this.cleanUnsubscription(client, "myTrades", "unsubscribe::myTrades", true);
+        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("str")), "utr", new HashMap<String, Object>() {{
+            put( "topic", "myTrades" );
+        }})).join();
 
     }
 
@@ -1461,27 +1531,27 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
         Map<String, Object> subscription = this.safeDict(client.subscriptions, "str", new HashMap<String, Object>() {{}});
-        Boolean realtimeUpdatesOnly = (Boolean) this.safeBool(subscription, "realtimeUpdatesOnly", false);
-        Object threshold = null;
+        Boolean realtimeUpdatesOnly = this.safeBool(subscription, "realtimeUpdatesOnly", false);
+        Long threshold = null;
         if (Boolean.TRUE.equals(realtimeUpdatesOnly))
         {
             Long subscribedAt = this.safeInteger(subscription, "subscribedAt");
             if (!java.util.Objects.equals(subscribedAt, null))
             {
-                threshold = ((this.parseToInt((((double) subscribedAt) / ((double) 1000)))) * 1000L);
+                threshold = (this.parseToInt((((double) subscribedAt) / ((double) 1000))) * 1000L);
             }
         }
         // the same execution can be sent several times, first without the commission, then with it, then again unchanged,
         // an execution identical to the cached one with the same id is not emitted again
         Map<String, Object> options = this.safeDict(this.options, "watchMyTrades", new HashMap<String, Object>() {{}});
-        Boolean skipDuplicates = (Boolean) this.safeBool(options, "skipDuplicates", true);
+        Boolean skipDuplicates = this.safeBool(options, "skipDuplicates", true);
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < args.size(); i++)
         {
             Object rawTrade = (args == null || i < 0 || i >= args.size() ? null : args.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, (Map<String, Object>) null);
-            Object tradeTimestamp = trade.get("timestamp");
-            if ((!java.util.Objects.equals(threshold, null)) && (!java.util.Objects.equals(tradeTimestamp, null)) && (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(tradeTimestamp, threshold)))
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(args, i, new HashMap<String, Object>() {{}}), null);
+            Long tradeTimestamp = this.safeInteger(trade, "timestamp");
+            if ((!java.util.Objects.equals(threshold, null)) && (!java.util.Objects.equals(tradeTimestamp, null)) && ((threshold != null && (tradeTimestamp == null || tradeTimestamp < threshold))))
             {
                 continue;
             }
@@ -1499,7 +1569,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 }
             }
             trades.append(trade);
-            String tradeSymbol = ((String)trade.get("symbol"));
+            String tradeSymbol = this.safeString(trade, "symbol", "");
             symbols.put(tradeSymbol, true);
         }
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
@@ -1526,41 +1596,43 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            String messageHash = "balance";
-            String subscribeHash = ("sld::" + accountId);
-            if (!(client.subscriptions.containsKey(subscribeHash)))
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
+        Map<String, Object> query = accountIdqueryVariable.second();
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        String messageHash = "balance";
+        String subscribeHash = ("sld::" + accountId);
+        if (!(client.subscriptions.containsKey(subscribeHash)))
+        {
+            Map<String, Object> options = this.safeDict(this.options, "watchBalance", new HashMap<String, Object>() {{}});
+            Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot))
             {
-                Map<String, Object> options = this.safeDict(this.options, "watchBalance", new HashMap<String, Object>() {{}});
-                Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
-                if (Boolean.TRUE.equals(fetchBalanceSnapshot))
-                {
-                    Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
-                        put( "accountId", accountId );
-                    }};
-                    Balances snapshot = (this.fetchBalance(this.extend(query, snapshotRequest))).join();
-                    // typed copy: the statically typed ports keep this.balance as a dictionary
-                    Map<String, Object> snapshotBalance = this.extend(new HashMap<String, Object>() {{}}, snapshot);
-                    this.balance = snapshotBalance;
-                }
+                Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
+                    put( "accountId", accountId );
+                }};
+                Balances snapshot = (this.fetchBalance(this.extend(query, snapshotRequest))).join();
+                // typed copy: the statically typed ports keep this.balance as a dictionary
+                Map<String, Object> emptyBalance = new HashMap<String, Object>() {{}};
+                this.balance = this.extend(emptyBalance, snapshot);
             }
-            // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
-            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
-            (this.ibkrSubscribe(client, subscribeHash, ((("sld+" + accountId) + "+") + emptyArgs), new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-            }})).join();
-            Object balance = future.getFuture().join();
-            return balance;
-        }).thenApply(Balances::new);
+        }
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+        String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        (this.ibkrSubscribe(client, subscribeHash, ((("sld+" + accountId) + "+") + emptyArgs), new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+        }})).join();
+        Object balance = future.getFuture().join();
+        return balance;
 
     }
 
@@ -1575,18 +1647,20 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public CompletableFuture<Object> unWatchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchBalanceCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchBalanceCore(Map<String, Object> parameters)
+    {
 
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            String url = (this.ibkrConnect()).join();
-            Client client = this.client(url);
-            this.balance = new HashMap<String, Object>() {{}};
-            String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
-            return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("balance", ("sld::" + accountId))), ((("uld+" + accountId) + "+") + emptyArgs), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
-        });
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
+        Map<String, Object> query = accountIdqueryVariable.second();
+        String url = (this.ibkrConnect()).join();
+        Client client = this.client(url);
+        this.balance = new HashMap<String, Object>() {{}};
+        String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("balance", ("sld::" + accountId))), ((("uld+" + accountId) + "+") + emptyArgs), query)).join();
 
     }
 
@@ -1620,10 +1694,10 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             {
                 continue;
             }
-            String code = ((String)this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null));
+            String code = ((String)this.safeCurrencyCode(currencyId, null));
             Map<String, Object> account = (Map<String, Object>) this.safeDict(this.balance, code, this.account());
             account.put("total", cash);
-            Helpers.addElementToObject(account, "free", null); // recomputed from total - used
+            account.put("free", null); // recomputed from total - used
             this.balance.put(code, account);
             changed = true;
         }
@@ -1644,7 +1718,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
         //
         Map<String, Object> args = this.safeDict(message, "args", new HashMap<String, Object>() {{}});
-        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", (Object) null);
+        Boolean authenticated = this.safeBool(args, "authenticated", null);
         if (java.util.Objects.equals(authenticated, null))
         {
             return;
@@ -1666,7 +1740,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "topic": "smd+123", "error": "..." }
@@ -1679,7 +1753,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception error)
         {
@@ -1694,7 +1768,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         return "tic";
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         // plain text frames carry no data, but like every message they prove the connection is alive
         client.lastPong = ((Number)this.milliseconds()).longValue();
@@ -1719,13 +1793,13 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             client.subscriptions.put("ibkrConnected", true);
             client.resolve(true, "connected");
         }
-        if ((topic.startsWith(((String)"smd+"))))
+        if (topic.startsWith("smd+"))
         {
             this.handleTicker(client, message);
-        } else if ((topic.startsWith(((String)"smh+"))))
+        } else if (topic.startsWith("smh+"))
         {
             this.handleOHLCV(client, message);
-        } else if ((topic.startsWith(((String)"sbd+"))))
+        } else if (topic.startsWith("sbd+"))
         {
             this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(topic, "sor"))
@@ -1734,7 +1808,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         } else if (java.util.Objects.equals(topic, "str"))
         {
             this.handleMyTrades(client, message);
-        } else if ((topic.startsWith(((String)"sld+"))))
+        } else if (topic.startsWith("sld+"))
         {
             this.handleBalance(client, message);
         } else if (java.util.Objects.equals(topic, "sts"))

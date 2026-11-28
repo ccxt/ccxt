@@ -581,16 +581,16 @@ public partial class coinspot : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         object balances = this.safeValue2(response, "balance", "balances");
-        if (((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((balances is IList<object>) || (balances is not null && balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            IList<object> rows = this.toArray(balances);
-            int numRows = (rows?.Count ?? 0);
+            List<object> rows = this.safeList2(response, "balance", "balances", new List<object>() {});
+            int numRows = rows.Count;
             for (int i = 0; i < numRows; i++)
             {
                 IDictionary<string, object> currencies = this.safeDict(rows, i, new Dictionary<string, object>() {});
@@ -610,7 +610,8 @@ public partial class coinspot : Exchange
             }
         } else
         {
-            List<object> currencyIdsMap = new List<object>(((IDictionary<string,object>)balances).Keys);
+            IDictionary<string, object> balancesDict = this.safeDict2(response, "balance", "balances", new Dictionary<string, object>() {});
+            List<object> currencyIdsMap = new List<object>(balancesDict.Keys);
             for (int i = 0; i < currencyIdsMap.Count; i++)
             {
                 string? currencyId = ((string)currencyIdsMap[i]);
@@ -694,7 +695,7 @@ public partial class coinspot : Exchange
         return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buyorders", "sellorders", "rate", "amount");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -811,9 +812,8 @@ public partial class coinspot : Exchange
             Dictionary<string, object> market = this.safeMarket(id);
             if ((this.safeBool(market, "spot", false) == true))
             {
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);
-                result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
+                string? symbol = this.safeString(market, "symbol", "");
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(prices, id, new Dictionary<string, object>() {}), market));
             }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -1082,11 +1082,11 @@ public partial class coinspot : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         string? status = this.safeString(response, "status");
         if (status == "error")
@@ -1094,7 +1094,7 @@ public partial class coinspot : Exchange
             string feedback = ((this.id + " ") + this.json(response));
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Int64 nonce()
@@ -1140,7 +1140,7 @@ public partial class coinspot : Exchange
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "key", this.apiKey },
-                { "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512) },
+                { "sign", this.hmac(requestBody, this.secret, sha512) },
             };
         }
         return new Dictionary<string, object>() {

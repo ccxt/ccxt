@@ -389,7 +389,7 @@ export default class hashkey extends hashkeyRest {
         let messageHash = 'orders';
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = 'orders' + ':' + symbolResolved;
+            messageHash = 'orders' + ':' + this.symbol(symbol);
         }
         const orders = await this.watchPrivate(messageHash);
         let limitResolved = limit;
@@ -451,13 +451,12 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString(order, 's');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'O');
-        let side = this.safeStringLower(order, 'S');
-        let reduceOnly = undefined;
-        [side, reduceOnly] = this.parseOrderSideAndReduceOnly(side);
-        let type = this.parseOrderType(this.safeString(order, 'o'));
-        let timeInForce = this.safeString(order, 'f');
-        let postOnly = undefined;
-        [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
+        const rawSide = this.safeStringLower(order, 'S');
+        const side = this.parseOrderSideValue(rawSide);
+        const rawType = this.parseOrderType(this.safeString(order, 'o'));
+        const rawTimeInForce = this.safeString(order, 'f');
+        const timeInForce = this.parseOrderTimeInForceValue(rawType, rawTimeInForce);
+        let type = this.parseOrderType(rawType);
         if (this.safeBool(marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
@@ -488,8 +487,8 @@ export default class hashkey extends hashkeyRest {
                 'currency': this.safeCurrencyCode(this.safeString(order, 'N')),
                 'amount': this.omitZero(this.safeString(order, 'n')),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': this.parseOrderReduceOnlyValue(rawSide),
+            'postOnly': this.parseOrderPostOnlyValue(rawType, rawTimeInForce),
             'info': order,
         }, marketResolved);
     }
@@ -511,7 +510,7 @@ export default class hashkey extends hashkeyRest {
         let messageHash = 'myTrades';
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = 'myTrades' + ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + this.symbol(symbol);
         }
         const trades = await this.watchPrivate(messageHash);
         let limitResolved = limit;
@@ -748,7 +747,7 @@ export default class hashkey extends hashkeyRest {
         const options = this.safeDict(this.options, 'watchBalance');
         const snapshot = this.safeBool(options, 'fetchBalanceSnapshot', true);
         if (snapshot) {
-            const messageHash = type + ':' + 'fetchBalanceSnapshot';
+            const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, client, messageHash, type);
@@ -794,19 +793,17 @@ export default class hashkey extends hashkeyRest {
         if (isSpot) {
             type = 'spot';
         }
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
-        this.balance[type]['info'] = message;
+        const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = message;
         const currencyId = this.safeString(balanceUpdate, 'a');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString(balanceUpdate, 'f');
         account['used'] = this.safeString(balanceUpdate, 'l');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const messageHash = 'balance:' + type;
         client.resolve(this.balance[type], messageHash);
     }

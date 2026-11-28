@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mudrex import ImplicitAPI
-from ccxt.base.types import Balances, Int, Leverage, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry
+from ccxt.base.types import Balances, Bool, Int, Leverage, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -216,8 +216,8 @@ class mudrex(Exchange, ImplicitAPI):
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
-        if response is None or not isinstance(response, dict):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
+        if response is None:
             return None
         success = self.safe_bool(response, 'success', True)
         if not success:
@@ -288,12 +288,16 @@ class mudrex(Exchange, ImplicitAPI):
         now = self.seconds()
         windowLength = duration * requestLimit
         defaultStart = now - windowLength
-        startTime = self.parse_to_int((since / 1000) if (since is not None) else defaultStart)
+        startTime = self.parse_to_int(defaultStart)
+        if since is not None:
+            startTime = self.parse_to_int(since / 1000)
         windowEnd = self.parse_to_int(startTime + duration * requestLimit)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, ['price', 'until'])
         cappedEnd = now if (windowEnd > now) else windowEnd
-        endTime = self.parse_to_int((until / 1000) if (until is not None) else cappedEnd)
+        endTime = self.parse_to_int(cappedEnd)
+        if until is not None:
+            endTime = self.parse_to_int(until / 1000)
         request['start_time'] = startTime
         request['end_time'] = endTime
         response: dict
@@ -366,12 +370,11 @@ class mudrex(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {}
         response = await self.privateGetFutures(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
         rows = []
-        if isinstance(data, list):
-            rows = self.to_array(data)
-        else:
-            rows = self.safe_list(data, 'items', [])
+        rows = self.safe_list(response, 'data', [])
+        rowsLength = len(rows)
+        if rowsLength == 0:
+            rows = self.safe_list(self.safe_dict(response, 'data', {}), 'items', [])
         resultTickers = {}
         for i in range(0, len(rows)):
             t = rows[i]
@@ -379,16 +382,16 @@ class mudrex(Exchange, ImplicitAPI):
             if sym is None:
                 continue
             m = self.safe_market(sym)
-            symbol = m['symbol']
+            symbol = self.safe_string(m, 'symbol', '')
             if symbols is not None and not self.in_array(symbol, symbols):
                 continue
-            resultTickers[symbol] = self.parse_ticker(t, m)
+            resultTickers[symbol] = self.parse_ticker(self.safe_dict(rows, i, {}), m)
         return self.filter_by_array_tickers(resultTickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         ms = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(ms, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         pct = self.safe_number(ticker, 'change_perc')
         return self.safe_ticker({
             'symbol': symbol,
@@ -429,19 +432,19 @@ class mudrex(Exchange, ImplicitAPI):
         while(paging):
             q = self.extend({'limit': pageLimit, 'offset': offset}, params)
             response = await self.privateGetFutures(q)
-            data = self.safe_value(response, 'data', [])
+            dataDict = self.safe_dict(response, 'data')
             items = []
-            if isinstance(data, dict) and not isinstance(data, list):
-                items = self.safe_list(data, 'items', [])
+            if dataDict is not None:
+                items = self.safe_list(dataDict, 'items', [])
                 # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 itemsLength = len(items)
                 if itemsLength == 0:
-                    items = self.safe_list(data, 'results', [])
+                    items = self.safe_list(dataDict, 'results', [])
                     itemsLength = len(items)
-                if (itemsLength == 0) and ('symbol' in data):
-                    items = [data]
+                if (itemsLength == 0) and ('symbol' in dataDict):
+                    items = [dataDict]
             else:
-                items = self.to_array(data)
+                items = self.safe_list(response, 'data', [])
             numItems = len(items)
             if numItems == 0:
                 paging = False
@@ -673,7 +676,7 @@ class mudrex(Exchange, ImplicitAPI):
                 riskRequest['stoploss_price'] = self.price_to_precision(symbol, stopLossPrice)
             riskResponse = await self.privatePostFuturesPositionsPositionIdRiskorder(self.extend(riskRequest, paramsOmitted))
             riskData = self.safe_dict(riskResponse, 'data', riskResponse)
-            return self.parse_order(riskData, market)
+            return self.parse_order(self.extend({}, riskData), market)
         lev = self.safe_integer(params, 'leverage', 1)
         if (type == 'market') and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for market orders')
@@ -734,7 +737,7 @@ class mudrex(Exchange, ImplicitAPI):
             request['order_price'] = self.price_to_precision(symbol, price)
         response = await self.privatePatchFuturesOrdersOrderId(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -784,7 +787,7 @@ class mudrex(Exchange, ImplicitAPI):
             typ = 'limit'
         ts = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string_lower(order, 'status'))
-        sym = marketResolved['symbol']
+        sym = self.safe_string(marketResolved, 'symbol', '')
         return self.safe_order({
             'info': order,
             'id': oid,
@@ -835,7 +838,7 @@ class mudrex(Exchange, ImplicitAPI):
         }
         response = await self.privateDeleteFuturesOrdersOrderId(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -858,7 +861,7 @@ class mudrex(Exchange, ImplicitAPI):
         }
         response = await self.privateGetFuturesOrdersOrderId(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_orders_by_state(self, state: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -882,14 +885,13 @@ class mudrex(Exchange, ImplicitAPI):
             response = await self.privateGetFuturesOrdersHistory(request)
         else:
             response = await self.privateGetFuturesOrders(request)
-        data = self.safe_value(response, 'data', [])
-        rows = self.to_array(data)
+        rows = self.safe_list(response, 'data', [])
         market = None
         if symbol is not None:
             market = self.market(symbol)
         orders = []
         for i in range(0, len(rows)):
-            orders.append(self.parse_order(rows[i], market))
+            orders.append(self.parse_order(self.safe_dict(rows, i, {}), market))
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -949,16 +951,12 @@ class mudrex(Exchange, ImplicitAPI):
             await self.load_markets()
         q = {}
         response = await self.privateGetFuturesPositions(self.extend(q, params))
-        data = self.safe_value(response, 'data', [])
-        if data is None:
-            return []
-        rows = self.to_array(data)
+        rows = self.safe_list(response, 'data', [])
         outPos = []
         for i in range(0, len(rows)):
-            p = rows[i]
-            symRaw = self.safe_string(p, 'symbol')
+            symRaw = self.safe_string(rows[i], 'symbol')
             m = self.safe_market(symRaw)
-            pos = self.parse_position(p, m)
+            pos = self.parse_position(self.safe_dict(rows, i, {}), m)
             outPos.append(pos)
         return self.filter_by_array_positions(outPos, 'symbol', symbols)
 
@@ -1099,11 +1097,11 @@ class mudrex(Exchange, ImplicitAPI):
             partialParams = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
             partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, partialParams))
             partialData = self.safe_dict(partialResponse, 'data', partialResponse)
-            return self.parse_order(partialData, market)
+            return self.parse_order(self.extend({}, partialData), market)
         closeParams = self.omit(params, ['position_id'])
         response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, closeParams))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
@@ -1190,7 +1188,7 @@ class mudrex(Exchange, ImplicitAPI):
                 allRows.append(entry)
                 if self.safe_string(entry, 'fee_type') == 'TRANSACTION':
                     # count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (market is None) or (self.safe_string(entry, 'symbol') == market['id']):
+                    if (market is None) or (self.safe_string(entry, 'symbol') == self.safe_string(market, 'id')):
                         transactionsCount = transactionsCount + 1
             calls = calls + 1
             paging = False
@@ -1218,8 +1216,9 @@ class mudrex(Exchange, ImplicitAPI):
         rows = []
         for i in range(0, len(transactions)):
             rebate = None
+            transactionKey = self.safe_string(transactionKeys, i)
             for j in range(0, len(rebateKeys)):
-                if rebateKeys[j] == transactionKeys[i]:
+                if self.safe_string(rebateKeys, j) == transactionKey:
                     rebate = self.safe_string(rebateAmounts, j)
                     # blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = ''
@@ -1248,7 +1247,7 @@ class mudrex(Exchange, ImplicitAPI):
         #
         ms = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(ms, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         ts = self.parse8601(self.safe_string(trade, 'created_at'))
         # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         side = self.safe_string_lower(trade, 'order_type')

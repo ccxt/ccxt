@@ -1,5 +1,5 @@
 import onetradingRest from '../onetrading.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, NullableDict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, NullableDict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class onetrading extends onetradingRest {
@@ -35,7 +35,7 @@ export default class onetrading extends onetradingRest {
      */
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
-    parseWSTicker(ticker: Dict, market?: Market): Ticker;
+    parseWSTicker(ticker: Dict, market: Market, timestamp: Int, datetime: Str): Ticker;
     /**
      * @method
      * @name onetrading#watchMyTrades
@@ -61,7 +61,7 @@ export default class onetrading extends onetradingRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
-    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
+    handleBookDeltas(orderbook: WsOrderBook, deltas: any[]): void;
     /**
      * @method
      * @name onetrading#watchOrders
@@ -99,7 +99,7 @@ export default class onetrading extends onetradingRest {
     findTimeframe(timeframe: any, timeframes?: NullableDict): Str;
     handleSubscriptions(client: Client, message: Dict): Dict;
     handleHeartbeat(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     handlePricePointUpdates(client: Client, message: Dict): Dict;
     handleAuthenticationMessage(client: Client, message: Dict): Dict;

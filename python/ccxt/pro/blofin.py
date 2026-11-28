@@ -174,7 +174,7 @@ class blofin(ccxt.async_support.blofin):
                 client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
-        return self.parse_trade(trade, market)
+        return self.parse_trade(self.extend({}, trade), market)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -312,15 +312,12 @@ class blofin(ccxt.async_support.blofin):
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
         for i in range(0, len(data)):
-            ticker = self.parse_ws_ticker(self.safe_dict(data, i, {}))
+            ticker = self.parse_ticker(self.safe_dict(data, i, {}))
             symbol = self.safe_string(ticker, 'symbol', '')
             self.tickers[symbol] = ticker
             if channelName is not None:
                 messageHash = channelName + ':' + symbol
                 client.resolve(self.tickers[symbol], messageHash)
-
-    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
-        return self.parse_ticker(ticker, market)
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -474,7 +471,7 @@ class blofin(ccxt.async_support.blofin):
         data = self.safe_list(message, 'data')
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         interval = channelName.replace('candle', '')
         unifiedTimeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
@@ -534,14 +531,16 @@ class blofin(ccxt.async_support.blofin):
         # the merged currencies by safeBalance
         self.balance[marketType] = self.safe_dict(self.balance, marketType, {})
         parsed = self.parse_ws_balance(message)
+        marketBalance = self.safe_dict(self.balance, marketType, {})
         reserved = ['free', 'used', 'total']
         keys = list(parsed.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             if self.in_array(key, reserved):
                 continue
-            self.balance[marketType][key] = parsed[key]
-        self.balance[marketType] = self.safe_balance(self.balance[marketType])
+            marketBalance[key] = parsed[key]
+        self.balance[marketType] = marketBalance
+        self.balance[marketType] = self.safe_balance(marketBalance)
         messageHash = marketType + ':balance'
         client.resolve(self.balance[marketType], messageHash)
 
@@ -563,10 +562,10 @@ class blofin(ccxt.async_support.blofin):
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
         """
         params['callerMethodName'] = 'watchOrders'
-        symbolsArray = []
         if symbol is not None:
-            symbolsArray.append(symbol)
-        return await self.watch_orders_for_symbols(symbolsArray, since, limit, params)
+            await self.load_markets()
+            return await self.watch_orders_for_symbols([self.symbol(symbol)], since, limit, params)
+        return await self.watch_orders_for_symbols([], since, limit, params)
 
     async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -644,11 +643,11 @@ class blofin(ccxt.async_support.blofin):
         # resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for i in range(0, len(symbols)):
             if channelName is not None:
-                client.resolve(orders, channelName + ':' + symbols[i])
+                client.resolve(orders, channelName + ':' + self.safe_string(symbols, i, ''))
             client.resolve(orders, channelName)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
@@ -687,14 +686,11 @@ class blofin(ccxt.async_support.blofin):
         data = self.safe_list(message, 'data')
         newPositions = []
         for i in range(0, len(data)):
-            position = self.parse_ws_position(self.safe_dict(data, i, {}))
+            position = self.parse_position(self.safe_dict(data, i, {}))
             newPositions.append(position)
             cache.append(position)
             if channelName is not None:
                 client.resolve(position, channelName + ':' + self.safe_string(position, 'symbol', ''))
-
-    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
-        return self.parse_position(position, market)
 
     async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
@@ -767,14 +763,14 @@ class blofin(ccxt.async_support.blofin):
             for i in range(0, len(symbols)):
                 current = symbols[i]
                 market = None
-                channel = channelName
+                interval = ''
                 if isOHLCV:
                     market = self.market(current)
-                    tf = self.safe_string(self.safe_list(symbolsArray, i), 1)
+                    tf = self.safe_string(self.safe_list(symbolsArray, i), 1, '')
                     interval = self.safe_string(self.timeframes, tf, tf)
-                    channel = channel + interval
                 else:
                     market = self.market(current)
+                channel = '' + channelName + interval
                 topic = {
                     'channel': channel,
                     'instId': market['id'],
@@ -814,11 +810,11 @@ class blofin(ccxt.async_support.blofin):
         messageHashes = []
         for i in range(0, len(symbols)):
             market = self.market(self.safe_string(symbols, i))
-            channel = channelName
+            interval = ''
             if isOHLCV:
-                tf = self.safe_string(self.safe_list(symbolsArray, i), 1)
+                tf = self.safe_string(self.safe_list(symbolsArray, i), 1, '')
                 interval = self.safe_string(self.timeframes, tf, tf)
-                channel = channel + interval
+            channel = channelName + interval
             topic = {
                 'channel': channel,
                 'instId': market['id'],
@@ -829,7 +825,7 @@ class blofin(ccxt.async_support.blofin):
             'op': 'unsubscribe',
             'args': topics,
         }
-        url = (self.urls['api'])['ws'][marketType]['public']
+        url = self.safe_string(self.urls['api']['ws'][marketType], 'public', '')
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
 
     def handle_unsubscription(self, client: Client, message: dict):

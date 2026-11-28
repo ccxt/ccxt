@@ -463,7 +463,6 @@ class mercado extends Exchange {
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'executed_timestamp');
         $marketResolved = $this->safe_market(null, $market);
         $id = $this->safe_string_2($trade, 'tid', 'operation_id');
-        $type = null;
         $side = $this->safe_string($trade, 'type');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'amount', 'quantity');
@@ -474,9 +473,13 @@ class mercado extends Exchange {
             $rate = Precise::string_div($feeRate, '100');
             $isBuy = ($side === 'buy');
             $feeBase = ($isBuy) ? $amount : Precise::string_mul($amount, $price);
+            $feeCurrency = $this->safe_string($marketResolved, 'quote');
+            if ($isBuy) {
+                $feeCurrency = $this->safe_string($marketResolved, 'base');
+            }
             $fee = array(
                 'cost' => Precise::string_mul($feeBase, $rate),
-                'currency' => ($isBuy) ? $marketResolved['base'] : $marketResolved['quote'],
+                'currency' => $feeCurrency,
                 'rate' => $rate,
             );
         }
@@ -487,7 +490,7 @@ class mercado extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
             'order' => null,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
@@ -577,13 +580,14 @@ class mercado extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'coin_pair' => $market['id'],
         );
         $response = null;
         if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
-            $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['limit_price'] = $this->price_to_precision($precisionSymbol, $price);
+            $request['quantity'] = $this->amount_to_precision($precisionSymbol, $amount);
             if ($side === 'buy') {
                 $response = $this->privatePostPlaceBuyOrder($this->extend($request, $params));
             } else {
@@ -596,10 +600,10 @@ class mercado extends Exchange {
                 }
                 $amountString = $this->number_to_string($amount);
                 $priceString = $this->number_to_string($price);
-                $request['cost'] = $this->price_to_precision($market['symbol'], $this->parse_to_numeric(Precise::string_mul($amountString, $priceString)));
+                $request['cost'] = $this->price_to_precision($precisionSymbol, $this->parse_to_numeric(Precise::string_mul($amountString, $priceString)));
                 $response = $this->privatePostPlaceMarketBuyOrder($this->extend($request, $params));
             } else {
-                $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+                $request['quantity'] = $this->amount_to_precision($precisionSymbol, $amount);
                 $response = $this->privatePostPlaceMarketSellOrder($this->extend($request, $params));
             }
         }
@@ -655,7 +659,7 @@ class mercado extends Exchange {
         //
         $responseData = $this->safe_dict($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -719,7 +723,7 @@ class mercado extends Exchange {
             // operations carry no side, parseTrade reads it from 'type' like in public trades
             $rawTrades[] = $this->extend($operations[$i], array( 'type' => $side ));
         }
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -767,7 +771,7 @@ class mercado extends Exchange {
         $response = $this->privatePostGetOrder($this->extend($request, $params));
         $responseData = $this->safe_dict($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order');
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function withdraw(string $code, float $amount, string $address, $params = array()): array {
@@ -788,7 +792,7 @@ class mercado extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            'quantity' => sprintf('%.10f', $amount),
+            'quantity' => $this->decimal_to_precision($amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address' => $address,
         );
         if ($code === 'BRL') {
@@ -1058,7 +1062,7 @@ class mercado extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

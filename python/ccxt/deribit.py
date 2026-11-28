@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Liquidation, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Liquidation, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -612,7 +612,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
-        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
+        if (marketId is not None) and isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
@@ -985,7 +985,7 @@ class deribit(Exchange, ImplicitAPI):
                 elif not isComboMarket:
                     symbol = base + '/' + quote + ':' + settle
                     if option or future:
-                        symbol = symbol + '-' + self.yymmdd(expiry, '')
+                        symbol = symbol + ('-' + self.yymmdd(expiry, ''))
                         if option:
                             strike = self.safe_number(market, 'strike')
                             optionType = self.safe_string(market, 'option_type')
@@ -1426,8 +1426,8 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         tickers = {}
         for i in range(0, len(result)):
-            ticker = self.parse_ticker(result[i])
-            symbol = ticker['symbol']
+            ticker = self.parse_ticker(self.safe_dict(result, i, {}))
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)
@@ -1463,7 +1463,9 @@ class deribit(Exchange, ImplicitAPI):
         defaultLimit = 1000
         windowLimit = defaultLimit if (limit is None) else limit
         limitResolved = defaultLimit if ((since is None) and (limit is None)) else limit
-        sinceResolved = None if (since is None) else max(since - 1, 0)
+        sinceResolved = None
+        if since is not None:
+            sinceResolved = max(since - 1, 0)
         if since is None:
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000
             request['end_timestamp'] = now
@@ -1613,7 +1615,9 @@ class deribit(Exchange, ImplicitAPI):
         if limit is not None:
             request['count'] = min(limit, 1000)  # default 10
         until = self.safe_integer_2(params, 'until', 'end_timestamp')
-        paramsOmitted = self.omit(params, ['until']) if (until is not None) else params
+        paramsOmitted = self.omit(params, [])
+        if until is not None:
+            paramsOmitted = self.omit(params, ['until'])
         if until is not None:
             request['end_timestamp'] = until
         response = None
@@ -1997,7 +2001,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2055,7 +2059,7 @@ class deribit(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
         isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
         exchangeSpecificPostOnly = self.safe_bool(params, 'post_only')
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly, params)
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly is True, params)
         if isLimitOrder:
             request['type'] = 'limit'
             request['price'] = self.price_to_precision(symbol, price)
@@ -2190,9 +2194,9 @@ class deribit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
         isTrailingAmountOrder = trailingAmount is not None
-        paramsOmitted = params
+        paramsOmitted = self.omit(params, [])
         if isTrailingAmountOrder:
-            paramsOmitted = self.omit(params, 'trigger_offset')
+            paramsOmitted = self.omit(paramsOmitted, 'trigger_offset')
         if isTrailingAmountOrder:
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
         response = self.privateGetEdit(self.extend(request, paramsOmitted))
@@ -2218,7 +2222,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         response = self.privateGetCancel(self.extend(request, params))
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3161,8 +3165,7 @@ class deribit(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(eachItemDuration) * 1000
         now = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
-        defaultSince = now - month
-        sinceResolved = defaultSince if (since is None) else since
+        sinceResolved = (now - month) if (since is None) else since
         time = now
         if since is not None:
             time = self.parse_to_int(since + month)
@@ -3204,7 +3207,7 @@ class deribit(Exchange, ImplicitAPI):
         rates = []
         result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
-            fr = self.safe_dict(result, i)
+            fr = self.safe_dict(result, i, {})
             rate = self.parse_funding_rate(fr, market)
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, sinceResolved, limit)
@@ -3824,7 +3827,7 @@ class deribit(Exchange, ImplicitAPI):
         url = apiUrl + request
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

@@ -99,12 +99,16 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             headers.put("PF-API-KEY", key);
         } else
         {
-            if (!java.util.Objects.equals(this.handleOption("setupApiKeyHeaders", "apiKey", (Object) null), null))
+            if (!java.util.Objects.equals(this.handleOption("setupApiKeyHeaders", "apiKey", null), null))
             {
                 headers.put("PF-API-KEY", this.options.get("apiKey"));
             }
         }
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsSubOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        wsSubOptions.put("headers", headers);
+        wsOptions.put("options", wsSubOptions);
+        this.options.put("ws", wsOptions);
     }
 
     /**
@@ -130,93 +134,95 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderWsCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            var requestoperationTypeVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            var request = ((List<Object>) requestoperationTypeVariable).get(0);
-            var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction((String) (operationType), (Map<String, Object>) (request));
-            String requestId = this.safeString(wsRequest, "id");
-            if (java.util.Objects.equals(operationType, "create_stop_order"))
-            {
-                throw new NotSupported((this.id + " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")) ;
-            } else if (java.util.Objects.equals(operationType, "set_position_tpsl"))
-            {
-                throw new NotSupported((this.id + " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")) ;
-            }
-            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
-            //
-            // market order
-            // {
-            //   "code": 200,
-            //   "data": {
-            //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
-            //     "i": 645953,
-            //     "s": "BTC"
-            //   },
-            //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t": 1749223025962,
-            //   "type": "create_market_order"
-            // }
-            //
-            // limit order
-            // {
-            //   "code": 200,
-            //   "data": {
-            //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
-            //     "i": 645953,
-            //     "s": "BTC"
-            //   },
-            //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t": 1749223025962,
-            //   "type": "create_order"
-            // }
-            //
-            Long code = this.safeInteger(response, "code");
-            Boolean success = false;
-            if ((code != null && code == 200))
-            {
-                success = true;
-            }
-            String status = null;
-            if (!Boolean.TRUE.equals(success))
-            {
-                status = "rejected";
-            } else
-            {
-                status = "open";
-            }
-            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            String orderId = this.safeString(order, "i");
-            String clientOrderId = this.safeString(order, "I");
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("id", orderId);
-            mapLiteral1.put("clientOrderId", clientOrderId);
-            mapLiteral1.put("status", status);
-            mapLiteral1.put("info", response);
-            mapLiteral1.put("symbol", symbol);
-            return this.safeOrder(mapLiteral1, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        var request = ((List<Object>) requestoperationTypeVariable).get(0);
+        var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> wsRequest = this.wrapAsPostAction((String) (operationType), (Map<String, Object>) (request));
+        String requestId = this.safeString(wsRequest, "id");
+        if (java.util.Objects.equals(operationType, "create_stop_order"))
+        {
+            throw new NotSupported((this.id + " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")) ;
+        } else if (java.util.Objects.equals(operationType, "set_position_tpsl"))
+        {
+            throw new NotSupported((this.id + " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")) ;
+        }
+        Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
+        //
+        // market order
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_market_order"
+        // }
+        //
+        // limit order
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_order"
+        // }
+        //
+        Long code = this.safeInteger(response, "code");
+        Boolean success = false;
+        if ((code != null && code == 200))
+        {
+            success = true;
+        }
+        String status = null;
+        if (!Boolean.TRUE.equals(success))
+        {
+            status = "rejected";
+        } else
+        {
+            status = "open";
+        }
+        Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        String orderId = this.safeString(order, "i");
+        String clientOrderId = this.safeString(order, "I");
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", orderId);
+        mapLiteral1.put("clientOrderId", clientOrderId);
+        mapLiteral1.put("status", status);
+        mapLiteral1.put("info", response);
+        mapLiteral1.put("symbol", symbol);
+        return this.safeOrder(mapLiteral1, null);
 
     }
 
@@ -238,70 +244,72 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.editOrderWsCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object editOrderWsCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            String batchOperationType = "edit_order";
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, market, parameters);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, request);
-            String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
-            // {
-            //   "code": 200,
-            //   "data": {
-            //     "I": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            //     "i": 645954,
-            //     "s": "BTC"
-            //   },
-            //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t": 1749223026150,
-            //   "type": "edit_order"
-            // }
-            Long code = this.safeInteger(response, "code");
-            Boolean success = false;
-            if ((code != null && code == 200))
-            {
-                success = true;
-            }
-            String status = null;
-            if (!Boolean.TRUE.equals(success))
-            {
-                status = "rejected";
-            } else
-            {
-                status = "open";
-            }
-            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            String orderId = this.safeString(order, "i");
-            String clientOrderId = this.safeString(order, "I");
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("id", orderId);
-            mapLiteral2.put("clientOrderId", clientOrderId);
-            mapLiteral2.put("status", status);
-            mapLiteral2.put("info", response);
-            mapLiteral2.put("symbol", symbol);
-            return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        String batchOperationType = "edit_order";
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
+        String requestId = this.safeString(wsRequest, "id");
+        Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        //     "i": 645954,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223026150,
+        //   "type": "edit_order"
+        // }
+        Long code = this.safeInteger(response, "code");
+        Boolean success = false;
+        if ((code != null && code == 200))
+        {
+            success = true;
+        }
+        String status = null;
+        if (!Boolean.TRUE.equals(success))
+        {
+            status = "rejected";
+        } else
+        {
+            status = "open";
+        }
+        Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        String orderId = this.safeString(order, "i");
+        String clientOrderId = this.safeString(order, "I");
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", orderId);
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("info", response);
+        mapLiteral2.put("symbol", symbol);
+        return this.safeOrder(mapLiteral2, null);
 
     }
 
@@ -320,90 +328,92 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object cancelOrdersWsCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            String batchOperationType = "batch_orders";
-            if (java.util.Objects.equals(this.markets, null))
+        String batchOperationType = "batch_orders";
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + "cancelOrders() requires a \"symbol\" argument!")) ;
+        }
+        Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
+        String requestId = this.safeString(wsRequest, "id");
+        Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
+        //
+        // {
+        //   "code": 200,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 645953,
+        //         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
+        //         "symbol": "BTC"
+        //       },
+        //       {
+        //         "success": true,
+        //         "order_id": 645954,
+        //         "symbol": "ETH"
+        //       }
+        //     ]
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "batch_orders"
+        // }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        List<Object> results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+        List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < results.size(); i++)
+        {
+            Map<String, Object> order = this.safeDict(results, i, new HashMap<String, Object>() {{}});
+            String error = this.safeString(order, "error");
+            Boolean success = this.safeBool(order, "success", false);
+            String marketId = this.safeString(order, "symbol");
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+            String orderId = this.safeString(order, "i");
+            String clientOrderId = this.safeString(order, "I");
+            String status = null;
+            if ((!java.util.Objects.equals(error, null)) || (!Boolean.TRUE.equals(success)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(symbol, null))
+                status = "closed";
+            } else
             {
-                throw new ArgumentsRequired((this.id + "cancelOrders() requires a \"symbol\" argument!")) ;
+                status = "canceled";
             }
-            Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(batchOperationType, request);
-            String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
-            //
-            // {
-            //   "code": 200,
-            //   "data": {
-            //     "results": [
-            //       {
-            //         "success": true,
-            //         "order_id": 645953,
-            //         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
-            //         "symbol": "BTC"
-            //       },
-            //       {
-            //         "success": true,
-            //         "order_id": 645954,
-            //         "symbol": "ETH"
-            //       }
-            //     ]
-            //   },
-            //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
-            //   "t": 1749223025962,
-            //   "type": "batch_orders"
-            // }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
-            List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < results.size(); i++)
-            {
-                Map<String, Object> order = this.safeDict(results, i, null);
-                String error = this.safeString(order, "error");
-                Boolean success = (Boolean) this.safeBool(order, "success", false);
-                String marketId = this.safeString(order, "symbol");
-                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                String orderId = this.safeString(order, "i");
-                String clientOrderId = this.safeString(order, "I");
-                String status = null;
-                if ((!java.util.Objects.equals(error, null)) || (!Boolean.TRUE.equals(success)))
-                {
-                    status = "closed";
-                } else
-                {
-                    status = "canceled";
-                }
-                ((List<Object>)ordersToReturn).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", orderId);
-                    j39v1.put("clientOrderId", clientOrderId);
-                    j39v1.put("status", status);
-                    j39v1.put("info", response);
-                    j39v1.put("symbol", market.get("symbol"));
-                    yield j39v1; } }), (Map<String, Object>) null));
-            }
-            return ordersToReturn;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", orderId);
+            mapLiteral3.put("clientOrderId", clientOrderId);
+            mapLiteral3.put("status", status);
+            mapLiteral3.put("info", response);
+            mapLiteral3.put("symbol", market.get("symbol"));
+            ordersToReturn.add(this.safeOrder(mapLiteral3, null));
+        }
+        return ordersToReturn;
 
     }
 
@@ -424,73 +434,75 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderWsCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderWsCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            String operationType = "cancel_order";
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " cancelOrderWs() requires a symbol argument")) ;
-            }
-            Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, request);
-            String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
-            //
-            //  {
-            //   "code": 200,
-            //   "data": {
-            //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
-            //     "i": null,
-            //     "s": "BTC"
-            //   },
-            //   "id": "1bb2b72f-f545-4938-8a38-c5cda8823675",
-            //   "t": 1749223343610,
-            //   "type": "cancel_order"
-            // }
-            //
-            Long code = this.safeInteger(response, "code");
-            Boolean success = false;
-            if ((code != null && code == 200))
-            {
-                success = true;
-            }
-            String status = null;
-            if (!Boolean.TRUE.equals(success))
-            {
-                status = "rejected";
-            } else
-            {
-                status = "open";
-            }
-            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            String orderId = this.safeString(order, "i");
-            String clientOrderId = this.safeString(order, "I");
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("id", orderId);
-            mapLiteral3.put("clientOrderId", clientOrderId);
-            mapLiteral3.put("status", status);
-            mapLiteral3.put("info", response);
-            mapLiteral3.put("symbol", symbol);
-            return this.safeOrder(mapLiteral3, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        String operationType = "cancel_order";
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrderWs() requires a symbol argument")) ;
+        }
+        Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> wsRequest = this.wrapAsPostAction(operationType, request);
+        String requestId = this.safeString(wsRequest, "id");
+        Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
+        //
+        //  {
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": null,
+        //     "s": "BTC"
+        //   },
+        //   "id": "1bb2b72f-f545-4938-8a38-c5cda8823675",
+        //   "t": 1749223343610,
+        //   "type": "cancel_order"
+        // }
+        //
+        Long code = this.safeInteger(response, "code");
+        Boolean success = false;
+        if ((code != null && code == 200))
+        {
+            success = true;
+        }
+        String status = null;
+        if (!Boolean.TRUE.equals(success))
+        {
+            status = "rejected";
+        } else
+        {
+            status = "open";
+        }
+        Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        String orderId = this.safeString(order, "i");
+        String clientOrderId = this.safeString(order, "I");
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", orderId);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("info", response);
+        mapLiteral4.put("symbol", symbol);
+        return this.safeOrder(mapLiteral4, null);
 
     }
 
@@ -509,45 +521,47 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersWsCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersWsCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String operationType = "cancel_all_orders";
-            Map<String, Object> request = this.cancelAllOrdersRequest((String) (symbol), parameters);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> wsRequest = (Map<String, Object>) this.wrapAsPostAction(operationType, request);
-            String requestId = this.safeString(wsRequest, "id");
-            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
-            //  {
-            //   "code": 200,
-            //   "data": {
-            //     "cancelled_count": 10
-            //   },
-            //   "id": "b86b4f45-49da-4191-84e2-93e141acdeab",
-            //   "t": 1749221787291,
-            //   "type": "cancel_all_orders"
-            // }
-            //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", response );
-    }}, (Map<String, Object>) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String operationType = "cancel_all_orders";
+        Map<String, Object> request = this.cancelAllOrdersRequest(symbol, parameters);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> wsRequest = this.wrapAsPostAction(operationType, request);
+        String requestId = this.safeString(wsRequest, "id");
+        Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
+        //  {
+        //   "code": 200,
+        //   "data": {
+        //     "cancelled_count": 10
+        //   },
+        //   "id": "b86b4f45-49da-4191-84e2-93e141acdeab",
+        //   "t": 1749221787291,
+        //   "type": "cancel_all_orders"
+        // }
+        //
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+    put( "info", response );
+}}, null)));
 
     }
 
@@ -564,44 +578,46 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            this.setupApiKeyHeaders((String) null);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1L);
-            Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
-            Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
-            String messageHash = ("orderbook:" + symbol);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "book" );
-                    put( "symbol", market.get("id") );
-                    put( "agg_level", aggLevel );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, paramsAggLevel);
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        this.setupApiKeyHeaders(null);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1L);
+        Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
+        Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
+        String messageHash = ("orderbook:" + symbol);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "book" );
+                put( "symbol", market.get("id") );
+                put( "agg_level", aggLevel );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, paramsAggLevel);
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
+        return orderbook.limit();
 
     }
 
@@ -615,45 +631,47 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
+    }
+
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1L);
-            Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
-            Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
-            String subMessageHash = ("orderbook:" + symbol);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "book" );
-                    put( "symbol", market.get("id") );
-                    put( "agg_level", aggLevel );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, paramsAggLevel);
-            return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1L);
+        Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
+        Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
+        String subMessageHash = ("orderbook:" + symbol);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "book" );
+                put( "symbol", market.get("id") );
+                put( "agg_level", aggLevel );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, paramsAggLevel);
+        return (this.watch(url, messageHash, message, messageHash, null)).join();
 
     }
 
@@ -694,22 +712,22 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //
         Map<String, Object> entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(entry, "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        String symbol = this.safeString(market, "symbol", "");
         List<Object> levels = this.safeList(entry, "l", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "bids", Pacifica.this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList())) );
             put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "t");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a", 2);
+        Map<String, Object> snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a", 2);
         Long nonce = this.safeInteger(entry, "li");
         if ((!java.util.Objects.equals(nonce, null)) && ((nonce == null || nonce != 0)))
         {
             snapshot.put("nonce", nonce);
         }
         String messageHash = ("orderbook:" + symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
             this.orderbooks.put(symbol, ob);
@@ -730,12 +748,14 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-            return (tickers == null || symbol == null ? null : tickers.get(symbol));
-        }).thenApply(Ticker::new);
+        Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+        return (tickers == null || symbol == null ? null : tickers.get(symbol));
 
     }
 
@@ -750,42 +770,44 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            this.setupApiKeyHeaders((String) null);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String messageHash = "tickers";
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "prices" );
-                }} );
-            }};
-            Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (this.newUpdates)
-            {
-                return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
-            }
-            return this.tickers;
-        }).thenApply(Tickers::new);
+        this.setupApiKeyHeaders(null);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        String messageHash = "tickers";
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "prices" );
+            }} );
+        }};
+        Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+        if (this.newUpdates)
+        {
+            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
+        }
+        return this.tickers;
 
     }
 
@@ -800,37 +822,39 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTickersCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            this.marketSymbols(symbols, (Object) null, true, false, false);
-            String subMessageHash = "tickers";
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "prices" );
-                }} );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        this.marketSymbols(symbols, null, true, false, false);
+        String subMessageHash = "tickers";
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "prices" );
+            }} );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -848,52 +872,54 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String messageHash = "myTrades";
-            String symbolResolved = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                symbolResolved = this.symbol(symbol);
-                messageHash = ("myTrades:" + symbolResolved);
-            }
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "account_trades" );
-                    put( "account", userAddress );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
-            }
-            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", parameters);
+        String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
+        Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String messageHash = "myTrades";
+        String symbolResolved = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            symbolResolved = this.symbol(symbol);
+            messageHash = ("myTrades:" + symbolResolved);
+        }
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "account_trades" );
+                put( "account", userAddress );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
 
     }
 
@@ -909,44 +935,46 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMyTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMyTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
-            }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            String messageHash = "unsubscribe:myTrades";
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "account_trades" );
-                    put( "account", userAddress );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
-            return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
+        }
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
+        String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
+        Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+        String messageHash = "unsubscribe:myTrades";
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "account_trades" );
+                put( "account", userAddress );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
+        return (this.watch(url, messageHash, message, messageHash, null)).join();
 
     }
 
@@ -972,26 +1000,20 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //     ],
         // }
         //
-        List<Object> parsedTickers = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> parsedTickers = new ArrayList<Map<String, Object>>();
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            String marketId = this.safeString(info, "symbol");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) market.get("symbol");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(info, market);
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+            String symbol = this.safeString(market, "symbol", "");
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market);
             this.tickers.put(symbol, ticker);
-            ((List<Object>)parsedTickers).add(ticker);
+            parsedTickers.add(ticker);
         }
         Map<String,Object> tickers = this.indexBy(parsedTickers, "symbol");
         client.resolve(tickers, "tickers");
         return true;
-    }
-
-    public Ticker parseWsTicker(Object rawTicker, Map<String, Object> market)
-    {
-        return this.parseTicker(rawTicker, market);
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -1036,8 +1058,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
-            String symbol = (String) parsed.get("symbol");
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, null);
+            String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbols.put(symbol, true);
@@ -1068,45 +1090,47 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = ("trade:" + symbolValue);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "trades" );
-                    put( "symbol", market.get("id") );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, parameters);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String messageHash = ("trade:" + symbolValue);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "trades" );
+                put( "symbol", market.get("id") );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, parameters);
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -1121,40 +1145,42 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String subMessageHash = ("trade:" + symbolValue);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "trades" );
-                    put( "symbol", market.get("id") );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String subMessageHash = ("trade:" + symbolValue);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "trades" );
+                put( "symbol", market.get("id") );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, parameters);
+        return (this.watch(url, messageHash, message, messageHash, null)).join();
 
     }
 
@@ -1180,8 +1206,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         List<Object> entry = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(first, "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("trade:" + symbol);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -1193,7 +1219,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < entry.size(); i++)
         {
             Map<String, Object> data = this.safeDict(entry, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
+            Map<String, Object> trade = this.parseWsTrade(data, null);
             trades.append(trade);
         }
         client.resolve(trades, messageHash);
@@ -1239,8 +1265,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String price = this.safeString(trade, "p");
         String amount = this.safeString(trade, "a");
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeString(marketResolved, "symbol");
         String id = this.safeString(trade, "h");
         String fee = this.safeString(trade, "f");
         String side = this.safeString2(trade, "ts", "d");
@@ -1269,24 +1295,24 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             takerOrMaker = null;
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", trade);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("order", this.safeString(trade, "i"));
-        mapLiteral4.put("type", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("takerOrMaker", takerOrMaker);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("cost", null);
-        mapLiteral4.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("order", this.safeString(trade, "i"));
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }});
-        return this.safeTrade(mapLiteral4, marketResolved);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -1303,47 +1329,49 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String parsedTf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "candle" );
-                    put( "symbol", market.get("id") );
-                    put( "interval", parsedTf );
-                }} );
-            }};
-            String messageHash = ((("candles:" + parsedTf) + ":") + symbolValue);
-            Map<String, Object> message = this.extend(request, parameters);
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String parsedTf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "candle" );
+                put( "symbol", market.get("id") );
+                put( "interval", parsedTf );
+            }} );
+        }};
+        String messageHash = ((("candles:" + parsedTf) + ":") + symbolValue);
+        Map<String, Object> message = this.extend(request, parameters);
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -1359,41 +1387,43 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOHLCVCore(symbol, timeframe, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOHLCVCore(String symbol, String timeframe, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "candle" );
-                    put( "symbol", market.get("id") );
-                    put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
-                }} );
-            }};
-            String subMessageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
-            String messagehash = ("unsubscribe:" + subMessageHash);
-            Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch(url, messagehash, message, messagehash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "candle" );
+                put( "symbol", market.get("id") );
+                put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
+            }} );
+        }};
+        String subMessageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
+        String messagehash = ("unsubscribe:" + subMessageHash);
+        Map<String, Object> message = this.extend(request, parameters);
+        return (this.watch(url, messagehash, message, messagehash, null)).join();
 
     }
 
@@ -1418,7 +1448,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String timeframe = this.safeString(data, "i");
         if (java.util.Objects.equals(timeframe, null))
@@ -1435,9 +1465,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, ohlcv);
+            this.ohlcvs.get(symbol).put(timeframe, ohlcv);
         }
-        List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
+        List<Object> parsed = this.parseOHLCV(data, null);
         ohlcv.append(parsed);
         client.resolve(ohlcv, messageHash);
     }
@@ -1456,54 +1486,56 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchOrders", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            Map<String, Object> market = null;
-            String messageHash = "order";
-            String symbolResolved = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                symbolResolved = this.safeString(market, "symbol");
-                messageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
-            }
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "account_order_updates" );
-                    put( "account", userAddress );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
-            List<Object> orders = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchOrders", parameters);
+        String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
+        Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+        Map<String, Object> market = null;
+        String messageHash = "order";
+        String symbolResolved = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
+        }
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "account_order_updates" );
+                put( "account", userAddress );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
+        List<Object> orders = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
 
     }
 
@@ -1519,44 +1551,46 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
      */
     public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrdersCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                throw new NotSupported((this.id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
-            }
-            String messageHash = "unsubscribe:order";
-            Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = "api";
-            if (Boolean.TRUE.equals(isTestnet))
-            {
-                urlKey = "test";
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
-            }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "source", "account_order_updates" );
-                    put( "account", userAddress );
-                }} );
-            }};
-            Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
-            return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            throw new NotSupported((this.id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
+        }
+        String messageHash = "unsubscribe:order";
+        Boolean isTestnet = this.isSandboxModeEnabled;
+        String urlKey = "api";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            urlKey = "test";
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, urlKey, new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
+        }
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", parameters);
+        String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
+        Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "source", "account_order_updates" );
+                put( "account", userAddress );
+            }} );
+        }};
+        Map<String, Object> message = this.extend(request, paramsOriginAndSingleAddress);
+        return (this.watch(url, messageHash, message, messageHash, null)).join();
 
     }
 
@@ -1605,8 +1639,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
+            Map<String, Object> rawOrder = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, null);
             stored.append(order);
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -1624,7 +1658,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         client.resolve(stored, messageHash);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used
@@ -1643,7 +1677,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> wsHeadersFinal = this.safeDict(wsHeaders, "headers", new HashMap<String, Object>() {{}});
         try
         {
-            this.handleErrors(0, error, "", postType, wsHeadersFinal, this.json(data), message, new HashMap<String, Object>() {{}}, "");
+            this.handleErrors(0L, error, "", postType, wsHeadersFinal, this.json(data), message, new HashMap<String, Object>() {{}}, null);
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -1655,21 +1689,21 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     public void handleOrderBookUnsubscription(Client client, Map<String, Object> subscription)
     {
         String marketId = this.safeString2(subscription, "symbol", "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String subMessageHash = ("orderbook:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove(symbol);
+            this.orderbooks.remove(symbol);
         }
     }
 
     public void handleTradesUnsubscription(Client client, Map<String, Object> subscription)
     {
         String marketId = this.safeString2(subscription, "symbol", "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String subMessageHash = ("trade:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
@@ -1685,7 +1719,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String subMessageHash = "tickers";
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
+        List<String> symbols = (this.tickers == null ? new ArrayList<String>() : new ArrayList<String>(this.tickers.keySet()));
         for (var i = 0; i < symbols.size(); i++)
         {
             this.tickers.remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
@@ -1695,10 +1729,10 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     public void handleOHLCVUnsubscription(Client client, Map<String, Object> subscription)
     {
         String marketId = this.safeString2(subscription, "symbol", "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
         String interval = this.safeString(subscription, "interval");
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
@@ -1860,7 +1894,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
+            if ((topic == null || keys == null || i < 0 || i >= keys.size() || keys.get(i) == null ? -1 : topic.indexOf(keys.get(i))) >= 0)
             {
                 String method = methods.get(key);
                 switch (method) {

@@ -1,5 +1,5 @@
 import nadoRest from '../nado.js';
-import type { Bool, Dict, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Dict, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class nado extends nadoRest {
     describe(): Dict;
@@ -400,6 +400,6 @@ export default class nado extends nadoRest {
         client_time: string;
     } | undefined;
     handlePong(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
 }

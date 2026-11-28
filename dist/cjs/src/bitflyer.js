@@ -810,10 +810,8 @@ class bitflyer extends bitflyer$1["default"] {
             'count': limit,
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        if (symbol !== undefined) {
-            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
-        }
-        return this.parseOrders(response, market, since, limit);
+        const marketSymbol = this.safeString(market, 'symbol');
+        return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', marketSymbol);
     }
     /**
      * @method
@@ -1130,10 +1128,10 @@ class bitflyer extends bitflyer$1["default"] {
         let type = undefined;
         let status = undefined;
         let fee = undefined;
-        if ('fee' in transaction) {
+        const feeCost = this.safeString(transaction, 'fee');
+        if (feeCost !== undefined) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus(rawStatus);
-            const feeCost = this.safeString(transaction, 'fee');
             const additionalFee = this.safeString(transaction, 'additional_fee');
             fee = { 'currency': code, 'cost': this.parseNumber(Precise["default"].stringAdd(feeCost, additionalFee)) };
         }

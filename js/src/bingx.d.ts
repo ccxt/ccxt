@@ -1,6 +1,6 @@
 import Exchange from './abstract/bingx.js';
 import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, DepositAddresses } from './base/types.js';
-import type { Liquidation, OpenInterest } from './base/types.js';
+import type { Bool, Liquidation, OpenInterest } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -26,9 +26,9 @@ export default class bingx extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    fetchSpotMarkets(params: any): Promise<Market[]>;
-    fetchSwapMarkets(params: any): Promise<Market[]>;
-    fetchInverseSwapMarkets(params: any): Promise<Market[]>;
+    fetchSpotMarkets(params?: Dict): Promise<Market[]>;
+    fetchSwapMarkets(params?: Dict): Promise<Market[]>;
+    fetchInverseSwapMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -125,7 +125,7 @@ export default class bingx extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(contract: Dict, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name bingx#fetchFundingHistory
@@ -830,7 +830,7 @@ export default class bingx extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    customEncode(params: Dict): Str;
+    customEncode(params: Dict): string;
     /**
      * @method
      * @name bingx#fetchMarketLeverageTiers
@@ -845,5 +845,5 @@ export default class bingx extends Exchange {
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
     nonce(): int;
     setSandboxMode(enable: boolean): void;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -16,9 +17,9 @@ pub fn testUnique() {
     }));
     // in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
     // todo: `unique` is primarily meant for strings atm, add numeric support
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".into()).clone(), exchange.unique(Value::from(vec![])).clone(), Value::from(vec![]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testUnique".into()), exchange.unique(Value::from(vec![])).clone(), Value::from(vec![])]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".into()).clone(), exchange.sort(exchange.unique(Value::from(vec![Value::Str("a".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("a".into()), Value::Str("c".into())])), &[]).clone(),
-        Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testUnique".into()), exchange.sort(exchange.unique(Value::from(vec![Value::Str("a".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("a".into()), Value::Str("c".into())])), &[]).clone(),
+        Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())])]);
 }

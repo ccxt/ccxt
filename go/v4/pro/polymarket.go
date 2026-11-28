@@ -106,15 +106,16 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 	// subscribed yet, so a pending entry is registered under the same
 	// condition - otherwise no ack would ever arrive to consume it, the
 	// private channels register a shared hash next to narrowed ones
-	var hashesToCheck any = func() any {
-		if checkHashes == nil {
-			return messageHashes
-		}
-		return checkHashes
-	}()
+	var hashesToCheck any
+	if checkHashes == nil {
+		hashesToCheck = messageHashes
+	} else {
+		hashesToCheck = checkHashes
+	}
 	var willSend bool = false
 	for i := 0; i < ccxt.GetArrayLength(hashesToCheck); i++ {
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(hashesToCheck, i))) {
+		var hashToCheck string = *this.SafeString(hashesToCheck, i, "")
+		if !(client.SubscriptionHas(hashToCheck)) {
 			willSend = true
 		}
 	}
@@ -134,7 +135,7 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 		"subMessageHashes": subMessageHashes,
 	}
 	var pending map[string]any = this.Extend(basePending, context)
-	client.(ccxt.ClientInterface).SubscriptionSet("req:"+strconv.FormatInt(id, 10), pending)
+	client.SubscriptionSet("req:"+strconv.FormatInt(id, 10), pending)
 	return this.Extend(request, params)
 }
 
@@ -165,7 +166,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + symbolResolved
 	var request map[string]any = this.SendSubscription("sub", []any{"book::" + *this.SafeString(market, "id", "")}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
@@ -205,7 +206,7 @@ func (this *Polymarket) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "orderbook:" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -236,7 +237,7 @@ func (this *Polymarket) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sym
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
+func (this *Polymarket) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "book::1",
@@ -256,7 +257,11 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	snapshot["nonce"] = this.SafeInteger(message, "sq")
@@ -267,7 +272,7 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -294,7 +299,7 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "ticker:" + symbolResolved
 	var request map[string]any = this.SendSubscription("sub", []any{"tickers::" + *this.SafeString(market, "id", "")}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
@@ -332,7 +337,7 @@ func (this *Polymarket) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "ticker:" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -392,14 +397,14 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var messageHashes []any = []any{}
-	var channels []any = []any{}
+	var messageHashes []string = []string{}
+	var channels []string = []string{}
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, "tickers")
 		channels = append(channels, "tickers::all")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(symbolsNormalized[i])
+			var market map[string]any = this.Market(&symbolsNormalized[i])
 			messageHashes = append(messageHashes, "ticker:"+*this.SafeString(market, "symbol", ""))
 			channels = append(channels, "tickers::"+*this.SafeString(market, "id", ""))
 		}
@@ -422,7 +427,7 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Polymarket) HandleTicker(client any, message map[string]any) {
+func (this *Polymarket) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "tickers::1",
@@ -441,7 +446,11 @@ func (this *Polymarket) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -457,8 +466,8 @@ func (this *Polymarket) HandleTicker(client any, message map[string]any) {
 		"info":       data,
 	}, market))
 	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+*symbol)
-	client.(ccxt.ClientInterface).Resolve(ticker, "tickers")
+	client.Resolve(ticker, "ticker:"+*symbol)
+	client.Resolve(ticker, "tickers")
 }
 
 /**
@@ -489,10 +498,10 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var messageHashes []any = []any{}
-	var channels []any = []any{}
+	var messageHashes []string = []string{}
+	var channels []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(market, "symbol", ""))
 		channels = append(channels, "bbo::"+*this.SafeString(market, "id", ""))
 	}
@@ -514,7 +523,7 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
 	return nil
 }
-func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
+func (this *Polymarket) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "bbo::1",
@@ -530,7 +539,11 @@ func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -546,7 +559,7 @@ func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
 		"info":      data,
 	}, market))
 	this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, "bidask:"+*symbol)
+	client.Resolve(ticker, "bidask:"+*symbol)
 }
 
 /**
@@ -560,12 +573,12 @@ func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Polymarket) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Polymarket) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -579,7 +592,7 @@ func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + symbolResolved
 	var request map[string]any = this.SendSubscription("sub", []any{"trades::" + *this.SafeString(market, "id", "")}, []any{messageHash}, []any{messageHash}, map[string]any{}, params)
@@ -623,7 +636,7 @@ func (this *Polymarket) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "trade:" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -654,7 +667,7 @@ func (this *Polymarket) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Polymarket) HandleTrades(client any, message map[string]any) {
+func (this *Polymarket) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "trades::1",
@@ -675,18 +688,18 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	// the asyncapi spec describes the data field as an array of trade objects while typing it
 	// as a single object, so both shapes are handled here
 	//
-	var data any = this.SafeValue(message, "data")
+	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
+	if dataList != nil {
+		rows = dataList
 	} else {
-		rows = append(rows, data)
+		rows = append(rows, this.SafeValue(message, "data"))
 	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
 		return
 	}
-	var first map[string]any = ccxt.SafeMapTyped(rows, 0)
+	var first, _ = rows[0].(map[string]any)
 	var marketId *string = this.SafeString(first, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -697,12 +710,15 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	}
 	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	for i := 0; i < rowsLength; i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var trade map[string]any = this.ParseWsTrade(row, market)
 		trades.Append(trade)
 	}
 	var messageHash string = "trade:" + symbol
-	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	client.Resolve(trades, messageHash)
 }
 func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
@@ -723,9 +739,11 @@ func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) map[string]
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var side *string = this.SafeStringLower(trade, "side")
 	if side != nil && *side == "long" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "short" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "tid"),
@@ -777,9 +795,9 @@ func (this *Polymarket) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
-	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
+	var wsTimeframes, _ = this.Options["wsTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(wsTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV() does not support the " + timeframe + " timeframe over the websocket"))
@@ -830,9 +848,9 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
-	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
+	var wsTimeframes, _ = this.Options["wsTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(wsTimeframes, timeframe, timeframe)
 	var subMessageHash string = "candles:" + timeframe + ":" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -864,7 +882,7 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
+func (this *Polymarket) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "klines::1::1h",
@@ -888,7 +906,7 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var rows []any = ccxt.SafeListTyped(message, "data")
+	var rows, _ = message["data"].([]any)
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
 		return
@@ -906,11 +924,11 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	var ohlcv ccxt.WsArrayCache
 	ohlcv, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(rows); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(rows[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(rows[i], market))
 		ohlcv.Append(parsed)
 	}
 	var messageHash string = "candles:" + *timeframe + ":" + symbol
-	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
+	client.Resolve(ohlcv, messageHash)
 }
 
 /**
@@ -936,12 +954,12 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	credentials := r.Value
+	credentials, _ := r.Value.(map[string]any)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	var future *ccxt.Future = client.ReusableFuture(messageHash)
+	var authenticated bool = client.SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var id int64 = this.RequestId()
 		var pending map[string]any = map[string]any{
@@ -949,7 +967,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 			"messageHashes":    []any{messageHash},
 			"subMessageHashes": []any{messageHash},
 		}
-		client.(ccxt.ClientInterface).SubscriptionSet("req:"+strconv.FormatInt(id, 10), pending)
+		client.SubscriptionSet("req:"+strconv.FormatInt(id, 10), pending)
 		var request map[string]any = map[string]any{
 			"id":  id,
 			"req": "post",
@@ -1026,7 +1044,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		symbolResolved = resolvedSymbol
 		messageHash = "orders:" + *resolvedSymbol
 	}
-	var subscribeHashes []any = []any{"orders"}
+	var subscribeHashes []string = []string{"orders"}
 	var request map[string]any = this.SendSubscription("sub", []any{"orders"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -1043,7 +1061,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) HandleOrder(client any, message any) {
+func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "orders",
@@ -1066,11 +1084,9 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
-	} else {
+	if data != nil {
 		rows = append(rows, data)
 	}
 	var rowsLength int = len(rows)
@@ -1084,7 +1100,10 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 	var stored ccxt.WsArrayCache = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(row))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
@@ -1092,7 +1111,7 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 			symbols[*symbol] = true
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, "orders")
+	client.Resolve(stored, "orders")
 	var symbolKeys []string = nil
 	if symbols != nil {
 		symbolKeys = make([]string, 0, len(symbols))
@@ -1101,8 +1120,8 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 		}
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol *string = this.SafeString(symbolKeys, i, "")
-		client.(ccxt.ClientInterface).Resolve(stored, "orders:"+*symbol)
+		var symbol string = symbolKeys[i]
+		client.Resolve(stored, "orders:"+symbol)
 	}
 }
 
@@ -1151,7 +1170,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 		symbolResolved = resolvedSymbol
 		messageHash = "myTrades:" + *resolvedSymbol
 	}
-	var subscribeHashes []any = []any{"fills"}
+	var subscribeHashes []string = []string{"fills"}
 	var request map[string]any = this.SendSubscription("sub", []any{"fills"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -1168,7 +1187,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
+func (this *Polymarket) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "fills",
@@ -1195,12 +1214,12 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
+	if dataList != nil {
+		rows = dataList
 	} else {
-		rows = append(rows, data)
+		rows = append(rows, this.SafeValue(message, "data"))
 	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
@@ -1213,7 +1232,10 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(row))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
@@ -1221,7 +1243,7 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 			symbols[*symbol] = true
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
+	client.Resolve(stored, "myTrades")
 	var symbolKeys []string = nil
 	if symbols != nil {
 		symbolKeys = make([]string, 0, len(symbols))
@@ -1230,8 +1252,8 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol *string = this.SafeString(symbolKeys, i, "")
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades:"+*symbol)
+		var symbol string = symbolKeys[i]
+		client.Resolve(stored, "myTrades:"+symbol)
 	}
 }
 
@@ -1282,7 +1304,7 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 		// the portfolio channel pushes one snapshot at subscribe time and
 		// then only on changes, so the first call hydrates over rest
 
-		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
+		r2 := <-client.Future("fetchPositionsSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1291,7 +1313,7 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true))}
 		return nil
 	}
-	var subscribeHashes []any = []any{"portfolio"}
+	var subscribeHashes []string = []string{"portfolio"}
 	var request map[string]any = this.SendSubscription("sub", []any{"portfolio"}, []any{"positions"}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 
 	r3 := <-this.Watch(url, "positions", request, "portfolio")
@@ -1308,7 +1330,7 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Polymarket) SetPositionsCache(client any, optionalArgs ...any) {
+func (this *Polymarket) SetPositionsCache(client ccxt.ClientInterface, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if this.Positions != nil {
@@ -1317,20 +1339,20 @@ func (this *Polymarket) SetPositionsCache(client any, optionalArgs ...any) {
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if _, ok := client.GetFutures()[messageHash]; !ok {
+			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}
 	} else {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Polymarket) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Polymarket) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1345,11 +1367,11 @@ func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool]
 		cache.Append(positions[i])
 	}
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
 	}
-	client.(ccxt.ClientInterface).Resolve(cache, "positions")
+	client.Resolve(cache, "positions")
 	return nil
 }
 
@@ -1390,7 +1412,7 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 		// the portfolio channel pushes one snapshot at subscribe time and
 		// then only on changes, so the first call hydrates over rest
 
-		r2 := <-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot")
+		r2 := <-client.Future("fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1399,7 +1421,7 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 		ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(snapshot)}
 		return nil
 	}
-	var subscribeHashes []any = []any{"portfolio"}
+	var subscribeHashes []string = []string{"portfolio"}
 	var request map[string]any = this.SendSubscription("sub", []any{"portfolio"}, []any{"balance"}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 
 	r3 := <-this.Watch(url, "balance", request, "portfolio")
@@ -1409,25 +1431,25 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Polymarket) SetBalanceCache(client any) {
+func (this *Polymarket) SetBalanceCache(client ccxt.ClientInterface) {
 	if _, ok := this.Balance["info"]; ok {
 		return
 	}
 	var fetchBalanceSnapshot bool = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true) == true
 	if fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"
-		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
-			client.(ccxt.ClientInterface).Future(messageHash)
+		if !(client.FutureHas(messageHash)) {
+			client.Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash)
 		}
 	}
 }
-func (this *Polymarket) LoadBalanceSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Polymarket) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1441,14 +1463,14 @@ func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	}
 	this.Balance = this.Extend(this.Balance, balance)
 	// don't remove the future from the .futures cache
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(this.Balance)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 	return nil
 }
-func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
+func (this *Polymarket) HandlePortfolio(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "portfolio",
@@ -1486,16 +1508,23 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var rows []any = ccxt.SafeListTyped(data, "positions")
+	var rows, _ = data["positions"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var extended map[string]any = this.Extend(row, map[string]any{
 			"timestamp": timestamp,
 		})
@@ -1503,8 +1532,8 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
-	var margin map[string]any = ccxt.SafeMapTyped(data, "margin")
+	client.Resolve(newPositions, "positions")
+	var margin, _ = data["margin"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      data,
 		"timestamp": timestamp,
@@ -1517,9 +1546,9 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	// pUSD is the only collateral asset on the venue
 	result["PUSD"] = account
 	this.Balance, _ = this.SafeBalance(result).(map[string]any)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
-func (this *Polymarket) HandleAck(client any, message any) {
+func (this *Polymarket) HandleAck(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// subscribe or unsubscribe acknowledgement
 	//
@@ -1531,54 +1560,60 @@ func (this *Polymarket) HandleAck(client any, message any) {
 	//     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
 	//
 	var id *string = this.SafeString(message, "id")
-	var data any = this.SafeValue(message, "data")
-	if !ccxt.IsArray(data) {
+	if !ccxt.IsArray(message["data"]) {
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		// post replies carry a data object - the auth op is matched back
 		// through its pending entry, anything else counts like a pong
 		if id != nil {
 			var postKey string = "req:" + *id
-			var postPending map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(postKey)
+			var postPending map[string]any = client.SubscriptionDict(postKey)
 			if postPending != nil {
-				client.(ccxt.ClientInterface).SubscriptionDel(postKey)
+				client.SubscriptionDel(postKey)
 				var postAction *string = this.SafeString(postPending, "method")
 				if postAction != nil && *postAction == "auth" {
 					var authStatus *string = this.SafeString(data, "status")
 					if authStatus != nil && *authStatus == "ok" {
 						// resolve the future object directly so it stays
 						// cached and later authenticate calls reuse it
-						var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+						var future *ccxt.Future = client.GetFutures()["authenticated"]
 						if future != nil {
 							future.Resolve(true)
 						}
 					} else {
 						authError := ccxt.AuthenticationError(this.Id + " authentication failed " + this.Json(data))
-						client.(ccxt.ClientInterface).Reject(authError, "authenticated")
-						if client.(ccxt.ClientInterface).SubscriptionHas("authenticated") {
-							client.(ccxt.ClientInterface).SubscriptionDel("authenticated")
+						client.Reject(authError, "authenticated")
+						if client.SubscriptionHas("authenticated") {
+							client.SubscriptionDel("authenticated")
 						}
 					}
 					return
 				}
 			}
 		}
-		client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "ts", this.Milliseconds()))
+		client.SetLastPong(this.SafeInteger(message, "ts", this.Milliseconds()))
 		return
 	}
 	if id == nil {
 		return
 	}
 	var key string = "req:" + *id
-	var pending map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(key)
+	var pending map[string]any = client.SubscriptionDict(key)
 	if pending == nil {
 		return
 	}
-	client.(ccxt.ClientInterface).SubscriptionDel(key)
+	client.SubscriptionDel(key)
 	var messageHashes []any = ccxt.SafeListTyped(pending, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(pending, "subMessageHashes")
 	var action *string = this.SafeString(pending, "method")
 	var errorMessage *string = nil
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(data, i)
+	var rows, _ = message["data"].([]any)
+	var rowsLength int = len(rows)
+	for i := 0; i < rowsLength; i++ {
+		var entry, _ = rows[i].(map[string]any)
 		var status *string = this.SafeString(entry, "status")
 		if status != nil && *status == "err" {
 			errorMessage = this.SafeString(entry, "error")
@@ -1587,24 +1622,22 @@ func (this *Polymarket) HandleAck(client any, message any) {
 	if errorMessage != nil {
 		error := ccxt.ExchangeError(this.Id + " " + *errorMessage)
 		for i := 0; i < len(messageHashes); i++ {
-			client.(ccxt.ClientInterface).Reject(error, ccxt.DerefScalar(messageHashes[i]))
+			var messageHash any = ccxt.DerefScalar(messageHashes[i])
+			client.Reject(error, messageHash)
 			// clearing the awaited hash lets a later call resend, and a
 			// failed subscribe must also clear the shared hash the base
 			// watch registered - a failed unsubscribe keeps the live
 			// subscription untouched instead
-			var messageHash any = ccxt.DerefScalar(messageHashes[i])
-			if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-				client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+			if client.SubscriptionHas(messageHash) {
+				client.SubscriptionDel(messageHash)
 			}
 			if action != nil && *action == "sub" {
-				var subMessageHash any = func() any {
-					if i >= 0 && i < len(subMessageHashes) {
-						return subMessageHashes[i]
-					}
-					return nil
-				}()
-				if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
-					client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
+				var subMessageHash any = nil
+				if i >= 0 && i < len(subMessageHashes) {
+					subMessageHash = subMessageHashes[i]
+				}
+				if client.SubscriptionHas(subMessageHash) {
+					client.SubscriptionDel(subMessageHash)
 				}
 			}
 		}
@@ -1642,16 +1675,11 @@ func (this *Polymarket) HandleAck(client any, message any) {
 			}
 		}
 		for i := 0; i < len(messageHashes); i++ {
-			this.CleanUnsubscription(ccxt.AsClient(client), func() any {
-				if i >= 0 && i < len(subMessageHashes) {
-					return subMessageHashes[i]
-				}
-				return nil
-			}(), ccxt.DerefScalar(messageHashes[i]))
+			this.CleanUnsubscription(ccxt.AsClient(client), this.SafeString(subMessageHashes, i), ccxt.DerefScalar(messageHashes[i]))
 		}
 	}
 }
-func (this *Polymarket) HandleMessage(client any, message map[string]any) {
+func (this *Polymarket) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		this.HandleAck(client, message)
@@ -1674,7 +1702,7 @@ func (this *Polymarket) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Polymarket) Ping(client any) any {
+func (this *Polymarket) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"id":  this.RequestId(),
 		"req": "post",

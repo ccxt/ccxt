@@ -888,7 +888,7 @@ export default class cex extends Exchange {
             if (useKeyAsId) {
                 market = this.safeMarket (key);
             }
-            const parsed = this.parseTradingFee (response[key], market);
+            const parsed = this.parseTradingFee (this.safeDict (response, key, {}), market);
             const parsedSymbol = this.safeString (parsed, 'symbol');
             if (parsedSymbol !== undefined) {
                 result[parsedSymbol] = parsed;
@@ -1240,7 +1240,7 @@ export default class cex extends Exchange {
             marketId = currency1 + '-' + currency2;
         }
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const fee: Dict = {};
         const feeAmount = this.safeNumber (order, 'feeAmount');
@@ -1853,7 +1853,7 @@ export default class cex extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix

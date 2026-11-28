@@ -20,10 +20,9 @@ from ccxt.base.precise import Precise
 class binance(ccxt.async_support.binance):
 
     def describe(self) -> dict:
-        superDescribe = super(binance, self).describe()
-        return self.deep_extend(superDescribe, self.describe_data())
+        return self.deep_extend(super(binance, self).describe(), self.describe_data())
 
-    def describe_data(self):
+    def describe_data(self) -> dict:
         return {
             'has': {
                 'ws': True,
@@ -219,28 +218,30 @@ class binance(ccxt.async_support.binance):
         }
 
     def request_id(self, url: str) -> int:
-        options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     def is_spot_url(self, client: Client) -> bool:
         return(client.url.find('/stream') > -1) or (client.url.find('demo-stream') > -1)
 
-    def stream(self, type: Str, subscriptionHash: Str, numSubscriptions: Int = 1) -> Str:
-        streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', self.create_safe_dictionary())
+    def stream(self, type: Str, subscriptionHash: Str, numSubscriptions: Int = 1) -> str:
+        streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', {})
         stream = self.safe_string(streamBySubscriptionsHash, subscriptionHash)
         if stream is None:
             previousStreamIndex = self.safe_integer(self.options, 'streamIndex', -1)
             streamLimits = self.safe_dict(self.options, 'streamLimits')
-            streamLimit = self.safe_integer(streamLimits, type)
+            streamLimit = self.safe_integer(streamLimits, type, 50)
             streamIndex = previousStreamIndex + 1
             normalizedIndex = streamIndex % streamLimit
             self.options['streamIndex'] = streamIndex
             stream = self.number_to_string(normalizedIndex)
             if subscriptionHash is not None:
-                self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
+                streamBySubscriptionsHash[subscriptionHash] = stream
+                self.options['streamBySubscriptionsHash'] = streamBySubscriptionsHash
             subscriptionsByStreams = self.safe_dict(self.options, 'numSubscriptionsByStream')
             if subscriptionsByStreams is None:
                 self.options['numSubscriptionsByStream'] = self.create_safe_dictionary()
@@ -249,11 +250,14 @@ class binance(ccxt.async_support.binance):
             subscriptionLimitByStream = self.safe_integer(self.options['subscriptionLimitByStream'], type, 200)
             if newNumSubscriptions > subscriptionLimitByStream:
                 raise BadRequest(self.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.')
-            self.options['numSubscriptionsByStream'][stream] = newNumSubscriptions
+            numSubscriptionsByStream = self.safe_dict(self.options, 'numSubscriptionsByStream', {})
+            numSubscriptionsByStream[stream] = newNumSubscriptions
+            self.options['numSubscriptionsByStream'] = numSubscriptionsByStream
         return stream
 
     def get_ws_url(self, type: str, category: str) -> str:
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
             # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -287,15 +291,17 @@ class binance(ccxt.async_support.binance):
             raise AuthenticationError(self.id + ' getPrivateWsUrl() requires a listenKey from authenticate()')
         if type == 'linear':
             return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         wsUrl = self.safe_string(wsUrls, type)
         if wsUrl is None:
             raise ExchangeError(self.id + ' getPrivateWsUrl() has no websocket url for self market type')
         return wsUrl + '/' + listenKey
 
     def get_stock_ws_url(self, streamType: Str = 'market') -> str:
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
-        baseUrl = wsUrls['stock']
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
+        baseUrl = self.safe_string(wsUrls, 'stock', '')
         if streamType == 'combined':
             return baseUrl.replace('/ws', '/stream')
         return baseUrl
@@ -303,7 +309,9 @@ class binance(ccxt.async_support.binance):
     def get_stock_ticker_from_symbol(self, symbol: Str) -> Str:
         market = self.market(symbol)
         base = self.safe_string_2(market, 'base', 'id')
-        return None if (base is None) else base.lower()
+        if base is None:
+            return None
+        return base.lower()
 
     def get_stock_unified_symbol(self, stockSymbol: Str, quote: str = 'USDC') -> Str:
         if stockSymbol is None:
@@ -453,7 +461,7 @@ class binance(ccxt.async_support.binance):
         rawLiquidation = self.safe_dict(message, 'o', {})
         marketId = self.safe_string(rawLiquidation, 's')
         market = self.safe_market(marketId, None, '', 'contract')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         liquidation = self.parse_ws_liquidation(rawLiquidation, market)
         if self.liquidations is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -463,7 +471,7 @@ class binance(ccxt.async_support.binance):
         client.resolve([liquidation], 'liquidations')
         client.resolve([liquidation], 'liquidations::' + symbol)
 
-    def parse_ws_liquidation(self, liquidation: dict, market: Market = None):
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None) -> Liquidation:
         #
         # future
         #    {
@@ -604,8 +612,7 @@ class binance(ccxt.async_support.binance):
         optionsType = self.safe_dict(self.options, type, {})
         listenKey = self.safe_string(optionsType, 'listenKey')
         url = self.get_private_ws_url(type, listenKey)
-        message = None
-        newLiquidations = await self.watch_multiple(url, messageHashes, message, [type])
+        newLiquidations = await self.watch_multiple(url, messageHashes, None, [type])
         if self.newUpdates:
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbolsNormalized, since, limit)
@@ -726,7 +733,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
         elif self.safe_bool(firstMarket, 'contract', False):
@@ -743,7 +750,7 @@ class binance(ccxt.async_support.binance):
         rpi, paramsRpi = self.handle_option_bool_and_params(paramsRate, 'watchOrderBookForSymbols', 'rpi', False)
         if rpi and type == 'linear':
             name = 'rpiDepth'
-            watchOrderBookRate = '500'
+            watchOrderBookRate = self.number_to_string(500)
         subParams = []
         messageHashes = []
         subscribeHashes = []
@@ -755,7 +762,7 @@ class binance(ccxt.async_support.binance):
             subscriptionHash = self.safe_string(market, 'lowercaseId', '') + '@' + name
             if watchOrderBookRate is None:
                 raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() watchOrderBookRate is required')
-            symbolHash = subscriptionHash + '@' + str(watchOrderBookRate) + 'ms'
+            symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms'
             subParams.append(symbolHash)
         messageHashesLength = len(messageHashes)
         url = self.get_ws_url(type, self.get_future_ws_category(name)) + '/' + self.stream(type, streamHash, messageHashesLength)
@@ -800,7 +807,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
         elif self.safe_bool(firstMarket, 'contract', False):
@@ -883,7 +890,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOrderBookWs', market, params)
         if marketType != 'linear':
             raise BadRequest(self.id + ' fetchOrderBookWs only supports swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -902,8 +910,8 @@ class binance(ccxt.async_support.binance):
             'method': self.handle_fetch_order_book,
         }
         snapshot = await self.watch(url, messageHash, message, messageHash, subscription)
-        snapshot['symbol'] = market['symbol']
-        orderbook = self.order_book(snapshot)
+        symbolEntry = {'symbol': market['symbol']}
+        orderbook = self.order_book(self.extend(snapshot, symbolEntry))
         return orderbook
 
     def handle_fetch_order_book(self, client: Client, message: dict):
@@ -958,7 +966,7 @@ class binance(ccxt.async_support.binance):
             messages = orderbook.cache
             orderbook.cache = []
             for i in range(0, len(messages)):
-                messageItem = self.safe_value(messages, i)
+                messageItem = self.safe_dict(messages, i, {})
                 U = self.safe_integer(messageItem, 'U')
                 u = self.safe_integer(messageItem, 'u')
                 if (U is None) or (u is None):
@@ -1111,7 +1119,7 @@ class binance(ccxt.async_support.binance):
                     del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message: object, subscription: dict):
+    def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         # const messageHash = this.safeString (subscription, 'messageHash');
         symbolOfSubscription = self.safe_string(subscription, 'symbol')  # watchOrderBook
@@ -1148,12 +1156,13 @@ class binance(ccxt.async_support.binance):
         return message
 
     def handle_un_subscription(self, client: Client, subscription: dict):
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        messageHashes = self.safe_string_list(subscription, ['messageHashes'])
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for j in range(0, len(messageHashes)):
-            unsubHash = messageHashes[j]
-            subHash = subMessageHashes[j]
-            self.clean_unsubscription(client, subHash, unsubHash)
+        if messageHashes is not None:
+            for j in range(0, len(messageHashes)):
+                unsubHash = messageHashes[j]
+                subHash = self.safe_string(subMessageHashes, j, '')
+                self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1186,7 +1195,7 @@ class binance(ccxt.async_support.binance):
         name, paramsName = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
         paramsOmitted = self.omit(paramsName, 'callerMethodName')
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         isOption = firstMarket['option']
         if isOption is True:
             type = 'option'
@@ -1266,7 +1275,7 @@ class binance(ccxt.async_support.binance):
         name, paramsName = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
         paramsOmitted = self.omit(paramsName, 'callerMethodName')
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         isOption = firstMarket['option']
         if isOption is True:
             type = 'option'
@@ -1464,7 +1473,7 @@ class binance(ccxt.async_support.binance):
         executionType = self.safe_string(trade, 'x')
         isTradeExecution = (executionType == 'TRADE')
         if not isTradeExecution:
-            return self.parse_trade(trade, market)
+            return self.parse_trade(self.extend({}, trade), market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_string_2(trade, 'L', 'p')
@@ -1477,7 +1486,7 @@ class binance(ccxt.async_support.binance):
                 cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
         fallbackType = 'spot'
-        if 'ps' in trade:
+        if self.safe_string(trade, 'ps') is not None:
             fallbackType = 'contract'
         marketType = fallbackType
         if market is not None:
@@ -1486,10 +1495,11 @@ class binance(ccxt.async_support.binance):
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
         orderId = self.safe_string(trade, 'i')
-        if 'm' in trade:
+        isMaker = self.safe_bool(trade, 'm')
+        if isMaker is not None:
             if side is None:
-                side = 'sell' if (self.safe_bool(trade, 'm', False)) else 'buy'  # this is reversed intentionally
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm', False)) else 'taker'
+                side = 'sell' if isMaker else 'buy'  # this is reversed intentionally
+            takerOrMaker = 'maker' if isMaker else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
@@ -1527,7 +1537,7 @@ class binance(ccxt.async_support.binance):
         if isSpot:
             marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trade::' + symbol
         trade = self.parse_ws_trade(message, market)
         tradesArray = self.safe_value(self.trades, symbol)
@@ -1561,15 +1571,16 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        stock, paramsStock = self.handle_option_and_params(params, 'watchOHLCV', 'stock')
+        symbolValue = self.safe_string(market, 'symbol', '')
+        stock, paramsStock = self.handle_option_bool_and_params(params, 'watchOHLCV', 'stock', False)
         if stock is True:
             if (timeframe != '5m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
                 raise BadRequest(self.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes')
             paramsStock['stock'] = True
         paramsStock['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, paramsStock)
-        return result[symbolValue][timeframe]
+        bySymbol = result[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -1619,7 +1630,7 @@ class binance(ccxt.async_support.binance):
         symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         wsUrlType = type
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
@@ -1693,7 +1704,7 @@ class binance(ccxt.async_support.binance):
         symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         wsUrlType = type
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
@@ -1765,7 +1776,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         params['callerMethodName'] = 'watchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbolValue, timeframe]], params)
 
@@ -1817,7 +1828,7 @@ class binance(ccxt.async_support.binance):
         if isSpot:
             marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         # coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         inverse = self.safe_bool(market, 'inverse')
         volumeKey = 'q' if (inverse is True) else 'v'
@@ -1859,7 +1870,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTickerWs', market, params)
         if type != 'linear':
             raise BadRequest(self.id + ' fetchTickerWs only supports swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -1904,7 +1916,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOHLCVWs', market, params)
         if marketType != 'spot' and marketType != 'linear':
             raise BadRequest(self.id + ' fetchOHLCVWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -2211,7 +2224,9 @@ class binance(ccxt.async_support.binance):
         firstMarket = None
         symbolsDefined = (symbolsNormalized is not None)
         if symbolsNormalized is not None:
-            firstMarket = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                firstMarket = self.market(symbolsNormalized[0])
         userDefaultType = self.safe_string(self.options, 'defaultType')
         defaultMarket = None
         if isMarkPrice and userDefaultType != 'option':
@@ -2578,6 +2593,7 @@ class binance(ccxt.async_support.binance):
         else:
             unifiedPrefix = 'ticker'
         channelName = None
+        batchMessageHash = ''
         resolvedMessageHashes = []
         rawTickers = []
         newTickers = {}
@@ -2604,9 +2620,11 @@ class binance(ccxt.async_support.binance):
             tickerFallbackType = 'contract'
             if isSpot:
                 tickerFallbackType = 'spot'
-            tickerMarketType = self.safe_value(tickerMarketById, 'type') if (tickerMarketById is not None) else tickerFallbackType
+            tickerMarketType = tickerFallbackType
+            if tickerMarketById is not None:
+                tickerMarketType = self.safe_string(tickerMarketById, 'type')
             parsedTicker = self.parse_ws_ticker(ticker, tickerMarketType)
-            symbol = parsedTicker['symbol']
+            symbol = self.safe_string(parsedTicker, 'symbol')
             if symbol is not None:
                 newTickers[symbol] = parsedTicker
             if isBidAsk:
@@ -2615,13 +2633,14 @@ class binance(ccxt.async_support.binance):
             else:
                 if symbol is not None:
                     self.tickers[symbol] = parsedTicker
-            messageHash = unifiedPrefix + ':' + channelName + '@' + symbol
-            resolvedMessageHashes.append(messageHash)
-            client.resolve(parsedTicker, messageHash)
+            batchMessageHash = unifiedPrefix + 's:' + channelName
+            if symbol is not None:
+                messageHash = unifiedPrefix + ':' + channelName + '@' + symbol
+                resolvedMessageHashes.append(messageHash)
+                client.resolve(parsedTicker, messageHash)
         # resolve batch endpoint
         length = len(resolvedMessageHashes)
         if length > 0:
-            batchMessageHash = unifiedPrefix + 's:' + channelName
             client.resolve(newTickers, batchMessageHash)
 
     def sign_params(self, params: dict = {}):
@@ -2658,7 +2677,8 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<number> The subscription ID for the user data stream
         """
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -2724,7 +2744,7 @@ class binance(ccxt.async_support.binance):
             return
         client.resolve(message, messageHash)
 
-    async def ensure_user_data_stream_ws_subscribe_listen_token(self, marketType: str = 'margin', params: dict = {}):
+    async def ensure_user_data_stream_ws_subscribe_listen_token(self, marketType: str, params: dict = {}):
         """
         subscribes to user data stream using listenToken(for margin)
         :param str marketType: - the market type(e.g., 'margin')
@@ -2738,7 +2758,8 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<void>
         """
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, 'spot')
         if url is None:
@@ -3075,7 +3096,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchBalanceWs', None, params)
         if type != 'spot' and type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3093,24 +3115,25 @@ class binance(ccxt.async_support.binance):
             'params': self.sign_params(self.extend(payload, paramsMethod)),
         }
         subscription = {
-            'method': self.handle_account_status_ws if (method == 'account.status') else self.handle_balance_ws,
+            'method': self.handle_balance_ws,
         }
+        if method == 'account.status':
+            subscription['method'] = self.handle_account_status_ws
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
     def handle_balance_ws(self, client: Client, message: dict):
         #
         #
         messageHash = self.safe_string(message, 'id')
-        rawBalance = None
         if isinstance(message['result'], list):
             # account.balance
             rawBalance = self.safe_list(message, 'result', [])
-        else:
-            # account.status
-            result = self.safe_dict(message, 'result', {})
-            rawBalance = self.safe_list(result, 'assets', [])
-        parsedBalances = self.parseBalanceCustom(rawBalance)
-        client.resolve(parsedBalances, messageHash)
+            client.resolve(self.parseBalanceList(rawBalance), messageHash)
+            return
+        # account.status
+        result = self.safe_dict(message, 'result', {})
+        assets = self.safe_list(result, 'assets', [])
+        client.resolve(self.parseBalanceList(assets), messageHash)
 
     def handle_account_status_ws(self, client: Client, message: dict):
         #
@@ -3206,7 +3229,8 @@ class binance(ccxt.async_support.binance):
             type = 'linear'
         if type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3288,7 +3312,8 @@ class binance(ccxt.async_support.binance):
         urlType = type
         if type == 'spot' or type == 'margin':
             # route to WebSocket API connection where the user data stream is subscribed
-            wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+            urlsApi = self.safe_dict(self.urls, 'api', {})
+            wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
             wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
             url = self.safe_string(wsApiDict, 'spot', '')
         else:
@@ -3310,8 +3335,7 @@ class binance(ccxt.async_support.binance):
         if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
-        message = None
-        return await self.watch(url, messageHash, message, type)
+        return await self.watch(url, messageHash, None, type)
 
     def handle_balance(self, client: Client, message: dict):
         #
@@ -3387,7 +3411,8 @@ class binance(ccxt.async_support.binance):
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         event = self.safe_string(message, 'e')
         # balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         balanceMessage = self.safe_dict(message, 'a', message)
@@ -3396,15 +3421,13 @@ class binance(ccxt.async_support.binance):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             delta = self.safe_string(message, 'd')
-            if (code is not None) and (code in self.balance[accountType]):
-                previousValue = self.safe_value(self.balance[accountType][code], 'free')
-                if not isinstance(previousValue, str):
-                    previousValue = self.number_to_string(previousValue)
+            if (code is not None) and (code in balance):
+                previousValue = self.safe_string(balance[code], 'free')
                 account['free'] = Precise.string_add(previousValue, delta)
             else:
                 account['free'] = delta
             if code is not None:
-                self.balance[accountType][code] = account
+                balance[code] = account
         else:
             B = self.safe_list(balanceMessage, 'B')
             if B is None:
@@ -3418,11 +3441,11 @@ class binance(ccxt.async_support.binance):
                 account['used'] = self.safe_string(entry, 'l')
                 account['total'] = self.safe_string(entry, wallet)
                 if code is not None:
-                    self.balance[accountType][code] = account
+                    balance[code] = account
         timestamp = self.safe_integer(balanceMessage, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], messageHash)
 
     def get_account_type_from_subscriptions(self, subscriptions: list[str]) -> str:
@@ -3444,11 +3467,13 @@ class binance(ccxt.async_support.binance):
         # stock keepalive fixes
         marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         subType, paramsSubType = self.handle_sub_type_and_params(methodName, market, paramsMarketType)
-        type = marketType
+        linear = self.isLinear(marketType, subType)
+        inverse = self.isInverse(marketType, subType)
+        type = marketType if (marketType is not None) else 'spot'
         if type != 'option' and type != 'stock':
-            if self.isLinear(type, subType):
+            if linear:
                 type = 'linear'
-            elif self.isInverse(type, subType):
+            elif inverse:
                 type = 'inverse'
         # sites consuming every element unpack this; the two that skip subType
         # index it positionally instead, so no receiver is declared-but-unread
@@ -3490,7 +3515,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('createOrderWs', market, params)
         if marketType != 'spot' and marketType != 'linear' and marketType != 'inverse':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -3646,7 +3672,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('editOrderWs', market, params)
         if marketType != 'spot' and marketType != 'linear' and marketType != 'inverse':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -3660,11 +3687,11 @@ class binance(ccxt.async_support.binance):
         else:
             payload = self.editContractOrderRequest(id, symbol, type, side, amount, price, params)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'editOrderWs', 'returnRateLimits', False)
-        payload['returnRateLimits'] = returnRateLimits
+        payloadWithLimits = self.extend(payload, {'returnRateLimits': returnRateLimits})
         message = {
             'id': messageHash,
             'method': 'order.modify' if (isSwap) else 'order.cancelReplace',
-            'params': self.sign_params(self.extend(payload, paramsReturnRateLimits)),
+            'params': self.sign_params(self.extend(payloadWithLimits, paramsReturnRateLimits)),
         }
         subscription = {
             'method': self.handle_edit_order_ws,
@@ -3775,7 +3802,7 @@ class binance(ccxt.async_support.binance):
         newSpotOrder = self.safe_dict(result, 'newOrderResponse')
         order: Order
         if newSpotOrder is not None:
-            order = self.parse_order(newSpotOrder)
+            order = self.parse_order(self.extend({}, newSpotOrder))
         else:
             order = self.parse_order(result)
         client.resolve(order, messageHash)
@@ -3802,7 +3829,8 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('cancelOrderWs', market, params)
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3858,7 +3886,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('cancelAllOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3901,7 +3930,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrderWs', market, params)
         if type != 'spot' and type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3952,7 +3982,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOrdersWs only supports spot markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -4013,7 +4044,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOpenOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOpenOrdersWs only supports spot markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -4106,7 +4138,8 @@ class binance(ccxt.async_support.binance):
         url = ''
         if type == 'spot' or type == 'margin':
             # route orders to ws-api user data stream
-            wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+            urlsApi = self.safe_dict(self.urls, 'api', {})
+            wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
             wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
             url = self.safe_string(wsApiDict, 'spot', '')
         else:
@@ -4122,8 +4155,7 @@ class binance(ccxt.async_support.binance):
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
-        message = None
-        orders = await self.watch(url, messageHash, message, type)
+        orders = await self.watch(url, messageHash, None, type)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)
@@ -4317,7 +4349,7 @@ class binance(ccxt.async_support.binance):
         marketId = self.safe_string(order, 's')
         # futures user-data events carry the position side field, spot ones do not
         marketType = 'spot'
-        if 'ps' in order:
+        if self.safe_string(order, 'ps') is not None:
             marketType = 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         timestamp = self.safe_integer(order, 'O')
@@ -4328,7 +4360,7 @@ class binance(ccxt.async_support.binance):
                 timestamp = T
         elif executionType == 'TRADE':
             lastTradeTimestamp = T
-        isAlgoOrder = ('aid' in order)  # the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        isAlgoOrder = (self.safe_string(order, 'aid') is not None)  # the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if isAlgoOrder and (timestamp is None):
             algoStatus = self.safe_string(order, 'X')
             if (algoStatus == 'NEW') or (algoStatus == 'CANCELED'):
@@ -4507,20 +4539,29 @@ class binance(ccxt.async_support.binance):
         if e == 'orderReport':
             self.handle_order(client, message)
             return
-        messageValue = message
-        if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
-            messageValue = self.safe_dict(message, 'o', message)
-            if (e == 'ALGO_UPDATE') and not ('T' in messageValue):
-                messageValue['T'] = self.safe_integer(message, 'T')  # keep the outer event time, the algo payload carries no timestamps
-        if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
-            oField = self.safe_value(message, 'o')
-            if isinstance(oField, list):
+        isOrderEvent = (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE')
+        if isOrderEvent:
+            oField = self.safe_list(message, 'o')
+            if oField is not None:
                 # eOptions format: o is an array of orders with nested fi fills
                 self.handle_options_order_update(client, message)
                 return
-        self.handle_my_trade(client, messageValue)
-        self.handle_order(client, messageValue)
-        self.handle_my_liquidation(client, messageValue)
+        if not isOrderEvent:
+            self.handle_my_trade(client, message)
+            self.handle_order(client, message)
+            self.handle_my_liquidation(client, message)
+            return
+        orderValue = self.safe_dict(message, 'o', message)
+        if (e == 'ALGO_UPDATE') and (self.safe_integer(orderValue, 'T') is None):
+            # keep the outer event time, the algo payload carries no timestamps
+            algoOrder = self.extend(orderValue, {'T': self.safe_integer(message, 'T')})
+            self.handle_my_trade(client, algoOrder)
+            self.handle_order(client, algoOrder)
+            self.handle_my_liquidation(client, algoOrder)
+            return
+        self.handle_my_trade(client, orderValue)
+        self.handle_order(client, orderValue)
+        self.handle_my_liquidation(client, orderValue)
 
     def handle_stock_price(self, client: Client, message: dict):
         #
@@ -4557,8 +4598,9 @@ class binance(ccxt.async_support.binance):
                 'info': rate,
             })
             self.tickers[symbol] = parsed
-            tickers[symbol] = parsed
-            client.resolve(parsed, 'stock:price:' + symbol)
+            priceSymbol = self.safe_string(parsed, 'symbol', '')
+            client.resolve(parsed, 'stock:price:' + priceSymbol)
+            tickers[priceSymbol] = parsed
         client.resolve(tickers, 'stock:price')
 
     def handle_stock_quote(self, client: Client, message: dict):
@@ -4578,7 +4620,8 @@ class binance(ccxt.async_support.binance):
             'info': message,
         })
         self.bidsasks[symbol] = parsed
-        client.resolve(parsed, 'stock:quote:' + symbol)
+        quoteSymbol = self.safe_string(parsed, 'symbol', '')
+        client.resolve(parsed, 'stock:quote:' + quoteSymbol)
 
     def handle_options_order_update(self, client: Client, message: dict):
         #
@@ -4626,7 +4669,8 @@ class binance(ccxt.async_support.binance):
                 side = 'SELL'
             absQty = Precise.string_abs(rawQty)
             executionType = 'NEW'
-            if len(fills) > 0:
+            fillsLength = len(fills)
+            if fillsLength > 0:
                 executionType = 'TRADE'
             # normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
             normalizedOrder = {
@@ -4836,7 +4880,7 @@ class binance(ccxt.async_support.binance):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, accountType + ':positions')
 
-    def parse_ws_position(self, position: dict, market: Market = None):
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "s": "BTCUSDT", // Symbol
@@ -4954,7 +4998,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchMyTradesWs', market, params)
         if type != 'spot' and type != 'linear':
             raise BadRequest(self.id + ' fetchMyTradesWs does not support ' + type + ' markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -5005,7 +5050,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTradesWs', market, params)
         if type != 'spot' and type != 'linear':
             raise BadRequest(self.id + ' fetchTradesWs does not support ' + type + ' markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -5094,14 +5140,16 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         market = None
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+            symbolResolved = self.symbol(symbol)
         type, subType, paramsAuth = self.resolve_auth_type('watchMyTrades', market, params)
         messageHash = 'myTrades'
         symbolParams = {}
         if (symbolResolved is not None) and (market is not None):
-            messageHash += ':' + symbolResolved
+            symbolString = self.symbol(symbol)
+            messageHash = messageHash + ':' + symbolString
             symbolParams = {'type': market['type'], 'symbol': symbolResolved}
         paramsSymbol = self.extend(paramsAuth, symbolParams)
         await self.authenticate(self.extend({'type': type, 'subType': subType}, paramsSymbol))
@@ -5112,7 +5160,8 @@ class binance(ccxt.async_support.binance):
         isPortfolioMargin = portfolioMarginAndParams[0]
         url = ''
         if type == 'spot' or type == 'margin':
-            wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+            urlsApi = self.safe_dict(self.urls, 'api', {})
+            wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
             wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
             url = self.safe_string(wsApiDict, 'spot', '')
         else:
@@ -5128,8 +5177,7 @@ class binance(ccxt.async_support.binance):
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
-        message = None
-        trades = await self.watch(url, messageHash, message, type)
+        trades = await self.watch(url, messageHash, None, type)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolResolved, limit)
@@ -5154,26 +5202,30 @@ class binance(ccxt.async_support.binance):
                         fee = self.safe_dict(order, 'fee')
                         if (fees is not None) and not self.is_empty(fees):
                             insertNewFeeCurrency = True
+                            newFees = []
                             for i in range(0, len(fees)):
-                                orderFee = fees[i]
-                                if self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
+                                orderFee = self.extend({}, fees[i])
+                                if insertNewFeeCurrency and self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                     feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
                                     feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                     if feeCostString is None:
                                         feeCostString = '0'
-                                    order['fees'][i]['cost'] = float(feeCostString)
+                                    orderFee['cost'] = float(feeCostString)
                                     insertNewFeeCurrency = False
-                                    break
+                                newFees.append(orderFee)
                             if insertNewFeeCurrency:
-                                order['fees'].append(tradeFee)
+                                newFees.append(tradeFee)
+                            order['fees'] = newFees
                         elif fee is not None:
                             if self.safe_string(fee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                 feeCost = self.sum(fee['cost'], tradeFee['cost'])
                                 feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                 if feeCostString is None:
                                     feeCostString = '0'
-                                order['fee']['cost'] = float(feeCostString)
-                            elif fee['currency'] is None:
+                                newFee = self.extend({}, fee)
+                                newFee['cost'] = float(feeCostString)
+                                order['fee'] = newFee
+                            elif self.safe_string(fee, 'currency') is None:
                                 order['fee'] = tradeFee
                             else:
                                 order['fees'] = [fee, tradeFee]
@@ -5260,7 +5312,8 @@ class binance(ccxt.async_support.binance):
         accountType = 'option'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         B = self.safe_list(message, 'B', [])
         for i in range(0, len(B)):
             entry = self.safe_dict(B, i)
@@ -5269,11 +5322,11 @@ class binance(ccxt.async_support.binance):
             if code is not None:
                 account = self.account()
                 account['total'] = self.safe_string(entry, 'b')
-                self.balance[accountType][code] = account
+                balance[code] = account
         timestamp = self.safe_integer(message, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], accountType + ':balance')
         # --- positions ---
         if not (accountType in self.positionsByType):
@@ -5316,7 +5369,7 @@ class binance(ccxt.async_support.binance):
         msg = self.safe_string(error, 'msg')
         codeValue = 0 if (code is None) else code
         try:
-            self.handle_errors(codeValue, msg, client.url, '', {}, self.json(error), error, {}, '')
+            self.handle_errors(codeValue, msg, client.url, '', {}, self.json(error), error, {}, None)
         except Exception as e:
             rejected = True
             # private endpoint uses id as messageHash
@@ -5336,7 +5389,7 @@ class binance(ccxt.async_support.binance):
             client.reject(feedback, id)
         # reset connection if 5xx error
         codeString = self.safe_string(error, 'code')
-        if (codeString is not None) and (codeString[0] == '5'):
+        if (codeString is not None) and codeString.startswith('5'):
             resetError = ExchangeError(self.id + ' ' + self.json(message))
             client.reset(resetError)
 
@@ -5420,7 +5473,8 @@ class binance(ccxt.async_support.binance):
         event = self.safe_string(messageValue, 'e')
         if isinstance(messageValue, list):
             arrayMessage = self.safe_dict(messageValue, 0)
-            event = self.safe_string(arrayMessage, 'e') + '@arr'
+            arrayEvent = self.safe_string(arrayMessage, 'e', '')
+            event = arrayEvent + '@arr'
         method = self.safe_value(methods, event)
         if method is None:
             requestId = self.safe_string(messageValue, 'id')
@@ -5438,7 +5492,7 @@ class binance(ccxt.async_support.binance):
             #         "A": "2.52500800"
             #     }
             #
-            if event is None and ('a' in messageValue) and ('b' in messageValue):
+            if event is None and (self.safe_string(messageValue, 'a') is not None) and (self.safe_string(messageValue, 'b') is not None):
                 self.handle_bids_asks(client, messageValue)
         else:
             method(client, messageValue)

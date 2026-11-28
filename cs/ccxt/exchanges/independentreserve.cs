@@ -430,8 +430,8 @@ public partial class independentreserve : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        IList<object> baseCurrencyIds = this.toArray(this.safeList(responses, 0));
-        IList<object> quoteCurrencyIds = this.toArray(this.safeList(responses, 1));
+        IList<object> baseCurrencyIds = this.safeList(responses, 0);
+        IList<object> quoteCurrencyIds = this.safeList(responses, 1);
         for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); i++)
         {
             string baseId = this.safeString(baseCurrencyIds, i, "");
@@ -508,7 +508,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> accounts = this.toArray(response);
+        IList<object> accounts = response;
         for (int i = 0; i < (accounts?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(accounts, i);
@@ -569,7 +569,7 @@ public partial class independentreserve : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -593,7 +593,7 @@ public partial class independentreserve : Exchange
             defaultMarketId = ((baseId + "/") + quoteId);
         }
         Dictionary<string, object> marketResolved = this.safeMarket(defaultMarketId, market, "/");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -656,7 +656,7 @@ public partial class independentreserve : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder
@@ -1039,10 +1039,10 @@ public partial class independentreserve : Exchange
         //     ]
         //
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object fee = rows[i];
+            IDictionary<string, object> fee = ((IDictionary<string, object>)rows[i]);
             string? currencyId = this.safeString(fee, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
             double? tradingFee = this.safeNumber(fee, "Fee");
@@ -1060,7 +1060,8 @@ public partial class independentreserve : Exchange
         {
             string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> fee = this.safeDict(fees, (market.ContainsKey("base") ? market["base"] : null), new Dictionary<string, object>() {});
+            string? baseCode = this.safeString(market, "base", "");
+            IDictionary<string, object> fee = this.safeDict(fees, baseCode, new Dictionary<string, object>() {});
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", this.safeDict(fee, "info") },
                 { "symbol", symbol },
@@ -1184,7 +1185,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -1269,7 +1270,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //    {
@@ -1363,7 +1364,7 @@ public partial class independentreserve : Exchange
                 auth.Add(((key + "=") + value));
             }
             string message = String.Join(",", auth.ToArray());
-            string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
+            string signature = this.hmac(message, this.secret, sha256);
             Dictionary<string, object> query = new Dictionary<string, object>() {};
             query["apiKey"] = this.apiKey;
             query["nonce"] = nonce;

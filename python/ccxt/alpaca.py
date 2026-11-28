@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -1145,7 +1145,10 @@ class alpaca(Exchange, ImplicitAPI):
         paramsCost = self.omit(params, 'cost') if (cost is not None) else params
         defaultTIF, paramsTimeInForce = self.handle_option_string_and_params(paramsCost, 'createOrder', 'timeInForce')
         # the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request['time_in_force'] = defaultTIF.lower() if (defaultTIF is not None) else defaultTIF
+        if defaultTIF is not None:
+            request['time_in_force'] = defaultTIF.lower()
+        else:
+            request['time_in_force'] = None
         paramsOmitted = self.omit(paramsTimeInForce, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(paramsOmitted)
         order = self.traderPrivatePostV2Orders(self.extend(request, self.omit(paramsOmitted, ['clientOrderId'])))
@@ -1223,14 +1226,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.traderPrivateDeleteV2Orders(params)
-        if isinstance(response, list):
-            return self.parse_orders(response)
-        else:
-            return [
-                self.safe_order({
-                    'info': response,
-                }),
-            ]
+        return self.parse_orders(response)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2131,7 +2127,7 @@ class alpaca(Exchange, ImplicitAPI):
         bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # default error handler
         # {

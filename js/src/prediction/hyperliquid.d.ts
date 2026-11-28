@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Bool } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -71,12 +71,12 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    buildOutcomeParentSymbol(desc: Dict, outcomeId: number, name?: string, question?: Dict): string;
+    buildOutcomeParentSymbol(desc: Dict, outcomeId: string, name?: string, question?: Dict): string;
     /**
      * @method
      * @name hyperliquid#fetchMarkets
@@ -93,11 +93,12 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    parseOutcomeMarket(outcomeInfo: Dict, outcomeId: number, question?: Dict): Market;
+    parseOutcomeMarket(outcomeInfo: Dict, outcomeKey: string, outcomeId: number, question?: Dict): Market;
     /**
      * @ignore
      * @method
@@ -388,6 +389,22 @@ export default class hyperliquid extends Exchange {
         body: Str;
         headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
-    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response: Dict | List | string): Dict[];
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    infoDict(response: Dict | List | string): Dict;
 }

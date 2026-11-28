@@ -767,11 +767,7 @@ class poloniex extends poloniex$1["default"] {
         //         ]
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -1332,11 +1328,12 @@ class poloniex extends poloniex$1["default"] {
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const marketSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'symbol': market['id'],
         };
         if (this.safeBool(market, 'contract', false)) {
-            const tickers = await this.fetchTickers([market['symbol']], params);
+            const tickers = await this.fetchTickers([marketSymbol], params);
             const contractTicker = this.safeDict(tickers, symbol);
             return contractTicker;
         }
@@ -2108,7 +2105,7 @@ class poloniex extends poloniex$1["default"] {
         //         "clientOrderId" : ""
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -2352,7 +2349,7 @@ class poloniex extends poloniex$1["default"] {
             'side': side,
             'type': type,
         });
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         //
@@ -2410,7 +2407,7 @@ class poloniex extends poloniex$1["default"] {
         //       "message":""
         //   }
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method
@@ -2606,7 +2603,7 @@ class poloniex extends poloniex$1["default"] {
         //         "updateTime": 1646196019020
         //     }
         //
-        const order = this.parseOrder(response);
+        const order = this.parseOrder(this.extend({}, response));
         order['id'] = idValue;
         return order;
     }
@@ -2982,8 +2979,11 @@ class poloniex extends poloniex$1["default"] {
      */
     async createDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        const paramsValue = extraParams;
+        const prepared = this.prepareRequestForDepositAddress(code, params);
+        const request = this.safeDict(prepared, 'request');
+        const paramsValue = this.safeDict(prepared, 'query');
+        const currency = this.currency(code);
+        const networkEntry = this.safeDict(prepared, 'networkEntry');
         const response = await this.privatePostWalletsAddress(this.extend(request, paramsValue));
         //
         //     {
@@ -3003,8 +3003,11 @@ class poloniex extends poloniex$1["default"] {
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        const paramsValue = extraParams;
+        const prepared = this.prepareRequestForDepositAddress(code, params);
+        const request = this.safeDict(prepared, 'request');
+        const paramsValue = this.safeDict(prepared, 'query');
+        const currency = this.currency(code);
+        const networkEntry = this.safeDict(prepared, 'networkEntry');
         const response = await this.privateGetWalletsAddresses(this.extend(request, paramsValue));
         //
         //     {
@@ -3023,15 +3026,13 @@ class poloniex extends poloniex$1["default"] {
             throw new errors.BadSymbol(this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
         }
         const currency = this.currency(code);
-        let networkCode = undefined;
-        let query = undefined;
-        [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        if (networkCode === undefined) {
+        const [networkCodeRaw, query] = this.handleNetworkCodeAndParams(params);
+        if (networkCodeRaw === undefined) {
             // we need to know the network to find out the currency-junction
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
         }
         let exchangeNetworkId = undefined;
-        networkCode = this.networkIdToCode(networkCode, code);
+        const networkCode = this.networkIdToCode(networkCodeRaw, code);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = this.safeString(networkEntry, 'id');
@@ -3042,7 +3043,12 @@ class poloniex extends poloniex$1["default"] {
         const request = {
             'currency': exchangeNetworkId,
         };
-        return [request, query, currency, networkEntry];
+        return {
+            'request': request,
+            'query': query,
+            'currency': currency,
+            'networkEntry': networkEntry,
+        };
     }
     parseDepositAddressSpecial(response, currency, networkEntry) {
         let address = this.safeString(response, 'address');
@@ -3465,11 +3471,12 @@ class poloniex extends poloniex$1["default"] {
         //
         const depositWithdrawFees = {};
         const codesValue = this.marketCodes(codes);
-        const responseKeys = Object.keys(response);
+        const feesById = this.extend({}, response);
+        const responseKeys = Object.keys(feesById);
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode(currencyId);
-            const feeInfo = this.safeDict(response, currencyId);
+            const feeInfo = this.safeDict(feesById, currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
@@ -3481,15 +3488,16 @@ class poloniex extends poloniex$1["default"] {
                         const rawNetworkId = this.safeString(childChains, j, '');
                         const networkId = rawNetworkId.replace(code, '');
                         const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-                        const networkInfo = this.safeDict(response, networkId);
+                        const networkInfo = this.safeDict(feesById, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
+                        const withdrawObject = { 'fee': withdrawFee, 'percentage': undefined };
+                        if (withdrawFee !== undefined) {
+                            withdrawObject['percentage'] = false;
+                        }
                         if (networkCode !== undefined) {
                             networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                                },
+                                'withdraw': withdrawObject,
                                 'deposit': {
                                     'fee': undefined,
                                     'percentage': undefined,
@@ -4047,7 +4055,7 @@ class poloniex extends poloniex$1["default"] {
         const apiName = api[0];
         const isArray = Array.isArray(params);
         if (method === 'GET' && ('symbol' in params)) {
-            params['symbol'] = this.encodeURIComponent(params['symbol']); // handle symbols like 索拉拉/USDT'
+            params['symbol'] = this.encodeURIComponent(this.safeString(params, 'symbol')); // handle symbols like 索拉拉/USDT'
         }
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);

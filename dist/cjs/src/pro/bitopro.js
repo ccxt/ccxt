@@ -75,7 +75,7 @@ class bitopro extends bitopro$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
         const marketIdValue = this.safeString(market, 'id', '');
         let endPart = undefined;
@@ -112,7 +112,7 @@ class bitopro extends bitopro$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         const market = this.safeMarket(marketId, undefined, '_');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(message, 'event');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -142,7 +142,7 @@ class bitopro extends bitopro$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'TRADE' + ':' + symbolValue;
         const trades = await this.watchPublic('trades', messageHash, market['id']);
         let limitResolved = limit;
@@ -173,7 +173,7 @@ class bitopro extends bitopro$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         const market = this.safeMarket(marketId, undefined, '_');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(message, 'event');
         const rawData = this.safeList(message, 'data', []);
         const trades = this.parseTrades(rawData, market);
@@ -211,7 +211,7 @@ class bitopro extends bitopro$1["default"] {
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            const symbolValue = market['symbol'];
+            const symbolValue = this.safeString(market, 'symbol', '');
             messageHash = messageHash + ':' + symbolValue;
         }
         const wsUrl = this.safeString(this.urls['ws'], 'private');
@@ -259,7 +259,8 @@ class bitopro extends bitopro$1["default"] {
         if ((base === undefined) || (quote === undefined)) {
             return;
         }
-        const symbol = this.symbol(base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol(marketSymbol);
         const messageHash = this.safeString(message, 'event');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -301,7 +302,8 @@ class bitopro extends bitopro$1["default"] {
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol(base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol(marketSymbol);
         }
         const marketResolved = this.safeMarket(symbol, market);
         const price = this.safeString(trade, 'price');
@@ -366,7 +368,7 @@ class bitopro extends bitopro$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'TICKER' + ':' + symbolValue;
         return await this.watchPublic('tickers', messageHash, market['id']);
     }
@@ -395,7 +397,7 @@ class bitopro extends bitopro$1["default"] {
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         const market = this.safeMarket(marketId, undefined, '_');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(message, 'event');
         const result = this.parseTicker(message, market);
         result['symbol'] = this.safeString(market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
@@ -431,7 +433,7 @@ class bitopro extends bitopro$1["default"] {
         this.extendExchangeOptions(defaultOptions);
         const wsOptions = this.safeDict(this.options, 'ws', {});
         const wsInnerOptions = this.safeDict(wsOptions, 'options', {});
-        const originalHeaders = wsInnerOptions['headers'];
+        const originalHeaders = this.safeDict(wsInnerOptions, 'headers');
         const headers = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,

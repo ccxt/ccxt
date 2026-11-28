@@ -222,7 +222,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client = self.client(url)
         self.watch_multiple(url, unWatchMessageHashes, self.deep_extend(request, paramsResolved), unWatchMessageHashes)
         for i in range(0, channelsLength):
-            self.clean_unsubscription(client, self.safe_string(channels, i, ''), self.safe_string(unWatchMessageHashes, i, ''))
+            channel = self.safe_string(channels, i, '')
+            self.clean_unsubscription(client, channel, self.safe_string(unWatchMessageHashes, i, ''))
         return True
 
     async def watch_balance(self, params: dict = {}) -> Balances:
@@ -245,7 +246,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     def handle_balance(self, client: Client, message: dict):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
-        parsed = self.parseBalanceList(data)
+        parsed = self.parseBalanceList(data, [data])
         self.balance = self.deep_extend(self.balance, parsed)
         client.resolve(self.balance, 'balance')
 
@@ -272,7 +273,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             channel = 'user.trades.' + self.safe_string(market, 'id', '') + '.' + interval
         trades = await self.subscribe([channel], [channel], True, paramsInterval)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limit, True)
@@ -334,7 +335,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             channel = 'user.orders.' + self.safe_string(market, 'id', '') + '.' + interval
         orders = await self.subscribe([channel], [channel], True, paramsInterval)
         limitResolved = limit
@@ -399,11 +400,12 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.orders = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel')
-        data = self.safe_value(params, 'data', {})
+        dataList = self.safe_list(params, 'data')
         orders = []
-        if isinstance(data, list):
-            orders = self.parse_orders(data)
+        if dataList is not None:
+            orders = self.parse_orders(dataList)
         else:
+            data = self.safe_dict(params, 'data', {})
             orders = [self.parse_order(data)]
         ordersLength = len(orders)
         for i in range(0, ordersLength):
@@ -483,12 +485,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         positionsLength = len(positions)
         for i in range(0, positionsLength):
             position = positions[i]
-            if position['side'] is None:
+            if self.safe_string(position, 'side') is None:
                 # flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position['side'] = 'long'
-                shortPosition = self.clone(position)
-                shortPosition['side'] = 'short'
+                shortPosition = self.extend(position, {'side': 'short'})
                 self.positions.append(shortPosition)
+                longPosition = self.extend(position, {'side': 'long'})
+                self.positions.append(longPosition)
+                continue
             self.positions.append(position)
         client.resolve(self.positions, channel)
 
@@ -506,7 +509,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         paramsResolved = self.handleRouteAndParams('watchFundingRate', params)
         ticker = await self.watch_ticker(symbol, paramsResolved)
-        return self.parse_funding_rate(ticker['info'], self.market(symbol))
+        return self.parse_funding_rate(self.extend({}, ticker['info']), self.market(symbol))
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -532,7 +535,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         for i in range(0, tickerSymbolsLength):
             symbol = tickerSymbols[i]
             ticker = tickers[symbol]
-            result[symbol] = self.parse_funding_rate(ticker['info'], self.market(symbol))
+            result[symbol] = self.parse_funding_rate(self.extend({}, ticker['info']), self.market(symbol))
         return result
 
     async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> object:
@@ -744,7 +747,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         ticker = await self.subscribe(channels, channels, False, paramsResolved)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsResolved)
 
@@ -823,7 +828,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             await self.load_markets()
         symbolResolved = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolResolved, timeframe]], since, limit, paramsResolved)
-        return ohlcvs[symbolResolved][timeframe]
+        bySymbol = ohlcvs[symbolResolved]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -848,7 +854,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         for i in range(0, symbolsAndTimeframesLength):
             current = symbolsAndTimeframes[i]
-            currentTimeframe = self.safe_string(current, 1)
+            currentTimeframe = self.safe_string(current, 1, '')
             resolution = self.safe_string(self.timeframes, currentTimeframe, currentTimeframe)
             market = self.market(self.safe_string(current, 0))
             channels.append('chart.trades.' + self.safe_string(market, 'id', '') + '.' + resolution)
@@ -897,7 +903,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbolsAndTimeframesLength = len(symbolsAndTimeframes)
         for i in range(0, symbolsAndTimeframesLength):
             current = symbolsAndTimeframes[i]
-            timeframe = self.safe_string(current, 1)
+            timeframe = self.safe_string(current, 1, '')
             resolution = self.safe_string(self.timeframes, timeframe, timeframe)
             market = self.market(self.safe_string(current, 0))
             channels.append('chart.trades.' + self.safe_string(market, 'id', '') + '.' + resolution)
@@ -1038,11 +1044,10 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         tradesArray = self.trades[symbol]
         dataLength = len(data)
         for i in range(0, dataLength):
-            trade = self.parse_trade(data[i], market)
+            trade = self.parse_trade(self.safe_dict(data, i, {}), market)
             tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, channel)
-        return message
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -1149,12 +1154,17 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(data, 'timestamp')
         channel = self.safe_string(params, 'channel')
+        if channel is None:
+            raise ExchangeError(self.id + ' order book update has no channel')
         channelParts = channel.split('.')
         channelPartsLength = len(channelParts)
         isGrouped = channelPartsLength == 5
         if not (symbol in self.orderbooks):
             limit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-            self.orderbooks[symbol] = self.order_book({}, limit) if isGrouped else self.counted_order_book({}, limit)
+            if isGrouped:
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            else:
+                self.orderbooks[symbol] = self.counted_order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         nonce = self.safe_integer(orderbook, 'nonce')
         if not isGrouped and (type != 'snapshot') and (nonce is None):
@@ -1181,7 +1191,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if channel is not None:
             client.resolve(orderbook, channel)
 
-    async def resubscribe_order_book(self, channel: str):
+    async def resubscribe_order_book(self, channel: str) -> None:
         channelParts = channel.split('.')
         channelPartsLength = len(channelParts)
         isPrivate = self.safe_string(channelParts, channelPartsLength - 1) == 'raw'
@@ -1216,7 +1226,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         for i in range(0, deltasLength):
             self.handle_delta(bookside, self.safe_list(deltas, i))
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         error = self.safe_dict(message, 'error')
         if error is None:
             return False
@@ -1290,7 +1300,10 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             if requestId == authRequestId:
                 self.handle_authentication_message(client, message)
                 return
-            client.resolve(self.safe_value(message, 'result', message), requestId)
+            if 'result' in message:
+                client.resolve(self.safe_value(message, 'result'), requestId)
+            else:
+                client.resolve(message, requestId)
 
     def handle_authentication_message(self, client: Client, message: dict):
         #
@@ -1331,12 +1344,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client = self.client(url)
         messageHash = 'authenticated'
         future = self.safe_value(client.subscriptions, messageHash)
-        if future is not None:
+        subscribed = (future is not None)
+        if subscribed:
             refreshAt = self.safe_integer(self.options, 'wsAuthRefreshAt')
             if (refreshAt is not None) and (self.milliseconds() >= refreshAt) and not (messageHash in client.futures):
                 del client.subscriptions[messageHash]
-                future = None
-        if future is None:
+                subscribed = False
+        if not subscribed:
             self.check_required_credentials()
             requestId = self.request_id()
             self.options['wsAuthRequestId'] = requestId
@@ -1507,7 +1521,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if symbol is not None:
             market = self.market(symbol)
         result = await self.request_ws('private/cancel', self.extend({'order_id': id}, paramsResolved), True)
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -1555,7 +1569,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
                 await self.load_markets()
             market = self.market(symbol)
         result = await self.request_ws('private/get_order_state', self.extend({'order_id': id}, paramsResolved), True)
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1628,7 +1642,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         balance = {'info': result}
         summariesLength = len(summaries)
         for i in range(0, summariesLength):
-            balance = self.deep_extend(balance, self.parseBalanceList(summaries[i]))
+            balance = self.deep_extend(balance, self.parseBalanceList(summaries[i], [self.safe_dict(summaries, i, {})]))
         return self.safe_balance(balance)
 
     async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1676,7 +1690,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             await self.load_markets()
         symbolsResolved = self.market_symbols(symbols)
         result = await self.request_ws('private/get_positions', paramsResolved, True)
-        positions = self.parse_positions(result)
+        positions = self.parse_positions(self.to_array(result))
         return self.filter_by_array_positions(positions, 'symbol', symbolsResolved)
 
     async def set_heartbeat(self, interval: Int = 30, params: dict = {}):
@@ -1766,7 +1780,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         method = 'private/unsubscribe_all' if isPrivate else 'public/unsubscribe_all'
         return await self.request_ws(method, paramsResolved, isPrivate)
 
-    async def logout_ws(self, params: dict = {}):
+    async def logout_ws(self, params: dict = {}) -> None:
         """
  @ignore
         gracefully logs out of the private websocket session
@@ -1790,4 +1804,3 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'params': paramsResolved,
         }
         await client.send(request)
-        return None

@@ -375,8 +375,14 @@ class predictfun extends Exchange {
         } else {
             $request = array();
             $tags = $this->safe_list($paramsValue, 'tags', array());
-            if (strlen($tags) > 0) {
-                $request['tagIds'] = implode(',', $tags);
+            $tagsLength = count($tags);
+            if ($tagsLength > 0) {
+                $tagIds = array();
+                for ($i = 0; $i < $tagsLength; $i++) {
+                    $tagId = $this->safe_string($tags, $i, '');
+                    $tagIds[] = $tagId;
+                }
+                $request['tagIds'] = implode(',', $tagIds);
             }
             $postOmitKeys[] = 'limit';
             $paramsCategories = $this->omit($paramsValue, array( 'limit', 'tags' ));
@@ -568,7 +574,7 @@ class predictfun extends Exchange {
         $rawTopicsLength = count($rawTopics);
         $result = array();
         for ($i = 0; $i < $rawTopicsLength; $i++) {
-            $parsedEvent = $this->parse_event($rawTopics[$i]);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawTopics[$i]));
             $result[] = $parsedEvent;
             $parsedMarkets = $this->safe_list($parsedEvent, 'markets', array());
             $parsedMarketsLength = count($parsedMarkets);
@@ -985,40 +991,47 @@ class predictfun extends Exchange {
         );
     }
 
-    public function strip_price_formatting(?string $text): ?string {
+    public function strip_price_formatting(string $text): string {
         /**
          * @ignore
          * drops the formatting the venue puts in a price but not in its slug - the currency sign, and a comma that sits between two $digits
          * @param {string} [$text] the raw title or outcome label
          * @return {string} the same $text with '$' removed and thousands separators closed up
          */
-        if ($text === null) {
-            return null;
-        }
         $digits = '0123456789';
         $chars = $this->string_to_chars_array($text);
         $stripped = '';
+        $prevCh = '';
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        $pendingComma = false;
         for ($i = 0; $i < count($chars); $i++) {
             $ch = $chars[$i];
-            $keep = true;
-            if ($ch === '$') {
-                $keep = false;
-            } elseif ($ch === ',') {
+            $isDigit = (mb_strpos($digits, $ch) !== false);
+            if ($pendingComma && !$isDigit) {
+                $stripped = $stripped . ',';
+            }
+            $pendingComma = false;
+            if ($ch === ',') {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                $prevIsDigit = ($i > 0) && (mb_strpos($digits, $chars[$i - 1]) !== false);
-                $nextIsDigit = (($i + 1) < strlen($chars)) && (mb_strpos($digits, $chars[$i + 1]) !== false);
-                $keep = !($prevIsDigit && $nextIsDigit);
-            }
-            if ($keep) {
+                if (($i > 0) && (mb_strpos($digits, $prevCh) !== false)) {
+                    $pendingComma = true;
+                } else {
+                    $stripped = $stripped . $ch;
+                }
+            } elseif ($ch !== '$') {
                 $stripped = $stripped . $ch;
             }
+            $prevCh = $ch;
+        }
+        if ($pendingComma) {
+            $stripped = $stripped . ',';
         }
         return $stripped;
     }
 
-    public function title_for_market_symbol(?string $topicSlug, ?string $title, ?int $marketCount = null): ?string {
+    public function title_for_market_symbol(?string $topicSlug, ?string $title, ?int $marketCount = null): string {
         /**
          * @ignore
          * decides what of a market $title belongs in the unified symbol, given how many markets its topic holds
@@ -1034,6 +1047,9 @@ class predictfun extends Exchange {
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if (($marketCount === 1) && ($topicSlug !== null)) {
             return $topicSlug;
+        }
+        if ($title === null) {
+            return '';
         }
         return $this->strip_price_formatting($title);
     }
@@ -1168,7 +1184,7 @@ class predictfun extends Exchange {
             $rawOutcome = $rawOutcomes[$oi];
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            $rawLabel = $this->safe_string_upper($rawOutcome, 'name');
+            $rawLabel = $this->safe_string_upper($rawOutcome, 'name', '');
             $label = $this->strip_price_formatting($rawLabel);
             $tokenId = $this->safe_string($rawOutcome, 'onChainId');
             $outcomeHandle = $marketSymbol . ':' . $label;
@@ -1699,9 +1715,13 @@ class predictfun extends Exchange {
         if ($rawFee !== null) {
             $feeType = $this->safe_string($rawFee, 'type');
             $feeCost = $this->safe_string($rawFee, 'amount');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            $feeCurrency = null;
+            if ($feeType === 'COLLATERAL') {
+                $feeCurrency = 'USDT';
+            }
             $fee = array(
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency' => ($feeType === 'COLLATERAL') ? 'USDT' : null,
+                'currency' => $feeCurrency,
                 'cost' => $this->parse_number(Precise::string_div($feeCost, '1000000000000000000')),
             );
         }
@@ -1784,8 +1804,8 @@ class predictfun extends Exchange {
          */
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -2039,7 +2059,7 @@ class predictfun extends Exchange {
             'strategy' => $strategy,
         );
         $postOnly = $this->safe_bool($paramsTaker, 'isPostOnly', false);
-        list($postOnlyOption, $paramsPostOnly) = $this->handle_post_only($isMarket, $postOnly, $paramsTaker);
+        list($postOnlyOption, $paramsPostOnly) = $this->handle_post_only($isMarket, $postOnly === true, $paramsTaker);
         if ($postOnlyOption) {
             $data['isPostOnly'] = $postOnlyOption;
         }
@@ -2687,7 +2707,7 @@ class predictfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         /**
          * @ignore
          * maps the venue's $error slugs and messages onto the unified exceptions
@@ -2817,10 +2837,8 @@ class predictfun extends Exchange {
         $payload = '02' . $this->rlp_encode_list($fields);
         $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
         $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
-        $rHex = $this->safe_string($signature, 'r');
-        $sHex = $this->safe_string($signature, 's');
-        $rHex = $this->pad_hex_to_even($rHex);
-        $sHex = $this->pad_hex_to_even($sHex);
+        $rHex = $this->pad_hex_to_even($this->safe_string($signature, 'r', ''));
+        $sHex = $this->pad_hex_to_even($this->safe_string($signature, 's', ''));
         $yParity = $this->safe_integer($signature, 'v');
         $signedFields = $this->array_concat($fields, array( $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity)), $this->rlp_encode_bytes($rHex), $this->rlp_encode_bytes($sHex) ));
         return '0x02' . $this->rlp_encode_list($signedFields);
@@ -3084,8 +3102,10 @@ class predictfun extends Exchange {
         if (($subscribeHash !== null) && (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {
             unset($client->subscriptions[$subscribeHash]);
         }
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
-        if ($this->safe_string($subscription, 'topic') === 'walletEvents') {
+        $messageHashes = array();
+        if ($this->safe_string($subscription, 'topic') !== 'walletEvents') {
+            $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        } else {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be
@@ -3119,7 +3139,7 @@ class predictfun extends Exchange {
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         $isWalletTopic = ($this->safe_string($subscription, 'topic') === 'walletEvents');
         for ($i = 0; $i < $messageHashesLength; $i++) {
-            $this->clean_unsubscription($client, $subMessageHashes[$i], $messageHashes[$i], $isWalletTopic);
+            $this->clean_unsubscription($client, $this->safe_string($subMessageHashes, $i), $messageHashes[$i], $isWalletTopic);
         }
         $this->clean_cache($subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
@@ -3680,7 +3700,8 @@ class predictfun extends Exchange {
         if ($topicSlug !== null) {
             $eventHandle = $this->shorten_slug($topicSlug);
         }
-        $label = $this->strip_price_formatting($this->safe_string_upper($details, 'outcomeName'));
+        $rawOutcomeName = $this->safe_string_upper($details, 'outcomeName');
+        $label = ($rawOutcomeName !== null) ? $this->strip_price_formatting($rawOutcomeName) : null;
         return array(
             'outcome' => null,
             'outcomeId' => null,
@@ -3819,9 +3840,13 @@ class predictfun extends Exchange {
         $fee = null;
         if ($rawFee !== null) {
             $feeType = $this->safe_string($rawFee, 'type');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            $feeCurrency = null;
+            if ($feeType === 'COLLATERAL') {
+                $feeCurrency = 'USDT';
+            }
             $fee = array(
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency' => ($feeType === 'COLLATERAL') ? 'USDT' : null,
+                'currency' => $feeCurrency,
                 'cost' => $this->parse_number(Precise::string_div($this->safe_string($rawFee, 'amountWei'), '1000000000000000000')),
             );
         }

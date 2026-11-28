@@ -6,7 +6,7 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.binance import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -184,7 +184,7 @@ class binance(PredictionExchange, ImplicitAPI):
         flatMarkets = []
         rawTopicsLength = len(rawTopics)
         for i in range(0, rawTopicsLength):
-            parsedEvent = self.parse_event(rawTopics[i])
+            parsedEvent = self.parse_event(self.extend({}, rawTopics[i]))
             parsedEvents.append(parsedEvent)
             eventMarkets = self.safe_list(parsedEvent, 'markets', [])
             eventMarketsLength = len(eventMarkets)
@@ -216,7 +216,7 @@ class binance(PredictionExchange, ImplicitAPI):
         offset = 0
         while(True):
             collectedLength = len(collected)
-            remaining = maxTopicsResolved - collectedLength
+            remaining = self.parse_to_int(maxTopicsResolved - collectedLength)
             reqLimit = remaining if (remaining < pageLimit) else pageLimit
             if reqLimit <= 0:
                 break
@@ -385,7 +385,7 @@ class binance(PredictionExchange, ImplicitAPI):
         rawTopicsLength = len(rawTopics)
         result = []
         for i in range(0, rawTopicsLength):
-            parsedEvent = self.parse_event(rawTopics[i])
+            parsedEvent = self.parse_event(self.extend({}, rawTopics[i]))
             result.append(parsedEvent)
             parsedMarkets = self.safe_list(parsedEvent, 'markets', [])
             parsedMarketsLength = len(parsedMarkets)
@@ -425,7 +425,7 @@ class binance(PredictionExchange, ImplicitAPI):
             limitResolved = 50
         for qi in range(0, queriesLength):
             request = {
-                'query': queries[qi],
+                'query': self.safe_string(queries, qi),
             }
             request['topK'] = limitResolved
             response = await self.sapiPrivateGetMarketSearch(self.extend(request, rest))
@@ -805,7 +805,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 }
                 response = await self.sapiPrivateGetOrderBookLastTradePrice(self.extend(request, params))
                 responsesByMarketId[marketId] = response
-            ticker = self.parse_prediction_ticker(response, outcomeObj)
+            ticker = self.parse_prediction_ticker(self.extend({}, response), outcomeObj)
             symbolKey = self.safe_string(ticker, 'outcome', outcomes[i])
             result[symbolKey] = ticker
         return result
@@ -921,11 +921,9 @@ class binance(PredictionExchange, ImplicitAPI):
             marketId = self.safe_string(order, 'marketId')
             outcome = self.safe_string_upper(order, 'outcome')
             market = self.safe_market(marketId)
-            outcomeName = self.safe_string(market, 'market')
-            if outcomeName is None:
-                outcomeName = marketId
-            outcomeName += ':' + outcome
-            outcomeObjResolved = self.safe_outcome(outcomeName)
+            marketName = self.safe_string(market, 'market', marketId)
+            outcomeKey = marketName + ':' + outcome
+            outcomeObjResolved = self.safe_outcome(outcomeKey)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'createTime')
         return self.safe_prediction_order({
@@ -1003,7 +1001,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            market = self.market(outcomeObj['market'])
+            market = self.market(self.safe_string(outcomeObj, 'market'))
             request['marketId'] = market['id']
         if limit is not None:
             request['limit'] = limit
@@ -1232,8 +1230,8 @@ class binance(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            market = self.market(outcomeObj['market'])
-            request['marketTopicId'] = market['info']['marketTopicId']
+            market = self.market(self.safe_string(outcomeObj, 'market'))
+            request['marketTopicId'] = self.safe_string(market['info'], 'marketTopicId')
         wallet = await self.fetch_wallet('fetchOrders', params)
         request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetPositionFilter(self.extend(request, params))
@@ -1257,11 +1255,8 @@ class binance(PredictionExchange, ImplicitAPI):
             marketId = self.safe_string(position, 'marketId')
             outcome = self.safe_string_upper(position, 'outcomeName')
             market = self.safe_market(marketId)
-            outcomeName = self.safe_string(market, 'market')
-            if outcomeName is None:
-                outcomeName = marketId
-            outcomeName += ':' + outcome
-            outcomeObjResolved = self.safe_outcome(outcomeName)
+            marketName = self.safe_string(market, 'market', marketId)
+            outcomeObjResolved = self.safe_outcome(marketName + ':' + outcome)
         timestamp = self.safe_integer(position, 'createdTime')
         totalCost = self.parse_number(self.safe_string(position, 'totalCost'))
         return self.safe_prediction_position({
@@ -1419,11 +1414,9 @@ class binance(PredictionExchange, ImplicitAPI):
             marketId = self.safe_string(trade, 'marketId')
             outcome = self.safe_string_upper(trade, 'outcome')
             market = self.safe_market(marketId)
-            outcomeName = self.safe_string(market, 'market')
-            if outcomeName is None:
-                outcomeName = marketId
-            outcomeName += ':' + outcome
-            outcomeObjResolved = self.safe_outcome(outcomeName)
+            marketName = self.safe_string(market, 'market', marketId)
+            outcomeKey = marketName + ':' + outcome
+            outcomeObjResolved = self.safe_outcome(outcomeKey)
         timestamp = self.safe_integer(trade, 'createTime')
         filled = self.safe_string(trade, 'filledShareQty')
         cost = self.safe_string(trade, 'filledUsdtAmount')
@@ -1467,8 +1460,9 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a wallet
         """
-        if self.safe_dict(self.options, 'wallet') is not None:
-            return self.safe_dict(self.options, 'wallet')
+        cachedWallet = self.safe_dict(self.options, 'wallet')
+        if cachedWallet is not None:
+            return cachedWallet
         walletAddress = self.handle_option_string_and_params(params, methodName, 'walletAddress', self.walletAddress)[0]
         response = await self.sapiPrivateGetWalletList()
         #
@@ -1761,7 +1755,7 @@ class binance(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order(order))
         return orders
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')
@@ -1784,8 +1778,10 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['sapi'])
+        baseUrls = self.safe_dict(self.urls, 'api', {})
+        baseUrl = self.safe_string(baseUrls, apiGroup, '')
+        if baseUrl == '':
+            baseUrl = self.safe_string(baseUrls, 'sapi', '')
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         self.check_required_credentials()
@@ -1795,11 +1791,11 @@ class binance(PredictionExchange, ImplicitAPI):
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         if defaultRecvWindow is not None:
             extendedParams['recvWindow'] = defaultRecvWindow
-        querystring = self.urlencode_nested(extendedParams)
-        querystring = querystring.replace('%5B', '[')
-        querystring = querystring.replace('%5D', ']')
-        signature = self.hmac(self.encode(querystring), self.encode(self.secret), hashlib.sha256)
-        querystring = querystring + '&signature=' + signature
+        rawQuery = self.urlencode_nested(extendedParams)
+        bracketedQuery = rawQuery.replace('%5B', '[')
+        cleanQuery = bracketedQuery.replace('%5D', ']')
+        signature = self.hmac(self.encode(cleanQuery), self.encode(self.secret), hashlib.sha256)
+        querystring = cleanQuery + '&signature=' + signature
         headersValue = {
             'X-MBX-APIKEY': self.apiKey,
         }

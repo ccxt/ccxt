@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,14 +15,14 @@ pub fn testUrlencodeWithArrayRepeat() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut dict2: Value = Value::Map({
+    let dict2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("product_ids".to_string(), Value::from(vec![Value::Str("AA".into()), Value::Str("BB".into())]));
         m
     });
-    let mut expected2a: String = "a=1&product_ids=AA&product_ids=BB".to_string();
-    let mut expected2b: String = "product_ids=AA&product_ids=BB&a=1".to_string();
-    let mut result2: String = exchange.urlencode_with_array_repeat(dict2);
-    assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
+    let expected2a: String = "a=1&product_ids=AA&product_ids=BB".to_string();
+    let expected2b: String = "product_ids=AA&product_ids=BB&a=1".to_string();
+    let result2: String = exchange.urlencode_with_array_repeat(dict2);
+    assert!(crate::test_helpers::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
 }

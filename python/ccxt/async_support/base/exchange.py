@@ -890,7 +890,7 @@ class BaseExchange(SyncExchange):
     async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}):
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches the history of margin added or reduced from contract isolated positions
         :param str [symbol]: unified market symbol
@@ -914,7 +914,7 @@ class BaseExchange(SyncExchange):
     async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
 
-    async def sign_in(self, params={}):
+    async def sign_in(self, params: dict = {}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 
     async def fetch_payment_methods(self, params: dict = {}):
@@ -962,7 +962,7 @@ class BaseExchange(SyncExchange):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
+    async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: bool, startRegex: Str = None, endRegex: Str = None):
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
@@ -982,18 +982,26 @@ class BaseExchange(SyncExchange):
                         raise e
                 if shouldBreak:
                     break  # this is needed because of GO
-            content = response
-            if content is None:
+            if response is None:
                 raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
+            if not isinstance(response, str):
+                if (startRegex is not None) or (endRegex is not None):
+                    raise BadResponse(self.id + ' fetchWebEndpoint() returned non-string content')
+                return response
+            content = response
             if startRegex is not None:
                 splitted_by_start = content.split(startRegex)
+                startLen = len(splitted_by_start)
+                if startLen < 2:
+                    raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
                 content = splitted_by_start[1]  # we need second part after start
-            if content is None:
-                raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
             if endRegex is not None:
                 splitted_by_end = content.split(endRegex)
+                endLen = len(splitted_by_end)
+                if endLen < 1:
+                    raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
                 content = splitted_by_end[0]  # we need first part after start
-            if (returnAsJson is True) and (isinstance(content, str)):
+            if returnAsJson is True:
                 jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
                 if (jsoned is not None) and (jsoned is not None):
                     return jsoned  # if parsing was not successfull, exception should be thrown
@@ -1010,12 +1018,13 @@ class BaseExchange(SyncExchange):
         if self.has['fetchTradingLimits'] is not None and self.has['fetchTradingLimits'] is not False:
             if reload or not ('limitsLoaded' in self.options):
                 response = await self.fetch_trading_limits(symbols)
-                symbolsArray = self.require_value(symbols, 'loadTradingLimits() requires a symbols argument')
+                if symbols is None:
+                    raise ArgumentsRequired(self.id + ' loadTradingLimits() requires a symbols argument')
                 markets = self.markets
                 if markets is None:
                     raise ExchangeError(self.id + ' markets not loaded')
-                for i in range(0, len(symbolsArray)):
-                    symbol = symbolsArray[i]
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
                     markets[symbol] = self.deep_extend(markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
@@ -1043,7 +1052,8 @@ class BaseExchange(SyncExchange):
                 self.set_last_request(request)
                 response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
                 if fetchData is not None:
-                    fetchData['response']['body'] = response
+                    responseData = {'body': response}
+                    fetchData['response'] = responseData
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:
@@ -1433,7 +1443,7 @@ class BaseExchange(SyncExchange):
     async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', 10)
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', 3)
-        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
+        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_bool_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
         paginationDirection, paramsPaginationDirection = self.handle_option_string_and_params(paramsRemoveRepeated, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
         result = []
@@ -1455,7 +1465,7 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
@@ -1477,7 +1487,7 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
@@ -1557,7 +1567,7 @@ class BaseExchange(SyncExchange):
         if until is not None:
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
-            requiredCalls = int(math.ceil((until - since)) / step)
+            requiredCalls = self.parse_to_int(int(math.ceil((until - since)) / step))
             if requiredCalls > maxCallsLimit:
                 raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsLimit) + ' required calls is ' + str(requiredCalls))
         for i in range(0, maxCallsLimit):
@@ -1596,7 +1606,7 @@ class BaseExchange(SyncExchange):
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
-                    response = await getattr(self, method)(paramsOmitted)
+                    response = await self.fetch_accounts(paramsOmitted)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = await getattr(self, method)(symbol, paramsOmitted)
                 elif method == 'fetchOpenInterestHistory':
@@ -1669,8 +1679,7 @@ class BaseExchange(SyncExchange):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + 1)
-                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
+                    incrementalMessage = 'Incremental pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     shouldBreak = True
@@ -2155,11 +2164,11 @@ class Exchange(BaseExchange):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    async def fetch_rest_order_book_safe(self, symbol: object, limit: Int = None, params: dict = {}):
-        fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+    async def fetch_rest_order_book_safe(self, symbol: str, limit: Int = None, params: dict = {}):
+        fetchSnapshotMaxRetries, fetchParams = self.handle_option_integer_and_params(params, 'watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
-                orderBook = await self.fetch_order_book(symbol, limit, params)
+                orderBook = await self.fetch_order_book(symbol, limit, fetchParams)
                 return orderBook
             except Exception as e:
                 if (i + 1) == fetchSnapshotMaxRetries:
@@ -2327,7 +2336,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if (self.options['createMarketBuyOrderRequiresPrice'] is True) or (self.has['createMarketBuyOrderWithCost'] is not None and self.has['createMarketBuyOrderWithCost'] is not False):
+        if self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', False) or (self.has['createMarketBuyOrderWithCost'] is not None and self.has['createMarketBuyOrderWithCost'] is not False):
             return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -2339,7 +2348,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if (self.options['createMarketSellOrderRequiresPrice'] is True) or (self.has['createMarketSellOrderWithCost'] is not None and self.has['createMarketSellOrderWithCost'] is not False):
+        if self.safe_bool(self.options, 'createMarketSellOrderRequiresPrice', False) or (self.has['createMarketSellOrderWithCost'] is not None and self.has['createMarketSellOrderWithCost'] is not False):
             return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
 

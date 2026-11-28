@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitteam import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -676,9 +676,9 @@ class bitteam(Exchange, ImplicitAPI):
         fee = None
         withdrawCommissionFixed = self.safe_dict(txLimits, 'withdrawCommissionFixed', {})
         feesByNetworkId = {}
-        blockChain = self.safe_string(currency, 'blockChain')
+        blockChain = self.safe_string(currency, 'blockChain', '')
         # if only one blockChain
-        if (blockChain is not None) and (blockChain != ''):
+        if blockChain != '':
             fee = self.parse_number(withdrawCommissionFixed)
             feesByNetworkId[blockChain] = fee
         else:
@@ -1037,7 +1037,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1149,7 +1149,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         order = self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1177,7 +1177,7 @@ class bitteam(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -1427,8 +1427,7 @@ class bitteam(Exchange, ImplicitAPI):
         if isinstance(response, list):
             rawTickers = response
         for i in range(0, len(rawTickers)):
-            rawTicker = rawTickers[i]
-            ticker = self.parse_ticker(rawTicker)
+            ticker = self.parse_ticker(self.safe_dict(rawTickers, i, {}))
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
@@ -2020,7 +2019,7 @@ class bitteam(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'pair')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string_2(trade, 'id', 'trade_id')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'quantity', 'base_volume')
@@ -2136,7 +2135,8 @@ class bitteam(Exchange, ImplicitAPI):
             free = self.safe_string(currencyBalance, 'free')
             used = self.safe_string(currencyBalance, 'used')
             total = self.safe_string(currencyBalance, 'total')
-            currencyCode = self.safe_currency_code(rawCurrencyId.lower())
+            rawCurrencyIdLower = rawCurrencyId.lower()
+            currencyCode = self.safe_currency_code(rawCurrencyIdLower)
             if currencyCode is not None:
                 balance[currencyCode] = {
                     'free': free,
@@ -2392,7 +2392,7 @@ class bitteam(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         if code != 200:

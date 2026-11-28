@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -961,8 +961,8 @@ export default class onetrading extends Exchange {
         const result: Dict = {};
         const rawTickers: List = this.toArray (response);
         for (let i = 0; i < rawTickers.length; i++) {
-            const ticker = this.parseTicker (rawTickers[i]);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker (this.safeDict (rawTickers, i, {}));
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1539,7 +1539,7 @@ export default class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return this.parseOrder (response as Dict);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**
@@ -1613,7 +1613,7 @@ export default class onetrading extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        const response: NullableDict = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
+        const response: Dict = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "order": {
@@ -1655,7 +1655,7 @@ export default class onetrading extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrder (response as Dict);
+        return this.parseOrder (response);
     }
 
     /**
@@ -1971,7 +1971,7 @@ export default class onetrading extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

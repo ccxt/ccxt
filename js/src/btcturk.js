@@ -499,7 +499,7 @@ export default class btcturk extends Exchange {
         //
         const marketId = this.safeString(ticker, 'pair');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'timestamp');
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open');
@@ -728,9 +728,8 @@ export default class btcturk extends Exchange {
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let limitResolved = undefined;
+        let limitResolved = limit;
         if (limit !== undefined) {
-            limitResolved = limit;
             if (limit > 11000) {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
             }
@@ -744,7 +743,7 @@ export default class btcturk extends Exchange {
             }
             const seconds = this.parseTimeframe(timeframe);
             const limitCount = (limit === undefined) ? 100 : Math.min(limit, 11000);
-            const limitSeconds = this.parseToInt(seconds * (limitCount - 1));
+            const limitSeconds = seconds * (limitCount - 1);
             if (since !== undefined) {
                 const sinceSeconds = this.parseToInt(since / 1000);
                 const to = sinceSeconds + limitSeconds;

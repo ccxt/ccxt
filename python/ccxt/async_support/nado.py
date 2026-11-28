@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.nado import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -564,13 +564,14 @@ class nado(Exchange, ImplicitAPI):
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
             # the final omit drops triggerDirection from the request
-            triggerDirection = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow), 0)
+            triggerDirection = self.handle_trigger_direction_and_params(paramsRecvWindow)[0]
             directionSuffix = 'below'
             if triggerDirection == 'ascending':
                 directionSuffix = 'above'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
+            oracleKey = 'oracle_price_' + directionSuffix
+            priceRequirement[oracleKey] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -589,7 +590,8 @@ class nado(Exchange, ImplicitAPI):
                 triggerPrice = takeProfitTriggerPrice
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18
+            oracleKey = 'oracle_price_' + oracleSide
+            priceRequirement[oracleKey] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -1496,10 +1498,9 @@ class nado(Exchange, ImplicitAPI):
             submissionIdx = self.safe_string(event, 'submission_idx')
             tx = {}
             for j in range(0, len(txs)):
-                rawTx = txs[j]
-                txSubmissionIdx = self.safe_string(rawTx, 'submission_idx')
+                txSubmissionIdx = self.safe_string(txs[j], 'submission_idx')
                 if txSubmissionIdx == submissionIdx:
-                    tx = rawTx
+                    tx = txs[j]
                     break
             transaction = self.extend({}, tx)
             transaction = self.extend(transaction, event)
@@ -1568,10 +1569,9 @@ class nado(Exchange, ImplicitAPI):
             productId = self.safe_string(position, 'product_id')
             product = {}
             for j in range(0, len(products)):
-                rawProduct = products[j]
-                rawProductId = self.safe_string(rawProduct, 'product_id')
+                rawProductId = self.safe_string(products[j], 'product_id')
                 if rawProductId == productId:
-                    product = rawProduct
+                    product = products[j]
                     break
             result.append(self.parse_position(self.extend({'product': product}, position)))
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
@@ -1711,7 +1711,7 @@ class nado(Exchange, ImplicitAPI):
             priceIncrement = self.parse_x18(self.safe_string(market, 'price_increment_x18'))
             amountIncrement = self.parse_x18(self.safe_string(market, 'size_increment'))
             minCost = self.parse_x18(self.safe_string(market, 'min_size'))
-            markets.append(self.safe_market_structure({
+            marketEntry = {
                 'id': id,
                 'lowercaseId': None,
                 'symbol': symbol,
@@ -1729,11 +1729,11 @@ class nado(Exchange, ImplicitAPI):
                 'option': False,
                 'active': active,
                 'contract': contract,
-                'linear': True if contract else None,
-                'inverse': False if contract else None,
+                'linear': None,
+                'inverse': None,
                 'taker': self.parse_x18(self.safe_string(market, 'taker_fee_rate_x18')),
                 'maker': self.parse_x18(self.safe_string(market, 'maker_fee_rate_x18')),
-                'contractSize': 1 if contract else None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -1767,7 +1767,12 @@ class nado(Exchange, ImplicitAPI):
                     'v2Pair': pair,
                     'v2Asset': asset,
                 }),
-            }))
+            }
+            if contract:
+                marketEntry['linear'] = True
+                marketEntry['inverse'] = False
+                marketEntry['contractSize'] = 1
+            markets.append(self.safe_market_structure(marketEntry))
         return markets
 
     async def fetch_currencies(self, params: dict = {}) -> Currencies:
@@ -2376,7 +2381,7 @@ class nado(Exchange, ImplicitAPI):
             'interval': '24h',
         }
 
-    def parse_funding_history(self, funding: dict, market: Market = None):
+    def parse_funding_history(self, funding: dict, market: Market = None) -> dict:
         #
         #     {
         #         "product_id": 2,
@@ -2765,7 +2770,8 @@ class nado(Exchange, ImplicitAPI):
                 amount = self.parse_x18(Precise.string_abs(amountString))
             filled = self.parse_x18(Precise.string_abs(archiveFilled))
             costString = self.safe_string(order, 'quote_filled')
-            cost = None if (costString is None) else self.parse_x18(Precise.string_abs(costString))
+            if costString is not None:
+                cost = self.parse_x18(Precise.string_abs(costString))
             if (filled is not None) and (cost is not None):
                 average = Precise.string_div(self.number_to_string(cost), self.number_to_string(filled))
             if (amountString is not None) and (archiveFilled is not None):
@@ -2887,7 +2893,7 @@ class nado(Exchange, ImplicitAPI):
         # | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         # | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        postOnly = self.is_post_only(False, None, params)
+        postOnly = self.is_post_only(False, False, params)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         orderType = 0
         if timeInForce == 'IOC':
@@ -2938,14 +2944,15 @@ class nado(Exchange, ImplicitAPI):
     def order_verifying_contract(self, productId: Int) -> str:
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)
 
-    def pad_hex(self, value: str, length: float, left: bool = True) -> str:
+    def pad_hex(self, value: str, length: int, left: bool = True) -> str:
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         if left:
             paddedLeft = zeros + value
-            start = len(paddedLeft) - self.parse_to_int(length)
-            return paddedLeft[start:len(paddedLeft)]
+            start = len(paddedLeft) - length
+            return paddedLeft[start:]
         paddedRight = value + zeros
-        return paddedRight[0:length]
+        end = self.parse_to_int(length)
+        return paddedRight[0:end]
 
     def sign_order(self, order: dict, productId: Int, chainId: Str) -> str:
         domain = {
@@ -3034,14 +3041,16 @@ class nado(Exchange, ImplicitAPI):
             return marketId[0:-5]
         return marketId
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         # the gateway weighs a query by its 'type' param, the archive by the query key of the
         # body, and every archive weight grows with the number of rows requested
-        if ('byType' in config) and ('type' in params):
-            queryType = params['type']
+        if 'byType' in config:
             byType = config['byType']
-            if queryType in byType:
-                return byType[queryType]
+            queryType = self.safe_string(params, 'type')
+            if queryType is not None:
+                typeCost = self.safe_integer(byType, queryType)
+                if typeCost is not None:
+                    return typeCost
         byQuery = self.safe_dict(config, 'byQuery')
         if byQuery is not None:
             queryNames = list(byQuery.keys())
@@ -3051,7 +3060,7 @@ class nado(Exchange, ImplicitAPI):
                     weights = self.safe_list(byQuery, queryName, [])
                     baseWeight = self.safe_integer(weights, 0, 2)
                     rowsPerWeight = self.safe_integer(weights, 1)
-                    if rowsPerWeight is None:
+                    if (rowsPerWeight is None) or (rowsPerWeight <= 0):
                         return baseWeight
                     query = self.safe_dict(params, queryName, {})
                     rows = self.safe_integer(query, 'limit', 100)  # the archive default page
@@ -3064,6 +3073,8 @@ class nado(Exchange, ImplicitAPI):
             # distinct local names: the C# emitter rejects a name already used in a sibling block
             rowsBaseWeight = self.safe_integer(byRows, 0, 2)
             rowsDivisor = self.safe_integer(byRows, 1, 50)
+            if rowsDivisor <= 0:
+                return rowsBaseWeight
             rowCount = self.safe_integer(params, 'limit', 100)  # the v2 default page
             return self.sum(rowsBaseWeight, self.parse_to_int(rowCount / rowsDivisor))
         return self.safe_value(config, 'cost', 1)
@@ -3091,7 +3102,7 @@ class nado(Exchange, ImplicitAPI):
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

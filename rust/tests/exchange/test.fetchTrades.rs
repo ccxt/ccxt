@@ -10,34 +10,34 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTrades".into());
-    let mut trades: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trades", vec![symbol.clone(), Value::Null, Value::Int(12000)]).await; // test with unrealistically high amount
+    let method: Value = Value::Str("fetchTrades".into());
+    let trades: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trades", vec![symbol.clone(), Value::Null, Value::Int(12000)]).await; // test with unrealistically high amount
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trades.clone()]);
     //
     // test structure
     //
-    let mut now: Value = Value::Int(exchange.milliseconds());
-    let mut isPublicTrade: Value = Value::Bool(true);
+    let now: Value = Value::Int(exchange.milliseconds());
+    let isPublicTrade: Value = Value::Bool(true);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1664: bool = true;
-        while { if !__for_first_1664 { i += 1; } __for_first_1664 = false; i < (trades.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (trades.len() as i64) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), isPublicTrade.clone());
     }
     }
     //
     // test if both sides are being returned
     //
-    let mut minTradesForBothSidesCheck: i64 = 99;
+    let minTradesForBothSidesCheck: i64 = 99;
     if !(in_op(&skippedProperties, &Value::Str("requireBothSides".into()))) && Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) > (minTradesForBothSidesCheck as f64) {
         //
         //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
         //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
         //
-        let mut grouped: Value = exchange.group_by(trades.clone(), Value::Str("side".into()), &[]);
-        let mut msg: Value = Value::Str(format!("{}{}", Value::Str("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue".into()), crate::tests_support::shared::log_template(exchange.clone(), method.clone(), trades.clone())).into());
-        assert!(ccxt::runtime::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("buy"))))));
-        assert!(ccxt::runtime::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("sell"))))));
+        let grouped: Value = exchange.group_by(trades.clone(), Value::Str("side".into()), &[]);
+        let msg: Value = Value::Str(format!("{}{}", Value::Str("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue".into()), crate::tests_support::shared::log_template(exchange.clone(), method.clone(), trades.clone())).into());
+        assert!(crate::test_helpers::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("buy"))))));
+        assert!(crate::test_helpers::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("sell"))))));
     }
     if !(in_op(&skippedProperties, &Value::Str("timestampSort".into()))) {
         crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), trades.clone()]);
@@ -69,30 +69,30 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
     let mut lastTrade: Value = Value::Null;
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1665: bool = true;
-        while { if !__for_first_1665 { i += 1; } __for_first_1665 = false; i < (trades.len() as i64) } {
-        let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-        let mut ts: Value = get_value(&trade, &Value::Str("timestamp".into()));
-        let mut price: Value = exchange.safe_string(&trade, Value::Str("price".into()), &[]);
-        let mut side: Value = get_value(&trade, &Value::Str("side".into()));
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (trades.len() as i64) } {
+        let trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+        let ts: Value = get_value(&trade, &Value::Str("timestamp".into()));
+        let price: Value = exchange.safe_string(&trade, Value::Str("price".into()), &[]);
+        let side: Value = get_value(&trade, &Value::Str("side".into()));
         //
-        let mut isSameTs: bool = is_equal(&ts, &lastTs);
-        let mut isSamePrice: bool = ccxt::precise::Precise::stringEq(&price, &lastPrice).as_bool().unwrap_or(false);
-        let mut isSameSide: bool = is_equal(&side, &lastSide);
+        let isSameTs: bool = is_equal(&ts, &lastTs);
+        let isSamePrice: bool = ccxt::precise::Precise::stringEq(&price, &lastPrice).as_bool().unwrap_or(false);
+        let isSameSide: bool = is_equal(&side, &lastSide);
         // we are only interested in trades that have: same timestamp, same side, but different(!) price
         if isSameTs && isSameSide && !isSamePrice {
-            let mut pair: Value = Value::Map({
+            let pair: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("previous".to_string(), lastTrade.clone());
                     m.insert("current".to_string(), trade.clone());
                 m
             });
-            let mut priceIncreasing: bool = ccxt::precise::Precise::stringGt(&price, &lastPrice).as_bool().unwrap_or(false);
-            let mut priceDecreasing: bool = ccxt::precise::Precise::stringLt(&price, &lastPrice).as_bool().unwrap_or(false);
+            let priceIncreasing: bool = ccxt::precise::Precise::stringGt(&price, &lastPrice).as_bool().unwrap_or(false);
+            let priceDecreasing: bool = ccxt::precise::Precise::stringLt(&price, &lastPrice).as_bool().unwrap_or(false);
             if priceIncreasing {
-                assert!(ccxt::runtime::is_true(&((side.as_str() == Some("buy")))));
+                assert!(crate::test_helpers::is_true(&((side.as_str() == Some("buy")))));
             }  else if priceDecreasing {
-                assert!(ccxt::runtime::is_true(&((side.as_str() == Some("sell")))));
+                assert!(crate::test_helpers::is_true(&((side.as_str() == Some("sell")))));
             }
         }
         lastPrice = price;

@@ -70,17 +70,19 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     public CompletableFuture<Object> watchPublic(String path, String messageHash, String marketId)
     {
+        return BaseExchange.supplyAsync(() -> this.watchPublicCore(path, messageHash, marketId));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchPublicCore(String path, String messageHash, String marketId)
+    {
 
-            String wsUrl = this.safeString(this.urls.get("ws"), "public");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
-            }
-            String url = ((((wsUrl + "/") + path) + "/") + marketId);
-            return (this.watch(url, messageHash, null, messageHash, null)).join();
-        });
+        String wsUrl = this.safeString(this.urls.get("ws"), "public");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
+        }
+        String url = ((((wsUrl + "/") + path) + "/") + marketId);
+        return (this.watch(url, messageHash, null, messageHash, null)).join();
 
     }
 
@@ -96,35 +98,37 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(limit, null))
+        if (!java.util.Objects.equals(limit, null))
+        {
+            if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 50)) && ((limit != 100)) && ((limit != 500)) && ((limit != 1000)))
             {
-                if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 50)) && ((limit != 100)) && ((limit != 500)) && ((limit != 1000)))
-                {
-                    throw new ExchangeError((this.id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
-                }
+                throw new ExchangeError((this.id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = (("ORDER_BOOK" + ":") + symbolValue);
-            String marketIdValue = this.safeString(market, "id", "");
-            String endPart = null;
-            if (java.util.Objects.equals(limit, null))
-            {
-                endPart = marketIdValue;
-            } else
-            {
-                endPart = ((marketIdValue + ":") + this.numberToString(limit));
-            }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, endPart)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String messageHash = (("ORDER_BOOK" + ":") + symbolValue);
+        String marketIdValue = this.safeString(market, "id", "");
+        String endPart = null;
+        if (java.util.Objects.equals(limit, null))
+        {
+            endPart = marketIdValue;
+        } else
+        {
+            endPart = ((marketIdValue + ":") + this.numberToString(limit));
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, endPart)).join();
+        return orderbook.limit();
 
     }
 
@@ -152,8 +156,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, "_", null);
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -161,7 +165,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount", 2);
+        Map<String, Object> snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount", 2);
         orderbook.reset(snapshot);
         if (!java.util.Objects.equals(eventVar, null))
         {
@@ -183,24 +187,26 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = (("TRADE" + ":") + symbolValue);
-            List<Object> trades = (List<Object>) (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String messageHash = (("TRADE" + ":") + symbolValue);
+        List<Object> trades = (List<Object>) (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -226,11 +232,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, "_", null);
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         List<Object> rawData = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> trades = this.parseTrades(rawData, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> trades = this.parseTrades(rawData, market, null, null, new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
         {
@@ -239,7 +245,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         for (var i = 0; i < trades.size(); i++)
         {
-            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             tradesCache.append(trade);
         }
         this.trades.put(symbol, tradesCache);
@@ -263,36 +269,38 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String messageHash = "USER_TRADE";
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                String symbolValue = (String) market.get("symbol");
-                messageHash = ((messageHash + ":") + symbolValue);
-            }
-            String wsUrl = this.safeString(this.urls.get("ws"), "private");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchMyTrades() has no private websocket url")) ;
-            }
-            String url = ((wsUrl + "/") + "user-trades");
-            this.authenticate(url);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        this.checkRequiredCredentials(true);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String messageHash = "USER_TRADE";
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = this.safeString(market, "symbol", "");
+            messageHash = ((messageHash + ":") + symbolValue);
+        }
+        String wsUrl = this.safeString(this.urls.get("ws"), "private");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchMyTrades() has no private websocket url")) ;
+        }
+        String url = ((wsUrl + "/") + "user-trades");
+        this.authenticate(url);
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -324,13 +332,14 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
         }
-        String symbol = this.symbol(((base + "/") + quote));
+        String marketSymbol = ((base + "/") + quote);
+        String symbol = this.symbol(marketSymbol);
         String messageHash = this.safeString(message, "event");
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -338,7 +347,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> parsed = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(data, null);
         trades.append(parsed);
         client.resolve(trades, messageHash);
         if (!java.util.Objects.equals(messageHash, null))
@@ -372,14 +381,15 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         String baseId = this.safeString(trade, "base");
         String quoteId = this.safeString(trade, "quote");
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = this.symbol(((base + "/") + quote));
+            String marketSymbol = ((base + "/") + quote);
+            symbol = this.symbol(marketSymbol);
         }
-        Map<String, Object> marketResolved = this.safeMarket(symbol, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
         String price = this.safeString(trade, "price");
         String type = this.safeStringLower(trade, "orderType");
         String side = this.safeString(trade, "side");
@@ -396,7 +406,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String amount = this.safeString(trade, "volume");
         Map<String, Object> fee = null;
         String feeAmount = this.safeString(trade, "fee");
-        String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null);
+        String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), null);
         if (!java.util.Objects.equals(feeAmount, null))
         {
             {
@@ -407,7 +417,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -447,18 +457,20 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = (("TICKER" + ":") + symbolValue);
-            return (this.watchPublic("tickers", messageHash, (String) (market.get("id")))).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String messageHash = (("TICKER" + ":") + symbolValue);
+        return (this.watchPublic("tickers", messageHash, (String) (market.get("id")))).join();
 
     }
 
@@ -488,8 +500,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against
         }
         // market-ids are lowercase in REST API and uppercase in WS API
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, "_", null);
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
         result.put("symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
@@ -517,7 +529,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             put( "identity", Bitopro.this.login );
         }});
         String payload = this.stringToBase64(rawData);
-        String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+        String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
         Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
             put( "ws", new HashMap<String, Object>() {{
                 put( "options", new HashMap<String, Object>() {{
@@ -529,7 +541,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         this.extendExchangeOptions(defaultOptions);
         Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsInnerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
-        Object originalHeaders = wsInnerOptions.get("headers");
+        Map<String, Object> originalHeaders = this.safeDict(wsInnerOptions, "headers", null);
         Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
             put( "X-BITOPRO-APIKEY", Bitopro.this.apiKey );
@@ -539,7 +551,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         wsInnerOptions.put("headers", headers);
         // instantiate client
         this.client(url);
-        Helpers.addElementToObject(wsInnerOptions, "headers", originalHeaders);
+        wsInnerOptions.put("headers", originalHeaders);
     }
 
     /**
@@ -552,24 +564,26 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String messageHash = "ACCOUNT_BALANCE";
-            String wsUrl = this.safeString(this.urls.get("ws"), "private");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchBalance() has no private websocket url")) ;
-            }
-            String url = ((wsUrl + "/") + "account-balance");
-            this.authenticate(url);
-            return (this.watch(url, messageHash, null, messageHash, null)).join();
-        }).thenApply(Balances::new);
+        this.checkRequiredCredentials(true);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String messageHash = "ACCOUNT_BALANCE";
+        String wsUrl = this.safeString(this.urls.get("ws"), "private");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchBalance() has no private websocket url")) ;
+        }
+        String url = ((wsUrl + "/") + "account-balance");
+        this.authenticate(url);
+        return (this.watch(url, messageHash, null, messageHash, null)).join();
 
     }
 
@@ -614,7 +628,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             String currency = this.safeString(currencies, i);
             Map<String, Object> balance = this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("total", this.safeString(balance, "amount"));

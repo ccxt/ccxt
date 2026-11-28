@@ -217,7 +217,7 @@ export default class mudrex extends Exchange {
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined || typeof response !== 'object') {
+        if (response === undefined) {
             return undefined;
         }
         const success = this.safeBool(response, 'success', true);
@@ -295,12 +295,18 @@ export default class mudrex extends Exchange {
         const now = this.seconds();
         const windowLength = duration * requestLimit;
         const defaultStart = now - windowLength;
-        const startTime = this.parseToInt((since !== undefined) ? (since / 1000) : defaultStart);
+        let startTime = this.parseToInt(defaultStart);
+        if (since !== undefined) {
+            startTime = this.parseToInt(since / 1000);
+        }
         const windowEnd = this.parseToInt(startTime + duration * requestLimit);
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, ['price', 'until']);
         const cappedEnd = (windowEnd > now) ? now : windowEnd;
-        const endTime = this.parseToInt((until !== undefined) ? (until / 1000) : cappedEnd);
+        let endTime = this.parseToInt(cappedEnd);
+        if (until !== undefined) {
+            endTime = this.parseToInt(until / 1000);
+        }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
         let response;
@@ -377,13 +383,11 @@ export default class mudrex extends Exchange {
         }
         const request = {};
         const response = await this.privateGetFutures(this.extend(request, params));
-        const data = this.safeValue(response, 'data', []);
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = this.toArray(data);
-        }
-        else {
-            rows = this.safeList(data, 'items', []);
+        rows = this.safeList(response, 'data', []);
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            rows = this.safeList(this.safeDict(response, 'data', {}), 'items', []);
         }
         const resultTickers = {};
         for (let i = 0; i < rows.length; i++) {
@@ -393,18 +397,18 @@ export default class mudrex extends Exchange {
                 continue;
             }
             const m = this.safeMarket(sym);
-            const symbol = m['symbol'];
+            const symbol = this.safeString(m, 'symbol', '');
             if (symbols !== undefined && !this.inArray(symbol, symbols)) {
                 continue;
             }
-            resultTickers[symbol] = this.parseTicker(t, m);
+            resultTickers[symbol] = this.parseTicker(this.safeDict(rows, i, {}), m);
         }
         return this.filterByArrayTickers(resultTickers, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         const ms = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(ms, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const pct = this.safeNumber(ticker, 'change_perc');
         return this.safeTicker({
             'symbol': symbol,
@@ -445,22 +449,22 @@ export default class mudrex extends Exchange {
         while (paging) {
             const q = this.extend({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures(q);
-            const data = this.safeValue(response, 'data', []);
+            const dataDict = this.safeDict(response, 'data');
             let items = [];
-            if (typeof data === 'object' && !Array.isArray(data)) {
-                items = this.safeList(data, 'items', []);
+            if (dataDict !== undefined) {
+                items = this.safeList(dataDict, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
                 if (itemsLength === 0) {
-                    items = this.safeList(data, 'results', []);
+                    items = this.safeList(dataDict, 'results', []);
                     itemsLength = items.length;
                 }
-                if ((itemsLength === 0) && ('symbol' in data)) {
-                    items = [data];
+                if ((itemsLength === 0) && ('symbol' in dataDict)) {
+                    items = [dataDict];
                 }
             }
             else {
-                items = this.toArray(data);
+                items = this.safeList(response, 'data', []);
             }
             const numItems = items.length;
             if (numItems === 0) {
@@ -717,7 +721,7 @@ export default class mudrex extends Exchange {
             }
             const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, paramsOmitted));
             const riskData = this.safeDict(riskResponse, 'data', riskResponse);
-            return this.parseOrder(riskData, market);
+            return this.parseOrder(this.extend({}, riskData), market);
         }
         const lev = this.safeInteger(params, 'leverage', 1);
         if ((type === 'market') && (price === undefined)) {
@@ -786,7 +790,7 @@ export default class mudrex extends Exchange {
         }
         const response = await this.privatePatchFuturesOrdersOrderId(this.extend(request, params));
         const data = this.safeDict(response, 'data', response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -843,7 +847,7 @@ export default class mudrex extends Exchange {
         }
         const ts = this.parse8601(this.safeString(order, 'created_at'));
         const status = this.parseOrderStatus(this.safeStringLower(order, 'status'));
-        const sym = marketResolved['symbol'];
+        const sym = this.safeString(marketResolved, 'symbol', '');
         return this.safeOrder({
             'info': order,
             'id': oid,
@@ -896,7 +900,7 @@ export default class mudrex extends Exchange {
         };
         const response = await this.privateDeleteFuturesOrdersOrderId(this.extend(request, params));
         const data = this.safeDict(response, 'data', response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -921,7 +925,7 @@ export default class mudrex extends Exchange {
         };
         const response = await this.privateGetFuturesOrdersOrderId(this.extend(request, params));
         const data = this.safeDict(response, 'data', response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -951,15 +955,14 @@ export default class mudrex extends Exchange {
         else {
             response = await this.privateGetFuturesOrders(request);
         }
-        const data = this.safeValue(response, 'data', []);
-        const rows = this.toArray(data);
+        const rows = this.safeList(response, 'data', []);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         const orders = [];
         for (let i = 0; i < rows.length; i++) {
-            orders.push(this.parseOrder(rows[i], market));
+            orders.push(this.parseOrder(this.safeDict(rows, i, {}), market));
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
@@ -1021,17 +1024,12 @@ export default class mudrex extends Exchange {
         }
         const q = {};
         const response = await this.privateGetFuturesPositions(this.extend(q, params));
-        const data = this.safeValue(response, 'data', []);
-        if (data === undefined) {
-            return [];
-        }
-        const rows = this.toArray(data);
+        const rows = this.safeList(response, 'data', []);
         const outPos = [];
         for (let i = 0; i < rows.length; i++) {
-            const p = rows[i];
-            const symRaw = this.safeString(p, 'symbol');
+            const symRaw = this.safeString(rows[i], 'symbol');
             const m = this.safeMarket(symRaw);
-            const pos = this.parsePosition(p, m);
+            const pos = this.parsePosition(this.safeDict(rows, i, {}), m);
             outPos.push(pos);
         }
         return this.filterByArrayPositions(outPos, 'symbol', symbols);
@@ -1185,12 +1183,12 @@ export default class mudrex extends Exchange {
             const partialParams = this.omit(params, ['order_type', 'limit_price', 'amount', 'position_id']);
             const partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams));
             const partialData = this.safeDict(partialResponse, 'data', partialResponse);
-            return this.parseOrder(partialData, market);
+            return this.parseOrder(this.extend({}, partialData), market);
         }
         const closeParams = this.omit(params, ['position_id']);
         const response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams));
         const data = this.safeDict(response, 'data', response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -1284,7 +1282,7 @@ export default class mudrex extends Exchange {
                 allRows.push(entry);
                 if (this.safeString(entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if ((market === undefined) || (this.safeString(entry, 'symbol') === market['id'])) {
+                    if ((market === undefined) || (this.safeString(entry, 'symbol') === this.safeString(market, 'id'))) {
                         transactionsCount = transactionsCount + 1;
                     }
                 }
@@ -1321,8 +1319,9 @@ export default class mudrex extends Exchange {
         const rows = [];
         for (let i = 0; i < transactions.length; i++) {
             let rebate = undefined;
+            const transactionKey = this.safeString(transactionKeys, i);
             for (let j = 0; j < rebateKeys.length; j++) {
-                if (rebateKeys[j] === transactionKeys[i]) {
+                if (this.safeString(rebateKeys, j) === transactionKey) {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = '';
@@ -1356,7 +1355,7 @@ export default class mudrex extends Exchange {
         //
         const ms = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(ms, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const ts = this.parse8601(this.safeString(trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         const side = this.safeStringLower(trade, 'order_type');

@@ -244,7 +244,7 @@ public partial class sxbet : PredictionExchange
             markets.Add(this.parseSxbetMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null)));
         }
         int marketsLength = (markets?.Count ?? 0);
-        if (((userLimit != null)) && (((userLimit == null || marketsLength > userLimit))))
+        if (((userLimit != null)) && (marketsLength > userLimit.Value))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(markets, 0, userLimit));
         }
@@ -290,8 +290,9 @@ public partial class sxbet : PredictionExchange
             }
             paginationKey = this.safeString(result, "nextKey");
             page = (page + 1);
-            Int64? collectedLength = this.parseToInt((rawMarkets?.Count ?? 0));
-            if (((pageMarketsLength < pageSize)) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
+            int rawMarketsCount = (rawMarkets?.Count ?? 0);
+            Int64? collectedLength = this.parseToInt(rawMarketsCount);
+            if ((pageMarketsLength < pageSize.GetValueOrDefault()) || (page >= maxPages.GetValueOrDefault()) || ((paginationKey == null)) || (((collectCap != null)) && (collectedLength.GetValueOrDefault() >= collectCap.Value)))
             {
                 break;
             }
@@ -314,7 +315,7 @@ public partial class sxbet : PredictionExchange
         int rawMarketsLength = rawMarkets?.Count ?? 0;
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             if ((this.safeString(raw, "sportXeventId") == sportXeventId))
             {
                 result.Add(raw);
@@ -356,11 +357,12 @@ public partial class sxbet : PredictionExchange
         //     }
         //
         string marketHash = this.safeString(raw, "marketHash", "");
-        string? teamOneName = this.safeString(raw, "teamOneName");
-        string? teamTwoName = this.safeString(raw, "teamTwoName");
+        string teamOneName = this.safeString(raw, "teamOneName", "");
+        string? teamTwoName = this.safeString(raw, "teamTwoName", "");
         string? outcomeOneName = this.safeString(raw, "outcomeOneName");
         string? outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        string eventSlug = this.shortenSlug((teamOneName == null ? null : teamOneName + " " + teamTwoName));
+        string matchTitle = ((teamOneName + " ") + teamTwoName);
+        string eventSlug = this.shortenSlug(matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -378,15 +380,19 @@ public partial class sxbet : PredictionExchange
             gameTime = this.safeTimestamp(raw, "gameTime");
         }
         List<object> outcomeLabels = new List<object>() {outcomeOneName, outcomeTwoName};
-        List<object> outcomeIds = new List<object>() {marketHash, (marketHash + "-2")};
         List<object> outcomes = new List<object>() {};
         for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
         {
             string? label = ((string)outcomeLabels[oi]);
             string? outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, label);
+            string outcomeSuffix = "";
+            if (oi > 0)
+            {
+                outcomeSuffix = "-2";
+            }
             outcomes.Add(new Dictionary<string, object>() {
-                { "id", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
-                { "outcomeId", (outcomeIds != null && oi < outcomeIds.Count ? outcomeIds[oi] : null) },
+                { "id", (marketHash + outcomeSuffix) },
+                { "outcomeId", (marketHash + outcomeSuffix) },
                 { "outcome", outcomeHandle },
                 { "market", marketSymbol },
                 { "label", label },
@@ -486,10 +492,10 @@ public partial class sxbet : PredictionExchange
         int tagsLength = tags.Count;
         for (int i = 0; i < tagsLength; i++)
         {
-            queries.Add((tags != null && i < tags.Count ? tags[i] : null));
+            queries.Add(this.safeString(tags, i, ""));
         }
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
-        List<object> rawMarkets = null;
+        List<object> rawMarkets = new List<object>() {};
         if ((eventId != null))
         {
             rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
@@ -528,12 +534,12 @@ public partial class sxbet : PredictionExchange
             }
             rawMarkets = filtered;
         }
-        Dictionary<string, object> grouped = new Dictionary<string, object>() {};
+        Dictionary<string, List<object>> grouped = new Dictionary<string, List<object>>() {};
         List<object> order = new List<object>() {};
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             string? sportXeventId = this.safeString(raw, "sportXeventId");
             if ((sportXeventId == null))
             {
@@ -561,7 +567,8 @@ public partial class sxbet : PredictionExchange
             for (int j = 0; j < evMarketsLength; j++)
             {
                 object m = (evMarkets != null && j < evMarkets.Count ? evMarkets[j] : null);
-                this.markets[(string)getValue(m, "market")] = m;
+                string? marketKey = this.safeString(m, "market", "");
+                this.markets[(string)marketKey] = m;
             }
             result.Add(eventVar);
         }
@@ -583,7 +590,8 @@ public partial class sxbet : PredictionExchange
     public async override Task<ccxt.PredictionEvent> FetchEvent(string id, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
+        List<object> rawMarkets = new List<object>() {};
+        rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
             { "sportXeventId", id },
         }, parameters), null);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
@@ -611,7 +619,7 @@ public partial class sxbet : PredictionExchange
     public virtual bool matchesEventQuery(object raw, IList<object> queries)
     {
         List<object> fields = new List<object> {this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")};
-        int queriesLength = queries?.Count ?? 0;
+        int queriesLength = (queries?.Count ?? 0);
         for (int qi = 0; qi < queriesLength; qi++)
         {
             string query = ((string)(queries != null && qi < queries.Count ? queries[qi] : null)).ToLower();
@@ -645,7 +653,7 @@ public partial class sxbet : PredictionExchange
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object fixtureId, object rawMarkets)
+    public virtual Dictionary<string, object> parseEvent(object fixtureId, IList<object> rawMarkets)
     {
         List<object> marketsList = new List<object>() {};
         bool anyActive = false;
@@ -653,10 +661,10 @@ public partial class sxbet : PredictionExchange
         string? teamOneName = null;
         string? teamTwoName = null;
         string? leagueLabel = null;
-        int rawMarketsLength = getArrayLength(rawMarkets);
+        int rawMarketsLength = rawMarkets?.Count ?? 0;
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = getValue(rawMarkets, i);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             object parsed = this.parseSxbetMarket(raw);
             if ((parsed == null))
             {
@@ -690,7 +698,8 @@ public partial class sxbet : PredictionExchange
         if (((teamOneName != null)) && ((teamTwoName != null)))
         {
             title = ((teamOneName + " vs ") + teamTwoName);
-            eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
+            string matchTitle = ((teamOneName + " ") + teamTwoName);
+            eventSlug = this.shortenSlug(matchTitle);
         } else
         {
             eventSlug = this.shortenSlug(fixtureId);
@@ -777,13 +786,13 @@ public partial class sxbet : PredictionExchange
      * @param {string} privateKey the signer's private key
      * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
      */
-    public virtual string? signDigest(string? digest, object privateKey)
+    public virtual string? signDigest(string? digest, string privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((digest == null) ? null : digest.Substring(Math.Max(digest.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? rRaw = this.safeString(signature, "r", "");
+        string? sRaw = this.safeString(signature, "s", "");
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
@@ -823,7 +832,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    public virtual object hexToInt(string? hex)
+    public virtual Int64? hexToInt(string? hex)
     {
         string digits = "0123456789abcdef";
         string lowerHex = hex.ToLower();
@@ -831,7 +840,7 @@ public partial class sxbet : PredictionExchange
         Int64? result = 0;
         for (int i = 0; i < hexLength; i++)
         {
-            string? ch = ((string)getValue(lowerHex, i));
+            string? ch = ((string)(lowerHex != null ? lowerHex[i].ToString () : null));
             Int64? digitValue = this.parseToInt(digits.IndexOf(ch, StringComparison.Ordinal));
             Int64? shifted = (result * 16);
             result = this.parseToInt(this.sum(shifted, digitValue));
@@ -850,7 +859,8 @@ public partial class sxbet : PredictionExchange
     public async virtual Task<IDictionary<string, object>> fetchSxbetProxy()
     {
         Dictionary<string, object> response = await this.sxbetPrivateGetUserProxy();
-        return this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return data;
     }
 
     /**
@@ -1153,7 +1163,7 @@ public partial class sxbet : PredictionExchange
         {
             string? reason = this.safeString(first, "reason", "FAILED");
             string feedback = ((this.id + " createOrder() rejected: ") + reason);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), reason, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, reason, feedback);
             throw new InvalidOrder (feedback) ;
         }
         // with waitForOutcome the venue reports the matching result inline:
@@ -1196,7 +1206,7 @@ public partial class sxbet : PredictionExchange
             }
         }
         Int64 now = this.milliseconds();
-        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", this.safeString2(first, "orderId", "orderHash") },             { "clientOrderId", this.safeString(first, "clientOrderId", clientOrderId) },             { "info", response },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "status", orderStatus },             { "filled", filled },             { "remaining", remaining },             { "cost", filled },             { "outcome", this.safeString(outcomeObj, "outcome") },             { "outcomeId", outcomeId },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "timeInForce", timeInForce },             { "side", side },             { "price", this.parseNumber(roundedProbability) },             { "amount", amount },             { "fee", null },             { "trades", new List<object>() {} },         }, ((object)outcomeObj)));
+        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", this.safeString2(first, "orderId", "orderHash") },             { "clientOrderId", this.safeString(first, "clientOrderId", clientOrderId) },             { "info", response },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "status", orderStatus },             { "filled", filled },             { "remaining", remaining },             { "cost", filled },             { "outcome", this.safeString(outcomeObj, "outcome") },             { "outcomeId", outcomeId },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "timeInForce", timeInForce },             { "side", side },             { "price", this.parseNumber(roundedProbability) },             { "amount", amount },             { "fee", null },             { "trades", new List<object>() {} },         }, outcomeObj));
     }
 
     /**
@@ -1294,9 +1304,9 @@ public partial class sxbet : PredictionExchange
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         Int64? chunkSize = this.safeInteger(this.options, "cancelOrdersBatchSize", 100);
-        Int64? chunkCount = this.parseToInt(((double?)this.sum(idsLength, (chunkSize - 1)) / chunkSize));
+        Int64? chunkCount = this.parseToInt(((double)this.sum(idsLength, (chunkSize - 1)) / chunkSize));
         List<object> result = new List<object>() {};
-        for (int c = 0; (c < chunkCount); c++)
+        for (int c = 0; c < chunkCount; c++)
         {
             Int64? chunkIndex = this.parseToInt(c);
             Int64? chunkWidth = this.parseToInt(chunkSize);
@@ -1304,12 +1314,12 @@ public partial class sxbet : PredictionExchange
             Int64? nextChunkIndex = (chunkIndex + 1);
             Int64? chunkEnd = (nextChunkIndex * chunkWidth);
             Int64? end = chunkEnd;
-            if ((chunkEnd > idsLength))
+            if (chunkEnd > idsLength)
             {
                 end = this.parseToInt(idsLength);
             }
             List<object> orderItems = new List<object>() {};
-            List<object> chunkIds = ((List<object>)this.arraySlice(ids, start, end));
+            IList<object> chunkIds = this.arraySlice(ids, start, end);
             int chunkIdsLength = (chunkIds?.Count ?? 0);
             for (int i = 0; i < chunkIdsLength; i++)
             {
@@ -1393,7 +1403,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1490,14 +1500,14 @@ public partial class sxbet : PredictionExchange
      * @param {int} limit the user-requested limit
      * @returns {int} the limit clamped to at most 100
      */
-    public virtual object clampSxbetPerPage(object limit)
+    public virtual object clampSxbetPerPage(Int64? limit)
     {
         if ((limit == null))
         {
             return limit;
         }
         Int64? requested = this.parseToInt(limit);
-        if ((requested >= 100))
+        if (requested >= 100)
         {
             return 100;
         }
@@ -1956,7 +1966,7 @@ public partial class sxbet : PredictionExchange
         int rawTradesLength = rawTrades.Count;
         for (int i = 0; i < rawTradesLength; i++)
         {
-            Dictionary<string, object> settlement = this.parseSettlement((rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null));
+            Dictionary<string, object> settlement = this.parseSettlement(this.safeDict(rawTrades, i, new Dictionary<string, object>() {}));
             if (((wantedOutcomeId == null)) || ((this.safeString(settlement, "outcomeId") == wantedOutcomeId)))
             {
                 result.Add(settlement);
@@ -1974,7 +1984,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    public virtual Dictionary<string, object> parseSettlement(object trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         //
         //     TradeV3 row with a settlement sub-object:
@@ -2063,7 +2073,8 @@ public partial class sxbet : PredictionExchange
             { "marketHash", marketHash },
         };
         Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(request);
-        return this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return data;
     }
 
     /**
@@ -2084,8 +2095,8 @@ public partial class sxbet : PredictionExchange
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
         IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
-        IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
-        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, ((object)outcomeObj)));
+        Dictionary<string, object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, outcomeObj));
     }
 
     /**
@@ -2098,11 +2109,11 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    public async virtual Task<List<object>> fetchSxbetBestOdds(object marketHashes, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<object>> fetchSxbetBestOdds(IList<object> marketHashes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketHashes", String.Join(",", ((IList<object>)marketHashes).ToArray()) },
+            { "marketHashes", String.Join(",", marketHashes.ToArray()) },
         };
         Dictionary<string, object> response = await this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -2117,7 +2128,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} snapshot the raw snapshot data
      * @returns {object} the best-odds shaped dict
      */
-    public virtual object parseSxbetSnapshotBestOdds(IDictionary<string, object> snapshot)
+    public virtual Dictionary<string, object> parseSxbetSnapshotBestOdds(IDictionary<string, object> snapshot)
     {
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
         List<object> oneLevels = this.safeList(snapshot, "outcomeOne", new List<object>() {});
@@ -2151,14 +2162,15 @@ public partial class sxbet : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")) ;
         }
-        IList<object> outcomesList = outcomes;
+        IList<object> outcomesList = ((outcomes == null)) ? new List<object>() {} : outcomes;
         int outcomesLength = (outcomesList?.Count ?? 0);
         List<object> hashesOrder = new List<object>() {};
         Dictionary<string, object> seenHashes = new Dictionary<string, object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
-            await this.loadOutcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
-            IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
+            string? outcomeItem = this.safeString(outcomesList, i, "");
+            await this.loadOutcome(outcomeItem);
+            IDictionary<string, object> outcomeObj = this.outcome(outcomeItem);
             string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
             if ((this.safeBool(seenHashes, marketHash) == null))
             {
@@ -2176,15 +2188,15 @@ public partial class sxbet : PredictionExchange
         {
             for (int i = 0; i < hashesLength; i++)
             {
-                object marketHash = (hashesOrder != null && i < hashesOrder.Count ? hashesOrder[i] : null);
+                string? marketHash = this.safeString(hashesOrder, i, "");
                 IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
                 rowsByHash[(string)marketHash] = this.parseSxbetSnapshotBestOdds(snapshot);
             }
             return ccxt.BaseExchange.ToPredictionTickers(this.parseSxbetTickersByHash(outcomesList, rowsByHash));
         }
         Int64? chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
-        Int64? chunkCount = this.parseToInt(((double?)this.sum(hashesLength, (chunkSize - 1)) / chunkSize));
-        for (int c = 0; (c < chunkCount); c++)
+        Int64? chunkCount = this.parseToInt(((double)this.sum(hashesLength, (chunkSize - 1)) / chunkSize));
+        for (int c = 0; c < chunkCount; c++)
         {
             Int64? chunkIndex = this.parseToInt(c);
             Int64? chunkWidth = this.parseToInt(chunkSize);
@@ -2192,16 +2204,16 @@ public partial class sxbet : PredictionExchange
             Int64? nextChunkIndex = (chunkIndex + 1);
             Int64? chunkEnd = (nextChunkIndex * chunkWidth);
             Int64? end = chunkEnd;
-            if ((chunkEnd > hashesLength))
+            if (chunkEnd > hashesLength)
             {
                 end = this.parseToInt(hashesLength);
             }
-            List<object> chunk = ((List<object>)this.arraySlice(hashesOrder, start, end));
+            IList<object> chunk = this.arraySlice(hashesOrder, start, end);
             List<object> rows = await this.fetchSxbetBestOdds(chunk, parameters);
             int rowsLength = (rows?.Count ?? 0);
             for (int j = 0; j < rowsLength; j++)
             {
-                object row = (rows != null && j < rows.Count ? rows[j] : null);
+                IDictionary<string, object> row = ((IDictionary<string, object>)(rows != null && j < rows.Count ? rows[j] : null));
                 string? rowHash = this.safeString(row, "marketHash");
                 if ((rowHash != null))
                 {
@@ -2224,7 +2236,7 @@ public partial class sxbet : PredictionExchange
     public virtual object parseSxbetTickersByHash(IList<object> outcomesList, IDictionary<string, object> rowsByHash)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        int outcomesLength = outcomesList?.Count ?? 0;
+        int outcomesLength = (outcomesList?.Count ?? 0);
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
@@ -2234,7 +2246,7 @@ public partial class sxbet : PredictionExchange
             {
                 continue;
             }
-            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
+            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             string? sym = this.safeString(ticker, "outcome");
             if ((sym != null))
             {
@@ -2253,7 +2265,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2342,18 +2354,18 @@ public partial class sxbet : PredictionExchange
         };
         Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters));
         IDictionary<string, object> snapshot = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> sides = ((IDictionary<string, object>)this.parseSxbetV3BookSides(snapshot, isOutcomeOne));
-        object sortedBids = this.safeList(sides, "bids", new List<object>() {});
-        object sortedAsks = this.safeList(sides, "asks", new List<object>() {});
+        Dictionary<string, object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
+        IList<object> sortedBids = this.safeList(sides, "bids", new List<object>() {});
+        IList<object> sortedAsks = this.safeList(sides, "asks", new List<object>() {});
         if ((limit != null))
         {
-            int bidsLength = getArrayLength(sortedBids);
-            if ((limit < bidsLength))
+            int bidsLength = (sortedBids?.Count ?? 0);
+            if (limit.Value < bidsLength)
             {
                 sortedBids = this.arraySlice(sortedBids, 0, limit);
             }
-            int asksLength = getArrayLength(sortedAsks);
-            if ((limit < asksLength))
+            int asksLength = (sortedAsks?.Count ?? 0);
+            if (limit.Value < asksLength)
             {
                 sortedAsks = this.arraySlice(sortedAsks, 0, limit);
             }
@@ -2371,7 +2383,7 @@ public partial class sxbet : PredictionExchange
      * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
-    public virtual object parseSxbetV3BookSides(object snapshot, bool isOutcomeOne)
+    public virtual Dictionary<string, object> parseSxbetV3BookSides(object snapshot, bool isOutcomeOne)
     {
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
@@ -2409,26 +2421,27 @@ public partial class sxbet : PredictionExchange
         };
     }
 
-    public virtual void setWsOption(object group, string key, object value)
+    public virtual void setWsOption(string group, string key, object value)
     {
         Dictionary<string, object> entry = new Dictionary<string, object>() {};
         entry[(string)key] = value;
         this.options[(string)group] = this.extend(this.safeDict(this.options, group, new Dictionary<string, object>() {}), entry);
     }
 
-    public virtual Int64 requestId(object url)
+    public virtual Int64 requestId(string? url)
     {
         object existing = this.safeValue(this.options, "requestId");
         if ((existing == null))
         {
             this.options["requestId"] = this.createSafeDictionary();
         }
-        object options = (this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         if ((url != null))
         {
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+            options[(string)url] = newValue;
+            this.options["requestId"] = options;
         }
         return newValue;
     }
@@ -2442,7 +2455,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} messageHash the future hash the caller awaits
      * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
      */
-    public virtual void registerSxbetWsRequest(object requestId, string? messageHash, string? subscription)
+    public virtual void registerSxbetWsRequest(Int64 requestId, string? messageHash, string? subscription)
     {
         string? requestIdString = this.numberToString(requestId);
         this.setWsOption("wsPendingRequests", requestIdString, new Dictionary<string, object>() {
@@ -2501,13 +2514,13 @@ public partial class sxbet : PredictionExchange
         return await client.future("centrifugoConnected");
     }
 
-    public async virtual Task pong(WebSocketClient client, object message = null)
+    public async virtual Task pong(WebSocketClient client)
     {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send("{}");
     }
 
-    public async virtual Task<object> subscribeSxbetChannel(string? messageHash, string? channel)
+    public async virtual Task<T> subscribeSxbetChannel<T>(string? messageHash, string? channel)
     {
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         // finish the connect handshake first so the subscribe frame follows the connect reply
@@ -2520,12 +2533,12 @@ public partial class sxbet : PredictionExchange
             } },
             { "id", requestId },
         };
-        return await this.watch(url, messageHash, subscribeMsg, channel);
+        return await this.watch<T>(url, messageHash, subscribeMsg, channel);
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        List<object> lines = ((string)message).Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
+        List<object> lines = message.Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
         int linesLength = lines.Count;
         for (int i = 0; i < linesLength; i++)
         {
@@ -2538,7 +2551,7 @@ public partial class sxbet : PredictionExchange
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
@@ -2551,7 +2564,7 @@ public partial class sxbet : PredictionExchange
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
-            this.spawn(this.pong, new object[] { client, msg});
+            this.spawn(this.pong, new object[] { client});
             return;
         }
         string? requestIdString = this.safeString(msg, "id");
@@ -2616,10 +2629,10 @@ public partial class sxbet : PredictionExchange
             return;
         }
         // rows arrive either shaped like one object or like an array of objects - normalize to a list
-        object rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> rows = new List<object>() {};
+        if (((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
             rows = new List<object>() {data};
@@ -2720,7 +2733,7 @@ public partial class sxbet : PredictionExchange
         }
         string? held = this.safeString(this.safeDict(this.options, "wsBookVersions", new Dictionary<string, object>() {}), marketHash, "");
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if ((held != "") && (isLessThanOrEqual(version, held)))
+        if ((held != "") && ((version == "") || Precise.stringLe(version, held)))
         {
             return refreshed;
         }
@@ -2739,7 +2752,7 @@ public partial class sxbet : PredictionExchange
             IDictionary<string, object> outcomeObj = this.outcome(sym);
             string? outcomeId = this.safeString(outcomeObj, "outcomeId");
             bool isOutcomeOne = ((outcomeId == marketHash));
-            IDictionary<string, object> sides = ((IDictionary<string, object>)this.parseSxbetV3BookSides(snapshot, isOutcomeOne));
+            Dictionary<string, object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
             ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, sym);
             if ((orderbook == null))
             {
@@ -2759,7 +2772,7 @@ public partial class sxbet : PredictionExchange
         return refreshed;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object rows)
+    public virtual void handleOrderBook(WebSocketClient client, IList<object> rows)
     {
         //
         //     {
@@ -2769,15 +2782,15 @@ public partial class sxbet : PredictionExchange
         //         "outcomeTwo": []
         //     }
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            List<object> refreshed = this.applySxbetWsSnapshot(getValue(rows, i));
+            List<object> refreshed = this.applySxbetWsSnapshot((rows != null && i < rows.Count ? rows[i] : null));
             int refreshedLength = (refreshed?.Count ?? 0);
             for (int j = 0; j < refreshedLength; j++)
             {
-                object sym = (refreshed != null && j < refreshed.Count ? refreshed[j] : null);
-                client.resolve(this.safeOrderBook(this.orderbooks, sym), ("orderbook::" + (sym)));
+                string? sym = this.safeString(refreshed, j, "");
+                client.resolve(this.safeOrderBook(this.orderbooks, sym), ("orderbook::" + sym));
             }
         }
     }
@@ -2805,14 +2818,16 @@ public partial class sxbet : PredictionExchange
         var client = this.client(url);
         string channel = "best_odds_v3:global";
         bool hydrated = false;
-        if ((this.safeDict(this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {}), sym) == null))
+        IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
+        IDictionary<string, object> cachedTicker = this.safeDict(cachedTickers, sym);
+        if ((cachedTicker == null))
         {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
-            IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
-            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
+            Dictionary<string, object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
+            Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             this.setWsOption("wsTickers", sym, ((object)ticker));
             hydrated = true;
         }
@@ -2833,7 +2848,7 @@ public partial class sxbet : PredictionExchange
         return ccxt.BaseExchange.ToTicker(tickerResult);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object rows)
+    public virtual void handleTicker(WebSocketClient client, IList<object> rows)
     {
         //
         //     {
@@ -2844,7 +2859,7 @@ public partial class sxbet : PredictionExchange
         //
         IDictionary<string, object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers", new Dictionary<string, object>() {});
         List<object> watchedSyms = new List<object>(watchedTickers.Keys);
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
             IDictionary<string, object> entry = this.safeDict(rows, i);
@@ -2874,7 +2889,7 @@ public partial class sxbet : PredictionExchange
                 {
                     continue;
                 }
-                object outcomeObj = this.outcome(sym);
+                IDictionary<string, object> outcomeObj = this.outcome(sym);
                 Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
                 this.setWsOption("wsTickers", sym, ((object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
@@ -2900,8 +2915,8 @@ public partial class sxbet : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? sym = this.safeString(outcomeObj, "outcome", "");
         string messageHash = ("trades::" + sym);
-        object trades = await this.subscribeSxbetChannel(messageHash, "recent_trades_v3:global");
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.subscribeSxbetChannel<ccxt.pro.ArrayCache>(messageHash, "recent_trades_v3:global");
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     /**
@@ -2952,17 +2967,17 @@ public partial class sxbet : PredictionExchange
         });
     }
 
-    public virtual void handleTrades(WebSocketClient client, object rows)
+    public virtual void handleTrades(WebSocketClient client, IList<object> rows)
     {
         //
         //     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
         //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
         //                  "betTime": "2026-07-31T18:22:41.000Z", ... } }
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            object rawRow = getValue(rows, i);
+            object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "trade", rawRow);
             IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseSxbetV3PublicTrade(row));
             string? sym = this.safeString(trade, "outcome");
@@ -3012,19 +3027,19 @@ public partial class sxbet : PredictionExchange
             messageHash = ("myTrades::" + sym);
         }
         string channel = ("account:fills_v3_#" + this.walletAddress);
-        object trades = await this.subscribeSxbetChannel(messageHash, channel);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.subscribeSxbetChannel<ccxt.pro.ArrayCache>(messageHash, channel);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object rows)
+    public virtual void handleMyTrade(WebSocketClient client, IList<object> rows)
     {
         //
         //     FillV3 rows - identical to GET /fills-v3
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            object rawRow = getValue(rows, i);
+            object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "fill", rawRow);
             IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseSxbetV3Fill(row));
             string? sym = this.safeString(trade, "outcome");
@@ -3071,21 +3086,21 @@ public partial class sxbet : PredictionExchange
             messageHash = ("orders::" + sym);
         }
         string channel = ("account:orders_v3_#" + this.walletAddress);
-        object orders = await this.subscribeSxbetChannel(messageHash, channel);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache orders = await this.subscribeSxbetChannel<ccxt.pro.ArrayCache>(messageHash, channel);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit, "timestamp", true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object rows)
+    public virtual void handleOrder(WebSocketClient client, IList<object> rows)
     {
         //
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            object rawRow = getValue(rows, i);
+            object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "order", rawRow);
-            Dictionary<string, object> order = this.parsePredictionOrder(row);
+            Dictionary<string, object> order = this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, row));
             if ((this.orders == null))
             {
                 Int64? cacheLimit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -3102,7 +3117,7 @@ public partial class sxbet : PredictionExchange
         }
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
@@ -3110,24 +3125,21 @@ public partial class sxbet : PredictionExchange
         // exchange-not-available error). unmapped codes fall through to the base http-status handling
         if ((response == null))
         {
-            return null;
-        }
-        object message = this.safeValue(response, "message");
-        if ((message == null))
-        {
-            return null;
+            return ((bool?)((object)(null)));
         }
         // validation failures arrive in string-array form, business errors in single-code-string form
-        object messageString = null;
-        if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> messageList = this.safeList(response, "message", new List<object>() {});
+        string? messageString = this.safeString(response, "message");
+        if ((this.safeString(messageList, 0) != null))
         {
-            messageString = String.Join(", ", ((IList<object>)message).ToArray());
-        } else
-        {
-            messageString = message;
+            messageString = String.Join(", ", messageList.ToArray());
         }
-        string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), messageString, feedback);
+        if ((messageString == null))
+        {
+            return ((bool?)((object)(null)));
+        }
+        string feedback = ((this.id + " ") + body);
+        this.throwExactlyMatchedException(this.exceptionsExact, messageString, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
@@ -3135,7 +3147,7 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**
@@ -3160,10 +3172,14 @@ public partial class sxbet : PredictionExchange
         {
             throw new AuthenticationError ((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sxbet")));
+        string baseUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "sxbet", "");
+        string? groupUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiGroup);
+        if ((groupUrl != null))
+        {
+            baseUrl = groupUrl;
+        }
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, this.omit(parameters, this.extractParams(path)));
         Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
         Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
@@ -3178,7 +3194,13 @@ public partial class sxbet : PredictionExchange
         bool sendAsQuery = ((method == "GET"));
         if ((method == "DELETE"))
         {
-            sendAsQuery = !(inOp(query, "orders"));
+            if (query.ContainsKey("orders"))
+            {
+                sendAsQuery = false;
+            } else
+            {
+                sendAsQuery = true;
+            }
         }
         string? bodyValue = null;
         if (sendAsQuery)
@@ -3190,7 +3212,7 @@ public partial class sxbet : PredictionExchange
             }
         } else
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 bodyValue = this.json(query);
             }

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -762,7 +762,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str) -> dict:
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -807,11 +807,11 @@ class modetrade(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'executed_timestamp')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string(trade, 'executed_price')
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
-        fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
+        fee = self.parse_token_and_fee_temp(self.extend({}, trade), 'fee_asset', 'fee')
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         takerOrMaker = None
@@ -1569,7 +1569,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(order, 'order_price', 'price')
         amount = self.safe_string_2(order, 'order_quantity', 'quantity')  # This is base amount
         cost = self.safe_string_2(order, 'order_amount', 'amount')  # This is quote amount
@@ -1704,7 +1704,7 @@ class modetrade(Exchange, ImplicitAPI):
         isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, params)
+        postOnly = self.is_post_only(isMarket, False, params)
         orderQtyKey = 'order_quantity'
         if isConditional:
             orderQtyKey = 'quantity'
@@ -1866,8 +1866,8 @@ class modetrade(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
             type = self.safe_string(rawOrder, 'type', '')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
@@ -1954,7 +1954,7 @@ class modetrade(Exchange, ImplicitAPI):
             orderType = type.upper()
             timeInForce = self.safe_string_lower(paramsOmitted, 'timeInForce')
             isMarket = orderType == 'MARKET'
-            postOnly = self.is_post_only(isMarket, None, paramsOmitted)
+            postOnly = self.is_post_only(isMarket, False, paramsOmitted)
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -2207,7 +2207,7 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         orders = self.safe_dict(response, 'data', response)
-        return self.parse_order(orders, market)
+        return self.parse_order(self.extend({}, orders), market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3161,7 +3161,7 @@ class modetrade(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #

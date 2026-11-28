@@ -924,7 +924,7 @@ class cryptomus extends Exchange {
         $result = $this->safe_list($response, 'result', array());
         $orders = array();
         for ($i = 0; $i < count($result); $i++) {
-            $orders[] = $this->parse_order($result[$i], $market);
+            $orders[] = $this->parse_order($this->safe_dict($result, $i, array()), $market);
         }
         return $orders;
     }
@@ -1256,7 +1256,7 @@ class cryptomus extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

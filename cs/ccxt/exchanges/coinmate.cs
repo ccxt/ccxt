@@ -335,8 +335,8 @@ public partial class coinmate : Exchange
                     { "taker", this.parseNumber("0.006") },
                     { "maker", this.parseNumber("0.004") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0023")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0021")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("-0.0004")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.006}, new List<object> {10000.0, 0.003}, new List<object> {100000.0, 0.0023}, new List<object> {250000.0, 0.0021}, new List<object> {500000.0, 0.0018}, new List<object> {1000000.0, 0.0015}, new List<object> {3000000.0, 0.0012}, new List<object> {15000000.0, 0.001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.004}, new List<object> {10000.0, 0.002}, new List<object> {100000.0, 0.0012}, new List<object> {250000.0, 0.0009}, new List<object> {500000.0, 0.0005}, new List<object> {1000000.0, 0.0003}, new List<object> {3000000.0, 0.0002}, new List<object> {15000000.0, -0.0004}} },
                     } },
                 } },
             } },
@@ -495,7 +495,7 @@ public partial class coinmate : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(market, "name");
             string? baseId = this.safeString(market, "firstCurrency");
             string? quoteId = this.safeString(market, "secondCurrency");
@@ -559,7 +559,7 @@ public partial class coinmate : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> balances = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -570,7 +570,7 @@ public partial class coinmate : Exchange
         {
             string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            IDictionary<string, object> balance = this.safeDict(balances, currencyId);
+            IDictionary<string, object> balance = this.safeDict(balances, currencyId, new Dictionary<string, object>() {});
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString(balance, "available");
             account["used"] = this.safeString(balance, "reserved");
@@ -665,7 +665,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -685,7 +685,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickerAll(parameters);
         //
         //     {
@@ -713,12 +713,16 @@ public partial class coinmate : Exchange
         {
             Dictionary<string, object> market = this.market(keys[i]);
             ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, keys[i], new Dictionary<string, object>() {}), market);
-            result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+            string? symbol = this.safeString(market, "symbol");
+            if ((symbol != null))
+            {
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -812,7 +816,7 @@ public partial class coinmate : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposits
@@ -1247,7 +1251,7 @@ public partial class coinmate : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // limit sell
@@ -1428,7 +1432,7 @@ public partial class coinmate : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> response = await this.privatePostOrderById(this.extend(request, parameters));
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1460,7 +1464,7 @@ public partial class coinmate : Exchange
         //        }
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
 
@@ -1496,7 +1500,7 @@ public partial class coinmate : Exchange
             // coinmate requires each nonce to be greater than the previous one for the key
             string nonce = ((object)this.incrementingNonce()).ToString();
             string auth = ((nonce + this.uid) + this.apiKey);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             bodySigned = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },
                 { "nonce", nonce },
@@ -1517,11 +1521,11 @@ public partial class coinmate : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"error":true,"errorMessage":"Api internal error","data":null}
@@ -1530,11 +1534,11 @@ public partial class coinmate : Exchange
         string? errorMessage = this.safeString(response, "errorMessage");
         if ((errorMessage != null))
         {
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

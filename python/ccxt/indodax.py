@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -637,10 +637,9 @@ class indodax(Exchange, ImplicitAPI):
         parsedTickers = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            rawTicker = tickers[key]
             marketId = key.replace('_', '')
             market = self.safe_market(marketId)
-            parsed = self.parse_ticker(rawTicker, market)
+            parsed = self.parse_ticker(self.safe_dict(tickers, key, {}), market)
             parsedTickers[marketId] = parsed
         return self.filter_by_array_tickers(parsedTickers, 'symbol', symbols)
 
@@ -825,7 +824,6 @@ class indodax(Exchange, ImplicitAPI):
             # only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
             filled = self.safe_string(order, 'receive_' + baseId)
         timestamp = self.safe_integer(order, 'submit_time')
-        fee = None
         id = self.safe_string(order, 'order_id')
         return self.safe_order({
             'info': order,
@@ -847,7 +845,7 @@ class indodax(Exchange, ImplicitAPI):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': None,
         })
 
@@ -898,12 +896,10 @@ class indodax(Exchange, ImplicitAPI):
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
         openOrdersResult = self.safe_dict(response, 'return', {})
-        rawOrders = openOrdersResult['orders']
         # { success: 1, return: { orders: null }} if no orders
-        if (rawOrders is None) or (rawOrders is None):
-            return []
         # { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if symbol is not None:
+            rawOrders = self.safe_list(openOrdersResult, 'orders', [])
             return self.parse_orders(rawOrders, market, since, limit)
         # { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         ordersDict = self.safe_dict(openOrdersResult, 'orders', {})
@@ -971,6 +967,8 @@ class indodax(Exchange, ImplicitAPI):
         paramsOmitted = params
         if isMarketBuy:
             paramsOmitted = self.omit(params, 'cost')
+        quoteId = self.safe_string(market, 'quoteId', '')
+        baseId = self.safe_string(market, 'baseId', '')
         if type == 'market':
             if side == 'buy':
                 quoteAmount = None
@@ -984,20 +982,20 @@ class indodax(Exchange, ImplicitAPI):
                     priceString = self.number_to_string(price)
                     costRequest = Precise.string_mul(amountString, priceString)
                     quoteAmount = self.cost_to_precision(symbol, costRequest)
-                request[market['quoteId']] = quoteAmount
+                request[quoteId] = quoteAmount
             else:
                 quantityIsRequired = True
         elif type == 'limit':
             priceIsRequired = True
             quantityIsRequired = True
             if side == 'buy':
-                request[market['quoteId']] = self.parse_to_numeric(self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))))
+                request[quoteId] = self.parse_to_numeric(self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))))
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = price
         if quantityIsRequired:
-            request[market['baseId']] = self.amount_to_precision(symbol, amount)
+            request[baseId] = self.amount_to_precision(symbol, amount)
         result = self.privatePostTrade(self.extend(request, paramsOmitted))
         data = self.safe_dict(result, 'return', {})
         id = self.safe_string(data, 'order_id')
@@ -1051,7 +1049,7 @@ class indodax(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'return')
-        return self.parse_order(data)
+        return self.parse_order(self.extend({}, data))
 
     def fetch_transaction_fee(self, code: str, params: dict = {}):
         """
@@ -1422,14 +1420,15 @@ class indodax(Exchange, ImplicitAPI):
                     if networkId is None:
                         raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                     if networkId.find(',') >= 0:
-                        network = []
+                        networkCodes = []
                         if networkId is None:
                             raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                         networkIds = networkId.split(',')
                         for j in range(0, len(networkIds)):
                             _netIdTmp = self.network_id_to_code(networkIds[j], code)
                             if _netIdTmp is not None:
-                                network.append(_netIdTmp.upper())
+                                networkCodes.append(_netIdTmp.upper())
+                        network = networkCodes
                     else:
                         _netIdTmp = self.network_id_to_code(networkId, code)
                         if _netIdTmp is not None:
@@ -1480,7 +1479,7 @@ class indodax(Exchange, ImplicitAPI):
             requestHeaders = None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         # { success: 0, error: "invalid order." }

@@ -7,7 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.opinion import ImplicitAPI
 import asyncio
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -189,7 +189,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         eventsList = []
         # every raw (unflattened) row fetched so far, so its length is the raw fetched count
         fetchedRawRows = []
-        for page in range(1, maxPages):
+        for page in range(1, maxPages + 1):
             request = {
                 'marketType': 2,  # all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -208,7 +208,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                 fetchedRawRows.append(raw)
                 marketType = self.safe_integer(raw, 'marketType')
                 if marketType == 1:
-                    event = self.parse_event(raw)
+                    event = self.parse_event(self.extend({}, rawMarkets[i]))
                     childMarkets = self.safe_list(event, 'markets', [])
                     childMarketsLength = len(childMarkets)
                     for ci in range(0, childMarketsLength):
@@ -411,7 +411,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         fetchCap = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'maxFetchEventsResults', 100))
         maxPages = self.safe_integer(self.options, 'maxEventsPages', 50)
         rawEvents = []
-        for page in range(1, maxPages):
+        for page in range(1, maxPages + 1):
             fetchedSoFar = len(rawEvents)
             remaining = self.parse_to_int(fetchCap - fetchedSoFar)
             reqLimit = remaining if (remaining < pageLimit) else pageLimit
@@ -438,14 +438,16 @@ class opinion(PredictionExchange, ImplicitAPI):
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
         for i in range(0, rawEventsLength):
-            event = self.parse_event(rawEvents[i])
+            event = self.parse_event(self.extend({}, rawEvents[i]))
             parsedEvents.append(event)
             # register the parsed markets so populateOutcomes can index their outcomes
             eventMarkets = self.safe_list(event, 'markets', [])
             eventMarketsLength = len(eventMarkets)
             for mi in range(0, eventMarketsLength):
                 m = eventMarkets[mi]
-                self.markets[m['market']] = m
+                marketKey = self.safe_string(m, 'market')
+                if marketKey is not None:
+                    self.markets[marketKey] = m
         self.populate_outcomes()
         return self.apply_event_fetch_params(parsedEvents, params, queries)
 
@@ -1217,16 +1219,23 @@ class opinion(PredictionExchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'list', [])
         tradesLength = len(trades)
+        filled = []
         for i in range(0, tradesLength):
-            trade = trades[i]
-            tokenId = self.safe_string(trade, 'tokenId')
-            marketId = self.safe_integer(trade, 'marketId')
+            tokenId = self.safe_string(trades[i], 'tokenId')
+            marketId = self.safe_integer(trades[i], 'marketId')
             if (tokenId is None) and (marketId is not None):
                 tradeMarket = await self.load_trade_market(marketId)
                 info = self.safe_dict(tradeMarket, 'info', {})
-                isYes = (self.safe_string_lower(trade, 'outcomeSideEnum') == 'yes')
-                trade['tokenId'] = self.safe_string(info, 'yesTokenId') if isYes else self.safe_string(info, 'noTokenId')
-        return self.parse_prediction_trades(trades, outcomeObj, since, limit)
+                isYes = (self.safe_string_lower(trades[i], 'outcomeSideEnum') == 'yes')
+                extra = {}
+                if isYes:
+                    extra['tokenId'] = self.safe_string(info, 'yesTokenId')
+                else:
+                    extra['tokenId'] = self.safe_string(info, 'noTokenId')
+                filled.append(self.extend(trades[i], extra))
+            else:
+                filled.append(trades[i])
+        return self.parse_prediction_trades(filled, outcomeObj, since, limit)
 
     async def load_trade_market(self, marketId: int) -> Market:
         """
@@ -1800,7 +1809,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         marketId = self.safe_integer(info, 'marketId')
         messageHash = 'orders'
         orders = await self.subscribe_opinion_channel(messageHash, 'trade.order.update', marketId)
-        sym = self.safe_outcome_symbol(outcome, outcomeObj)
+        sym = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(orders, 'outcome', sym, since, limit, 'timestamp', True)
 
     def parse_ws_order_status(self, status: Int) -> Str:
@@ -1907,7 +1916,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         marketId = self.safe_integer(info, 'marketId')
         messageHash = 'myTrades'
         trades = await self.subscribe_opinion_channel(messageHash, 'trade.record.new', marketId)
-        sym = self.safe_outcome_symbol(outcome, outcomeObj)
+        sym = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(trades, 'outcome', sym, since, limit, 'timestamp', True)
 
     def handle_my_trade(self, client: Client, message: dict):
@@ -1965,7 +1974,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         stored.append(trade)
         client.resolve(stored, 'myTrades')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         errno = self.safe_integer(response, 'errno')

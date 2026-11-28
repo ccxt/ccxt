@@ -21,7 +21,8 @@ pub struct Bybitid {
 }
 
 impl Bybitid {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = Self { parent: crate::exchanges::bybit::Bybit::new(config) };
         s.init();
         s
@@ -29,7 +30,7 @@ impl Bybitid {
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -53,7 +54,7 @@ impl crate::exchange::DerivedExchange for Bybitid {
 }
 
 impl crate::exchange_generated::ExchangeBase for Bybitid {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -76,8 +77,8 @@ impl std::ops::DerefMut for Bybitid {
 }
 
 impl Bybitid {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bybitid".into()));
         m.insert("name".to_string(), Value::Str("Bybit Indonesia".into()));
@@ -100,7 +101,5 @@ impl Bybitid {
 }));
     m
 })]);
-
-    Value::Null
 }
 }

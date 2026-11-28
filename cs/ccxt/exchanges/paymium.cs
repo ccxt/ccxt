@@ -205,7 +205,7 @@ public partial class paymium : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -272,7 +272,7 @@ public partial class paymium : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -368,7 +368,7 @@ public partial class paymium : Exchange
     {
         Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
         string? id = this.safeString(trade, "uuid");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? side = this.safeString(trade, "side");
         string? price = this.safeString(trade, "price");
         string? baseId = this.safeString(marketResolved, "base", "");
@@ -506,7 +506,7 @@ public partial class paymium : Exchange
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -651,7 +651,7 @@ public partial class paymium : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -769,7 +769,7 @@ public partial class paymium : Exchange
                     url = url + ("?" + queryString);
                 }
             }
-            signedHeaders["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders["Api-Signature"] = this.hmac(auth, this.secret, sha256);
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -785,17 +785,17 @@ public partial class paymium : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
-        object errors = this.safeValue(response, "errors");
-        if ((errors != null))
+        bool errors = (this.safeValue(response, "errors")) != null;
+        if (errors)
         {
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

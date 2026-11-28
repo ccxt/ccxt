@@ -7,12 +7,12 @@ import "github.com/ccxt/ccxt/go/v4"
 
 import "strconv"
 
-func TestFetchTickersAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan ccxt.AsyncResult[any] {
+func TestFetchTickersAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go testFetchTickersBody(ch, exchange, skippedProperties, symbol)
 	return ch
 }
-func testFetchTickersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+func testFetchTickersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange, skippedProperties any, symbol string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)

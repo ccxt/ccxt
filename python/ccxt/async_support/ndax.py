@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
@@ -985,10 +985,7 @@ class ndax(Exchange, ImplicitAPI):
         #         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #
@@ -2284,7 +2281,7 @@ class ndax(Exchange, ImplicitAPI):
         #    ]"
         #
         if isinstance(response, str):
-            return self.parse_transactions(json.loads(response), currency, since, limit)
+            return self.parse_transactions(self.to_array(json.loads(response)), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -2554,7 +2551,7 @@ class ndax(Exchange, ImplicitAPI):
         template = self.safe_string(withdrawTemplateResponse, 'Template')
         if template is None:
             raise ExchangeError(self.id + ' withdraw() could not find a withdraw template for ' + currency['code'])
-        withdrawTemplate = json.loads(template)
+        withdrawTemplate = self.extend({}, json.loads(template))
         withdrawTemplate['ExternalAddress'] = address
         if tagWithdrawTag is not None:
             if 'Memo' in withdrawTemplate:
@@ -2645,7 +2642,7 @@ class ndax(Exchange, ImplicitAPI):
         bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:

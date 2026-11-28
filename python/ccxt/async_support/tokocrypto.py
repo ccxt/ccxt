@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1367,7 +1367,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if isinstance(response, list):
             firstTicker = self.safe_dict(response, 0, {})
             return self.parse_ticker(firstTicker, market)
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1469,11 +1469,6 @@ class tokocrypto(Exchange, ImplicitAPI):
             request['startTime'] = since
         if until is not None:
             request['endTime'] = until
-        response = None
-        if self.is_native_market(market):
-            response = await self.publicGetOpenV1MarketKlines(self.extend(request, paramsOmitted))
-        else:
-            response = await self.binanceGetKlines(self.extend(request, paramsOmitted))
         #
         # binanceGetKlines
         #
@@ -1508,15 +1503,16 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = []
-        if isinstance(response, list):
-            data = response
-        else:
+        if self.is_native_market(market):
+            response = await self.publicGetOpenV1MarketKlines(self.extend(request, paramsOmitted))
             dataList = self.safe_list(response, 'data')
             if dataList is not None:
                 data = dataList
             else:
                 dataDict = self.safe_dict(response, 'data', {})
                 data = self.safe_list(dataDict, 'list', [])
+        else:
+            data = await self.binanceGetKlines(self.extend(request, paramsOmitted))
         return self.parse_ohlcvs(data, market, timeframe, since, limitValue)
 
     async def fetch_balance(self, params: dict = {}) -> Balances:
@@ -2571,7 +2567,7 @@ class tokocrypto(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        restUrls = self.extend({}, self.urls['api']['rest'])
+        restUrls = self.extend({}, self.safe_dict(self.urls['api'], 'rest', {}))
         if not (apiName in restUrls):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
         baseApiUrl = self.safe_string(self.urls['api']['rest'], apiName)
@@ -2628,7 +2624,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: { "code": -1013, "msg": "Invalid quantity." }

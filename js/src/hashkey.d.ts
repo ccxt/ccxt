@@ -479,9 +479,11 @@ export default class hashkey extends Exchange {
     checkTypeParam(methodName: string, params: Dict): void;
     handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: Bool): [Bool, Dict];
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderSideAndReduceOnly(unparsed: any): any[];
+    parseOrderSideValue(unparsed: Str): Str;
+    parseOrderReduceOnlyValue(unparsed: Str): Bool;
     parseOrderStatus(status: Str): Str;
-    parseOrderTypeTimeInForceAndPostOnly(type: Str, timeInForce: Str): [Str, Str, Bool];
+    parseOrderTimeInForceValue(type: Str, timeInForce: Str): Str;
+    parseOrderPostOnlyValue(type: Str, timeInForce: Str): Bool;
     parseOrderType(type: Str): Str;
     /**
      * @method
@@ -636,5 +638,5 @@ export default class hashkey extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     customUrlencode(params?: Dict): Str;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

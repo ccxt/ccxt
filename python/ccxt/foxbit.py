@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -678,7 +678,7 @@ class foxbit(Exchange, ImplicitAPI):
             entry = data[i]
             marketId = self.safe_string(entry, 'market_symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = self.parse_trading_fee(entry, market)
         return result
 
@@ -1805,7 +1805,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: object, currency: Currency = None, since: Int = None, limit: Int = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         cryptoDetails = self.safe_dict(transaction, 'details_crypto')
         address = self.safe_string_2(cryptoDetails, 'receiving_address', 'destination_address')
         sn = self.safe_string(transaction, 'sn')
@@ -1934,7 +1934,8 @@ class foxbit(Exchange, ImplicitAPI):
         query = ''
         signatureQuery = ''
         if method == 'GET':
-            paramKeys = list(paramsOmitted.keys())
+            paramsCopy = self.extend({}, paramsOmitted)
+            paramKeys = list(paramsCopy.keys())
             paramKeysLength = len(paramKeys)
             lastKeyIndex = paramKeysLength - 1
             if paramKeysLength > 0:
@@ -1948,11 +1949,11 @@ class foxbit(Exchange, ImplicitAPI):
                 if i < lastKeyIndex:
                     signatureQuery += '&'
         requestBody = None
-        if method == 'POST' or method == 'PUT':
-            requestBody = self.json(paramsOmitted)
         bodyToSignature = ''
-        if requestBody is not None:
-            bodyToSignature = requestBody
+        if method == 'POST' or method == 'PUT':
+            jsonBody = self.json(paramsOmitted)
+            requestBody = jsonBody
+            bodyToSignature = jsonBody
         headersValue = {
             'Content-Type': 'application/json',
             'X-FB-CLIENT': 'ccxt',
@@ -1967,7 +1968,7 @@ class foxbit(Exchange, ImplicitAPI):
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         error = self.safe_dict(response, 'error')

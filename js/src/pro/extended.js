@@ -149,7 +149,7 @@ export default class extended extends extendedRest {
                 },
             };
             this.extendExchangeOptions(defaultOptions);
-            const originalOptions = this.options['ws']['options'];
+            const originalOptions = this.safeDict(this.options['ws'], 'options');
             const originalHeaders = this.safeDict(originalOptions, 'headers', {});
             this.options['ws']['options'] = this.extend(this.extend({}, originalOptions), {
                 'headers': this.extend(this.extend({
@@ -431,12 +431,11 @@ export default class extended extends extendedRest {
             return;
         }
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const marketId = this.safeString(rawPosition, 'market');
+            const marketId = this.safeString(rawPositions[i], 'market');
             if (marketId === undefined) {
                 continue;
             }
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
             newPositions.push(position);
             stored.append(position);
         }
@@ -490,7 +489,7 @@ export default class extended extends extendedRest {
         }
         const orders = this.orders;
         const data = this.safeDict(message, 'data', {});
-        const rawOrders = this.safeList(data, 'orders');
+        const rawOrders = this.safeList(data, 'orders', []);
         const symbols = {};
         const first = this.safeDict(rawOrders, 0);
         if (first === undefined) {
@@ -722,7 +721,7 @@ export default class extended extends extendedRest {
         }
         subscription['nonce'] = nonce;
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i], market);
+            const trade = this.parseTrade(this.safeDict(data, i, {}), market);
             stored.append(trade);
         }
         client.resolve(stored, messageHash);
@@ -803,12 +802,9 @@ export default class extended extends extendedRest {
         const symbol = this.safeString(subscription, 'symbol');
         const timeframe = this.safeString(subscription, 'timeframe', '');
         const candleType = this.safeString(subscription, 'candleType', '');
-        let cacheKey = undefined;
-        if (candleType === 'trades') {
-            cacheKey = timeframe;
-        }
-        else {
-            cacheKey = timeframe + ':' + candleType;
+        let cacheKey = timeframe;
+        if (candleType !== 'trades') {
+            cacheKey = cacheKey + ':' + candleType;
         }
         const messageHash = this.safeString(subscription, 'messageHash');
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});

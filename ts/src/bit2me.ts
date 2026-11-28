@@ -6,7 +6,7 @@ import Exchange from './abstract/bit2me.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -430,7 +430,7 @@ export default class bit2me extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const status = this.safeString (market, 'marketEnabled');
-        const fees = this.fees;
+        const tradingFees = this.safeValue (this.fees, 'trading');
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -455,8 +455,8 @@ export default class bit2me extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
+            'taker': this.safeNumber (tradingFees, 'taker'),
+            'maker': this.safeNumber (tradingFees, 'maker'),
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountPrecision'))),
                 'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
@@ -930,9 +930,12 @@ export default class bit2me extends Exchange {
             request['startTime'] = since;
         } else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
-            const duration = this.parseTimeframe (timeframe) * 1000;
-            const end = (until !== undefined) ? until : this.milliseconds ();
-            request['startTime'] = end - requestLimit * duration;
+            const duration: Int = this.parseTimeframe (timeframe) * 1000;
+            if (until !== undefined) {
+                request['startTime'] = until - requestLimit * duration;
+            } else {
+                request['startTime'] = this.milliseconds () - requestLimit * duration;
+            }
         }
         if (until !== undefined) {
             request['endTime'] = until;
@@ -1073,7 +1076,7 @@ export default class bit2me extends Exchange {
         //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**
@@ -1127,23 +1130,25 @@ export default class bit2me extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['takeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-            let stopLossLimit = stopLimitPrice;
+            let stopLossLimit: Str = stopLimitPrice;
             if (stopLossLimit === undefined) {
-                stopLossLimit = (price !== undefined) ? this.numberToString (price) : stopLossPrice;
+                if (price !== undefined) {
+                    stopLossLimit = this.numberToString (price);
+                } else {
+                    stopLossLimit = stopLossPrice;
+                }
             }
             request['stopLimitPrice'] = this.priceToPrecision (symbol, stopLossLimit);
         } else if (isMarketOrder) {
             if (triggerPrice !== undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
             }
-            let quoteAmount: Str = undefined;
             if (cost !== undefined) {
-                quoteAmount = cost;
+                request['amount'] = this.costToPrecision (symbol, cost);
+                request['amountInQuote'] = true;
             } else if ((side === 'buy') && (price !== undefined)) {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
-            }
-            if (quoteAmount !== undefined) {
+                const quoteAmount = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
                 request['amount'] = this.costToPrecision (symbol, quoteAmount);
                 request['amountInQuote'] = true;
             } else {
@@ -1344,9 +1349,12 @@ export default class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if ((since !== undefined) || (until !== undefined)) {
             const start = (since !== undefined) ? since : 0;
-            const end = (until !== undefined) ? until : this.milliseconds ();
             request['startTime'] = this.iso8601 (start);
-            request['endTime'] = this.iso8601 (end);
+            if (until !== undefined) {
+                request['endTime'] = this.iso8601 (until);
+            } else {
+                request['endTime'] = this.iso8601 (this.milliseconds ());
+            }
         }
         const response = await this.privateGetV1TradingOrder (this.extend (request, query));
         //
@@ -1568,9 +1576,12 @@ export default class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if ((since !== undefined) || (until !== undefined)) {
             const start = (since !== undefined) ? since : 0;
-            const end = (until !== undefined) ? until : this.milliseconds ();
             request['startTime'] = this.iso8601 (start);
-            request['endTime'] = this.iso8601 (end);
+            if (until !== undefined) {
+                request['endTime'] = this.iso8601 (until);
+            } else {
+                request['endTime'] = this.iso8601 (this.milliseconds ());
+            }
         }
         const response = await this.privateGetV1TradingTrade (this.extend (request, query));
         //
@@ -1876,7 +1887,7 @@ export default class bit2me extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

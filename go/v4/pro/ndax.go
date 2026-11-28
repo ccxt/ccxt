@@ -71,7 +71,7 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel1"
 	var messageHash string = name + ":" + marketId
@@ -96,8 +96,12 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Ndax) HandleTicker(client any, message map[string]any) {
-	var payload map[string]any = this.SafeDictMap(message, "o", map[string]any{})
+func (this *Ndax) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
+	var payload map[string]any
+	payload, _ = message["o"].(map[string]any)
+	if payload == nil {
+		payload = map[string]any{}
+	}
 	//
 	//     {
 	//         "OMSId": 1,
@@ -125,14 +129,17 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	//
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(payload))
 	var symbol *string = this.SafeString(ticker, "symbol")
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var name string = "SubscribeLevel1"
 	var messageHash string = name + ":" + marketId
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+	client.Resolve(ticker, messageHash)
 }
 
 /**
@@ -146,12 +153,12 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Ndax) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Ndax) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -168,7 +175,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeTrades"
@@ -201,8 +208,8 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Ndax) HandleTrades(client any, message map[string]any) {
-	var payload []any = ccxt.SafeListTyped(message, "o")
+func (this *Ndax) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
+	var payload, _ = message["o"].([]any)
 	//
 	// initial snapshot
 	//
@@ -227,12 +234,12 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(payload); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(payload[i]))
 		var symbol *string = this.SafeString(trade, "symbol")
-		var tradesArray ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-			if symbol == nil {
-				return nil
-			}
-			return this.Trades[*symbol]
-		}()
+		var tradesArray ccxt.WsArrayCache
+		if symbol == nil {
+			tradesArray = nil
+		} else {
+			tradesArray = this.Trades[*symbol]
+		}
 		if tradesArray == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(limit)
@@ -254,11 +261,14 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var messageHash string = name + ":" + marketId
 		var symbolTrades ccxt.WsArrayCache = this.Trades[symbol]
-		client.(ccxt.ClientInterface).Resolve(symbolTrades, messageHash)
+		client.Resolve(symbolTrades, messageHash)
 	}
 }
 
@@ -298,7 +308,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeTicker"
@@ -332,7 +342,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
+func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -341,7 +351,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	//         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
 	//     }
 	//
-	var payload []any = ccxt.SafeListTyped(message, "o")
+	var payload, _ = message["o"].([]any)
 	//
 	//     [
 	//         [
@@ -360,7 +370,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	//
 	var updates map[string]any = map[string]any{}
 	for i := 0; i < len(payload); i++ {
-		var ohlcv []any = ccxt.SafeListTyped(payload, i)
+		var ohlcv, _ = payload[i].([]any)
 		var marketId *string = this.SafeString(ohlcv, 8)
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -368,7 +378,13 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		if this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var keys []string = ccxt.ObjectKeys(this.Timeframes)
+		var keys []string = nil
+		if this.Timeframes != nil {
+			keys = make([]string, 0, len(this.Timeframes))
+			for objectKey := range this.Timeframes {
+				keys = append(keys, objectKey)
+			}
+		}
 		for j := 0; j < len(keys); j++ {
 			var timeframe string = keys[j]
 			var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -377,7 +393,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			if timestamp == nil {
 				continue
 			}
-			var candleTimestamp int64 = this.ParseToInt(ccxt.Multiply((float64(*timestamp) / float64(duration)), duration))
+			var candleTimestamp int64 = this.ParseToInt(float64(*timestamp)/float64(duration)) * duration
 			var parsed []any = []any{candleTimestamp, this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
 			var stored any = this.Ohlcvs[*symbol][timeframe]
 			if stored == nil {
@@ -439,7 +455,13 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var timeframes []string = ccxt.ObjectKeys(updates[marketId])
+		var timeframes []string = []string{}
+		if objectEntry, ok := updates[marketId].(map[string]any); ok {
+			timeframes = make([]string, 0, len(objectEntry))
+			for objectKey := range objectEntry {
+				timeframes = append(timeframes, objectKey)
+			}
+		}
 		for j := 0; j < len(timeframes); j++ {
 			var timeframe string = timeframes[j]
 			var messageHash string = name + ":" + timeframe + ":" + marketId
@@ -447,7 +469,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			var symbol *string = this.SafeString(market, "symbol", "")
 			var symbolOhlcv ccxt.WsArrayCache
 			symbolOhlcv, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
-			client.(ccxt.ClientInterface).Resolve(symbolOhlcv, messageHash)
+			client.Resolve(symbolOhlcv, messageHash)
 		}
 	}
 }
@@ -482,7 +504,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel2"
@@ -527,7 +549,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
+func (this *Ndax) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 3,
@@ -536,7 +558,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
 	//     }
 	//
-	var payload []any = ccxt.SafeListTyped(message, "o")
+	var payload, _ = message["o"].([]any)
 	//
 	//     [
 	//         0,   // 0 MDUpdateId
@@ -551,13 +573,16 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//         0,   // 9 Side
 	//     ],
 	//
-	var firstBidAsk []any = ccxt.SafeListTyped(payload, 0)
+	var firstBidAsk []any
+	if 0 < len(payload) {
+		firstBidAsk, _ = payload[0].([]any)
+	}
 	var marketId *string = this.SafeString(firstBidAsk, 7)
 	if marketId == nil {
 		return
 	}
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol string = market.Symbol
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		return
@@ -566,7 +591,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(firstBidAsk, 2)
 	var nonce *int64 = this.SafeInteger(firstBidAsk, 0)
 	for i := 0; i < len(payload); i++ {
-		var bidask []any = ccxt.SafeListTyped(payload, i)
+		var bidask, _ = payload[i].([]any)
 		if timestamp == nil {
 			timestamp = this.SafeInteger(bidask, 2)
 		} else {
@@ -589,12 +614,12 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 		var amount *float64 = this.SafeFloat(bidask, 8)
 		var side *int64 = this.SafeInteger(bidask, 9)
 		// 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-		var orderbookSide any = func() any {
-			if side != nil && *side == 0 {
-				return orderbook.GetBids()
-			}
-			return orderbook.GetAsks()
-		}()
+		var orderbookSide any
+		if side != nil && *side == 0 {
+			orderbookSide = orderbook.GetBids()
+		} else {
+			orderbookSide = orderbook.GetAsks()
+		}
 		// 0 new, 1 update, 2 remove
 		if typeVar != nil && *typeVar == 0 {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
@@ -604,15 +629,15 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, 0)
 		}
 	}
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetNonce(nonce)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
 	var messageHash string = name + ":" + *marketId
 	this.Orderbooks[symbol] = orderbook
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
-func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
+func (this *Ndax) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -621,7 +646,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
 	//     }
 	//
-	var payload []any = ccxt.SafeListTypedDefault(message, "o", []any{})
+	var payload []any = this.SafeListSlice(message, "o", []any{})
 	//
 	//     [
 	//         [
@@ -653,9 +678,9 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	orderbook.Reset(snapshot)
 	var messageHash *string = this.SafeString(subscription, "messageHash")
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
-func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
+func (this *Ndax) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -664,17 +689,17 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 	//         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
 	//     }
 	//
-	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	var id *int64 = this.SafeInteger(message, "i")
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if method != nil {
-			ccxt.CallDynamically(method, client, message, subscription)
+			this.HandleOrderBookSubscription(client, message, subscription)
 		}
 	}
 }
-func (this *Ndax) HandleMessage(client any, message map[string]any) {
+func (this *Ndax) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

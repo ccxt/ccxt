@@ -613,7 +613,7 @@ public partial class testMainClass : BaseTest
         // handler - the same entry point the real transport invokes
         var exchange = exchange2 as BaseExchange;
         var client = exchange.client((string)url);
-        client.handleMessage(client, message);
+        client.dispatchMessage(message);
     }
 
     public object getWsSentMessages(object exchange2, object url)

@@ -11,6 +11,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
+from ccxt.base.precise import Precise
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -382,7 +383,7 @@ class bitrue(ccxt.async_support.bitrue):
         isFutures = (channelKind == 'e')
         market = None
         if isFutures:
-            wsBaseQuote = self.safe_string_lower(parts, 2)
+            wsBaseQuote = self.safe_string_lower(parts, 2, '')
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         else:
             marketId = self.safe_string_upper(parts, 1)
@@ -392,26 +393,23 @@ class bitrue(ccxt.async_support.bitrue):
             return
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_dict(message, 'tick', {})
-        parseable = tick
-        if isFutures:
-            rawAsks = self.safe_list(tick, 'asks', [])
-            rawBuys = self.safe_list(tick, 'buys', [])
-            parseable = {
-                'asks': self.parse_contract_bids_asks(rawAsks, symbol),
-                'buys': self.parse_contract_bids_asks(rawBuys, symbol),
-            }
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        snapshot = self.parse_order_book(parseable, symbol, timestamp, 'buys', 'asks')
-        orderbook.reset(snapshot)
+        if isFutures:
+            rawAsks = self.safe_list(tick, 'asks', [])
+            rawBuys = self.safe_list(tick, 'buys', [])
+            orderbook.reset(self.parse_order_book({
+                'asks': self.parse_contract_bids_asks(rawAsks, symbol),
+                'buys': self.parse_contract_bids_asks(rawBuys, symbol),
+            }, symbol, timestamp, 'buys', 'asks'))
+        else:
+            orderbook.reset(self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks'))
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: Str):
-        # typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        # and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        # dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
+        # callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if self.markets is None:
             return None
         markets = self.markets
@@ -535,11 +533,11 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchTrades is only supported for swap markets')
-        baseIdLower = self.safe_string_lower(market, 'baseId')
-        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        baseIdLower = self.safe_string_lower(market, 'baseId', '')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_trade_ticker'
         subscription = {
@@ -571,7 +569,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        wsBaseQuote = self.safe_string_lower(parts, 2)
+        wsBaseQuote = self.safe_string_lower(parts, 2, '')
         market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:
@@ -676,15 +674,15 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchOHLCV is only supported for swap markets')
         futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
         interval = self.safe_string(futuresTimeframes, timeframe)
         if interval is None:
             raise NotSupported(self.id + ' unWatchOHLCV does not support timeframe ' + timeframe)
-        baseIdLower = self.safe_string_lower(market, 'baseId')
-        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        baseIdLower = self.safe_string_lower(market, 'baseId', '')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_kline_' + interval
         subscription = {
@@ -714,7 +712,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        wsBaseQuote = self.safe_string_lower(parts, 2)
+        wsBaseQuote = self.safe_string_lower(parts, 2, '')
         market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:
@@ -803,7 +801,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        wsBaseQuote = self.safe_string_lower(parts, 2)
+        wsBaseQuote = self.safe_string_lower(parts, 2, '')
         market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:
@@ -824,8 +822,8 @@ class bitrue(ccxt.async_support.bitrue):
         baseVolume = self.convert_from_raw_quantity(symbol, rawVol)
         quoteVolume = self.convert_from_raw_quantity(symbol, rawAmount)
         close = self.safe_number(tick, 'close')
-        rose = self.safe_number(tick, 'rose')
-        percentage = None if (rose is None) else rose * 100
+        rose = self.safe_string(tick, 'rose')
+        percentage = Precise.string_mul(rose, '100')
         return self.safe_ticker({
             'info': tick,
             'symbol': symbol,

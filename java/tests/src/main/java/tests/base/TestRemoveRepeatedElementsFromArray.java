@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 
 
@@ -33,7 +34,7 @@ public class TestRemoveRepeatedElementsFromArray extends BaseTest
             put( "uniq", "x4" );
         }}));
             Object res1 = exchange.removeRepeatedElementsFromArray(array1, false);
-            Object res1Length = Helpers.getArrayLength(res1);
+            Object res1Length = TestHelpers.getArrayLength(res1);
             Assert(Helpers.isEqual(res1Length, 3));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(res1, 0), "uniq"), "x1"));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(res1, 1), "uniq"), "x2"));
@@ -57,7 +58,7 @@ public class TestRemoveRepeatedElementsFromArray extends BaseTest
             put( "uniq", "x4" );
         }}));
             Object res2 = exchange.removeRepeatedElementsFromArray(array2, true);
-            Object res2Length = Helpers.getArrayLength(res2);
+            Object res2Length = TestHelpers.getArrayLength(res2);
             Assert(Helpers.isEqual(res2Length, 3));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(res2, 0), "uniq"), "x1"));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(res2, 1), "uniq"), "x2"));
@@ -65,7 +66,7 @@ public class TestRemoveRepeatedElementsFromArray extends BaseTest
             // CASE 3: by timestamp index (used in ohlcv)
             Object array3 = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(555, 1, 1, "x1")), new java.util.ArrayList<Object>(java.util.Arrays.asList(666, 1, 1, "x2")), new java.util.ArrayList<Object>(java.util.Arrays.asList(555, 1, 1, "x3"))));
             Object res3 = exchange.removeRepeatedElementsFromArray(array3, true);
-            Assert(Helpers.isEqual(Helpers.getArrayLength(res3), 2));
+            Assert(Helpers.isEqual(TestHelpers.getArrayLength(res3), 2));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(res3, 0), 3), "x1"));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(res3, 1), 3), "x2"));
         }

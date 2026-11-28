@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -391,7 +391,7 @@ class p2b(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        limits = self.safe_dict(market, 'limits')
+        limits = self.safe_dict(market, 'limits', {})
         maxAmount = self.safe_string(limits, 'max_amount')
         maxPrice = self.safe_string(limits, 'max_price')
         return {
@@ -525,7 +525,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    def parse_ticker(self, ticker: object, market: Market = None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # parseTickers
         #
@@ -871,7 +871,7 @@ class p2b(Exchange, ImplicitAPI):
         keys = list(response.keys())
         for i in range(0, len(keys)):
             currencyId = keys[i]
-            balance = self.safe_dict(response, currencyId)
+            balance = self.safe_dict(response, currencyId, {})
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')
@@ -931,7 +931,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result')
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -977,7 +977,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result')
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1349,7 +1349,7 @@ class p2b(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         #

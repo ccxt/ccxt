@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -833,9 +833,10 @@ class latoken(Exchange, ImplicitAPI):
         symbol = None
         marketResolved = market
         if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-            if (self.markets is not None) and (symbol in self.markets):
-                marketResolved = self.market(symbol)
+            knownSymbol = base + '/' + quote
+            if (self.markets is not None) and (knownSymbol in self.markets):
+                marketResolved = self.market(knownSymbol)
+            symbol = knownSymbol
         last = self.safe_string(ticker, 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
         # during venue incidents a deleted level leaks a signed aggregate into the
@@ -979,7 +980,6 @@ class latoken(Exchange, ImplicitAPI):
         #         "makerBuyer":false
         #     }
         #
-        type = None
         timestamp = self.safe_integer(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
@@ -1003,9 +1003,10 @@ class latoken(Exchange, ImplicitAPI):
         symbol = None
         marketResolved = market
         if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-            if (self.markets is not None) and (symbol in self.markets):
-                marketResolved = self.market(symbol)
+            knownSymbol = base + '/' + quote
+            if (self.markets is not None) and (knownSymbol in self.markets):
+                marketResolved = self.market(knownSymbol)
+            symbol = knownSymbol
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order')
         feeCost = self.safe_string(trade, 'fee')
@@ -1022,7 +1023,7 @@ class latoken(Exchange, ImplicitAPI):
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': type,
+            'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
@@ -1264,12 +1265,12 @@ class latoken(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = None
-        if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-        symbolKnown = (symbol is not None) and (self.markets is not None) and (symbol in self.markets)
         marketResolved = market
-        if symbolKnown:
-            marketResolved = self.market(symbol)
+        if (base is not None) and (quote is not None):
+            knownSymbol = base + '/' + quote
+            if (self.markets is not None) and (knownSymbol in self.markets):
+                marketResolved = self.market(knownSymbol)
+            symbol = knownSymbol
         orderSide = self.safe_string(order, 'side')
         side = None
         if orderSide is not None:
@@ -1940,7 +1941,7 @@ class latoken(Exchange, ImplicitAPI):
         url = apiUrl + requestString
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         #

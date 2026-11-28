@@ -361,8 +361,10 @@ class hollaex extends hollaex$1["default"] {
             const market = this.safeDict(pairs, key);
             const baseId = this.safeString(market, 'pair_base');
             const quoteId = this.safeString(market, 'pair_2');
-            const baseCode = this.commonCurrencyCode(baseId.toUpperCase());
-            const quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
+            const upperBaseId = baseId.toUpperCase();
+            const upperQuoteId = quoteId.toUpperCase();
+            const baseCode = this.commonCurrencyCode(upperBaseId);
+            const quoteCode = this.commonCurrencyCode(upperQuoteId);
             result.push({
                 'id': this.safeString(market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -688,13 +690,14 @@ class hollaex extends hollaex$1["default"] {
     }
     parseTickers(tickers, symbols = undefined, params = {}) {
         const result = {};
-        const keys = Object.keys(tickers);
+        const tickersDict = this.extend({}, tickers);
+        const keys = Object.keys(tickersDict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const ticker = this.safeDict(tickers, key, {});
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             result[symbol] = this.extend(this.parseTicker(ticker, market), params);
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
@@ -728,7 +731,7 @@ class hollaex extends hollaex$1["default"] {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.parse8601(this.safeString2(ticker, 'time', 'timestamp'));
         const close = this.safeString(ticker, 'close');
         return this.safeTicker({
@@ -815,7 +818,7 @@ class hollaex extends hollaex$1["default"] {
         //
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const datetime = this.safeString(trade, 'timestamp');
         const timestamp = this.parse8601(datetime);
         const side = this.safeString(trade, 'side');
@@ -1159,7 +1162,7 @@ class hollaex extends hollaex$1["default"] {
         if (response === undefined) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method
@@ -1338,7 +1341,7 @@ class hollaex extends hollaex$1["default"] {
         const meta = this.safeDict(params, 'meta', {});
         const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, params);
+        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam === true, params);
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -1592,13 +1595,10 @@ class hollaex extends hollaex$1["default"] {
         //     }
         //
         const wallet = this.safeList(response, 'wallet', []);
-        let addresses = undefined;
         if (network === undefined) {
-            addresses = wallet;
+            return this.parseDepositAddresses(wallet, codes, false);
         }
-        else {
-            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
-        }
+        const addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
@@ -1815,10 +1815,8 @@ class hollaex extends hollaex$1["default"] {
         const amount = this.safeNumber(transaction, 'amount');
         let address = this.safeString(transaction, 'address');
         let addressTo = undefined;
-        const addressFrom = undefined;
         let tag = undefined;
         let tagTo = undefined;
-        const tagFrom = undefined;
         if (address !== undefined) {
             const parts = address.split(':');
             address = this.safeString(parts, 0);
@@ -1861,10 +1859,10 @@ class hollaex extends hollaex$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'network': undefined,
-            'addressFrom': addressFrom,
+            'addressFrom': undefined,
             'address': address,
             'addressTo': addressTo,
-            'tagFrom': tagFrom,
+            'tagFrom': undefined,
             'tag': tag,
             'tagTo': tagTo,
             'type': type,

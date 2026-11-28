@@ -96,7 +96,18 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($singleQuery !== null) {
             return array( $singleQuery );
         }
-        return $this->safe_list($params, 'queries', array());
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        $rawQueries = $this->to_array($this->safe_list($params, 'queries', array()));
+        $rawQueriesLength = count($rawQueries);
+        $queries = array();
+        for ($i = 0; $i < $rawQueriesLength; $i++) {
+            $query = $this->safe_string($rawQueries, $i);
+            if ($query === null) {
+                throw new BadRequest($this->id . ' params.queries must be a list of strings');
+            }
+            $queries[] = $query;
+        }
+        return $queries;
     }
 
     public function require_event_query($params = array()) {
@@ -122,7 +133,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             if (is_array($params) && array_key_exists($scopeKey ?? '', $params)) {
                 return null;
             }
-            $extraNames = $extraNames . ', ' . $scopeKey;
+            $extraNames = $extraNames . ', ' . $this->safe_string($extraScopeParams, $i, '');
         }
         throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' . $extraNames . ' to scope the search');
     }
@@ -161,7 +172,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $sort = $this->safe_string($params, 'sort');
         if ($sort !== null) {
-            $sortKey = null;
+            $sortKey = '';
             if ($sort === 'volume') {
                 $sortKey = 'volume';
             } elseif ($sort === 'liquidity') {
@@ -169,7 +180,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             } elseif ($sort === 'newest') {
                 $sortKey = 'created';
             }
-            if ($sortKey !== null) {
+            if ($sortKey !== '') {
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
@@ -184,9 +195,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             $resultLength = count($result);
-            $sliceEnd = $limit;
-            if ($sliceEnd > $resultLength) {
-                $sliceEnd = $resultLength;
+            $limitValue = $this->safe_integer($params, 'limit', 0);
+            $sliceEnd = $resultLength;
+            if ($limitValue < $resultLength) {
+                $sliceEnd = $limitValue;
             }
             $result = $this->array_slice($result, 0, $sliceEnd);
         }
@@ -231,15 +243,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $matched = false;
             for ($qi = 0; $qi < $queriesLength; $qi++) {
                 $q = strtolower($this->safe_string($queries, $qi, ''));
-                if ($title === null) {
-                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing title');
-                }
                 if ($checkTitle && (mb_strpos($title, $q) !== false)) {
                     $matched = true;
                     break;
-                }
-                if ($description === null) {
-                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing description');
                 }
                 if ($checkDescription && (mb_strpos($description, $q) !== false)) {
                     $matched = true;
@@ -304,14 +310,15 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $matched = false;
             for ($ti = 0; $ti < count($eventTags); $ti++) {
                 $tag = $eventTags[$ti];
-                $tagLabel = null;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                $tagLabel = '';
                 if (gettype($tag) === 'string') {
-                    $tagLabel = $tag;
+                    $tagLabel = $this->safe_string($eventTags, $ti, '');
                 } else {
-                    $tagLabel = $this->safe_string_2($tag, 'slug', 'title');
+                    $tagLabel = $this->safe_string_2($tag, 'slug', 'title', '');
                 }
-                if ($tagLabel !== null) {
-                    $tagKey = $this->normalize_tag_key($tagLabel);
+                $tagKey = $this->normalize_tag_key($tagLabel);
+                if ($tagKey !== '') {
                     for ($wi = 0; $wi < count($wanted); $wi++) {
                         if (mb_strpos($tagKey, $wanted[$wi]) !== false) {
                             $matched = true;
@@ -640,7 +647,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $outcomesList = $this->safe_list($market, 'outcomes', array());
         for ($j = 0; $j < count($outcomesList); $j++) {
-            $oc = $outcomesList[$j];
+            $oc = $this->safe_dict($outcomesList, $j);
+            if ($oc === null) {
+                continue;
+            }
             $ocSymbol = $this->safe_string_2($oc, 'outcome', 'symbol');
             $ocId = $this->safe_string_2($oc, 'outcomeId', 'id');
             // assign unconditionally — safeString2 keeps the canonical key when present
@@ -728,6 +738,21 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if ($outcomes !== null) {
+            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
+            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
+            if ($loadAll && !$wasWarm && !$reload) {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                $coldMiss = false;
+                for ($i = 0; $i < count($outcomes); $i++) {
+                    if (!$this->has_outcome($outcomes[$i])) {
+                        $coldMiss = true;
+                    }
+                }
+                if ($coldMiss) {
+                    Async\await($this->load_outcomes());
+                }
+            }
             $missing = array();
             for ($i = 0; $i < count($outcomes); $i++) {
                 if ($reload || !$this->has_outcome($outcomes[$i])) {
@@ -735,21 +760,6 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             $missingLength = count($missing);
-            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
-            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($missingLength > 0) && ($loadAll) && !$wasWarm && !$reload) {
-                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                Async\await($this->load_outcomes());
-                $stillMissing = array();
-                for ($i = 0; $i < $missingLength; $i++) {
-                    if (!$this->has_outcome($missing[$i])) {
-                        $stillMissing[] = $missing[$i];
-                    }
-                }
-                $missing = $stillMissing;
-                $missingLength = count($missing);
-            }
             if ($missingLength > 0) {
                 Async\await($this->fetch_outcomes($missing));
             }
@@ -775,7 +785,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
          * @return {array} the outcome cache
          */
         for ($i = 0; $i < count($outcomeSymbols); $i++) {
-            Async\await($this->fetch_outcome($outcomeSymbols[$i]));
+            Async\await($this->fetch_outcome($this->safe_string($outcomeSymbols, $i, '')));
         }
         return $this->outcomes;
     }
@@ -845,8 +855,6 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $letters = 'abcdefghijklmnopqrstuvwxyz';
         for ($i = 0; $i < count($rawWords); $i++) {
             $word = $rawWords[$i];
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if (strlen($word) === 0) {
                 continue;
             }
@@ -1531,7 +1539,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' parsePredictionOpenInterest() is not supported yet');
     }
 
-    public function parse_prediction_trades(array $trades, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_prediction_trades(array $trades, ?array $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
          * parses a list of raw $trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
@@ -1549,7 +1557,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $rows = $this->to_array($trades);
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $parsed = $this->parse_prediction_trade($rows[$i], $outcomeObj);
+            $parsed = $this->parse_prediction_trade($this->safe_dict($rows, $i, array()), $outcomeObj);
             $trade = $this->extend($parsed, $params);
             $results[] = $trade;
         }
@@ -1558,7 +1566,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->filter_by_value_since_limit($results, 'outcome', $outcomeHandle, $since, $limit, 'timestamp', false);
     }
 
-    public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_prediction_orders(array $orders, ?array $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
          * parses a list of raw $orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
@@ -1573,7 +1581,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $rows = $this->to_array($orders);
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $parsed = $this->parse_prediction_order($rows[$i], $outcomeObj);
+            $parsed = $this->parse_prediction_order($this->safe_dict($rows, $i, array()), $outcomeObj);
             $order = $this->extend($parsed, $params);
             $results[] = $order;
         }
@@ -1597,7 +1605,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $rows = $this->to_array($positions);
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $parsed = $this->parse_prediction_position($rows[$i]);
+            $parsed = $this->parse_prediction_position($this->safe_dict($rows, $i, array()));
             $position = $this->extend($parsed, $params);
             $results[] = $position;
         }
@@ -1631,8 +1639,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->cost_to_precision($marketSymbol, $cost);
     }
 
-    public function pad_hex_to_even(?string $hex) {
-        if ($hex === null) {
+    public function pad_hex_to_even(string $hex) {
+        if ($hex === '') {
             return '';
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -1652,12 +1660,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return '000000000000000000000000' . $stripped;
     }
 
-    public function rlp_encode_bytes(?string $hex) {
-        if ($hex === null) {
-            return '';
-        }
+    public function rlp_encode_bytes(string $hex) {
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         $byteLength = $this->parse_to_int(strlen($hex) / 2);
+        if ($byteLength === null) {
+            return '';
+        }
         if ($byteLength === 0) {
             return '80';
         }
@@ -1668,7 +1676,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return $this->int_to_base16(128 . $byteLength) . $hex;
         }
         $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthHexLength = count($lengthHex);
+        if ((fmod($lengthHexLength, 2)) !== 0) {
+            $lengthHex = '0' . $lengthHex;
+        }
         $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
         return $this->int_to_base16(183 . $lengthOfLength) . $lengthHex . $hex;
     }
@@ -1679,11 +1690,17 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $concatenated = $concatenated . $this->safe_string($items, $i, '');
         }
         $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
+        if ($byteLength === null) {
+            return '';
+        }
         if ($byteLength < 56) {
             return $this->int_to_base16(192 . $byteLength) . $concatenated;
         }
         $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthHexLength = count($lengthHex);
+        if ((fmod($lengthHexLength, 2)) !== 0) {
+            $lengthHex = '0' . $lengthHex;
+        }
         $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
         return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
     }
@@ -1697,7 +1714,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return '';
         }
         $hex = $this->int_to_base16($value);
-        $hex = $this->pad_hex_to_even($hex);
+        $hexLength = count($hex);
+        if ((fmod($hexLength, 2)) !== 0) {
+            $hex = '0' . $hex;
+        }
         return $hex;
     }
 
@@ -1762,11 +1782,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
     }
 
-    public function wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
+    public function wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, ?int $timeout = 60000) {
         return Async\async(self::do_wait_for_transaction_receipt(...))($rpcUrl, $txHash, $timeout);
     }
 
-    private function do_wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
+    private function do_wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, ?int $timeout = 60000) {
         $start = $this->milliseconds();
         while (($this->milliseconds() - $start) < $timeout) {
             $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));

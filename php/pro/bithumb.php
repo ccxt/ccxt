@@ -90,7 +90,8 @@ class bithumb extends \ccxt\async\bithumb {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'watchTicker', 'generation', 2);
         $isGenerationTwo = ($generation === 2);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
         $messageHash = 'ticker:' . $market['symbol'];
@@ -147,7 +148,8 @@ class bithumb extends \ccxt\async\bithumb {
             $symbolsResolved = $symbolsNormalized;
         }
         $symbolsLengthDefined = count($symbolsResolved);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $streamMarketIds = array();
         $messageHashes = array();
@@ -259,22 +261,16 @@ class bithumb extends \ccxt\async\bithumb {
         //
         $content = $this->safe_dict($message, 'content');
         $isGenerationTwo = ($content === null);
-        $tickerMessage = null;
-        if ($isGenerationTwo) {
-            $tickerMessage = $message;
-        } else {
-            $tickerMessage = $content;
+        $tickerMessage = $message;
+        if (!$isGenerationTwo) {
+            $tickerMessage = $this->safe_dict($message, 'content', array());
         }
         $marketId = $this->safe_string_2($tickerMessage, 'symbol', 'code');
         if ($marketId === null) {
             return;
         }
-        $symbol = null;
-        if ($isGenerationTwo) {
-            $symbol = $this->safe_symbol($marketId, null, '-');
-        } else {
-            $symbol = $this->safe_symbol($marketId, null, '_');
-        }
+        $delimiter = $isGenerationTwo ? '-' : '_';
+        $symbol = $this->safe_symbol($marketId, null, $delimiter);
         if ($symbol === null) {
             return;
         }
@@ -345,8 +341,7 @@ class bithumb extends \ccxt\async\bithumb {
         //
         $code = $this->safe_string($ticker, 'code');
         if ($code !== null) {
-            $ticker['market'] = $this->safe_string($ticker, 'market', $code);
-            return $this->parse_ticker($ticker, $market);
+            return $this->parse_ticker($this->extend($ticker, array( 'market' => $this->safe_string($ticker, 'market', $code) )), $market);
         }
         $date = $this->safe_string($ticker, 'date', '');
         $time = $this->safe_string($ticker, 'time', '');
@@ -405,10 +400,11 @@ class bithumb extends \ccxt\async\bithumb {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'generation', 2);
         $isGenerationTwo = ($generation === 2);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook' . ':' . $symbolValue;
         $request = array(
             'type' => 'orderbookdepth',
@@ -584,10 +580,11 @@ class bithumb extends \ccxt\async\bithumb {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'watchTrades', 'generation', 2);
         $isGenerationTwo = ($generation === 2);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbolValue;
         $request = array(
             'type' => 'transaction',
@@ -751,7 +748,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "status" : "5100",
@@ -812,7 +809,8 @@ class bithumb extends \ccxt\async\bithumb {
             throw new BadRequest($this->id . ' watchBalance() is only supported for the generation 2 API');
         }
         Async\await($this->authenticate());
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($wsUrls, 'privateGen2', '');
         $messageHash = 'myAsset';
         $request = $this->build_gen2_subscription_request($messageHash, array( 'type' => $messageHash ));
@@ -905,7 +903,8 @@ class bithumb extends \ccxt\async\bithumb {
             );
             $this->options['ws'] = $wsOptions;
         }
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($wsUrls, 'privateGen2', '');
         $client = $this->client($url);
         return $client;
@@ -937,7 +936,8 @@ class bithumb extends \ccxt\async\bithumb {
             throw new BadRequest($this->id . ' watchOrders() is only supported for the generation 2 API');
         }
         Async\await($this->authenticate());
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($wsUrls, 'privateGen2', '');
         $messageHash = 'myOrder';
         $codes = $this->safe_list($params, 'codes', array());

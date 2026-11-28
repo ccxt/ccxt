@@ -28,6 +28,7 @@ type OrderBookInterface interface {
 	SetDatetime(datetime *string)
 	SetNonce(nonce *int64)
 	SetSymbol(symbol *string)
+	Fields() *WsOrderBook
 }
 
 type WsOrderBook struct {
@@ -36,7 +37,7 @@ type WsOrderBook struct {
 	Bids      IOrderBookSide `json:"bids"`
 	Timestamp *int64         `json:"timestamp"`
 	Datetime  any            `json:"datetime"`
-	Nonce     any            `json:"nonce"`
+	Nonce     *int64         `json:"nonce"`
 	Symbol    string         `json:"symbol"`
 	// prediction-market identity (nil for crypto exchanges — omitted from the
 	// json form then, matching the js/python/php/c#/java serializations)
@@ -65,7 +66,7 @@ func (this *WsOrderBook) ToMap() map[string]any {
 		"bids":      this.Bids.GetDataCopy(),
 		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
-		"nonce":     this.Nonce,
+		"nonce":     int64OrNil(this.Nonce),
 		"symbol":    strOrNil(this.Symbol),
 	}
 	// prediction-market identity — only present on prediction books
@@ -80,7 +81,7 @@ func (this *WsOrderBook) ToMap() map[string]any {
 func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
 	switch key {
 	case "nonce":
-		return this.Nonce
+		return int64OrNil(this.Nonce)
 	case "cache":
 		return this.Cache
 	case "asks":
@@ -127,7 +128,7 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 		Bids:      NewBids(bids, depth),
 		Timestamp: timestamp,
 		Datetime:  datetime,
-		Nonce:     SafeInteger(snapshotMap, "nonce", nil),
+		Nonce:     SafeInt64Typed(snapshotMap, "nonce"),
 		Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 	}
 }
@@ -147,17 +148,11 @@ func (this *WsOrderBook) Update(snapshot any) any {
 	if !ok {
 		return this
 	}
-	// ws messages are parsed with encoding/json, so numeric fields arrive as
-	// float64 / json.Number / string depending on the transport — normalize both
-	// sides through ParseInt, ignoring the MinInt64 "not a number" sentinel so a
-	// non-numeric value never masquerades as an older nonce
-	snapshotNonce := SafeValue(snapshotMap, "nonce", nil)
-	if snapshotNonce != nil && this.Nonce != nil {
-		newNonce := ParseInt(snapshotNonce)
-		currentNonce := ParseInt(this.Nonce)
-		if newNonce != math.MinInt64 && currentNonce != math.MinInt64 && newNonce <= currentNonce {
-			return this
-		}
+	// the snapshot nonce may arrive as float64 / json.Number / string: read it as int64;
+	// a non-numeric value reads nil and never masquerades as an older nonce
+	snapshotNonce := SafeInt64Typed(snapshotMap, "nonce")
+	if snapshotNonce != nil && this.Nonce != nil && *snapshotNonce <= *this.Nonce {
+		return this
 	}
 
 	return this.Reset(snapshot)
@@ -189,7 +184,7 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	for _, bid := range bids {
 		this.Bids.StoreArray(bid)
 	}
-	this.Nonce = SafeInteger(snapshotMap, "nonce", nil)
+	this.Nonce = SafeInt64Typed(snapshotMap, "nonce")
 	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
 		this.Timestamp = &ts
 		this.Datetime = Iso8601(ts)
@@ -216,7 +211,7 @@ func (this *WsOrderBook) GetCache() []any {
 // AppendCache buffers a delta like AppendToArray did; a scalar pointer is stored as its value
 // (every reader derefs it), so the cached elements never hold a Go pointer.
 func (this *WsOrderBook) AppendCache(message any) {
-	AppendToArray(&this.Cache, derefScalar(message))
+	this.Cache = append(this.GetCache(), derefScalar(message))
 }
 
 func (this *WsOrderBook) SetCache(cache any) {
@@ -241,7 +236,7 @@ func (this *WsOrderBook) String() string {
 	}
 
 	if this.Nonce != nil {
-		result.WriteString(fmt.Sprintf(" Nonce:%d", this.Nonce))
+		result.WriteString(fmt.Sprintf(" Nonce:%d", *this.Nonce))
 	}
 
 	result.WriteString(fmt.Sprintf(" Cache:%v", this.Cache))
@@ -425,7 +420,7 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 			Bids:      NewCountedBids(bids, depth),
 			Timestamp: timestamp,
 			Datetime:  datetime,
-			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
+			Nonce:     SafeInt64Typed(snapshotMap, "nonce"),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
 	}
@@ -437,7 +432,7 @@ func (this *CountedOrderBook) ToMap() map[string]any {
 		"bids":      this.Bids.GetDataCopy(),
 		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
-		"nonce":     this.Nonce,
+		"nonce":     int64OrNil(this.Nonce),
 		"symbol":    strOrNil(this.Symbol),
 	}
 }
@@ -471,7 +466,7 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 			Bids:      NewIndexedBids(bids, depth),
 			Timestamp: timestamp,
 			Datetime:  datetime,
-			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
+			Nonce:     SafeInt64Typed(snapshotMap, "nonce"),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
 	}
@@ -483,7 +478,7 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 		"bids":      this.Bids.GetDataCopy(),
 		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
-		"nonce":     this.Nonce,
+		"nonce":     int64OrNil(this.Nonce),
 		"symbol":    strOrNil(this.Symbol),
 	}
 }
@@ -549,7 +544,8 @@ func (this *WsOrderBook) SetDatetime(datetime *string) {
 
 func (this *WsOrderBook) SetNonce(nonce *int64) {
 	if nonce != nil {
-		this.Nonce = *nonce
+		n := *nonce
+		this.Nonce = &n
 	}
 }
 
@@ -559,8 +555,13 @@ func (this *WsOrderBook) SetSymbol(symbol *string) {
 	}
 }
 
+// Fields exposes the book's own fields (Counted/Indexed books promote it from the embedded *WsOrderBook)
+func (this *WsOrderBook) Fields() *WsOrderBook {
+	return this
+}
+
 func (this *WsOrderBook) GetNonce() any {
-	return this.Nonce
+	return int64OrNil(this.Nonce)
 }
 
 // GetAsks / GetBids answer the same side GetValue(book, "asks"|"bids") reads

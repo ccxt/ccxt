@@ -119,7 +119,7 @@ class grvt extends grvt$1["default"] {
         if (publicOrPrivate) {
             apiPart = 'publicMarket';
         }
-        return await this.watchMultiple(this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
+        return await this.watchMultiple(this.safeString(this.urls['api']['ws'], apiPart), messageHashes, payload, rawHashes);
     }
     requestId() {
         this.lockId();
@@ -371,7 +371,7 @@ class grvt extends grvt$1["default"] {
     }
     parseWsTrade(trade, market = undefined) {
         // same as REST api
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend({}, trade), market);
     }
     /**
      * @method
@@ -392,7 +392,8 @@ class grvt extends grvt$1["default"] {
         const symbolValue = this.symbol(symbol);
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, params);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -521,17 +522,17 @@ class grvt extends grvt$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const [limitOption, paramsLimitOption] = this.handleOptionIntegerAndParams(paramsChannel, 'watchOrderBook', 'limit', 100);
-        let limitResolved = limitOption;
+        let limitString = limitOption.toString();
         let paramsLimit = paramsLimitOption;
         if (limit !== undefined) {
-            limitResolved = limit;
+            limitString = limit.toString();
             paramsLimit = paramsChannel;
         }
         const [interval, paramsInterval] = this.handleOptionIntegerAndParams(paramsLimit, 'watchOrderBook', 'interval', 500);
         const symbolsNormalized = this.marketSymbols(symbols);
         let extraPart = undefined;
         if (isSnapshot) {
-            extraPart = interval.toString() + '-' + limitResolved.toString();
+            extraPart = interval.toString() + '-' + limitString;
         }
         else {
             extraPart = interval.toString();
@@ -640,7 +641,7 @@ class grvt extends grvt$1["default"] {
                 },
             };
             this.extendExchangeOptions(defaultOptions);
-            this.client(this.urls['api']['ws']['privateTrading']);
+            this.client(this.safeString(this.urls['api']['ws'], 'privateTrading'));
         }
     }
     /**
@@ -665,7 +666,7 @@ class grvt extends grvt$1["default"] {
         const rawHashes = [];
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            rawHashes.push(subAccountId + '-' + market['id']);
+            rawHashes.push(subAccountId + '-' + this.safeString(market, 'id', ''));
             messageHashes.push('myTrades::' + market['symbol']);
         }
         else {
@@ -756,7 +757,7 @@ class grvt extends grvt$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                rawHashes.push(subAccountId + '-' + market['id']);
+                rawHashes.push(subAccountId + '-' + this.safeString(market, 'id', ''));
                 messageHashes.push('positions::' + market['symbol']);
             }
         }
@@ -806,17 +807,13 @@ class grvt extends grvt$1["default"] {
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
-        const data = this.safeDict(message, 'feed');
-        const position = this.parseWsPosition(data);
+        const data = this.safeDict(message, 'feed', {});
+        const position = this.parsePosition(data);
         this.positions.append(position);
         const newPositions = [];
         newPositions.push(position);
         client.resolve(newPositions, 'positions::' + this.safeString(position, 'symbol', ''));
         client.resolve(newPositions, 'positions');
-    }
-    parseWsPosition(position, market = undefined) {
-        // same as REST api
-        return this.parsePosition(position, market);
     }
     /**
      * @method
@@ -844,7 +841,7 @@ class grvt extends grvt$1["default"] {
         else {
             const market = this.market(symbol);
             messageHashes.push('order::' + market['symbol']);
-            rawHashes.push(subAccountId + '-' + market['id']);
+            rawHashes.push(subAccountId + '-' + this.safeString(market, 'id', ''));
         }
         const request = {
             'stream': 'v1.order',
@@ -922,7 +919,7 @@ class grvt extends grvt$1["default"] {
         //        "prev_sequence_number": "16"
         //    }
         //
-        const data = this.safeDict(message, 'feed');
+        const data = this.safeDict(message, 'feed', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -934,7 +931,7 @@ class grvt extends grvt$1["default"] {
     }
     parseWsOrder(order, market = undefined) {
         // same as REST api
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     handleErrorMessage(client, response) {
         //

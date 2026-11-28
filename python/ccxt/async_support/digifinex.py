@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
-import json
-from ccxt.base.types import Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -371,58 +370,54 @@ class digifinex(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {
-                    '10001': [BadRequest, "Wrong request method, please check it's a GET ot POST request"],
-                    '10002': [AuthenticationError, 'Invalid ApiKey'],
-                    '10003': [AuthenticationError, "Sign doesn't match"],
-                    '10004': [BadRequest, 'Illegal request parameters'],
-                    '10005': [DDoSProtection, 'Request frequency exceeds the limit'],
-                    '10006': [PermissionDenied, 'Unauthorized to execute self request'],
-                    '10007': [PermissionDenied, 'IP address Unauthorized'],
-                    '10008': [InvalidNonce, 'Timestamp for self request is invalid, timestamp must within 1 minute'],
-                    '10009': [NetworkError, 'Unexist endpoint, please check endpoint URL'],
-                    '10011': [AccountSuspended, 'ApiKey expired. Please go to client side to re-create an ApiKey'],
-                    '20001': [PermissionDenied, 'Trade is not open for self trading pair'],
-                    '20002': [PermissionDenied, 'Trade of self trading pair is suspended'],
-                    '20003': [InvalidOrder, 'Invalid price or amount'],
-                    '20007': [InvalidOrder, 'Price precision error'],
-                    '20008': [InvalidOrder, 'Amount precision error'],
-                    '20009': [InvalidOrder, 'Amount is less than the minimum requirement'],
-                    '20010': [InvalidOrder, 'Cash Amount is less than the minimum requirement'],
-                    '20011': [InsufficientFunds, 'Insufficient balance'],
-                    '20012': [BadRequest, 'Invalid trade type, valid value: buy/sell)'],
-                    '20013': [InvalidOrder, 'No order info found'],
-                    '20014': [BadRequest, 'Invalid date, Valid format: 2018-07-25)'],
-                    '20015': [BadRequest, 'Date exceeds the limit'],
-                    '20018': [PermissionDenied, 'Your trading rights have been banned by the system'],
-                    '20019': [BadSymbol, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front'],
-                    '20020': [DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."],
-                    '50000': [ExchangeError, 'Exception error'],
-                    '20021': [BadRequest, 'Invalid currency'],
-                    '20022': [BadRequest, 'The ending timestamp must be larger than the starting timestamp'],
-                    '20023': [BadRequest, 'Invalid transfer type'],
-                    '20024': [BadRequest, 'Invalid amount'],
-                    '20025': [BadRequest, 'This currency is not transferable at the moment'],
-                    '20026': [InsufficientFunds, 'Transfer amount exceed your balance'],
-                    '20027': [PermissionDenied, 'Abnormal account status'],
-                    '20028': [PermissionDenied, 'Blacklist for transfer'],
-                    '20029': [PermissionDenied, 'Transfer amount exceed your daily limit'],
-                    '20030': [BadRequest, 'You have no position on self trading pair'],
-                    '20032': [PermissionDenied, 'Withdrawal limited'],
-                    '20033': [BadRequest, 'Wrong Withdrawal ID'],
-                    '20034': [PermissionDenied, 'Withdrawal service of self crypto has been closed'],
-                    '20035': [PermissionDenied, 'Withdrawal limit'],
-                    '20036': [ExchangeError, 'Withdrawal cancellation failed'],
-                    '20037': [InvalidAddress, 'The withdrawal address, Tag or chain type is not included in the withdrawal management list'],
-                    '20038': [InvalidAddress, 'The withdrawal address is not on the white list'],
-                    '20039': [ExchangeError, "Can't be canceled in current status"],
-                    '20040': [RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day'],
-                    '20041': [PermissionDenied, 'Beyond the daily withdrawal limit'],
-                    '20042': [BadSymbol, 'Current trading pair does not support API trading'],
-                    '400002': [BadRequest, 'Invalid Parameter'],
-                },
-                'broad': {
-                },
+                '10001': BadRequest,
+                '10002': AuthenticationError,
+                '10003': AuthenticationError,
+                '10004': BadRequest,
+                '10005': DDoSProtection,
+                '10006': PermissionDenied,
+                '10007': PermissionDenied,
+                '10008': InvalidNonce,
+                '10009': NetworkError,
+                '10011': AccountSuspended,
+                '20001': PermissionDenied,
+                '20002': PermissionDenied,
+                '20003': InvalidOrder,
+                '20007': InvalidOrder,
+                '20008': InvalidOrder,
+                '20009': InvalidOrder,
+                '20010': InvalidOrder,
+                '20011': InsufficientFunds,
+                '20012': BadRequest,
+                '20013': InvalidOrder,
+                '20014': BadRequest,
+                '20015': BadRequest,
+                '20018': PermissionDenied,
+                '20019': BadSymbol,
+                '20020': DDoSProtection,
+                '50000': ExchangeError,
+                '20021': BadRequest,
+                '20022': BadRequest,
+                '20023': BadRequest,
+                '20024': BadRequest,
+                '20025': BadRequest,
+                '20026': InsufficientFunds,
+                '20027': PermissionDenied,
+                '20028': PermissionDenied,
+                '20029': PermissionDenied,
+                '20030': BadRequest,
+                '20032': PermissionDenied,
+                '20033': BadRequest,
+                '20034': PermissionDenied,
+                '20035': PermissionDenied,
+                '20036': ExchangeError,
+                '20037': InvalidAddress,
+                '20038': InvalidAddress,
+                '20039': ExchangeError,
+                '20040': RateLimitExceeded,
+                '20041': PermissionDenied,
+                '20042': BadSymbol,
+                '400002': BadRequest,
             },
             'options': {
                 'defaultType': 'spot',
@@ -1096,7 +1091,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'date': date,
             }, self.safe_dict(tickers, i))
             ticker = self.parse_ticker(rawTicker)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1317,7 +1312,10 @@ class digifinex(Exchange, ImplicitAPI):
         amountString = self.safe_string_n(trade, ['amount', 'volume', 'size'])
         marketId = self.safe_string_upper_2(trade, 'symbol', 'instrument_id')
         symbol = self.safe_symbol(marketId, market)
-        marketResolved = self.safe_market(marketId if (market is None) else None, market)
+        marketIdResolved = None
+        if market is None:
+            marketIdResolved = marketId
+        marketResolved = self.safe_market(marketIdResolved, market)
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
         type = None
@@ -1960,7 +1958,7 @@ class digifinex(Exchange, ImplicitAPI):
         error = self.safe_list(response, 'error', [])
         result = []
         for i in range(0, len(success)):
-            order = success[i]
+            order = self.safe_string(success, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
@@ -1968,7 +1966,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'status': 'canceled',
             }))
         for i in range(0, len(error)):
-            order = error[i]
+            order = self.safe_string(error, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
@@ -1999,7 +1997,7 @@ class digifinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             if market is None:
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument for swap markets')
-            marketSymbol = market['symbol']
+            marketSymbol = self.safe_string(market, 'symbol', '')
             orders = []
             for i in range(0, len(ids)):
                 orderItem = {
@@ -2046,15 +2044,14 @@ class digifinex(Exchange, ImplicitAPI):
         symbolsById = {}
         marketType = None
         for i in range(0, len(orders)):
-            order = orders[i]
-            id = self.safe_string(order, 'id')
+            id = self.safe_string(orders[i], 'id')
             if id is None:
                 raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires an id for each order')
-            symbol = self.safe_string(order, 'symbol')
+            symbol = self.safe_string(orders[i], 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires a symbol for each order')
             market = self.market(symbol)
-            orderMarketType = market['type']
+            orderMarketType = self.safe_string(market, 'type')
             if marketType is None:
                 marketType = orderMarketType
             elif marketType != orderMarketType:
@@ -2068,8 +2065,8 @@ class digifinex(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' cancelOrdersForSymbols() accepts up to 20 orders for swap markets')
             ordersRequests = []
             for i in range(0, len(ids)):
-                market = self.market(symbols[i])
-                marketId = market['id']
+                market = self.market(self.safe_string(symbols, i))
+                marketId = self.safe_string(market, 'id')
                 orderId = ids[i]
                 ordersRequests.append({
                     'instrument_id': marketId,
@@ -2095,7 +2092,7 @@ class digifinex(Exchange, ImplicitAPI):
                 result.append(self.safe_order({
                     'info': orderId,
                     'id': orderId,
-                    'symbol': symbols[i],
+                    'symbol': self.safe_string(symbols, i),
                     'status': status,
                 }))
             return result
@@ -2563,7 +2560,7 @@ class digifinex(Exchange, ImplicitAPI):
         order = data if (not isMargin and (marketType == 'swap')) else self.safe_value(data, 0)
         if order is None:
             raise OrderNotFound(self.id + ' fetchOrder() order ' + idValue + ' not found')
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -2854,7 +2851,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        addresses = self.index_by(self.parse_deposit_addresses(data, [currency['code']], False), 'currency')
+        addresses = self.index_by(self.parse_deposit_addresses(data, [self.safe_string(currency, 'code', '')], False), 'currency')
         address = self.safe_dict(addresses, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
@@ -3080,7 +3077,7 @@ class digifinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        currencyId = currency['id']
+        currencyId = self.safe_string(currency, 'id')
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
@@ -3254,9 +3251,9 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'list', [])
         result = None
         for i in range(0, len(data)):
-            entry = data[i]
-            if self.safe_string(entry, 'currency') == code:
-                result = entry
+            entryCurrency = self.safe_string(data[i], 'currency', '')
+            if entryCurrency == code:
+                result = data[i]
         currency = self.currency(code)
         return self.parse_borrow_rate(result, currency)
 
@@ -3311,7 +3308,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_borrow_rates(self, info: list[object], codeKey: Str) -> dict:
+    def parse_borrow_rates(self, info: list[object], codeKey: str) -> dict:
         #
         #     {
         #         "valuation_rate": 1,
@@ -3552,14 +3549,10 @@ class digifinex(Exchange, ImplicitAPI):
         market = None
         marketType = None
         if symbolsNormalized is not None:
-            symbol = None
-            if isinstance(symbolsNormalized, list):
-                symbolsLength = len(symbolsNormalized)
-                if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                symbol = symbolsNormalized[0]
-            else:
-                symbol = symbolsNormalized
+            symbolsLength = len(symbolsNormalized)
+            if symbolsLength > 1:
+                raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+            symbol = self.safe_string(symbolsNormalized, 0)
             market = self.market(symbol)
         paramsMarketType = None
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchPositions', market, params)
@@ -3637,7 +3630,8 @@ class digifinex(Exchange, ImplicitAPI):
         positions = self.safe_list(response, positionRequest, [])
         result = []
         for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i], market))
+            parsedPosition = self.parse_position(self.safe_dict(positions, i, {}), market)
+            result.append(parsedPosition)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
@@ -3727,7 +3721,7 @@ class digifinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             dataRequest = 'data'
         data = self.safe_list(response, dataRequest, [])
-        position = self.parse_position(data[0], market)
+        position = self.parse_position(self.safe_dict(data, 0, {}), market)
         if marketType == 'swap':
             return position
         else:
@@ -3776,7 +3770,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(position, 'instrument_id', 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         marginMode = self.safe_string(position, 'margin_mode')
         if marginMode is not None:
             marginMode = 'cross' if (marginMode == 'crossed') else 'isolated'
@@ -4191,8 +4185,10 @@ class digifinex(Exchange, ImplicitAPI):
                             'deposit': depositResult,
                         }
                 else:
-                    depositWithdrawFee['withdraw'] = withdrawResult
-                    depositWithdrawFee['deposit'] = depositResult
+                    depositWithdrawFees[code] = self.extend(depositWithdrawFee, {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    })
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]
@@ -4391,7 +4387,7 @@ class digifinex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencoded = ''
         if signed and (pathPart == '/swap/v2') and (method == 'POST'):
-            urlencoded = json.dumps(params)
+            urlencoded = self.json(params)
         else:
             urlencoded = self.urlencode(self.keysort(query))
         if signed:
@@ -4427,7 +4423,7 @@ class digifinex(Exchange, ImplicitAPI):
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fall back to default error handler
         codeError = self.safe_string(response, 'code')
@@ -4436,6 +4432,55 @@ class digifinex(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         if codeError is None:
             raise BadResponse(feedback)
-        unknownError = [ExchangeError, feedback]
-        ExceptionClass, message = self.safe_value(self.exceptions['exact'], codeError, unknownError)
-        raise ExceptionClass(message)
+        message = self.safe_string({
+            '10001': "Wrong request method, please check it's a GET ot POST request",
+            '10002': 'Invalid ApiKey',
+            '10003': "Sign doesn't match",
+            '10004': 'Illegal request parameters',
+            '10005': 'Request frequency exceeds the limit',
+            '10006': 'Unauthorized to execute self request',
+            '10007': 'IP address Unauthorized',
+            '10008': 'Timestamp for self request is invalid, timestamp must within 1 minute',
+            '10009': 'Unexist endpoint, please check endpoint URL',
+            '10011': 'ApiKey expired. Please go to client side to re-create an ApiKey',
+            '20001': 'Trade is not open for self trading pair',
+            '20002': 'Trade of self trading pair is suspended',
+            '20003': 'Invalid price or amount',
+            '20007': 'Price precision error',
+            '20008': 'Amount precision error',
+            '20009': 'Amount is less than the minimum requirement',
+            '20010': 'Cash Amount is less than the minimum requirement',
+            '20011': 'Insufficient balance',
+            '20012': 'Invalid trade type, valid value: buy/sell)',
+            '20013': 'No order info found',
+            '20014': 'Invalid date, Valid format: 2018-07-25)',
+            '20015': 'Date exceeds the limit',
+            '20018': 'Your trading rights have been banned by the system',
+            '20019': 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front',
+            '20020': "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.",
+            '50000': 'Exception error',
+            '20021': 'Invalid currency',
+            '20022': 'The ending timestamp must be larger than the starting timestamp',
+            '20023': 'Invalid transfer type',
+            '20024': 'Invalid amount',
+            '20025': 'This currency is not transferable at the moment',
+            '20026': 'Transfer amount exceed your balance',
+            '20027': 'Abnormal account status',
+            '20028': 'Blacklist for transfer',
+            '20029': 'Transfer amount exceed your daily limit',
+            '20030': 'You have no position on self trading pair',
+            '20032': 'Withdrawal limited',
+            '20033': 'Wrong Withdrawal ID',
+            '20034': 'Withdrawal service of self crypto has been closed',
+            '20035': 'Withdrawal limit',
+            '20036': 'Withdrawal cancellation failed',
+            '20037': 'The withdrawal address, Tag or chain type is not included in the withdrawal management list',
+            '20038': 'The withdrawal address is not on the white list',
+            '20039': "Can't be canceled in current status",
+            '20040': 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day',
+            '20041': 'Beyond the daily withdrawal limit',
+            '20042': 'Current trading pair does not support API trading',
+            '400002': 'Invalid Parameter',
+        }, codeError, feedback)
+        self.throw_exactly_matched_exception(self.exceptions, codeError, message)
+        raise ExchangeError(message)

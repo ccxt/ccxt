@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, OrderBook, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -133,7 +133,7 @@ class p2b(ccxt.async_support.p2b):
         nameOption, paramsName = self.handle_option_string_and_params(params, 'watchTicker', 'name', name)
         market = self.market(symbol)
         self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
-        tickerSubs = self.options['tickerSubs']
+        tickerSubs = self.safe_dict(self.options, 'tickerSubs', {})
         request = list(tickerSubs.keys())
         return await self.subscribe(nameOption + '.subscribe', nameOption + '::' + self.safe_string(market, 'symbol', ''), request, paramsName)
 
@@ -276,7 +276,7 @@ class p2b(ccxt.async_support.p2b):
         timeframe = self.find_timeframe(channel, timeframes)
         symbol = self.safe_string(market, 'symbol')
         parsed = self.parse_ohlcv(data, market)
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if symbol is not None:
             if stored is None:
@@ -320,8 +320,7 @@ class p2b(ccxt.async_support.p2b):
             tradesArray = ArrayCache(tradesLimit)
             self.trades[symbol] = tradesArray
         for i in range(0, len(trades)):
-            item = trades[i]
-            trade = self.parse_trade(item, market)
+            trade = self.parse_trade(self.safe_dict(trades, i, {}), market)
             tradesArray.append(trade)
         messageHash = 'deals::' + symbol
         client.resolve(tradesArray, messageHash)
@@ -460,7 +459,7 @@ class p2b(ccxt.async_support.p2b):
         if endpoint is not None:
             endpoint(client, message)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         error = self.safe_string(message, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' error: ' + self.json(error))

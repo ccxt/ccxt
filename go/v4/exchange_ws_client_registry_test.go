@@ -14,12 +14,12 @@ func newOwnedBaseExchange() *BaseExchange {
 func TestWsClientRegistryOwnsOneClientPerUrl(t *testing.T) {
 	exchange := newOwnedBaseExchange()
 	builds := 0
-	build := func() any {
+	build := func() *WSClient {
 		builds++
 		return NewWSClient("wss://a", nil, nil, nil, nil, "")
 	}
-	first, _ := exchange.wsClientGetOrCreate("wss://a", build).(*WSClient)
-	second, _ := exchange.wsClientGetOrCreate("wss://a", build).(*WSClient)
+	first := exchange.wsClientGetOrCreate("wss://a", build)
+	second := exchange.wsClientGetOrCreate("wss://a", build)
 	if first == nil || second == nil {
 		t.Fatalf("get-or-create answered nil")
 	}
@@ -29,7 +29,7 @@ func TestWsClientRegistryOwnsOneClientPerUrl(t *testing.T) {
 	if builds != 1 {
 		t.Fatalf("builds = %d, want 1", builds)
 	}
-	if published := exchange.Clients["wss://a"]; published != any(first) {
+	if published := exchange.Clients["wss://a"]; published != first {
 		t.Fatalf("published entry = %v, want the created client", published)
 	}
 }
@@ -38,7 +38,7 @@ func TestWsClientRegistryDeleteIfSame(t *testing.T) {
 	exchange := newOwnedBaseExchange()
 	kept := NewWSClient("wss://b", nil, nil, nil, nil, "")
 	other := NewWSClient("wss://b", nil, nil, nil, nil, "")
-	exchange.wsClientGetOrCreate("wss://b", func() any { return kept })
+	exchange.wsClientGetOrCreate("wss://b", func() *WSClient { return kept })
 
 	// a client that is not the registered one leaves the entry alone
 	exchange.wsClientDeleteIfSame("wss://b", other)
@@ -54,7 +54,7 @@ func TestWsClientRegistryDeleteIfSame(t *testing.T) {
 func TestWsClientRegistryDeleteIfErrored(t *testing.T) {
 	exchange := newOwnedBaseExchange()
 	client := NewWSClient("wss://e", nil, nil, nil, nil, "")
-	exchange.wsClientGetOrCreate("wss://e", func() any { return client })
+	exchange.wsClientGetOrCreate("wss://e", func() *WSClient { return client })
 
 	exchange.wsClientDeleteIfErrored("wss://e")
 	if _, ok := exchange.Clients["wss://e"]; !ok {
@@ -74,7 +74,7 @@ func TestWsClientRegistryDrainHandsBackEveryClient(t *testing.T) {
 		key := url
 		client := NewWSClient(key, nil, nil, nil, nil, "")
 		want[key] = client
-		exchange.wsClientGetOrCreate(key, func() any { return client })
+		exchange.wsClientGetOrCreate(key, func() *WSClient { return client })
 	}
 	drained := exchange.wsClientDrain()
 	if len(drained) != len(want) {
@@ -87,5 +87,34 @@ func TestWsClientRegistryDrainHandsBackEveryClient(t *testing.T) {
 	}
 	if left := len(exchange.Clients); left != 0 {
 		t.Fatalf("drain must clear the registry, %d entries left", left)
+	}
+}
+
+func TestWsClientRegistryTypedReadsKeepNil(t *testing.T) {
+	exchange := newOwnedBaseExchange()
+	// a missing url reads as a nil interface, the answer generated `client == nil` tests rely on
+	var missing ClientInterface = nil
+	if entry := exchange.wsClients()["wss://none"]; entry != nil {
+		missing = entry
+	}
+	if missing != nil {
+		t.Fatalf("a missing client must read as nil")
+	}
+	if SafeValue(exchange.Clients, "wss://none", nil) != nil || InOp(exchange.Clients, "wss://none") {
+		t.Fatalf("the helpers must answer absent for a missing client")
+	}
+	client := NewWSClient("wss://f", nil, nil, nil, nil, "")
+	exchange.wsClientGetOrCreate("wss://f", func() *WSClient { return client })
+	if got, _ := SafeValue(exchange.Clients, "wss://f", nil).(*WSClient); got != client {
+		t.Fatalf("SafeValue must answer the registered client")
+	}
+	if !InOp(exchange.Clients, "wss://f") {
+		t.Fatalf("InOp must see the registered client")
+	}
+	if exchange.wsClientGetOrCreate("wss://g", func() *WSClient { return nil }) != nil {
+		t.Fatalf("a failed build must answer nil")
+	}
+	if _, ok := exchange.Clients["wss://g"]; ok {
+		t.Fatalf("a failed build must not be registered")
 	}
 }

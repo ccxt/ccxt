@@ -111,7 +111,8 @@ export default class coinone extends coinoneRest {
         if ((base === undefined) || (quote === undefined)) {
             return;
         }
-        const symbol = this.symbol(base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol(marketSymbol);
         const timestamp = this.safeInteger(data, 'timestamp');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -236,7 +237,8 @@ export default class coinone extends coinoneRest {
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol(base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol(marketSymbol);
         }
         return this.safeTicker({
             'symbol': symbol,

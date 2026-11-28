@@ -76,7 +76,8 @@ export default class bithumb extends bithumbRest {
         }
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchTicker', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = isGenerationTwo ? this.safeString(wsUrls, 'publicGen2', '') : this.safeString(wsUrls, 'public', '');
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
@@ -128,7 +129,8 @@ export default class bithumb extends bithumbRest {
             symbolsResolved = symbolsNormalized;
         }
         const symbolsLengthDefined = symbolsResolved.length;
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = isGenerationTwo ? this.safeString(wsUrls, 'publicGen2', '') : this.safeString(wsUrls, 'public', '');
         const streamMarketIds = [];
         const messageHashes = [];
@@ -241,24 +243,16 @@ export default class bithumb extends bithumbRest {
         //
         const content = this.safeDict(message, 'content');
         const isGenerationTwo = (content === undefined);
-        let tickerMessage = undefined;
-        if (isGenerationTwo) {
-            tickerMessage = message;
-        }
-        else {
-            tickerMessage = content;
+        let tickerMessage = message;
+        if (!isGenerationTwo) {
+            tickerMessage = this.safeDict(message, 'content', {});
         }
         const marketId = this.safeString2(tickerMessage, 'symbol', 'code');
         if (marketId === undefined) {
             return;
         }
-        let symbol = undefined;
-        if (isGenerationTwo) {
-            symbol = this.safeSymbol(marketId, undefined, '-');
-        }
-        else {
-            symbol = this.safeSymbol(marketId, undefined, '_');
-        }
+        const delimiter = isGenerationTwo ? '-' : '_';
+        const symbol = this.safeSymbol(marketId, undefined, delimiter);
         if (symbol === undefined) {
             return;
         }
@@ -328,8 +322,7 @@ export default class bithumb extends bithumbRest {
         //
         const code = this.safeString(ticker, 'code');
         if (code !== undefined) {
-            ticker['market'] = this.safeString(ticker, 'market', code);
-            return this.parseTicker(ticker, market);
+            return this.parseTicker(this.extend(ticker, { 'market': this.safeString(ticker, 'market', code) }), market);
         }
         const date = this.safeString(ticker, 'date', '');
         const time = this.safeString(ticker, 'time', '');
@@ -383,10 +376,11 @@ export default class bithumb extends bithumbRest {
         }
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchOrderBook', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = isGenerationTwo ? this.safeString(wsUrls, 'publicGen2', '') : this.safeString(wsUrls, 'public', '');
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook' + ':' + symbolValue;
         let request = {
             'type': 'orderbookdepth',
@@ -556,10 +550,11 @@ export default class bithumb extends bithumbRest {
         }
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'watchTrades', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = isGenerationTwo ? this.safeString(wsUrls, 'publicGen2', '') : this.safeString(wsUrls, 'public', '');
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         let request = {
             'type': 'transaction',
@@ -780,7 +775,8 @@ export default class bithumb extends bithumbRest {
             throw new BadRequest(this.id + ' watchBalance() is only supported for the generation 2 API');
         }
         await this.authenticate();
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = this.safeString(wsUrls, 'privateGen2', '');
         const messageHash = 'myAsset';
         const request = this.buildGen2SubscriptionRequest(messageHash, { 'type': messageHash });
@@ -872,7 +868,8 @@ export default class bithumb extends bithumbRest {
             };
             this.options['ws'] = wsOptions;
         }
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = this.safeString(wsUrls, 'privateGen2', '');
         const client = this.client(url);
         return client;
@@ -899,7 +896,8 @@ export default class bithumb extends bithumbRest {
             throw new BadRequest(this.id + ' watchOrders() is only supported for the generation 2 API');
         }
         await this.authenticate();
-        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(urlsApi, 'ws', {});
         const url = this.safeString(wsUrls, 'privateGen2', '');
         let messageHash = 'myOrder';
         const codes = this.safeList(params, 'codes', []);

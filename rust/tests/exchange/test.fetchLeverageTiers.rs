@@ -10,26 +10,26 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLeverageTiers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLeverageTiers".into());
-    let mut tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_leverage_tiers", vec![Value::from(vec![symbol.clone()])]).await;
+    let method: Value = Value::Str("fetchLeverageTiers".into());
+    let tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_leverage_tiers", vec![Value::from(vec![symbol.clone()])]).await;
     // const format = {
     //     'RAY/USDT': [
     //       {},
     //     ],
     // }
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), tiers.clone(), symbol.clone()]);
-    let mut tierKeys: Value = object_keys(&tiers);
+    let tierKeys: Value = object_keys(&tiers);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tierKeys.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1645: bool = true;
-        while { if !__for_first_1645 { i += 1; } __for_first_1645 = false; i < (tierKeys.len() as i64) } {
-        let mut tiersForSymbol: Value = get_value(&tiers, &tierKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (tierKeys.len() as i64) } {
+        let tiersForSymbol: Value = get_value(&tiers, &tierKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiersForSymbol.clone(), symbol.clone()]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1644: bool = true;
-            while { if !__for_first_1644 { j += 1; } __for_first_1644 = false; j < (tiersForSymbol.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (tiersForSymbol.len() as i64) } {
             testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), tiersForSymbol.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }

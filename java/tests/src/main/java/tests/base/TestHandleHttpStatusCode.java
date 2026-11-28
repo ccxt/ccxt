@@ -98,9 +98,9 @@ public class TestHandleHttpStatusCode extends BaseTest
             // dispatch composition: the base handleErrors stub returns undefined, so an
             // error envelope on an uncovered status passes both steps without a throw —
             // a derived handleErrors that wants to surface it must throw on its own
-            Object skip = exchange.handleErrors(406, "Not Acceptable", "url", "GET", new HashMap<String, Object>() {{}}, "{\"success\":false}", new HashMap<String, Object>() {{
+            Object skip = exchange.handleErrors(406L, "Not Acceptable", "url", "GET", new HashMap<String, Object>() {{}}, "{\"success\":false}", new HashMap<String, Object>() {{
                 put( "success", false );
-            }}, new HashMap<String, Object>() {{}}, "");
+            }}, new HashMap<String, Object>() {{}}, (String) (null));
             Assert(java.util.Objects.equals(skip, null), "the base handleErrors stub should return undefined");
             exchange.handleHttpStatusCode(406, "Not Acceptable", "url", "GET", "{\"success\":false}");
         }

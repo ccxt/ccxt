@@ -6,7 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict, Endpoint, List } from './base/types.js';
-import type { OpenInterest } from './base/types.js';
+import type { OpenInterest, Bool } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -552,7 +552,7 @@ export default class hibachi extends Exchange {
         //      }
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString (trade, 'id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
@@ -915,7 +915,7 @@ export default class hibachi extends Exchange {
             'signature': signature,
             'maxFeesPercent': this.numberToString (feeRate),
         };
-        const postOnly = this.isPostOnly (type.toUpperCase () === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly (type.toUpperCase () === 'MARKET', false, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
@@ -1836,7 +1836,7 @@ export default class hibachi extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2215,7 +2215,8 @@ export default class hibachi extends Exchange {
     parseSettlements (settlements: any[], market: Market = undefined): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (settlements[i], market));
+            const settlementRow: Dict = this.extend ({}, settlements[i]);
+            result.push (this.parseSettlement (settlementRow, market));
         }
         return result;
     }

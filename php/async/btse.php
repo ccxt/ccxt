@@ -1038,7 +1038,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "timestamp": 1786003200911,
@@ -1228,7 +1228,7 @@ class btse extends Exchange {
             $entry = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($entry, 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             if ($symbolsNormalized === null || $this->in_array($symbol, $symbolsNormalized)) {
                 $levels = $this->safe_list($entry, 'riskLimits', array());
                 $tiers = array();
@@ -2016,7 +2016,7 @@ class btse extends Exchange {
         $isLimitOrder = ($typeValue === 'LIMIT');
         $postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $postOnly, $query); // this will remove PO from params.timeInForce if present
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, false, $query); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
@@ -2176,40 +2176,40 @@ class btse extends Exchange {
 
     private function do_create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
-         * create a trade $order on contract $market
+         * create a trade order on contract $market
          *
-         * @see https://docs.btse.com/futures/rest/place-$order
-         * @see https://docs.btse.com/futures/rest/place-algo-$order
+         * @see https://docs.btse.com/futures/rest/place-order
+         * @see https://docs.btse.com/futures/rest/place-algo-order
          *
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market', 'limit', 'OCO', 'PEG', 'TWAP' or 'TRAILING'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of you want to trade in units of the base currency
-         * @param {float} [$price] the $price that the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientOrderId] a unique id for the $order
-         * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately, default is false
-         * @param {bool} [$params->reduceOnly] if true, the $order will only reduce a current position, not increase it, default is false
+         * @param {string} [$params->clientOrderId] a unique id for the order
+         * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately, default is false
+         * @param {bool} [$params->reduceOnly] if true, the order will only reduce a current position, not increase it, default is false
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', 'PO', 'HALFSEC', 'HALFMIN', 'FIVEMIN', 'HOUR', 'TWELVEHOUR', 'DAY', 'WEEK' or 'MONTH'
          * @param {bool} [$params->hedged] true for $hedged mode, false for one way mode, default is false
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross' - the exchange does not have cross/isolated margin modes but instead has 'ONE_WAY', 'HEDGE' and 'ISOLATED' position modes, so this param will be converted to the appropriate position mode
          * @param {string} [$params->positionMode] 'ONE_WAY', 'HEDGE' or 'ISOLATED' - if not provided, it will be derived from the $marginMode and $hedged $params
-         * @param {float} [$params->triggerPrice] the $price that a trigger $order is triggered at, same as $takeProfitPrice
-         * @param {float} [$params->stopLossPrice] the $price that a stop loss $order is triggered at
-         * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at
+         * @param {float} [$params->triggerPrice] the $price that a trigger order is triggered at, same as $takeProfitPrice
+         * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
          * @param {string} [$params->triggerPriceType] 'last', 'mark' or 'index', default is 'mark'
          * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] the percent to trail away from the current $market $price
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {string} [$params->takeProfit.priceType] 'last', 'mark' or 'index', default is 'mark'
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {string} [$params->stopLoss.priceType] 'last', 'mark' or 'index', default is 'mark'
          * @param {float} [$params->deviation] *PEG orders only* the offset applied to the pegged reference $price
-         * @param {float} [$params->stealth] *PEG orders only* the portion of the $order size displayed on the book
+         * @param {float} [$params->stealth] *PEG orders only* the portion of the order size displayed on the book
          * @param {float} [$params->stopPrice] *NB - It is NOT the $stopLossPrice!!! OCO orders only* the limit $price of the stop loss leg
-         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -2246,7 +2246,7 @@ class btse extends Exchange {
         $isLimitOrder = ($typeValue === 'LIMIT');
         $postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $postOnly, $query); // this will remove PO from params.timeInForce if present
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, false, $query); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
@@ -2379,13 +2379,7 @@ class btse extends Exchange {
             }
             $response = Async\await($this->privatePostFuturesApiV3TradeOrdersAlgo($this->extend($request, $query)));
         }
-        // the normal futures endpoint responds with a single order dict, keep a
-        // one element array guard in case a gateway wraps it
-        $order = $response;
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $order = $this->safe_dict($response, 0, array());
-        }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($response, $market);
     }
 
     public function encode_trigger_price_type(?string $priceType): ?string {
@@ -2448,7 +2442,7 @@ class btse extends Exchange {
         if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
             $order = $this->safe_dict($order, 0, array());
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -3000,7 +2994,8 @@ class btse extends Exchange {
         for ($i = 0; $i < count($typesList); $i++) {
             $historyType = $this->safe_string($typesList, $i, '');
             $allowed[$historyType] = true;
-            $allowed[$this->capitalize(strtolower($historyType))] = true;
+            $capitalizedType = $this->capitalize(strtolower($historyType));
+            $allowed[$capitalizedType] = true;
         }
         $rows = array();
         for ($i = 0; $i < count($rawRows); $i++) {
@@ -3549,7 +3544,7 @@ class btse extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
@@ -3725,7 +3720,7 @@ class btse extends Exchange {
         $paramsOmitted = ($typeUpper === 'LIMIT') ? $this->omit($paramsOrderType, 'price') : $paramsOrderType;
         $response = Async\await($this->privateDeleteFuturesApiV3TradePositions($this->extend($request, $paramsOmitted)));
         $order = $this->safe_dict($response, 0, $response);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
@@ -3833,7 +3828,7 @@ class btse extends Exchange {
         return $response;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
@@ -3963,7 +3958,7 @@ class btse extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function futures_request_id(array $market) {
+    public function futures_request_id(array $market): ?string {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well

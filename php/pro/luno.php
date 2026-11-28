@@ -107,9 +107,9 @@ class luno extends \ccxt\async\luno {
         if ($length === 0) {
             return;
         }
-        $symbol = $subscription['symbol'];
+        $symbol = $this->safe_string($subscription, 'symbol', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbolValue;
         $stored = $this->safe_value($this->trades, $symbolValue);
         if ($stored === null) {
@@ -138,12 +138,7 @@ class luno extends \ccxt\async\luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $symbol = null;
-        } else {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_string($market, 'symbol');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
@@ -262,7 +257,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book(array $orderbook, ?string $symbol, ?int $timestamp = null, ?string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+    public function custom_parse_order_book(array $orderbook, ?string $symbol, ?int $timestamp = null, ?string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2): array {
         $bids = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
         $asks = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
@@ -284,7 +279,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function custom_parse_bid_ask(mixed $bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
+    public function custom_parse_bid_ask(mixed $bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2): array {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );
@@ -466,10 +461,8 @@ class luno extends \ccxt\async\luno {
             // frames still arriving until the client resubscribes
             return;
         }
-        $handlers = array( array($this, 'handle_order_book'), array($this, 'handle_trades'));
-        for ($j = 0; $j < count($handlers); $j++) {
-            $handler = $handlers[$j];
-            $handler($client, $message, $subscriptions[0]);
-        }
+        $subscription = $this->safe_dict($subscriptions, 0, array());
+        $this->handle_order_book($client, $message, $subscription);
+        $this->handle_trades($client, $message, $subscription);
     }
 }

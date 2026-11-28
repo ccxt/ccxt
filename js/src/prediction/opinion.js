@@ -201,7 +201,7 @@ export default class opinion extends Exchange {
                 fetchedRawRows.push(raw);
                 const marketType = this.safeInteger(raw, 'marketType');
                 if (marketType === 1) {
-                    const event = this.parseEvent(raw);
+                    const event = this.parseEvent(this.extend({}, rawMarkets[i]));
                     const childMarkets = this.safeList(event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
@@ -458,14 +458,17 @@ export default class opinion extends Exchange {
             this.markets = this.createSafeDictionary();
         }
         for (let i = 0; i < rawEventsLength; i++) {
-            const event = this.parseEvent(rawEvents[i]);
+            const event = this.parseEvent(this.extend({}, rawEvents[i]));
             parsedEvents.push(event);
             // register the parsed markets so populateOutcomes can index their outcomes
             const eventMarkets = this.safeList(event, 'markets', []);
             const eventMarketsLength = eventMarkets.length;
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 const m = eventMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString(m, 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = m;
+                }
             }
         }
         this.populateOutcomes();
@@ -1288,18 +1291,28 @@ export default class opinion extends Exchange {
         const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'list', []);
         const tradesLength = trades.length;
+        const filled = [];
         for (let i = 0; i < tradesLength; i++) {
-            const trade = trades[i];
-            const tokenId = this.safeString(trade, 'tokenId');
-            const marketId = this.safeInteger(trade, 'marketId');
+            const tokenId = this.safeString(trades[i], 'tokenId');
+            const marketId = this.safeInteger(trades[i], 'marketId');
             if ((tokenId === undefined) && (marketId !== undefined)) {
                 const tradeMarket = await this.loadTradeMarket(marketId);
                 const info = this.safeDict(tradeMarket, 'info', {});
-                const isYes = (this.safeStringLower(trade, 'outcomeSideEnum') === 'yes');
-                trade['tokenId'] = isYes ? this.safeString(info, 'yesTokenId') : this.safeString(info, 'noTokenId');
+                const isYes = (this.safeStringLower(trades[i], 'outcomeSideEnum') === 'yes');
+                const extra = {};
+                if (isYes) {
+                    extra['tokenId'] = this.safeString(info, 'yesTokenId');
+                }
+                else {
+                    extra['tokenId'] = this.safeString(info, 'noTokenId');
+                }
+                filled.push(this.extend(trades[i], extra));
+            }
+            else {
+                filled.push(trades[i]);
             }
         }
-        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+        return this.parsePredictionTrades(filled, outcomeObj, since, limit);
     }
     /**
      * @ignore
@@ -1925,7 +1938,7 @@ export default class opinion extends Exchange {
         const marketId = this.safeInteger(info, 'marketId');
         const messageHash = 'orders';
         const orders = await this.subscribeOpinionChannel(messageHash, 'trade.order.update', marketId);
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         return this.filterByValueSinceLimit(orders, 'outcome', sym, since, limit, 'timestamp', true);
     }
     /**
@@ -2043,7 +2056,7 @@ export default class opinion extends Exchange {
         const marketId = this.safeInteger(info, 'marketId');
         const messageHash = 'myTrades';
         const trades = await this.subscribeOpinionChannel(messageHash, 'trade.record.new', marketId);
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         return this.filterByValueSinceLimit(trades, 'outcome', sym, since, limit, 'timestamp', true);
     }
     handleMyTrade(client, message) {

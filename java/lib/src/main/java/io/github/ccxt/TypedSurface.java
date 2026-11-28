@@ -68,11 +68,11 @@ import java.util.stream.Collectors;
 public interface TypedSurface {
 
     // --- abstract core signatures (implemented by the transpiled tiers) ---
-    CompletableFuture<Object> loadMarkets(Object reload, Object params);
-    CompletableFuture<Object> fetchCurrencies(Map<String, Object> params);
-    CompletableFuture<Object> fetchMarkets(Map<String, Object> params);
+    CompletableFuture<Object> loadMarkets(Object reload, Map<String, Object> params);
+    CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> params);
+    CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> params);
     CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> params);
-    CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> params);
+    CompletableFuture<List<DepositAddress>> fetchDepositAddresses(List<String> codes, Map<String, Object> params);
     CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> params);
     CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Long> fetchTime(Map<String, Object> params);
@@ -81,25 +81,25 @@ public interface TypedSurface {
     CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols, Map<String, Object> params);
     CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> params);
     CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> params);
-    CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> params);
+    CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params);
+    CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> params);
     CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> params);
     CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> params);
     CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> addMargin(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> reduceMargin(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginModification> setMargin(String symbol, Double amount, Map<String, Object> params);
     CompletableFuture<LongShortRatio> fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params);
     CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Object since, Object limit, Map<String, Object> params);
+    CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> params);
-    CompletableFuture<MarginLoan> borrowMargin(String code, Object amount, String symbol, Map<String, Object> params);
-    CompletableFuture<MarginLoan> repayMargin(String code, Object amount, String symbol, Map<String, Object> params);
+    CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params);
+    CompletableFuture<MarginLoan> borrowMargin(String code, Double amount, String symbol, Map<String, Object> params);
+    CompletableFuture<MarginLoan> repayMargin(String code, Double amount, String symbol, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
@@ -113,7 +113,7 @@ public interface TypedSurface {
     CompletableFuture<Balance> fetchUsedBalance(Map<String, Object> params);
     CompletableFuture<Balance> fetchTotalBalance(Map<String, Object> params);
     CompletableFuture<Status> fetchStatus(Map<String, Object> params);
-    CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> params);
+    CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params);
     CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> params);
     CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> params);
     CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> params);
@@ -121,26 +121,26 @@ public interface TypedSurface {
     CompletableFuture<Tickers> fetchContractTickers(List<String> symbols, Map<String, Object> params);
     CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params);
     CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Map<String, Object> params);
-    CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> params);
+    CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> params);
     CompletableFuture<Conversion> fetchConvertTrade(String id, String code, Map<String, Object> params);
     CompletableFuture<List<Conversion>> fetchConvertTradeHistory(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<PositionModeInfo> fetchPositionMode(String symbol, Map<String, Object> params);
     CompletableFuture<ADL> fetchADLRank(String symbol, Map<String, Object> params);
     CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols, Map<String, Object> params);
     CompletableFuture<ADL> fetchPositionADLRank(String symbol, Map<String, Object> params);
-    CompletableFuture<List<Order>> createSpotOrders(Object orders, Map<String, Object> params);
-    CompletableFuture<List<Order>> createContractOrders(Object orders, Map<String, Object> params);
+    CompletableFuture<List<Order>> createSpotOrders(List<?> orders, Map<String, Object> params);
+    CompletableFuture<List<Order>> createContractOrders(List<?> orders, Map<String, Object> params);
     CompletableFuture<Order> cancelSpotOrder(String id, String symbol, Map<String, Object> params);
     CompletableFuture<Order> cancelContractOrder(String id, String symbol, Map<String, Object> params);
     CompletableFuture<List<Order>> cancelAllSpotOrders(String symbol, Map<String, Object> params);
     CompletableFuture<List<Order>> cancelAllContractOrders(String symbol, Map<String, Object> params);
-    CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> params);
+    CompletableFuture<List<Order>> cancelOrdersForSymbols(List<?> orders, Map<String, Object> params);
     CompletableFuture<List<Liquidation>> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Liquidation>> fetchLiquidations(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<Greeks> fetchGreeks(String symbol, Map<String, Object> params);
     CompletableFuture<OptionChain> fetchOptionChain(String code, Map<String, Object> params);
     CompletableFuture<Option> fetchOption(String symbol, Map<String, Object> params);
-    CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> params);
+    CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> params);
     CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> params);
@@ -162,48 +162,48 @@ public interface TypedSurface {
     CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> params);
     CompletableFuture<List<Position>> closeAllPositions(Map<String, Object> params);
-    CompletableFuture<List<Order>> editOrders(Object orders, Map<String, Object> params);
+    CompletableFuture<List<Order>> editOrders(List<?> orders, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionHistory(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionsRisk(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> params);
+    CompletableFuture<List<Position>> fetchPositionsForSymbol(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> fetchMarkPrice(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> params);
     CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> params);
+    CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> params);
     CompletableFuture<OrderBook> fetchL2OrderBook(String symbol, Long limit, Map<String, Object> params);
-    CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> params);
+    CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> params);
+    CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> params);
     CompletableFuture<Order> fetchOrderWithClientOrderId(Object clientOrderId, String symbol, Map<String, Object> params);
     CompletableFuture<String> fetchOrderStatus(String id, String symbol, Map<String, Object> params);
     CompletableFuture<Order> fetchUnifiedOrder(Object order, Map<String, Object> params);
-    CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> params);
-    CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> params);
-    CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> params);
-    CompletableFuture<Order> createTriggerOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createStopLossOrder(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTakeProfitOrder(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice, Map<String, Object> params);
-    CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> params);
-    CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> params);
+    CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params);
+    CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params);
+    CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params);
+    CompletableFuture<Order> createTriggerOrder(String symbol, String type, String side, Double amount, Double price, Object triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createStopLossOrder(String symbol, String type, String side, Double amount, Double price, Object stopLossPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTakeProfitOrder(String symbol, String type, String side, Double amount, Double price, Object takeProfitPrice, Map<String, Object> params);
+    CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Double amount, Double price, Object takeProfit, Object stopLoss, Map<String, Object> params);
+    CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> params);
     CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> params);
     CompletableFuture<Order> cancelOrderWithClientOrderId(Object clientOrderId, String symbol, Map<String, Object> params);
-    CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> params);
-    CompletableFuture<List<Order>> cancelOrdersWithClientOrderIds(Object clientOrderIds, String symbol, Map<String, Object> params);
+    CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> params);
+    CompletableFuture<List<Order>> cancelOrdersWithClientOrderIds(List<String> clientOrderIds, String symbol, Map<String, Object> params);
     CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> params);
     CompletableFuture<Order> cancelUnifiedOrder(Object order, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> params);
@@ -212,25 +212,25 @@ public interface TypedSurface {
     CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<Order> createLimitOrder(String symbol, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createMarketOrder(String symbol, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createLimitBuyOrder(String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createLimitSellOrder(String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createMarketBuyOrder(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<Order> createMarketSellOrder(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<Order> createPostOnlyOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createReduceOnlyOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createStopOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createStopLimitOrder(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createStopMarketOrder(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createLimitOrder(String symbol, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createMarketOrder(String symbol, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createLimitBuyOrder(String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createLimitSellOrder(String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createMarketBuyOrder(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<Order> createMarketSellOrder(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<Order> createPostOnlyOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createReduceOnlyOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createStopOrder(String symbol, String type, String side, Double amount, Double price, Object triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createStopLimitOrder(String symbol, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createStopMarketOrder(String symbol, String side, Double amount, Double triggerPrice, Map<String, Object> params);
     CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> params);
     CompletableFuture<List<Liquidation>> watchLiquidations(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Liquidation>> watchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> params);
     CompletableFuture<FundingRates> watchFundingRates(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<FundingRates> watchFundingRatesForSymbols(Object symbols, Map<String, Object> params);
+    CompletableFuture<FundingRates> watchFundingRatesForSymbols(List<String> symbols, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<Balances> fetchBalanceWs(Map<String, Object> params);
@@ -242,37 +242,37 @@ public interface TypedSurface {
     CompletableFuture<List<Order>> fetchOrdersByStatusWs(Object status, String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Position>> fetchPositionsForSymbolWs(String symbol, Map<String, Object> params);
     CompletableFuture<Position> watchPosition(String symbol, Map<String, Object> params);
-    CompletableFuture<List<Trade>> watchMyTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<Trade>> watchMyTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Ticker> watchMarkPrice(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> watchMarkPrices(List<String> symbols, Map<String, Object> params);
-    CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> params);
-    CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> params);
+    CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> params);
+    CompletableFuture<List<Order>> watchOrdersForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> params);
     CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> params);
-    CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> params);
-    CompletableFuture<Order> createLimitBuyOrderWs(String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createLimitOrderWs(String symbol, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createLimitSellOrderWs(String symbol, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createMarketBuyOrderWs(String symbol, Object amount, Map<String, Object> params);
+    CompletableFuture<List<Order>> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> params);
+    CompletableFuture<Order> createLimitBuyOrderWs(String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createLimitOrderWs(String symbol, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createLimitSellOrderWs(String symbol, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createMarketBuyOrderWs(String symbol, Double amount, Map<String, Object> params);
     CompletableFuture<Order> createMarketOrderWithCostWs(String symbol, String side, Object cost, Map<String, Object> params);
-    CompletableFuture<Order> createMarketOrderWs(String symbol, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createMarketSellOrderWs(String symbol, Object amount, Map<String, Object> params);
-    CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> params);
-    CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<List<Order>> createOrdersWs(Object orders, Map<String, Object> params);
-    CompletableFuture<Order> createPostOnlyOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
-    CompletableFuture<Order> createStopLimitOrderWs(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createStopLossOrderWs(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> params);
-    CompletableFuture<Order> createStopMarketOrderWs(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createStopOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTakeProfitOrderWs(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTriggerOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> params);
+    CompletableFuture<Order> createMarketOrderWs(String symbol, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createMarketSellOrderWs(String symbol, Double amount, Map<String, Object> params);
+    CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, String type, String side, Double amount, Double price, Object takeProfit, Object stopLoss, Map<String, Object> params);
+    CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<List<Order>> createOrdersWs(List<?> orders, Map<String, Object> params);
+    CompletableFuture<Order> createPostOnlyOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
+    CompletableFuture<Order> createStopLimitOrderWs(String symbol, String side, Double amount, Double price, Double triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createStopLossOrderWs(String symbol, String type, String side, Double amount, Double price, Object stopLossPrice, Map<String, Object> params);
+    CompletableFuture<Order> createStopMarketOrderWs(String symbol, String side, Double amount, Double triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createStopOrderWs(String symbol, String type, String side, Double amount, Double price, Object triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTakeProfitOrderWs(String symbol, String type, String side, Double amount, Double price, Object takeProfitPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, String type, String side, Double amount, Double price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTriggerOrderWs(String symbol, String type, String side, Double amount, Double price, Object triggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchClosedOrdersWs(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Trade>> fetchMyTradesWs(String symbol, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<Order>> fetchOpenOrdersWs(String symbol, Long since, Long limit, Map<String, Object> params);
@@ -400,7 +400,7 @@ public interface TypedSurface {
 
     default CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistoryAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 
-    default CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistoryAsync(String symbol, String type, Double since, Double limit, Map<String, Object> params) { return this.fetchMarginAdjustmentHistory(symbol, type, since, limit, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistoryAsync(String symbol, String type, Long since, Long limit, Map<String, Object> params) { return this.fetchMarginAdjustmentHistory(symbol, type, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 
     default List<OpenInterest> fetchOpenInterestHistory(String symbol) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, "1h", (Long) null, (Long) null, new HashMap<String, Object>())); }
     default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, timeframe, (Long) null, (Long) null, new HashMap<String, Object>())); }
@@ -564,13 +564,13 @@ public interface TypedSurface {
     default CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol, Map<String, Object> params) { return this.fetchPositionADLRank(symbol, (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol) { return fetchPositionADLRankAsync(symbol, new HashMap<String, Object>()); }
 
-    default List<Order> createSpotOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createSpotOrders(orders, new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createSpotOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createSpotOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createSpotOrdersAsync(List<Map<String, Object>> orders) { return createSpotOrdersAsync(orders, new HashMap<String, Object>()); }
+    default List<Order> createSpotOrders(List<?> orders) { return Helpers.joinUnwrapped(this.createSpotOrders(orders, new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createSpotOrdersAsync(List<?> orders, Map<String, Object> params) { return this.createSpotOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createSpotOrdersAsync(List<?> orders) { return createSpotOrdersAsync(orders, new HashMap<String, Object>()); }
 
-    default List<Order> createContractOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createContractOrders(orders, new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createContractOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders) { return createContractOrdersAsync(orders, new HashMap<String, Object>()); }
+    default List<Order> createContractOrders(List<?> orders) { return Helpers.joinUnwrapped(this.createContractOrders(orders, new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createContractOrdersAsync(List<?> orders, Map<String, Object> params) { return this.createContractOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createContractOrdersAsync(List<?> orders) { return createContractOrdersAsync(orders, new HashMap<String, Object>()); }
 
     default Order cancelSpotOrder(String id) { return Helpers.joinUnwrapped(this.cancelSpotOrder(id, (String) null, new HashMap<String, Object>())); }
     default Order cancelSpotOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelSpotOrder(id, symbol, new HashMap<String, Object>())); }
@@ -588,9 +588,9 @@ public interface TypedSurface {
 
     default CompletableFuture<List<Order>> cancelAllContractOrdersAsync(String symbol, Map<String, Object> params) { return this.cancelAllContractOrders(symbol, (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Order> cancelOrdersForSymbols(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.cancelOrdersForSymbols(orders, new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.cancelOrdersForSymbols(orders, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<Map<String, Object>> orders) { return cancelOrdersForSymbolsAsync(orders, new HashMap<String, Object>()); }
+    default List<Order> cancelOrdersForSymbols(List<?> orders) { return Helpers.joinUnwrapped(this.cancelOrdersForSymbols(orders, new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<?> orders, Map<String, Object> params) { return this.cancelOrdersForSymbols(orders, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<?> orders) { return cancelOrdersForSymbolsAsync(orders, new HashMap<String, Object>()); }
 
     default CompletableFuture<List<Liquidation>> fetchMyLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchMyLiquidations(symbol, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 
@@ -706,9 +706,9 @@ public interface TypedSurface {
 
     default CompletableFuture<List<Position>> closeAllPositionsAsync(Map<String, Object> params) { return this.closeAllPositions((params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Order> editOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.editOrders(orders, new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> editOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.editOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> editOrdersAsync(List<Map<String, Object>> orders) { return editOrdersAsync(orders, new HashMap<String, Object>()); }
+    default List<Order> editOrders(List<?> orders) { return Helpers.joinUnwrapped(this.editOrders(orders, new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> editOrdersAsync(List<?> orders, Map<String, Object> params) { return this.editOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> editOrdersAsync(List<?> orders) { return editOrdersAsync(orders, new HashMap<String, Object>()); }
 
     default CompletableFuture<List<Order>> fetchCanceledAndClosedOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchCanceledAndClosedOrders(symbol, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 
@@ -926,9 +926,9 @@ public interface TypedSurface {
     default CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, takeProfit, (Double) null, new HashMap<String, Object>()); }
     default CompletableFuture<Order> createOrderWithTakeProfitAndStopLossAsync(String symbol, String type, String side, Double amount, Double price, Double takeProfit, Double stopLoss) { return createOrderWithTakeProfitAndStopLossAsync(symbol, type, side, amount, price, takeProfit, stopLoss, new HashMap<String, Object>()); }
 
-    default List<Order> createOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createOrders(orders, new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createOrdersAsync(List<Map<String, Object>> orders) { return createOrdersAsync(orders, new HashMap<String, Object>()); }
+    default List<Order> createOrders(List<?> orders) { return Helpers.joinUnwrapped(this.createOrders(orders, new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createOrdersAsync(List<?> orders, Map<String, Object> params) { return this.createOrders(orders, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createOrdersAsync(List<?> orders) { return createOrdersAsync(orders, new HashMap<String, Object>()); }
 
     default Order cancelOrder(String id) { return Helpers.joinUnwrapped(this.cancelOrder(id, (String) null, new HashMap<String, Object>())); }
     default Order cancelOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelOrder(id, symbol, new HashMap<String, Object>())); }
@@ -1298,9 +1298,9 @@ public interface TypedSurface {
     default CompletableFuture<Order> createOrderWsAsync(String symbol, String type, String side, Double amount) { return createOrderWsAsync(symbol, type, side, amount, (Double) null, new HashMap<String, Object>()); }
     default CompletableFuture<Order> createOrderWsAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderWsAsync(symbol, type, side, amount, price, new HashMap<String, Object>()); }
 
-    default List<Order> createOrdersWs(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createOrdersWs(orders, new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createOrdersWsAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createOrdersWs(orders, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<List<Order>> createOrdersWsAsync(List<Map<String, Object>> orders) { return createOrdersWsAsync(orders, new HashMap<String, Object>()); }
+    default List<Order> createOrdersWs(List<?> orders) { return Helpers.joinUnwrapped(this.createOrdersWs(orders, new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createOrdersWsAsync(List<?> orders, Map<String, Object> params) { return this.createOrdersWs(orders, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<Order>> createOrdersWsAsync(List<?> orders) { return createOrdersWsAsync(orders, new HashMap<String, Object>()); }
 
     default Order createPostOnlyOrderWs(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createPostOnlyOrderWs(symbol, type, side, amount, (Double) null, new HashMap<String, Object>())); }
     default Order createPostOnlyOrderWs(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createPostOnlyOrderWs(symbol, type, side, amount, price, new HashMap<String, Object>())); }

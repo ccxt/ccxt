@@ -95,24 +95,26 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Map<String, Object>> prepareWsStockParams(String methodName, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.prepareWsStockParamsCore(methodName, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> prepareWsStockParamsCore(String methodName, Map<String, Object> parameters)
+    {
 
-            Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), (String) (methodName), "stock", (Object) null);
-            Boolean stock = stockqueryVariable.first();
-            Map<String, Object> query = stockqueryVariable.second();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(stock, null))
-            {
-                return query;
-            }
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("stock", stock);
-            return this.extend(query, mapLiteral1);
-        });
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", null);
+        Boolean stock = stockqueryVariable.first();
+        Map<String, Object> query = stockqueryVariable.second();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(stock, null))
+        {
+            return query;
+        }
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("stock", stock);
+        return this.extend(query, mapLiteral1);
 
     }
 
@@ -132,7 +134,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             throw new BadSymbol((((this.id + " ") + methodName) + "() requires a market")) ;
         }
-        this.handleStockParams(methodName, (Map<String, Object>) (parameters), market);
+        this.handleStockParams(methodName, parameters, market);
         String source = this.safeString(parameters, "source", "Venue");
         if ((java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
         {
@@ -159,226 +161,232 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> subscribeWsTickers(String methodName, List<String> symbols, Map<String, Object> parameters, Object bidAsk, Object unwatch)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribeWsTickersCore(methodName, symbols, parameters, bidAsk, unwatch));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribeWsTickersCore(String methodName, List<String> symbols, Map<String, Object> parameters, Object bidAsk, Object unwatch)
+    {
 
-            Map<String, Object> query = (this.prepareWsStockParams(methodName, (Map<String, Object>) (parameters))).join();
-            Boolean stock = (Boolean) this.safeBool(query, "stock", false);
-            String explicitSource = this.safeString(query, "source");
-            String channel = this.safeString(query, "channel");
-            List<String> normalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            List<String> symbolsResolved = new ArrayList<String>(Arrays.asList());
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public", "");
-            Client client = this.client(url);
-            String kind = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))) ? "bidask" : "ticker";
-            for (var i = 0; i < normalized.size(); i++)
+        Map<String, Object> query = (this.prepareWsStockParams(methodName, parameters)).join();
+        Boolean stock = this.safeBool(query, "stock", false);
+        String explicitSource = this.safeString(query, "source");
+        String channel = this.safeString(query, "channel");
+        List<String> normalized = this.marketSymbols(symbols, null, false, false, false);
+        List<String> symbolsResolved = new ArrayList<String>(Arrays.asList());
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public", "");
+        Client client = this.client(url);
+        String kind = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))) ? "bidask" : "ticker";
+        for (var i = 0; i < normalized.size(); i++)
+        {
+            Map<String, Object> market = this.market((normalized == null || i < 0 || i >= normalized.size() ? null : normalized.get(i)));
+            if ((java.util.Objects.equals(symbols, null)) && (Boolean.TRUE.equals(stock) || (java.util.Objects.equals(explicitSource, "External")) || (!java.util.Objects.equals(channel, null))) && (!java.util.Objects.equals(market.get("stock"), true)))
             {
-                Map<String, Object> market = this.market((normalized == null || i < 0 || i >= normalized.size() ? null : normalized.get(i)));
-                if ((java.util.Objects.equals(symbols, null)) && (Boolean.TRUE.equals(stock) || (java.util.Objects.equals(explicitSource, "External")) || (!java.util.Objects.equals(channel, null))) && (!java.util.Objects.equals(market.get("stock"), true)))
+                continue;
+            }
+            Pair<Boolean, Map<String, Object>> marketStockmarketParamsVariable = this.handleStockParams(methodName, query, market);
+            Boolean marketStock = marketStockmarketParamsVariable.first();
+            Map<String, Object> marketParams = marketStockmarketParamsVariable.second();
+            Boolean isRfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
+            String source = explicitSource;
+            if (java.util.Objects.equals(source, null))
+            {
+                source = (((Boolean.TRUE.equals(isRfq) && !Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false))))) ? "External" : "Venue";
+            }
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("stock", marketStock);
+            mapLiteral2.put("source", source);
+            Map<String, Object> requestParams = this.extend(marketParams, mapLiteral2);
+            Map<String, Object> request = this.stockDataRequest(methodName, requestParams, market);
+            String tickerSymbol = this.safeString(request, "symbol", "");
+            String topic = ("ticker." + tickerSymbol);
+            if (!java.util.Objects.equals(channel, null))
+            {
+                if ((!java.util.Objects.equals(channel, "stockPrice")) && (!java.util.Objects.equals(channel, "stockIndicativeQuote")))
                 {
-                    continue;
+                    throw new BadRequest((((this.id + " ") + methodName) + "() channel must be stockPrice or stockIndicativeQuote")) ;
                 }
-                List<Object> marketSelection = this.handleStockParams(methodName, query, market);
-                Boolean marketStock = (Boolean) this.safeBool(marketSelection, 0, false);
-                Map<String, Object> marketParams = this.safeDict(marketSelection, 1, new HashMap<String, Object>() {{}});
-                Boolean isRfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
-                String source = explicitSource;
-                if (java.util.Objects.equals(source, null))
+                if (!java.util.Objects.equals(market.get("stock"), true))
                 {
-                    source = (((Boolean.TRUE.equals(isRfq) && !Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false))))) ? "External" : "Venue";
+                    throw new BadSymbol((((this.id + " ") + methodName) + "() stock quote channels require a stock market")) ;
                 }
-                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                mapLiteral2.put("stock", marketStock);
-                mapLiteral2.put("source", source);
-                Map<String, Object> requestParams = this.extend(marketParams, mapLiteral2);
-                Map<String, Object> request = this.stockDataRequest(methodName, requestParams, market);
-                String tickerSymbol = this.safeString(request, "symbol", "");
-                String topic = ("ticker." + tickerSymbol);
-                if (!java.util.Objects.equals(channel, null))
+                String baseId = this.safeString(market, "baseId", "");
+                String ticker = (baseId == null ? null : ((String)baseId).replaceFirst(java.util.regex.Pattern.quote(".US"), ""));
+                topic = ((channel + ".") + ticker);
+            } else if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
+            {
+                if ((java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || Boolean.TRUE.equals(isRfq))
                 {
-                    if ((!java.util.Objects.equals(channel, "stockPrice")) && (!java.util.Objects.equals(channel, "stockIndicativeQuote")))
-                    {
-                        throw new BadRequest((((this.id + " ") + methodName) + "() channel must be stockPrice or stockIndicativeQuote")) ;
-                    }
                     if (!java.util.Objects.equals(market.get("stock"), true))
                     {
-                        throw new BadSymbol((((this.id + " ") + methodName) + "() stock quote channels require a stock market")) ;
+                        throw new NotSupported((((this.id + " ") + methodName) + "() RFQ quote streams require a stock market")) ;
                     }
                     String baseId = this.safeString(market, "baseId", "");
                     String ticker = (baseId == null ? null : ((String)baseId).replaceFirst(java.util.regex.Pattern.quote(".US"), ""));
-                    topic = ((channel + ".") + ticker);
-                } else if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
-                {
-                    if ((java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || Boolean.TRUE.equals(isRfq))
-                    {
-                        if (!java.util.Objects.equals(market.get("stock"), true))
-                        {
-                            throw new NotSupported((((this.id + " ") + methodName) + "() RFQ quote streams require a stock market")) ;
-                        }
-                        String baseId = this.safeString(market, "baseId", "");
-                        String ticker = (baseId == null ? null : ((String)baseId).replaceFirst(java.util.regex.Pattern.quote(".US"), ""));
-                        String quoteChannel = (((java.util.Objects.equals(source, "External")))) ? "stockPrice" : "stockIndicativeQuote";
-                        topic = ((quoteChannel + ".") + ticker);
-                    } else
-                    {
-                        this.wsVenueMarketId(methodName, market, query);
-                        topic = ("bookTicker." + this.safeString(market, "id", ""));
-                    }
-                } else if (java.util.Objects.equals(source, "External"))
-                {
-                    String externalBaseId = this.safeString(market, "baseId", "");
-                    topic = (("externalTicker." + externalBaseId) + "_USDC");
-                } else if ((java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) && (!java.util.Objects.equals(market.get("stock"), true)))
-                {
-                    throw new NotSupported((((this.id + " ") + methodName) + "() RFQ venue tickers are only mapped for stock data")) ;
-                }
-                String symbol = (String) market.get("symbol");
-                String messageHash = ((((kind + ":") + symbol) + "@") + topic);
-                String subscriptionKey = ("marketData:" + topic);
-                Map<String, Object> subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new HashMap<String, Object>() {{}});
-                if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)))
-                {
-                    subscriptions = this.omit(subscriptions, messageHash);
-                    this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash), false);
-                    if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
-                    {
-                        this.bidsasks.remove(symbol);
-                    } else
-                    {
-                        this.tickers.remove(symbol);
-                    }
+                    String quoteChannel = (((java.util.Objects.equals(source, "External")))) ? "stockPrice" : "stockIndicativeQuote";
+                    topic = ((quoteChannel + ".") + ticker);
                 } else
                 {
-                    subscriptions.put(messageHash, new HashMap<String, Object>() {{
-        put( "symbol", symbol );
-        put( "bidAsk", java.util.Objects.requireNonNullElse(bidAsk, false) );
-    }});
-                    ((List<Object>)messageHashes).add(messageHash);
+                    this.wsVenueMarketId(methodName, market, query);
+                    topic = ("bookTicker." + this.safeString(market, "id", ""));
                 }
-                client.subscriptions.put(subscriptionKey, subscriptions);
-                List<String> subscriptionHashes = new ArrayList<String>(subscriptions.keySet());
-                Integer subscriptionsLength = subscriptionHashes.size();
-                if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)) || (java.util.Objects.equals(subscriptionsLength, 0)))
-                {
-                    if (!this.inArray(topic, topics))
-                    {
-                        topics.add(topic);
-                    }
-                }
-                symbolsResolved.add(symbol);
-            }
-            Integer symbolsResolvedLength = symbolsResolved.size();
-            if (java.util.Objects.equals(symbolsResolvedLength, 0))
+            } else if (java.util.Objects.equals(source, "External"))
             {
-                throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires at least one matching market")) ;
+                String externalBaseId = this.safeString(market, "baseId", "");
+                topic = (("externalTicker." + externalBaseId) + "_USDC");
+            } else if ((java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) && (!java.util.Objects.equals(market.get("stock"), true)))
+            {
+                throw new NotSupported((((this.id + " ") + methodName) + "() RFQ venue tickers are only mapped for stock data")) ;
             }
-            Map<String, Object> payload = this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source", "interval", "channel")));
+            String symbol = this.safeString(market, "symbol", "");
+            String messageHash = ((((kind + ":") + symbol) + "@") + topic);
+            String subscriptionKey = ("marketData:" + topic);
+            Map<String, Object> subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)))
             {
-                Integer topicsLength = topics.size();
-                if ((topicsLength != null && topicsLength > 0))
+                subscriptions = this.omit(subscriptions, messageHash);
+                this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash), false);
+                if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
                 {
-                    Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
-                        put( "method", "UNSUBSCRIBE" );
-                        put( "params", topics );
-                    }}, payload);
-                    String messageHash = ("unsubscribe:marketData:" + String.join(",", (List<String>)topics));
-                    this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), request, null, null);
-                    client.resolve(true, messageHash);
+                    this.bidsasks.remove((String)symbol);
+                } else
+                {
+                    this.tickers.remove((String)symbol);
                 }
             } else
             {
-                (this.watchPublic(topics, messageHashes, payload, false)).join();
+                subscriptions.put(messageHash, new HashMap<String, Object>() {{
+    put( "symbol", symbol );
+    put( "bidAsk", java.util.Objects.requireNonNullElse(bidAsk, false) );
+}});
+                messageHashes.add(messageHash);
             }
-            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
+            client.subscriptions.put(subscriptionKey, subscriptions);
+            List<String> subscriptionHashes = new ArrayList<String>(subscriptions.keySet());
+            Integer subscriptionsLength = subscriptionHashes.size();
+            if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)) || (java.util.Objects.equals(subscriptionsLength, 0)))
             {
-                return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
+                if (!this.inArray(topic, topics))
+                {
+                    topics.add(topic);
+                }
             }
-            return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
-        });
+            symbolsResolved.add(symbol);
+        }
+        Integer symbolsResolvedLength = symbolsResolved.size();
+        if (java.util.Objects.equals(symbolsResolvedLength, 0))
+        {
+            throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires at least one matching market")) ;
+        }
+        Map<String, Object> payload = this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source", "interval", "channel")));
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)))
+        {
+            Integer topicsLength = topics.size();
+            if ((topicsLength != null && topicsLength > 0))
+            {
+                Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
+                    put( "method", "UNSUBSCRIBE" );
+                    put( "params", topics );
+                }}, payload);
+                String messageHash = ("unsubscribe:marketData:" + String.join(",", (List<String>)topics));
+                this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), request, null, null);
+                client.resolve(true, messageHash);
+            }
+        } else
+        {
+            (this.watchPublic(topics, messageHashes, payload, false)).join();
+        }
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
+        {
+            return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
+        }
+        return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
 
     }
 
-    public CompletableFuture<Object> watchPublic(Object topics, Object messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    public CompletableFuture<Object> watchPublic(List<?> topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    {
+        return BaseExchange.supplyAsync(() -> this.watchPublicCore(topics, messageHashes, parameters, unwatch));
+    }
+
+    private Object watchPublicCore(List<?> topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "public", "");
-            String method = "SUBSCRIBE";
-            if (java.util.Objects.requireNonNullElse(unwatch, false))
-            {
-                method = "UNSUBSCRIBE";
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("method", method);
-            request.put("params", topics);
-            Map<String,Object> message = this.deepExtend(request, parameters);
-            if (java.util.Objects.requireNonNullElse(unwatch, false))
-            {
-                this.handleUnsubscriptions((String) (url), messageHashes, message);
-                return null;
-            }
-            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "public", "");
+        String method = "SUBSCRIBE";
+        if (java.util.Objects.requireNonNullElse(unwatch, false))
+        {
+            method = "UNSUBSCRIBE";
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("method", method);
+        request.put("params", topics);
+        Map<String,Object> message = this.deepExtend(request, parameters);
+        if (java.util.Objects.requireNonNullElse(unwatch, false))
+        {
+            this.handleUnsubscriptions(url, messageHashes, message);
+            return null;
+        }
+        return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object topics, Object messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    public CompletableFuture<Object> watchPrivate(Object topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    {
+        return BaseExchange.supplyAsync(() -> this.watchPrivateCore(topics, messageHashes, parameters, unwatch));
+    }
+
+    private Object watchPrivateCore(Object topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            this.checkRequiredCredentials(true);
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "private", "");
-            String instruction = "subscribe";
-            String ts = this.numberToString(this.nonce());
-            String method = "SUBSCRIBE";
-            if (java.util.Objects.requireNonNullElse(unwatch, false))
-            {
-                method = "UNSUBSCRIBE";
-            }
-            String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
-            String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
-            byte[] secretBytes = this.base64ToBinary(this.secret);
-            List<Object> seed = this.arraySlice(secretBytes, 0, 32);
-            Object signature = eddsa(this.encode(payload), seed, ed25519());
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("method", method);
-            request.put("params", topics);
-            request.put("signature", new ArrayList<Object>(Arrays.asList(this.apiKey, signature, ts, recvWindow)));
-            Map<String,Object> message = this.deepExtend(request, parameters);
-            if (java.util.Objects.requireNonNullElse(unwatch, false))
-            {
-                this.handleUnsubscriptions((String) (url), messageHashes, message);
-                return null;
-            }
-            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
-        });
+        this.checkRequiredCredentials(true);
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "private", "");
+        String instruction = "subscribe";
+        String ts = this.numberToString(this.nonce());
+        String method = "SUBSCRIBE";
+        if (java.util.Objects.requireNonNullElse(unwatch, false))
+        {
+            method = "UNSUBSCRIBE";
+        }
+        String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
+        String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
+        byte[] secretBytes = this.base64ToBinary(this.secret);
+        List<Object> seed = this.arraySlice(secretBytes, 0, 32);
+        String signature = eddsa(this.encode(payload), seed, ed25519());
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("method", method);
+        request.put("params", topics);
+        request.put("signature", new ArrayList<Object>(Arrays.asList(this.apiKey, signature, ts, recvWindow)));
+        Map<String,Object> message = this.deepExtend(request, parameters);
+        if (java.util.Objects.requireNonNullElse(unwatch, false))
+        {
+            this.handleUnsubscriptions(url, messageHashes, message);
+            return null;
+        }
+        return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
 
     }
 
     public void handleUnsubscriptions(String url, Object messageHashes, Map<String, Object> message)
     {
         Client client = this.client(url);
-        this.watchMultiple((String) (url), messageHashes, message, messageHashes, null);
+        this.watchMultiple(url, messageHashes, message, messageHashes, null);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             String messageHash = this.safeString(messageHashes, i, "");
             String subMessageHash = messageHash.replaceFirst("unsubscribe:", "");
-            this.cleanUnsubscription(client, subMessageHash, (String) (messageHash), false);
+            this.cleanUnsubscription(client, subMessageHash, messageHash, false);
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:ticker:", "");
@@ -408,9 +416,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:orderbook:", "");
-                if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+                if (this.orderbooks.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.orderbooks).remove(symbol);
+                    this.orderbooks.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("trades") >= 0)
             {
@@ -468,12 +476,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Object tickers = (this.subscribeWsTickers("watchTicker", new ArrayList<String>(Arrays.asList(symbol)), parameters, false, false)).join();
-            return Helpers.GetValue(tickers, this.symbol(symbol));
-        }).thenApply(Ticker::new);
+        Object tickers = (this.subscribeWsTickers("watchTicker", new ArrayList<String>(Arrays.asList(symbol)), parameters, false, false)).join();
+        return Helpers.GetValue(tickers, this.symbol(symbol));
 
     }
 
@@ -492,12 +502,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTickerCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            (this.subscribeWsTickers("watchTicker", new ArrayList<String>(Arrays.asList(symbol)), parameters, false, true)).join();
-            return null;
-        });
+        (this.subscribeWsTickers("watchTicker", new ArrayList<String>(Arrays.asList(symbol)), parameters, false, true)).join();
+        return null;
 
     }
 
@@ -516,11 +528,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.subscribeWsTickers("watchTickers", symbols, parameters, false, false)).join();
-        }).thenApply(Tickers::new);
+        return (this.subscribeWsTickers("watchTickers", symbols, parameters, false, false)).join();
 
     }
 
@@ -539,12 +553,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTickersCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.subscribeWsTickers("watchTickers", symbols, parameters, false, true)).join();
-            return null;
-        });
+        (this.subscribeWsTickers("watchTickers", symbols, parameters, false, true)).join();
+        return null;
 
     }
 
@@ -569,7 +585,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Map<String, Object> ticker = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String stream = this.safeString(message, "stream", "");
-        Map<String, Object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}}));
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
         Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
@@ -595,15 +611,15 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             return;
         }
         String marketId = this.safeString(ticker, "s");
-        Map<String, Object> fallbackMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String fallbackSymbol = this.safeSymbol(marketId, fallbackMarket, (String) null, (String) null);
+        Map<String, Object> fallbackMarket = this.safeMarket(marketId, null, null, null);
+        String fallbackSymbol = this.safeSymbol(marketId, fallbackMarket, null, null);
         Map<String, Object> fallbackTicker = (Map<String, Object>) this.parseWsTicker(ticker, fallbackMarket);
         String fallbackHash = (("ticker" + ":") + fallbackSymbol);
         this.tickers.put(fallbackSymbol, fallbackTicker);
         client.resolve(fallbackTicker, fallbackHash);
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseWsTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -622,16 +638,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long microseconds = this.safeInteger(ticker, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String marketId = this.safeString(ticker, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         String last = this.safeString(ticker, "c");
         String open = this.safeString(ticker, "o");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Backpack.this.iso8601(timestamp) );
-            put( "high", Backpack.this.safeNumber(ticker, "h", (Object) null) );
-            put( "low", Backpack.this.safeNumber(ticker, "l", (Object) null) );
+            put( "high", Backpack.this.safeNumber(ticker, "h", null) );
+            put( "low", Backpack.this.safeNumber(ticker, "l", null) );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
@@ -663,7 +679,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String stream = this.safeString(message, "stream", "");
-        Map<String, Object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}}));
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
         Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
@@ -712,11 +728,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBidsAsksCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true, false)).join();
-        }).thenApply(Tickers::new);
+        return (this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true, false)).join();
 
     }
 
@@ -734,12 +752,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchBidsAsksCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true, true)).join();
-            return null;
-        });
+        (this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true, true)).join();
+        return null;
 
     }
 
@@ -762,7 +782,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String stream = this.safeString(message, "stream", "");
-        Map<String, Object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}}));
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
         Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
@@ -775,7 +795,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 continue;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> parsedBidAsk = (Map<String, Object>) this.parseWsBidAsk(data, market);
+            Ticker parsedBidAsk = this.parseWsBidAsk(data, market);
             this.bidsasks.put(symbol, parsedBidAsk);
             client.resolve(parsedBidAsk, messageHash);
         }
@@ -784,15 +804,15 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             return;
         }
         String marketId = this.safeString(data, "s");
-        Map<String, Object> fallbackMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String fallbackSymbol = this.safeSymbol(marketId, fallbackMarket, (String) null, (String) null);
-        Map<String, Object> fallbackBidAsk = (Map<String, Object>) this.parseWsBidAsk(data, fallbackMarket);
+        Map<String, Object> fallbackMarket = this.safeMarket(marketId, null, null, null);
+        String fallbackSymbol = this.safeSymbol(marketId, fallbackMarket, null, null);
+        Ticker fallbackBidAsk = this.parseWsBidAsk(data, fallbackMarket);
         String fallbackHash = (("bidask" + ":") + fallbackSymbol);
         this.bidsasks.put(fallbackSymbol, fallbackBidAsk);
         client.resolve(fallbackBidAsk, fallbackHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    public Ticker parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -808,7 +828,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         String marketId = this.safeString(ticker, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long microseconds = this.safeInteger(ticker, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
@@ -844,13 +864,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
-            return Helpers.GetValue((result == null || symbol == null ? null : result.get(symbol)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", parameters)).join();
+        Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, query)).join();
+        Map<String, Object> bySymbol = (Map<String, Object>) ((result == null || symbol == null ? null : result.get(symbol)));
+        return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
 
     }
 
@@ -868,12 +891,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOHLCVCore(symbol, timeframe, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOHLCVCore(String symbol, String timeframe, Map<String, Object> parameters)
+    {
 
-            Object query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", parameters)).join();
+        return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), query)).join();
 
     }
 
@@ -890,45 +915,47 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> watchOHLCVForSymbols(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
+    }
+
+    private Map<String, Object> watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", (Map<String, Object>) (parameters))).join();
-            Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
-            {
-                throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
-            {
-                String marketId = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 0);
-                Map<String, Object> market = this.market(marketId);
-                String tf = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 1, "");
-                String interval = this.safeString(this.timeframes, tf, tf);
-                this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
-                topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
-                messageHashes.add(((("candles:" + market.get("symbol")) + ":") + interval));
-            }
-            var symboltimeframecandlesVariable = (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
-            var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
-            var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
-            var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
-            }
-            List<Object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
-            return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", parameters)).join();
+        Integer symbolsLength = symbolsAndTimeframes.size();
+        if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
+        {
+            throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+        {
+            String marketId = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 0);
+            Map<String, Object> market = this.market(marketId);
+            String tf = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 1, "");
+            String interval = this.safeString(this.timeframes, tf, tf);
+            this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
+            topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
+            messageHashes.add(((("candles:" + market.get("symbol")) + ":") + interval));
+        }
+        var symboltimeframecandlesVariable = (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
+        var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
+        var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
+        var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
+        }
+        List<Object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
 
     }
 
@@ -943,35 +970,37 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOHLCVForSymbolsCore(symbolsAndTimeframes, parameters));
+    }
+
+    private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", (Map<String, Object>) (parameters))).join();
-            Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
-            {
-                throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
-            {
-                String marketId = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 0);
-                Map<String, Object> market = this.market(marketId);
-                String tf = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 1, "");
-                String interval = this.safeString(this.timeframes, tf, tf);
-                this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
-                topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
-                messageHashes.add(((("unsubscribe:candles:" + market.get("symbol")) + ":") + interval));
-            }
-            return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", parameters)).join();
+        Integer symbolsLength = symbolsAndTimeframes.size();
+        if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
+        {
+            throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+        {
+            String marketId = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 0);
+            Map<String, Object> market = this.market(marketId);
+            String tf = this.safeString(this.safeList(symbolsAndTimeframes, i, null), 1, "");
+            String interval = this.safeString(this.timeframes, tf, tf);
+            this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
+            topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
+            messageHashes.add(((("unsubscribe:candles:" + market.get("symbol")) + ":") + interval));
+        }
+        return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
 
     }
 
@@ -999,7 +1028,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.market(marketId);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String stream = this.safeString(message, "stream", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("."))));
         String timeframe = this.safeString(parts, 1, "");
@@ -1011,16 +1040,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, (Map<String, Object>) null);
+        List<Object> parsed = this.parseWsOHLCV(data, null);
         ohlcv.append(parsed);
         String messageHash = ((("candles:" + symbol) + ":") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1038,7 +1067,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         v: '62.2621000'
         //     },
         //
-        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "t")), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "t")), this.safeNumber(ohlcv, "o", null), this.safeNumber(ohlcv, "h", null), this.safeNumber(ohlcv, "l", null), this.safeNumber(ohlcv, "c", null), this.safeNumber(ohlcv, "v", null)));
     }
 
     /**
@@ -1056,12 +1085,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
-            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Map<String, Object> query = (this.prepareWsStockParams("watchTrades", parameters)).join();
+        return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, query)).join();
 
     }
 
@@ -1078,12 +1109,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Object query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchTrades", parameters)).join();
+        return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), query)).join();
 
     }
 
@@ -1100,43 +1133,45 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
+
+    private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", (Map<String, Object>) (parameters))).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Integer symbolsLength = symbolsNormalized.size();
-            if (java.util.Objects.equals(symbolsLength, 0))
-            {
-                throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
-            }
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < symbolsNormalized.size(); i++)
-            {
-                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = this.market(symbol);
-                this.wsVenueMarketId("watchTradesForSymbols", market, query);
-                topics.add(("trade." + this.safeString(market, "id", "")));
-                messageHashes.add(("trades:" + symbol));
-            }
-            List<Object> trades = (List<Object>) (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
-            Map<String, Object> first = this.safeDict(trades, 0, null);
-            String tradeSymbol = this.safeString(first, "symbol");
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
-            }
-            List<Object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-            return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Integer symbolsLength = symbolsNormalized.size();
+        if (java.util.Objects.equals(symbolsLength, 0))
+        {
+            throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+        }
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < symbolsNormalized.size(); i++)
+        {
+            String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+            Map<String, Object> market = this.market(symbol);
+            this.wsVenueMarketId("watchTradesForSymbols", market, query);
+            topics.add(("trade." + this.safeString(market, "id", "")));
+            messageHashes.add(("trades:" + symbol));
+        }
+        List<Object> trades = (List<Object>) (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
+        Map<String, Object> first = this.safeDict(trades, 0, null);
+        String tradeSymbol = this.safeString(first, "symbol");
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
+        }
+        List<Object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
 
     }
 
@@ -1151,34 +1186,36 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTradesForSymbols(List<String> symbols, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchTradesForSymbolsCore(symbols, parameters));
+    }
+
+    private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", (Map<String, Object>) (parameters))).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Integer symbolsLength = symbolsNormalized.size();
-            if (java.util.Objects.equals(symbolsLength, 0))
-            {
-                throw new ArgumentsRequired((this.id + " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
-            }
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < symbolsNormalized.size(); i++)
-            {
-                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = this.market(symbol);
-                this.wsVenueMarketId("watchTradesForSymbols", market, query);
-                topics.add(("trade." + this.safeString(market, "id", "")));
-                messageHashes.add(("unsubscribe:trades:" + symbol));
-            }
-            return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Integer symbolsLength = symbolsNormalized.size();
+        if (java.util.Objects.equals(symbolsLength, 0))
+        {
+            throw new ArgumentsRequired((this.id + " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
+        }
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < symbolsNormalized.size(); i++)
+        {
+            String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+            Map<String, Object> market = this.market(symbol);
+            this.wsVenueMarketId("watchTradesForSymbols", market, query);
+            topics.add(("trade." + this.safeString(market, "id", "")));
+            messageHashes.add(("unsubscribe:trades:" + symbol));
+        }
+        return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
 
     }
 
@@ -1204,7 +1241,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.market(marketId);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1239,8 +1276,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String id = this.safeString(trade, "t");
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        Boolean isBuyerMaker = this.safeBool(trade, "m", null);
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
@@ -1298,12 +1335,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            Object query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
-            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
-        }).thenApply(OrderBook::new);
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", parameters)).join();
+        return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, query)).join();
 
     }
 
@@ -1320,34 +1359,36 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(List<String> symbols, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", (Map<String, Object>) (parameters))).join();
-            if (java.util.Objects.equals(this.markets, null))
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < symbolsNormalized.size(); i++)
+        {
+            String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+            messageHashes.add(("orderbook:" + symbol));
+            Map<String, Object> market = this.market(symbol);
+            this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
+            topics.add(("depth." + this.safeString(market, "id", "")));
+            if (!(this.orderbooks.containsKey(symbol)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < symbolsNormalized.size(); i++)
-            {
-                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                messageHashes.add(("orderbook:" + symbol));
-                Map<String, Object> market = this.market(symbol);
-                this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
-                topics.add(("depth." + this.safeString(market, "id", "")));
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
-                {
-                    this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-                }
-            }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
+        return orderbook.limit();
 
     }
 
@@ -1361,14 +1402,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
+    }
+
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Object query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", parameters)).join();
+        return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), query)).join();
 
     }
 
@@ -1383,29 +1426,31 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(List<String> symbols, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookForSymbolsCore(symbols, parameters));
+    }
+
+    private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", (Map<String, Object>) (parameters))).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < symbolsNormalized.size(); i++)
-            {
-                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                messageHashes.add(("unsubscribe:orderbook:" + symbol));
-                Map<String, Object> market = this.market(symbol);
-                this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
-                topics.add(("depth." + this.safeString(market, "id", "")));
-            }
-            return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < symbolsNormalized.size(); i++)
+        {
+            String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+            messageHashes.add(("unsubscribe:orderbook:" + symbol));
+            Map<String, Object> market = this.market(symbol);
+            this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
+            topics.add(("depth." + this.safeString(market, "id", "")));
+        }
+        return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
 
     }
 
@@ -1431,8 +1476,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        String symbol = this.safeSymbol(marketId, null, null, null);
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }
@@ -1442,17 +1487,18 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
+            Integer cacheSize = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
+            Long cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             Map<String, Object> market = this.market(symbol);
             Boolean isStockMarket = (java.util.Objects.equals(market.get("stock"), true)) || ((!java.util.Objects.equals(marketId, null)) && ((((String)marketId).indexOf(".US_") >= 0) || (((String)marketId).indexOf(".HK_") >= 0)));
             Integer defaultSnapshotDelay = ((Boolean.TRUE.equals(isStockMarket))) ? 0 : 10;
-            Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
-            if (Helpers.isEqual(cacheLength, snapshotDelay))
+            Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay));
+            if (java.util.Objects.equals(cacheLength, snapshotDelay))
             {
-                this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(this::loadOrderBook, client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}});
             }
             return;
         } else if ((!java.util.Objects.equals(deltaNonce, null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))
@@ -1478,16 +1524,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         this.handleBidAsks(storedAsks, asks);
     }
 
-    public void handleBidAsks(Object bookSide, Object bidAsks)
+    public void handleBidAsks(io.github.ccxt.ws.OrderBookSide bookSide, List<Object> bidAsks)
     {
-        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
+        for (var i = 0; i < bidAsks.size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)), 0, 1, 2);
-            ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i)), 0, 1, 2);
+            bookSide.storeArray(bidAsk);
         }
     }
 
-    public Object getCacheIndex(Object orderbook, Object cache)
+    public Long getCacheIndex(Object orderbook, Object cache)
     {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
@@ -1497,15 +1543,15 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Integer cacheLength = ((List<?>)cache).size();
         if (java.util.Objects.equals(nonce, null))
         {
-            return cacheLength;
+            return (long) (cacheLength);
         }
         if (java.util.Objects.equals(firstDeltaStart, null))
         {
-            return -1;
+            return (long) (-1);
         }
         if (((nonce == null || nonce < (firstDeltaStart - 1L))))
         {
-            return -1;
+            return (long) (-1);
         }
         for (var i = 0; (cacheLength != null && i < cacheLength); i++)
         {
@@ -1514,14 +1560,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Long deltaEnd = this.safeInteger(delta, "u");
             if ((java.util.Objects.equals(deltaStart, null)) || (java.util.Objects.equals(deltaEnd, null)))
             {
-                return cacheLength;
+                return (long) (cacheLength);
             }
             if ((((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
-                return i;
+                return (long) (i);
             }
         }
-        return cacheLength;
+        return (long) (cacheLength);
     }
 
     /**
@@ -1538,50 +1584,52 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> query = (this.prepareWsStockParams("watchOrders", (Map<String, Object>) (parameters))).join();
-            if (java.util.Objects.equals(this.markets, null))
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrders", parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            this.handleStockParams("watchOrders", query, market);
+        }
+        String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
+        String topic = "account.orderUpdate";
+        String messageHash = "orders";
+        if (!java.util.Objects.equals(market, null))
+        {
+            topic = ("account.orderUpdate." + this.safeString(market, "id", ""));
+            if (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                this.handleStockParams("watchOrders", query, market);
-            }
-            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
-            String topic = "account.orderUpdate";
-            String messageHash = "orders";
-            if (!java.util.Objects.equals(market, null))
-            {
-                topic = ("account.orderUpdate." + this.safeString(market, "id", ""));
-                if (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq"))
-                {
-                    topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
-                }
-                messageHash = ("orders:" + this.safeString(market, "symbol", ""));
-            }
-            List<String> topics = new ArrayList<String>(Arrays.asList(topic));
-            if (java.util.Objects.equals(market, null))
-            {
-                topics.add("account.rfqUpdate");
-            }
-            List<Object> orders = (List<Object>) (this.watchPrivate(topics, new ArrayList<Object>(Arrays.asList(messageHash)), this.omit(query, "stock"), false)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
-            }
-            List<Object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
-            if (Boolean.TRUE.equals(this.safeBool(query, "stock", false)))
-            {
-                return this.filterStockStructures(filtered);
-            }
-            return filtered;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+            messageHash = ("orders:" + this.safeString(market, "symbol", ""));
+        }
+        List<String> topics = new ArrayList<String>(Arrays.asList(topic));
+        if (java.util.Objects.equals(market, null))
+        {
+            topics.add("account.rfqUpdate");
+        }
+        List<Object> orders = (List<Object>) (this.watchPrivate(topics, new ArrayList<Object>(Arrays.asList(messageHash)), this.omit(query, "stock"), false)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
+        }
+        List<Object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        if (Boolean.TRUE.equals(this.safeBool(query, "stock", false)))
+        {
+            return this.filterStockStructures(filtered);
+        }
+        return filtered;
 
     }
 
@@ -1597,38 +1645,40 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrdersCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> query = (this.prepareWsStockParams("watchOrders", (Map<String, Object>) (parameters))).join();
-            if (java.util.Objects.equals(this.markets, null))
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrders", parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            this.handleStockParams("watchOrders", query, market);
+        }
+        String topic = "account.orderUpdate";
+        String messageHash = "unsubscribe:orders";
+        if (!java.util.Objects.equals(market, null))
+        {
+            topic = ("account.orderUpdate." + this.safeString(market, "id", ""));
+            if (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                this.handleStockParams("watchOrders", query, market);
-            }
-            String topic = "account.orderUpdate";
-            String messageHash = "unsubscribe:orders";
-            if (!java.util.Objects.equals(market, null))
-            {
-                topic = ("account.orderUpdate." + this.safeString(market, "id", ""));
-                if (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq"))
-                {
-                    topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
-                }
-                messageHash = ("unsubscribe:orders:" + this.safeString(market, "symbol", ""));
-            }
-            List<String> topics = new ArrayList<String>(Arrays.asList(topic));
-            if (java.util.Objects.equals(market, null))
-            {
-                topics.add("account.rfqUpdate");
-            }
-            return (this.watchPrivate(topics, new ArrayList<Object>(Arrays.asList(messageHash)), this.omit(query, "stock"), true)).join();
-        });
+            messageHash = ("unsubscribe:orders:" + this.safeString(market, "symbol", ""));
+        }
+        List<String> topics = new ArrayList<String>(Arrays.asList(topic));
+        if (java.util.Objects.equals(market, null))
+        {
+            topics.add("account.rfqUpdate");
+        }
+        return (this.watchPrivate(topics, new ArrayList<Object>(Arrays.asList(messageHash)), this.omit(query, "stock"), true)).join();
 
     }
 
@@ -1661,8 +1711,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String messageHash = "orders";
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(data, "e", "");
         Object parsed = null;
         if (((((String)eventVar).indexOf("rfq") == 0)) || ((((String)eventVar).indexOf("quote") == 0)))
@@ -1718,7 +1768,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             request.put("id", this.safeString(data, "u"));
         }
-        Map<String, Object> marketResolved = this.safeMarket(this.safeString(data, "s"), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(this.safeString(data, "s"), market, null, null);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(request, marketResolved);
         parsed.put("info", data);
         if (java.util.Objects.equals(eventVar, "rfqFilled"))
@@ -1740,45 +1790,47 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> query = (this.prepareWsStockParams("watchBalance", (Map<String, Object>) (parameters))).join();
-            Boolean stock = (Boolean) this.safeBool(query, "stock", false);
-            if (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(this.safeList(this.options, "securities", null), null)))
+        Map<String, Object> query = (this.prepareWsStockParams("watchBalance", parameters)).join();
+        Boolean stock = this.safeBool(query, "stock", false);
+        if (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(this.safeList(this.options, "securities", null), null)))
+        {
+            (this.fetchSecurities(new HashMap<String, Object>() {{}})).join();
+        }
+        Object response = (this.watchPrivate(new ArrayList<Object>(Arrays.asList("account.balanceUpdate")), new ArrayList<Object>(Arrays.asList("balance")), this.omit(query, "stock"), false)).join();
+        Map<String, Object> balances = this.safeDict(new HashMap<String, Object>() {{
+            put( "balances", response );
+        }}, "balances", new HashMap<String, Object>() {{}});
+        if (Boolean.TRUE.equals(stock))
+        {
+            List<Object> securities = this.safeList(this.options, "securities", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = new HashMap<String, Object>() {{
+                put( "timestamp", Backpack.this.safeInteger(balances, "timestamp") );
+                put( "datetime", Backpack.this.safeString(balances, "datetime") );
+                put( "info", Backpack.this.safeDict(balances, "info", null) );
+            }};
+            for (var i = 0; i < securities.size(); i++)
             {
-                (this.fetchSecurities(new HashMap<String, Object>() {{}})).join();
-            }
-            Object response = (this.watchPrivate(new ArrayList<Object>(Arrays.asList("account.balanceUpdate")), new ArrayList<Object>(Arrays.asList("balance")), this.omit(query, "stock"), false)).join();
-            Map<String, Object> balances = this.safeDict(new HashMap<String, Object>() {{
-                put( "balances", response );
-            }}, "balances", new HashMap<String, Object>() {{}});
-            if (Boolean.TRUE.equals(stock))
-            {
-                List<Object> securities = this.safeList(this.options, "securities", new ArrayList<Object>(Arrays.asList()));
-                Map<String, Object> result = new HashMap<String, Object>() {{
-                    put( "timestamp", Backpack.this.safeInteger(balances, "timestamp") );
-                    put( "datetime", Backpack.this.safeString(balances, "datetime") );
-                    put( "info", Backpack.this.safeDict(balances, "info", null) );
-                }};
-                for (var i = 0; i < securities.size(); i++)
+                Map<String, Object> security = this.safeDict(securities, i, new HashMap<String, Object>() {{}});
+                String code = this.safeCurrencyCode(this.safeString(security, "asset"), null);
+                if (java.util.Objects.equals(code, null))
                 {
-                    Map<String, Object> security = this.safeDict(securities, i, new HashMap<String, Object>() {{}});
-                    String code = this.safeCurrencyCode(this.safeString(security, "asset"), (Map<String, Object>) null);
-                    if (java.util.Objects.equals(code, null))
-                    {
-                        continue;
-                    }
-                    Map<String, Object> account = this.safeDict(balances, code, null);
-                    if (!java.util.Objects.equals(account, null))
-                    {
-                        result.put(code, account);
-                    }
+                    continue;
                 }
-                return this.safeBalance(result);
+                Map<String, Object> account = this.safeDict(balances, code, null);
+                if (!java.util.Objects.equals(account, null))
+                {
+                    result.put(code, account);
+                }
             }
-            return this.safeBalance(balances);
-        }).thenApply(Balances::new);
+            return this.safeBalance(result);
+        }
+        return this.safeBalance(balances);
 
     }
 
@@ -1793,12 +1845,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchBalanceCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchBalanceCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> query = (this.prepareWsStockParams("watchBalance", (Map<String, Object>) (parameters))).join();
-            return (this.watchPrivate(new ArrayList<Object>(Arrays.asList("account.balanceUpdate")), new ArrayList<Object>(Arrays.asList("unsubscribe:balance")), this.omit(query, "stock"), true)).join();
-        });
+        Map<String, Object> query = (this.prepareWsStockParams("watchBalance", parameters)).join();
+        return (this.watchPrivate(new ArrayList<Object>(Arrays.asList("account.balanceUpdate")), new ArrayList<Object>(Arrays.asList("unsubscribe:balance")), this.omit(query, "stock"), true)).join();
 
     }
 
@@ -1833,7 +1887,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         parsed.put("timestamp", timestamp);
-        Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
+        parsed.put("datetime", this.iso8601(timestamp));
         parsed.put("info", assets);
         this.balance = parsed;
         client.resolve(parsed, "balance");
@@ -1874,13 +1928,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeString(marketResolved, "symbol");
         String type = this.safeStringLower(order, "o");
         String timeInForce = this.safeString(order, "f");
         String side = this.parseWsOrderSide(this.safeString(order, "S"));
         String price = this.safeString(order, "p");
-        Double triggerPrice = this.safeNumber(order, "P", (Object) null);
+        Double triggerPrice = this.safeNumber(order, "P", null);
         String amount = this.safeString(order, "q");
         String cost = this.safeString(order, "Z");
         String filled = this.safeString(order, "l");
@@ -1956,36 +2010,39 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchPositionsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchPositionsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                messageHashes.add((("positions" + ":") + symbol));
+                String marketId = this.safeString(this.market(symbol), "id", "");
+                topics.add(("account.positionUpdate." + marketId));
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                for (var i = 0; i < symbolsNormalized.size(); i++)
-                {
-                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    messageHashes.add((("positions" + ":") + symbol));
-                    topics.add(("account.positionUpdate." + this.marketId(symbol)));
-                }
-            } else
-            {
-                messageHashes.add("positions");
-                topics.add("account.positionUpdate");
-            }
-            Object positions = (this.watchPrivate(topics, messageHashes, parameters, false)).join();
-            if (this.newUpdates)
-            {
-                return positions;
-            }
-            return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        } else
+        {
+            messageHashes.add("positions");
+            topics.add("account.positionUpdate");
+        }
+        Object positions = (this.watchPrivate(topics, messageHashes, parameters, false)).join();
+        if (this.newUpdates)
+        {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
 
     }
 
@@ -2000,31 +2057,34 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
      */
     public CompletableFuture<Object> unWatchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchPositionsCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        List<String> topics = new ArrayList<String>(Arrays.asList());
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                messageHashes.add((("unsubscribe:positions" + ":") + symbol));
+                String marketId = this.safeString(this.market(symbol), "id", "");
+                topics.add(("account.positionUpdate." + marketId));
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> topics = new ArrayList<String>(Arrays.asList());
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                for (var i = 0; i < symbolsNormalized.size(); i++)
-                {
-                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    messageHashes.add((("unsubscribe:positions" + ":") + symbol));
-                    topics.add(("account.positionUpdate." + this.marketId(symbol)));
-                }
-            } else
-            {
-                messageHashes.add("unsubscribe:positions");
-                topics.add("account.positionUpdate");
-            }
-            return (this.watchPrivate(topics, messageHashes, parameters, true)).join();
-        });
+        } else
+        {
+            messageHashes.add("unsubscribe:positions");
+            topics.add("account.positionUpdate");
+        }
+        return (this.watchPrivate(topics, messageHashes, parameters, true)).join();
 
     }
 
@@ -2060,7 +2120,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition(data, (Map<String, Object>) null);
+        Map<String, Object> parsedPosition = this.parseWsPosition(data, null);
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         parsedPosition.put("timestamp", timestamp);
@@ -2071,7 +2131,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolSpecificMessageHash);
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -2095,8 +2155,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         String id = this.safeString(position, "i");
         String marketId = this.safeString(position, "s");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeString(marketResolved, "symbol", "");
         String notional = this.safeString(position, "n");
         String liquidationPrice = this.safeString(position, "l");
         String entryPrice = this.safeString(position, "b");
@@ -2104,11 +2164,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String unrealisedPnl = this.safeString(position, "P");
         String contracts = this.safeString(position, "Q");
         String markPrice = this.safeString(position, "M");
-        Double netQuantity = this.safeNumber(position, "q", (Object) null);
+        Double netQuantity = this.safeNumber(position, "q", null);
         Boolean hedged = false;
-        String side = "long";
+        String side = null;
         if (!java.util.Objects.equals(netQuantity, null))
         {
+            side = "long";
             if (((netQuantity == null || 0 > netQuantity)))
             {
                 side = "short";
@@ -2116,12 +2177,11 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         } else
         {
             hedged = null;
-            side = null;
         }
         Long microseconds = this.safeInteger(position, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
-        Double maintenanceMarginPercentage = this.safeNumber(position, "m", (Object) null);
-        Double initialMarginPercentage = this.safeNumber(position, "f", (Object) null);
+        Double maintenanceMarginPercentage = this.safeNumber(position, "m", null);
+        Double initialMarginPercentage = this.safeNumber(position, "f", null);
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("info", position);
         mapLiteral6.put("id", id);
@@ -2191,7 +2251,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

@@ -493,8 +493,10 @@ class bitso extends Exchange {
             $parts = explode('_', $id);
             $baseId = $this->safe_string($parts, 0, '');
             $quoteId = $this->safe_string($parts, 1, '');
-            $base = $this->safe_currency_code(strtoupper($baseId));
-            $quote = $this->safe_currency_code(strtoupper($quoteId));
+            $baseIdUpper = strtoupper($baseId);
+            $quoteIdUpper = strtoupper($quoteId);
+            $base = $this->safe_currency_code($baseIdUpper);
+            $quote = $this->safe_currency_code($quoteIdUpper);
             if (($base === null) || ($quote === null)) {
                 continue;
             }
@@ -1173,14 +1175,15 @@ class bitso extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'book' => $market['id'],
             'side' => $side,
             'type' => $type,
-            'major' => $this->amount_to_precision($market['symbol'], $amount),
+            'major' => $this->amount_to_precision($precisionSymbol, $amount),
         );
         if ($type === 'limit') {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['price'] = $this->price_to_precision($precisionSymbol, $price);
         }
         $response = $this->privatePostOrders($this->extend($request, $params));
         $payload = $this->safe_dict($response, 'payload', array());
@@ -1255,8 +1258,8 @@ class bitso extends Exchange {
         $payload = $this->safe_list($response, 'payload', array());
         $orders = array();
         for ($i = 0; $i < count($payload); $i++) {
-            $id = $payload[$i];
-            $orders[] = $this->parse_order($id, $market);
+            $id = $this->safe_string($payload, $i);
+            $orders[] = $this->safe_order(array( 'info' => $this->safe_string($payload, $i), 'id' => $id, 'symbol' => $this->safe_symbol(null, $market, '_') ), $market);
         }
         return $orders;
     }
@@ -1265,11 +1268,11 @@ class bitso extends Exchange {
         /**
          * cancel all open orders
          *
-         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-$order
+         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
          *
          * @param {string} [$symbol] bitso does not support canceling orders for only a specific market
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.');
@@ -1284,8 +1287,8 @@ class bitso extends Exchange {
         $payload = $this->safe_list($response, 'payload', array());
         $canceledOrders = array();
         for ($i = 0; $i < count($payload); $i++) {
-            $order = $this->parse_order($payload[$i]);
-            $canceledOrders[] = $order;
+            $id = $this->safe_string($payload, $i);
+            $canceledOrders[] = $this->safe_order(array( 'info' => $this->safe_string($payload, $i), 'id' => $id, 'symbol' => $this->safe_symbol(null, null, '_') ));
         }
         return $canceledOrders;
     }
@@ -1301,17 +1304,7 @@ class bitso extends Exchange {
     }
 
     public function parse_order(array $order, ?array $market = null): array {
-        //
-        //
-        // canceledOrder
-        // yWTQGxDMZ0VimZgZ
-        //
-        $id = null;
-        if (gettype($order) === 'string') {
-            $id = $order;
-        } else {
-            $id = $this->safe_string($order, 'oid');
-        }
+        $id = $this->safe_string($order, 'oid');
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'book');
@@ -1408,7 +1401,7 @@ class bitso extends Exchange {
         $payload = $this->safe_list($response, 'payload', array());
         $numOrders = count($payload);
         if ($numOrders === 1) {
-            return $this->parse_order($payload[0]);
+            return $this->parse_order($this->safe_dict($payload, 0, array()));
         }
         throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }
@@ -1564,7 +1557,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()): array {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -1799,10 +1792,16 @@ class bitso extends Exchange {
                 $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
                 $resultValue = $this->safe_dict($result, $code);
                 if ($resultValue === null) {
-                    $result[$code] = $this->deposit_withdraw_fee(array());
+                    $newInfo = array();
+                    $newInfo[$code] = $this->parse_number($withdrawalResponse[$currencyId]);
+                    $result[$code] = $this->extend($this->deposit_withdraw_fee($newInfo), array( 'withdraw' => array( 'fee' => $withdrawFee, 'percentage' => null )));
+                } else {
+                    $infoUpdate = array();
+                    $infoUpdate[$code] = $this->parse_number($withdrawalResponse[$currencyId]);
+                    $withdraw = $this->extend($this->safe_dict($resultValue, 'withdraw', array()), array( 'fee' => $withdrawFee ));
+                    $info = $this->extend($this->safe_dict($resultValue, 'info', array()), $infoUpdate);
+                    $result[$code] = $this->extend($resultValue, array( 'withdraw' => $withdraw, 'info' => $info ));
                 }
-                $result[$code]['withdraw']['fee'] = $withdrawFee;
-                $result[$code]['info'][$code] = $withdrawFee;
             }
         }
         return $result;
@@ -1840,8 +1839,19 @@ class bitso extends Exchange {
             'address' => $address,
             'destination_tag' => $tagWithdrawTag,
         );
-        $classMethod = 'privatePost' . $method . 'Withdrawal';
-        $response = $this->$classMethod($this->extend($request, $paramsWithdrawTag));
+        $withdrawRequest = $this->extend($request, $paramsWithdrawTag);
+        $response = null;
+        if ($method === 'Bitcoin') {
+            $response = $this->privatePostBitcoinWithdrawal($withdrawRequest);
+        } elseif ($method === 'Ether') {
+            $response = $this->privatePostEtherWithdrawal($withdrawRequest);
+        } elseif ($method === 'Ripple') {
+            $response = $this->privatePostRippleWithdrawal($withdrawRequest);
+        } elseif ($method === 'Bcash') {
+            $response = $this->privatePostBcashWithdrawal($withdrawRequest);
+        } else {
+            $response = $this->privatePostLitecoinWithdrawal($withdrawRequest);
+        }
         //
         //     {
         //         "success": true,
@@ -1990,11 +2000,11 @@ class bitso extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('success' ?? '', $response)) {
+        if ($this->safe_bool($response, 'success') !== null) {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -271,7 +271,9 @@ class woo(ccxt.async_support.woo):
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def fetch_order_book_snapshot(self, client: Client, message: dict, subscription: dict):
-        symbol = self.safe_string(subscription, 'symbol')
+        symbol = self.safe_string(subscription, 'symbol', '')
+        if symbol == '':
+            return
         messageHash = self.safe_string(message, 'topic')
         try:
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -285,7 +287,7 @@ class woo(ccxt.async_support.woo):
             orderbook.reset(snapshot)
             messages = orderbook.cache
             for i in range(0, len(messages)):
-                messageItem = messages[i]
+                messageItem = self.safe_dict(messages, i, {})
                 ts = self.safe_integer(messageItem, 'ts')
                 if ts is None:
                     continue
@@ -294,8 +296,7 @@ class woo(ccxt.async_support.woo):
                     continue
                 else:
                     self.handle_order_book_message(client, messageItem, orderbook)
-            if symbol is not None:
-                self.orderbooks[symbol] = orderbook
+            self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         except Exception as e:
             if messageHash is not None:
@@ -571,8 +572,7 @@ class woo(ccxt.async_support.woo):
             ticker = self.safe_dict(data, i)
             if ticker is None:
                 continue
-            ticker['ts'] = timestamp
-            parsedTicker = self.parse_ws_bid_ask(ticker)
+            parsedTicker = self.parse_ws_bid_ask(self.extend(ticker, {'ts': timestamp}))
             symbol = self.safe_string(parsedTicker, 'symbol')
             if symbol is not None:
                 self.bidsasks[symbol] = parsedTicker
@@ -762,7 +762,7 @@ class woo(ccxt.async_support.woo):
         data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade = self.parse_ws_trade(self.extend(data, {'timestamp': timestamp}), market)
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
@@ -1124,24 +1124,24 @@ class woo(ccxt.async_support.woo):
         #         }
         #     }
         #
-        topic = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
-        if isinstance(data, list):
+        topic = self.safe_string(message, 'topic', '')
+        dataList = self.safe_list(message, 'data')
+        if dataList is not None:
             # algoexecutionreportv2
-            for i in range(0, len(data)):
-                order = data[i]
-                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            for i in range(0, len(dataList)):
+                tradeId = self.omit_zero(self.safe_string(dataList, 'tradeId'))
                 if tradeId is not None:
-                    self.handle_my_trade(client, order)
-                self.handle_order(client, order, topic)
+                    self.handle_my_trade(client, self.safe_dict(dataList, i, {}))
+                self.handle_order(client, self.safe_dict(dataList, i, {}), topic)
         else:
+            data = self.safe_dict(message, 'data', {})
             # executionreport
             tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
             if tradeId is not None:
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message: dict, topic: Str):
+    def handle_order(self, client: Client, message: dict, topic: str):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -1315,8 +1315,7 @@ class woo(ccxt.async_support.woo):
         for i in range(0, len(postitionsIds)):
             marketId = postitionsIds[i]
             market = self.safe_market(marketId)
-            rawPosition = rawPositions[marketId]
-            position = self.parse_position(rawPosition, market)
+            position = self.parse_position(self.safe_dict(rawPositions, marketId, {}), market)
             newPositions.append(position)
             cache.append(position)
             marketSymbol = self.safe_string(market, 'symbol', '')
@@ -1437,7 +1436,7 @@ class woo(ccxt.async_support.woo):
         messageHash = self.safe_string(message, 'topic')
         client.resolve(fundingRate, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #
@@ -1478,8 +1477,8 @@ class woo(ccxt.async_support.woo):
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
         unsubMessageHashes = self.safe_list(subscription, 'unsubMessageHashes', [])
         for i in range(0, len(subMessageHashes)):
-            subHash = subMessageHashes[i]
-            unsubHash = unsubMessageHashes[i]
+            subHash = self.safe_string(subMessageHashes, i)
+            unsubHash = self.safe_string(unsubMessageHashes, i)
             self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
@@ -1563,7 +1562,7 @@ class woo(ccxt.async_support.woo):
         subscription = self.safe_dict(subscriptionsById, id, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
-            method(client, message, subscription)
+            self.handle_order_book_subscription(client, message, subscription)
         return message
 
     def handle_auth(self, client: Client, message: dict):

@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, Status } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, Status } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -196,7 +196,7 @@ export default class kraken extends Exchange {
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     findMarketByAltnameOrId(id: any): MarketInterface;
     resolveMarketByAltnameOrId(marketId: Str, market?: Market): Market;
-    getDelistedMarketById(id: Str): any;
+    getDelistedMarketById(id: Str): Market;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
@@ -350,7 +350,7 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: Str): Str;
     parseNetwork(network: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): Transaction[];
+    parseTransactionsByType(type: string, transactions: Dict[], code?: Str, since?: Int, limit?: Int): Transaction[];
     /**
      * @method
      * @name kraken#fetchDeposits
@@ -473,5 +473,5 @@ export default class kraken extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     nonce(): int;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

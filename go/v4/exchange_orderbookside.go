@@ -433,8 +433,17 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
 	index := bisectLeft(obs.Index, indexPrice)
 
-	// TS `if (size && count)`: JS truthiness, so a zero count of any numeric kind deletes the level
-	if size != 0 && IsTrue(count) {
+	// TS `if (size && count)`: non-numeric metadata (bitget checksum pair) is kept; numeric 0 deletes the level
+	countVal := 1.0
+	rawCount := derefScalar(count)
+	if rawCount == nil {
+		countVal = 0
+	} else if _, isSlice := rawCount.([]any); !isSlice {
+		if _, isMap := rawCount.(map[string]any); !isMap {
+			countVal = normalizeNumber(rawCount)
+		}
+	}
+	if size != 0 && countVal != 0 && !math.IsNaN(countVal) {
 		if obs.Index[index] == indexPrice {
 			row := append([]any(nil), obs.Data[index]...)
 			row[1] = size

@@ -577,8 +577,9 @@ export default class zebpay extends Exchange {
         const fees = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee(fees[i]);
-            const symbol = fee['symbol'];
+            const feeRow = this.safeDict(fees, i, {});
+            const fee = this.parseTradingFee(feeRow);
+            const symbol = this.safeString(fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -971,7 +972,7 @@ export default class zebpay extends Exchange {
         const timestamp = this.safeInteger2(trade, 'timestamp', 'tradeTime');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const side = this.safeStringLower(trade, 'side');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString2(trade, 'amount', 'quantity');
@@ -1074,7 +1075,7 @@ export default class zebpay extends Exchange {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
             const formType = this.safeStringUpper(query, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
-            request['amount'] = this.parseToNumeric(this.amountToPrecision(market['id'], amount));
+            request['amount'] = this.parseToNumeric(this.amountToPrecision(this.safeString(market, 'id'), amount));
             request['marginAsset'] = marginAsset;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;
@@ -1351,7 +1352,7 @@ export default class zebpay extends Exchange {
         //
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const type = this.safeString(order, 'type');
         const timestamp = this.safeNumber(order, 'timestamp');
         const datetime = this.iso8601(timestamp);

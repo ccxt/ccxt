@@ -4,8 +4,9 @@
 import interactivebrokersRest from '../interactivebrokers.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Num, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -98,16 +99,17 @@ export default class interactivebrokers extends interactivebrokersRest {
         await this.authenticate ();
         const useGateway = this.safeBool (this.options, 'useGateway', false);
         let url = undefined;
+        const wsUrl: string = this.safeString (this.urls['api'], 'ws', '');
         if (useGateway) {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
-            const replacedUrl = this.urls['api']['ws'].replace ('wss://', 'https://');
+            const replacedUrl = wsUrl.replace ('wss://', 'https://');
             const restUrl = this.ibkrGatewayBaseUrl (replacedUrl, gatewayUrl);
             url = restUrl.replace ('https://', 'wss://');
             url = url.replace ('http://', 'ws://');
         } else {
             // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
-            url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
+            url = wsUrl + '?oauth_token=' + this.apiKey;
         }
         if (!(url in this.clients)) {
             const response = await this.webapiPostV1ApiTickle ();
@@ -126,7 +128,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 },
             };
             this.extendExchangeOptions (defaultOptions);
-            const originalHeaders = this.options['ws']['options']['headers'];
+            const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             const userAgent = this.safeString (this.options, 'wsUserAgent', 'ClientPortalGW/1');
@@ -134,14 +136,14 @@ export default class interactivebrokers extends interactivebrokersRest {
             if (useGateway) {
                 cookie = 'api=' + this.json ({ 'session': session });
             }
-            const headers: Dict = this.extend (originalHeaders, {
+            const headers: Dict = this.extend (this.safeDict (this.safeDict (wsOptions, 'options'), 'headers'), {
                 'Cookie': cookie,
                 'User-Agent': userAgent,
             });
-            this.options['ws']['options']['headers'] = headers;
+            this.options['ws'] = this.extend (wsOptions, { 'options': this.extend (this.safeDict (wsOptions, 'options'), { 'headers': headers }) });
             // instantiate client
             const newClient = this.client (url);
-            this.options['ws']['options']['headers'] = originalHeaders;
+            this.options['ws'] = wsOptions;
             const tickleInterval = this.safeInteger (this.options, 'tickleInterval', 240000);
             this.delay (tickleInterval, this.ibkrKeepAliveSession, newClient);
         }
@@ -186,18 +188,15 @@ export default class interactivebrokers extends interactivebrokersRest {
         const sent: Dict = {};
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
-            const subscription = client.subscriptions[keys[i]];
-            if (typeof subscription === 'object') {
-                const request = this.safeString (subscription, 'request');
-                if ((request !== undefined) && request.startsWith ('smd+') && !(request in sent)) {
-                    sent[request] = true;
-                    try {
-                        await client.send (request);
-                    } catch (e) {
-                        // the connection is gone, the client reconnects on the next watch call
-                        if (this.verbose) {
-                            this.log ('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage (e));
-                        }
+            const request = this.safeString (client.subscriptions[keys[i]], 'request');
+            if ((request !== undefined) && request.startsWith ('smd+') && !(request in sent)) {
+                sent[request] = true;
+                try {
+                    await client.send (request);
+                } catch (e) {
+                    // the connection is gone, the client reconnects on the next watch call
+                    if (this.verbose) {
+                        this.log ('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage (e));
                     }
                 }
             }
@@ -268,11 +267,10 @@ export default class interactivebrokers extends interactivebrokersRest {
     async ibkrUnsubscribeMarketData (client: Client, marketId: Str): Promise<any> {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
-            const subscription = client.subscriptions[keys[i]];
-            if (typeof subscription === 'object') {
-                const request = this.safeString (subscription, 'request');
-                const conid = this.safeString (subscription, 'conid');
-                if ((request !== undefined) && request.startsWith ('smd+') && (conid === marketId)) {
+            const request = this.safeString (client.subscriptions[keys[i]], 'request');
+            if ((request !== undefined) && request.startsWith ('smd+')) {
+                const conid = this.safeString (client.subscriptions[keys[i]], 'conid');
+                if (conid === marketId) {
                     return undefined; // still in use
                 }
             }
@@ -293,12 +291,12 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    ibkrMarketDataRequest (marketId: Str, params: Dict = {}): any[] {
+    ibkrMarketDataRequest (marketId: string, params: Dict = {}): [ string, Dict ] {
         const options = this.safeDict (this.options, 'watchTickers', {});
         const defaultFields = this.safeList (options, 'fields', []);
         const fields = this.safeList (params, 'fields', defaultFields);
-        const query = this.omit (params, 'fields');
-        const request = 'smd+' + marketId + '+' + this.json ({ 'fields': fields });
+        const query: Dict = this.extend ({}, this.omit (params, 'fields'));
+        const request: string = 'smd+' + marketId + '+' + this.json ({ 'fields': fields });
         return [ request, query ];
     }
 
@@ -316,7 +314,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const ticker = await this.ibkrWatchMarketData ('ticker', symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            const tickerSymbol = ticker['symbol'] as string;
+            const tickerSymbol: string = this.safeString (ticker, 'symbol', '');
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -336,7 +334,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const ticker = await this.ibkrWatchMarketData ('bidask', symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            const tickerSymbol = ticker['symbol'] as string;
+            const tickerSymbol: string = this.safeString (ticker, 'symbol', '');
             result[tickerSymbol] = ticker;
             return result;
         }
@@ -370,7 +368,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market (marketSymbols[i]);
-            const [ request, query ] = this.ibkrMarketDataRequest (market['id'], params);
+            const [ request, query ] = this.ibkrMarketDataRequest (this.safeString (market, 'id', ''), params);
             const subscription: Dict = this.extend ({ 'conid': market['id'], 'symbol': market['symbol'] }, query);
             await this.ibkrSubscribe (client, messageHashes[i], request, subscription);
         }
@@ -430,7 +428,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         await this.ibkrUnsubscribe (client, subHashes, undefined, subscription);
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market (marketSymbols[i]);
-            await this.ibkrUnsubscribeMarketData (client, market['id']);
+            await this.ibkrUnsubscribeMarketData (client, this.safeString (market, 'id'));
         }
         return true;
     }
@@ -453,7 +451,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const parts = topic.split ('+');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         let previous = this.safeDict (this.tickers, symbol);
@@ -471,7 +469,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         const hasBidAsk = ('84' in message) || ('85' in message) || ('86' in message) || ('88' in message);
-        const hasQuote = (ticker['bid'] !== undefined) || (ticker['ask'] !== undefined);
+        const hasQuote = (this.safeString (ticker, 'bid') !== undefined) || (this.safeString (ticker, 'ask') !== undefined);
         if (hasBidAsk && hasQuote) {
             const bidAsk = this.safeTicker ({
                 'symbol': symbol,
@@ -507,17 +505,18 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
+        const historyMarketId: string = this.safeString (market, 'id', '');
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const messageHash = 'ohlcv::' + unifiedSymbol + '::' + timeframe;
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         const future = client.reusableFuture (messageHash);
         // the last price stream, it builds the current candles
-        const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (market['id'], params);
+        const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (this.safeString (market, 'id', ''), params);
         await this.ibkrSubscribe (client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
         // the history, it seeds the candles
-        const historyHash = 'smh::' + market['id'] + '::' + timeframe;
+        const historyHash = 'smh::' + historyMarketId + '::' + timeframe;
         if (!(historyHash in client.subscriptions)) {
             if (!(unifiedSymbol in this.ohlcvs)) {
                 this.ohlcvs[unifiedSymbol] = {};
@@ -528,7 +527,10 @@ export default class interactivebrokers extends interactivebrokersRest {
             }
             const options = this.safeDict (this.options, 'watchOHLCV', {});
             const duration = this.parseTimeframe (timeframe);
-            const historyLimit = (limit === undefined) ? 100 : limit;
+            let historyLimit = 100;
+            if (limit !== undefined) {
+                historyLimit = this.parseToInt (limit);
+            }
             const historyRequest: Dict = {
                 'exchange': this.safeString (options, 'exchange', 'SMART'),
                 'period': this.ibkrWsPeriod (duration, historyLimit),
@@ -538,7 +540,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 // no 'format', the bars carry the "t" timestamp only with the default format
             };
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            const request = 'smh+' + market['id'] + '+' + this.json (this.keysort (this.extend (historyRequest, query)));
+            const request = 'smh+' + historyMarketId + '+' + this.json (this.keysort (this.extend (historyRequest, query)));
             await this.ibkrSubscribe (client, historyHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration });
         }
         const ohlcv = await future;
@@ -562,16 +564,17 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
+        const historyMarketId: string = this.safeString (market, 'id', '');
         const url = await this.ibkrConnect ();
         const client = this.client (url);
-        const subHashes = [ 'ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + market['id'] + '::' + timeframe ];
+        const subHashes = [ 'ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + historyMarketId + '::' + timeframe ];
         const subscription: Dict = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [ [ unifiedSymbol, timeframe ] ],
         };
         await this.ibkrUnsubscribe (client, subHashes, undefined, subscription);
-        await this.ibkrUnsubscribeMarketData (client, market['id']);
+        await this.ibkrUnsubscribeMarketData (client, historyMarketId);
         return true;
     }
 
@@ -590,7 +593,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         //
         const topic = this.safeString (message, 'topic', '');
         const parts = topic.split ('+');
-        const marketId = this.safeString (parts, 1);
+        const marketId: string = this.safeString (parts, 1, '');
         const serverId = this.safeString (message, 'serverId');
         if (serverId !== undefined) {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -618,7 +621,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const symbol = this.safeString (subscription, 'symbol') as string;
         const timeframe = this.safeString (subscription, 'timeframe') as string;
         const market = this.safeMarket (marketId);
-        const stored = this.safeValue (this.safeDict (this.ohlcvs, symbol, {}), timeframe);
+        const stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             return;
         }
@@ -627,23 +630,26 @@ export default class interactivebrokers extends interactivebrokersRest {
         let lastHistoryTimestamp: Int = undefined;
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
-            let timestamp = parsed[0];
-            if (timestamp === undefined) {
+            if (this.safeInteger (parsed, 0) === undefined) {
                 continue;
             }
+            let timestamp = this.safeInteger (parsed, 0, 0);
             if (timestamp < 100000000000) {
                 timestamp = timestamp * 1000; // seconds
                 parsed[0] = timestamp;
             }
             bars.push (parsed);
-            if ((lastHistoryTimestamp === undefined) || (timestamp > lastHistoryTimestamp)) {
+            if (lastHistoryTimestamp === undefined) {
+                lastHistoryTimestamp = timestamp;
+            } else if (timestamp > lastHistoryTimestamp) {
                 lastHistoryTimestamp = timestamp;
             }
         }
         // the live candles built from smd before the history arrived are kept only when they are newer than the history
         for (let i = 0; i < stored.length; i++) {
             const candle = stored[i];
-            if ((lastHistoryTimestamp === undefined) || (candle[0] > lastHistoryTimestamp)) {
+            const candleTimestamp = this.safeInteger (candle, 0, 0);
+            if ((lastHistoryTimestamp === undefined) || (candleTimestamp > lastHistoryTimestamp)) {
                 bars.push (candle);
             }
         }
@@ -671,7 +677,10 @@ export default class interactivebrokers extends interactivebrokersRest {
         const total = duration * limit;
         const minutes = this.parseToInt ((total + 59) / 60);
         if (minutes <= 30) {
-            return this.numberToString (Math.max (minutes, 1)) + 'min';
+            if (minutes < 1) {
+                return '1min';
+            }
+            return this.numberToString (minutes) + 'min';
         }
         const hours = this.parseToInt ((total + 3599) / 3600);
         if (hours <= 8) {
@@ -690,7 +699,10 @@ export default class interactivebrokers extends interactivebrokersRest {
             return this.numberToString (months) + 'm';
         }
         const years = this.parseToInt ((total + 31535999) / 31536000);
-        return this.numberToString (Math.min (years, 15)) + 'y';
+        if (years > 15) {
+            return '15y'; // the documented maximum period
+        }
+        return this.numberToString (years) + 'y';
     }
 
     /**
@@ -735,24 +747,33 @@ export default class interactivebrokers extends interactivebrokersRest {
         const timeframes = Object.keys (ohlcvsBySymbol);
         for (let i = 0; i < timeframes.length; i++) {
             const timeframe = timeframes[i];
-            const stored = ohlcvsBySymbol[timeframe];
+            const stored: ArrayCacheByTimestamp = ohlcvsBySymbol[timeframe];
             const duration = this.parseTimeframe (timeframe) * 1000;
             const candleTimestamp = this.parseToInt (timestamp / duration) * duration;
             const length = stored.length;
             let candle = undefined;
             if (length > 0) {
                 const lastCandle = stored[length - 1];
-                if (lastCandle[0] === candleTimestamp) {
+                const lastTimestamp = this.safeInteger (lastCandle, 0, 0);
+                if (lastTimestamp === candleTimestamp) {
                     candle = lastCandle;
-                } else if (lastCandle[0] > candleTimestamp) {
+                } else if (lastTimestamp > candleTimestamp) {
                     continue;
                 }
             }
             if (candle === undefined) {
                 stored.append ([ candleTimestamp, price, price, price, price, size ]);
             } else {
-                const high = Math.max (candle[2], price);
-                const low = Math.min (candle[3], price);
+                let high: Num = price;
+                const prevHigh = this.safeNumber (candle, 2);
+                if ((prevHigh !== undefined) && (price !== undefined) && (prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let low: Num = price;
+                const prevLow = this.safeNumber (candle, 3);
+                if ((prevLow !== undefined) && (price !== undefined) && (price > prevLow)) {
+                    low = prevLow;
+                }
                 const volume = this.sum (candle[5], size);
                 stored.append ([ candleTimestamp, candle[1], high, low, price, volume ]);
             }
@@ -775,7 +796,7 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
         const [ accountId, query ] = await this.loadAccountId (params);
         const bookExchange = this.safeString (query, 'exchange');
         const url = await this.ibkrConnect ();
@@ -788,7 +809,7 @@ export default class interactivebrokers extends interactivebrokersRest {
             request = request + '+' + bookExchange;
         }
         await this.ibkrSubscribe (client, messageHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'accountId': accountId });
-        const orderbook = await future;
+        const orderbook: WsOrderBook = await future;
         return orderbook.limit ();
     }
 
@@ -805,7 +826,7 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
         const [ accountId, query ] = await this.loadAccountId (params);
         const url = await this.ibkrConnect ();
         const client = this.client (url);
@@ -1065,9 +1086,9 @@ export default class interactivebrokers extends interactivebrokersRest {
                 merged = this.extend (previous, rawOrder);
                 rawOrders[orderId] = merged;
             }
-            const parsed = this.parseOrder (merged);
+            const parsed = this.parseOrder (this.extend ({}, merged));
             orders.append (parsed);
-            const orderSymbol = parsed['symbol'];
+            const orderSymbol = this.safeString (parsed, 'symbol');
             if (orderSymbol !== undefined) {
                 symbols[orderSymbol] = true;
             }
@@ -1195,8 +1216,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         const symbols: Dict = {};
         for (let i = 0; i < args.length; i++) {
             const rawTrade = args[i];
-            const trade = this.parseTrade (rawTrade);
-            const tradeTimestamp = trade['timestamp'];
+            const trade = this.parseTrade (this.safeDict (args, i, {}));
+            const tradeTimestamp = this.safeInteger (trade, 'timestamp');
             if ((threshold !== undefined) && (tradeTimestamp !== undefined) && (tradeTimestamp < threshold)) {
                 continue;
             }
@@ -1211,7 +1232,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 }
             }
             trades.append (trade);
-            const tradeSymbol = trade['symbol'] as string;
+            const tradeSymbol = this.safeString (trade, 'symbol', '');
             symbols[tradeSymbol] = true;
         }
         const keys = Object.keys (symbols);
@@ -1250,8 +1271,8 @@ export default class interactivebrokers extends interactivebrokersRest {
                 };
                 const snapshot = await this.fetchBalance (this.extend (query, snapshotRequest));
                 // typed copy: the statically typed ports keep this.balance as a dictionary
-                const snapshotBalance: Dict = this.extend ({}, snapshot);
-                this.balance = snapshotBalance;
+                const emptyBalance: Dict = {};
+                this.balance = this.extend (emptyBalance, snapshot);
             }
         }
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel

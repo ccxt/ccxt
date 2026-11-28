@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -21,8 +22,8 @@ public class TestWatchPosition extends BaseTest {
 
         String method = "watchPosition";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object ends = TestHelpers.add(now, 15000);
+        while (TestHelpers.isLessThan(now, ends))
         {
             Object response = null;
             Boolean success = true;
@@ -31,7 +32,7 @@ public class TestWatchPosition extends BaseTest {
                 response = (exchange.watchPosition(symbol, new HashMap<String, Object>() {{}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -43,7 +44,7 @@ public class TestWatchPosition extends BaseTest {
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 now = exchange.milliseconds();
-                TestPosition.testPosition(exchange, skippedProperties, method, response, (String) (symbol), now);
+                TestPosition.testPosition(exchange, skippedProperties, method, response, symbol, now);
             }
         }
         return true;

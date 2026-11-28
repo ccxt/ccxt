@@ -18,10 +18,10 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m
         }), &[skippedProperties.clone()]);
     }
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("id".to_string(), Value::Str("123".into()));
@@ -43,33 +43,33 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m.insert("remaining".to_string(), exchange.parse_number(Value::Str("0.123".into()), &[]));
             m.insert("status".to_string(), Value::Str("ok".into()));
             m.insert("fee".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("trades".to_string(), Value::from(vec![]));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()),
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()),
         Value::Str("postOnly".into()), Value::Str("side".into()), Value::Str("price".into()), Value::Str("amount".into()), Value::Str("cost".into()), Value::Str("filled".into()), Value::Str("remaining".into()), Value::Str("status".into()), Value::Str("fee".into())]); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("timeInForce".into()).clone(), Value::from(vec![Value::Str("GTC".into()), Value::Str("GTK".into()), Value::Str("IOC".into()), Value::Str("FOK".into()), Value::Str("PO".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("open".into()), Value::Str("closed".into()), Value::Str("canceled".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("postOnly".into()).clone(), Value::from(vec![Value::Bool(true), Value::Bool(false)]).clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("stopPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("cost".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("average".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("filled".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("remaining".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(&entry, Value::Str("remaining".into()), &[]).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(&entry, Value::Str("filled".into()), &[]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("timeInForce".into()), Value::from(vec![Value::Str("GTC".into()), Value::Str("GTK".into()), Value::Str("IOC".into()), Value::Str("FOK".into()), Value::Str("PO".into())])]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()), Value::from(vec![Value::Str("open".into()), Value::Str("closed".into()), Value::Str("canceled".into())])]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())])]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("postOnly".into()), Value::from(vec![Value::Bool(true), Value::Bool(false)]).clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol.clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("stopPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("cost".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("average".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("filled".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("remaining".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()), exchange.safe_string(&entry, Value::Str("remaining".into()), &[]).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()), exchange.safe_string(&entry, Value::Str("filled".into()), &[]).clone()]);
     if !(in_op(&skippedProperties, &Value::Str("trades".into()))) {
-        let mut skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
+        let skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::Bool(true));
                 m.insert("datetime".to_string(), Value::Bool(true));
@@ -79,12 +79,12 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if (entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1624: bool = true;
-                while { if !__for_first_1624 { i += 1; } __for_first_1624 = false; (i as f64) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; (i as f64) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
                 testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null), &Value::Int(i)), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }
         }
     }
-    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()).clone()]);
+    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("fee".into())]);
 }

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -1500,7 +1500,7 @@ class nado(ccxt.async_support.nado):
                     'bid': self.parseX18(bid),
                     'info': bbo,
                 }, market)
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 result[symbol] = ticker
         return result
 
@@ -1706,7 +1706,7 @@ class nado(ccxt.async_support.nado):
         client.lastPong = self.safe_integer(result, 'server_time', self.milliseconds())
         return message
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         error = self.safe_value(message, 'error')
         status = self.safe_string(message, 'status')
         if (error is None) and (status != 'failure'):

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -126,9 +126,7 @@ class backpack(ccxt.async_support.backpack):
             market = self.market(normalized[i])
             if (symbols is None) and (stock or (explicitSource == 'External') or (channel is not None)) and (market['stock'] is not True):
                 continue
-            marketSelection = self.handleStockParams(methodName, query, market)
-            marketStock = self.safe_bool(marketSelection, 0, False)
-            marketParams = self.safe_dict(marketSelection, 1, {})
+            marketStock, marketParams = self.handleStockParams(methodName, query, market)
             isRfq = self.safe_string(market['info'], 'marketType') == 'RFQ'
             source = explicitSource
             if source is None:
@@ -161,7 +159,7 @@ class backpack(ccxt.async_support.backpack):
                 topic = 'externalTicker.' + externalBaseId + '_USDC'
             elif (self.safe_string(market, 'executionModel') == 'rfq') and (market['stock'] is not True):
                 raise NotSupported(self.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             messageHash = kind + ':' + symbol + '@' + topic
             subscriptionKey = 'marketData:' + topic
             subscriptions = self.safe_dict(client.subscriptions, subscriptionKey, {})
@@ -379,7 +377,7 @@ class backpack(ccxt.async_support.backpack):
         #
         ticker = self.safe_dict(message, 'data', {})
         stream = self.safe_string(message, 'stream', '')
-        subscriptions = self.safe_dict(client.subscriptions, 'marketData:' + stream, {})
+        subscriptions = self.extend({}, self.safe_dict(client.subscriptions, 'marketData:' + stream, {}))
         hashes = list(subscriptions.keys())
         hashesLength = len(hashes)
         for i in range(0, hashesLength):
@@ -459,7 +457,7 @@ class backpack(ccxt.async_support.backpack):
         """
         data = self.safe_dict(message, 'data', {})
         stream = self.safe_string(message, 'stream', '')
-        subscriptions = self.safe_dict(client.subscriptions, 'marketData:' + stream, {})
+        subscriptions = self.extend({}, self.safe_dict(client.subscriptions, 'marketData:' + stream, {}))
         hashes = list(subscriptions.keys())
         hashesLength = len(hashes)
         for i in range(0, hashesLength):
@@ -533,7 +531,7 @@ class backpack(ccxt.async_support.backpack):
         #     }
         data = self.safe_dict(message, 'data', {})
         stream = self.safe_string(message, 'stream', '')
-        subscriptions = self.safe_dict(client.subscriptions, 'marketData:' + stream, {})
+        subscriptions = self.extend({}, self.safe_dict(client.subscriptions, 'marketData:' + stream, {}))
         hashes = list(subscriptions.keys())
         hashesLength = len(hashes)
         for i in range(0, hashesLength):
@@ -607,7 +605,8 @@ class backpack(ccxt.async_support.backpack):
         """
         query = await self.prepare_ws_stock_params('watchOHLCV', params)
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, query)
-        return result[symbol][timeframe]
+        bySymbol = result[symbol]
+        return bySymbol[timeframe]
 
     async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
@@ -715,7 +714,7 @@ class backpack(ccxt.async_support.backpack):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stream = self.safe_string(message, 'stream', '')
         parts = stream.split('.')
         timeframe = self.safe_string(parts, 1, '')
@@ -877,7 +876,7 @@ class backpack(ccxt.async_support.backpack):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
@@ -1056,14 +1055,15 @@ class backpack(ccxt.async_support.backpack):
         deltaNonce = self.safe_integer(data, 'u')
         messageHash = 'orderbook:' + symbol
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
+            cacheSize = len(storedOrderBook.cache)
+            cacheLength = self.parse_to_int(cacheSize)
             # cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.append(data)
             # stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             market = self.market(symbol)
             isStockMarket = (market['stock'] is True) or ((marketId is not None) and ((marketId.find('.US_') >= 0) or (marketId.find('.HK_') >= 0)))
             defaultSnapshotDelay = 0 if isStockMarket else 10
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay)
+            snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay))
             if cacheLength == snapshotDelay:
                 self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             return
@@ -1212,7 +1212,7 @@ class backpack(ccxt.async_support.backpack):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         event = self.safe_string(data, 'e', '')
         parsed: Order
         if (event.find('rfq') == 0) or (event.find('quote') == 0):
@@ -1368,7 +1368,7 @@ class backpack(ccxt.async_support.backpack):
         status = self.parse_ws_order_status(self.safe_string(order, 'X'), market)
         marketId = self.safe_string(order, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         type = self.safe_string_lower(order, 'o')
         timeInForce = self.safe_string(order, 'f')
         side = self.parse_ws_order_side(self.safe_string(order, 'S'))
@@ -1448,7 +1448,8 @@ class backpack(ccxt.async_support.backpack):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 messageHashes.append('positions' + ':' + symbol)
-                topics.append('account.positionUpdate.' + self.market_id(symbol))
+                marketId = self.safe_string(self.market(symbol), 'id', '')
+                topics.append('account.positionUpdate.' + marketId)
         else:
             messageHashes.append('positions')
             topics.append('account.positionUpdate')
@@ -1476,7 +1477,8 @@ class backpack(ccxt.async_support.backpack):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 messageHashes.append('unsubscribe:positions' + ':' + symbol)
-                topics.append('account.positionUpdate.' + self.market_id(symbol))
+                marketId = self.safe_string(self.market(symbol), 'id', '')
+                topics.append('account.positionUpdate.' + marketId)
         else:
             messageHashes.append('unsubscribe:positions')
             topics.append('account.positionUpdate')
@@ -1545,7 +1547,7 @@ class backpack(ccxt.async_support.backpack):
         id = self.safe_string(position, 'i')
         marketId = self.safe_string(position, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         notional = self.safe_string(position, 'n')
         liquidationPrice = self.safe_string(position, 'l')
         entryPrice = self.safe_string(position, 'b')
@@ -1555,13 +1557,13 @@ class backpack(ccxt.async_support.backpack):
         markPrice = self.safe_string(position, 'M')
         netQuantity = self.safe_number(position, 'q')
         hedged = False
-        side = 'long'
+        side = None
         if netQuantity is not None:
+            side = 'long'
             if 0 > netQuantity:
                 side = 'short'
         else:
             hedged = None
-            side = None
         microseconds = self.safe_integer(position, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         maintenanceMarginPercentage = self.safe_number(position, 'm')
@@ -1619,7 +1621,7 @@ class backpack(ccxt.async_support.backpack):
         elif event == 'positionAdjusted' or event == 'positionOpened' or event == 'positionClosed' or event == 'positionUpdated':
             self.handle_positions(client, message)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         id: null,

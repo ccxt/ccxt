@@ -10,18 +10,18 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchDepositWithdrawals(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTransactions".into());
-    let mut transactions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transactions", vec![code.clone()]).await;
+    let method: Value = Value::Str("fetchTransactions".into());
+    let transactions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transactions", vec![code.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), transactions.clone(), code.clone()]);
-    let mut now: Value = Value::Int(exchange.milliseconds());
+    let now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1639: bool = true;
-        while { if !__for_first_1639 { i += 1; } __for_first_1639 = false; i < (transactions.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (transactions.len() as i64) } {
         testDepositWithdrawal(exchange.clone(), skippedProperties.clone(), method.clone(), transactions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone(), now.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), transactions.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code, transactions]);
     return Value::Bool(true);
 
     Value::Null

@@ -42,7 +42,7 @@ func (this *Mudrex) Describe() map[string]any {
 		},
 	})
 }
-func (this *Mudrex) Ping(client any) any {
+func (this *Mudrex) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"id":     this.RequestId(),
 		"method": "PING",
@@ -64,10 +64,18 @@ func (this *Mudrex) SetBrokerHeaders() {
 	if brokerId == nil {
 		return
 	}
-	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var innerOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
 	var headers map[string]any = this.SafeDictMap(innerOptions, "headers", map[string]any{})
-	headers["Partner-Id"] = *brokerId
+	if brokerId != nil {
+		headers["Partner-Id"] = *brokerId
+	} else {
+		headers["Partner-Id"] = nil
+	}
 	innerOptions["headers"] = headers
 	wsOptions["options"] = innerOptions
 	this.Options["ws"] = wsOptions
@@ -89,13 +97,19 @@ func (this *Mudrex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
+	var symbolValue *string = &market.Symbol
 	var messageHash string = "ticker:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
-	var baseIdString string = *this.SafeString(market, "baseId", "")
-	var quoteIdString string = *this.SafeString(market, "quoteId", "")
+	var baseIdString string = ""
+	if market.BaseId != nil {
+		baseIdString = *market.BaseId
+	}
+	var quoteIdString string = ""
+	if market.QuoteId != nil {
+		quoteIdString = *market.QuoteId
+	}
 	var assetId string = strings.ToLower(baseIdString)
 	assetId = assetId + strings.ToLower(quoteIdString)
 	var subscribe map[string]any = map[string]any{
@@ -133,20 +147,26 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var assets []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(symbolsNormalized[i])
-			messageHashes = append(messageHashes, "ticker:"+market["symbol"].(string))
-			var baseIdString string = *this.SafeString(market, "baseId", "")
-			var quoteIdString string = *this.SafeString(market, "quoteId", "")
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
+			messageHashes = append(messageHashes, "ticker:"+market.Symbol)
+			var baseIdString string = ""
+			if market.BaseId != nil {
+				baseIdString = *market.BaseId
+			}
+			var quoteIdString string = ""
+			if market.QuoteId != nil {
+				quoteIdString = *market.QuoteId
+			}
 			var assetId string = strings.ToLower(baseIdString)
 			assetId = assetId + strings.ToLower(quoteIdString)
 			assets = append(assets, assetId)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
@@ -165,7 +185,7 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -198,8 +218,8 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
+	var symbolValue *string = &market.Symbol
 	var priceType *string = this.SafeString(params, "price")
 	var paramsOmitted map[string]any = this.OmitDict(params, "price")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -210,11 +230,17 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if priceType != nil && *priceType == "mark" {
 		prefix = "markKline"
 	}
-	var streamBaseId string = *this.SafeString(market, "baseId", "")
-	var streamQuoteId string = *this.SafeString(market, "quoteId", "")
+	var streamBaseId string = ""
+	if market.BaseId != nil {
+		streamBaseId = *market.BaseId
+	}
+	var streamQuoteId string = ""
+	if market.QuoteId != nil {
+		streamQuoteId = *market.QuoteId
+	}
 	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(streamBaseId) + strings.ToLower(streamQuoteId)
 	var messageHash string = stream
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
@@ -236,11 +262,11 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Mudrex) HandleMessage(client any, message map[string]any) {
+func (this *Mudrex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.SafeString(message, "method") != nil && *this.SafeString(message, "method") == "PONG" {
 		return
 	}
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	if error != nil {
 		this.HandleErrorMessage(client, message)
 		return
@@ -254,8 +280,8 @@ func (this *Mudrex) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Mudrex) HandleErrorMessage(client any, message map[string]any) {
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+func (this *Mudrex) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
+	var error, _ = message["error"].(map[string]any)
 	var code *string = this.SafeString(error, "code")
 	var msg string = *this.SafeString(error, "msg", "")
 	var feedback string = this.Id + " " + msg
@@ -264,26 +290,27 @@ func (this *Mudrex) HandleErrorMessage(client any, message map[string]any) {
 	}
 	panic(ccxt.ExchangeError(feedback))
 }
-func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
+func (this *Mudrex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	var stream *string = this.SafeString(message, "stream")
 	if stream == nil {
 		return
 	}
 	var parts []string = strings.Split(*stream, "@")
-	var interval *string = ccxt.SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var interval *string = nil
+	if 1 >= 0 && 1 < len(parts) {
+		interval = &parts[1]
+	}
 	var tf *string = this.FindTimeframe(interval)
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var s *string = this.SafeString(data, "s")
 	if s == nil {
 		return
 	}
-	var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(strings.ToUpper(*s)))
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -303,9 +330,9 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 	}
 	stored.Append(parsed)
 	var messageHash *string = stream
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
-func (this *Mudrex) HandleTicker(client any, message map[string]any) {
+func (this *Mudrex) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	var data []map[string]any = this.SafeListMapsTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var t map[string]any = data[i]
@@ -313,8 +340,11 @@ func (this *Mudrex) HandleTicker(client any, message map[string]any) {
 		if s == nil {
 			continue
 		}
-		var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(strings.ToUpper(*s)))
+		var symbol *string
+		if market.Symbol != "" {
+			symbol = &market.Symbol
+		}
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")
 		var result map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -329,8 +359,8 @@ func (this *Mudrex) HandleTicker(client any, message map[string]any) {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(result)
 		}
 		var messageHash string = "ticker:" + *symbol
-		client.(ccxt.ClientInterface).Resolve(result, messageHash)
-		client.(ccxt.ClientInterface).Resolve(result, "tickers")
+		client.Resolve(result, messageHash)
+		client.Resolve(result, "tickers")
 	}
 }
 

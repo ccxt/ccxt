@@ -2194,96 +2194,98 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchStatusCore(parameters)).thenApply(Status::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchStatusCore(Map<String, Object> parameters)
+    {
 
-            // the former statuspage endpoints (status*.huobigroup.com) were
-            // decommissioned after the huobi -> htx rebrand and no longer resolve,
-            // so this method uses the live native endpoints instead
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            String status = null;
-            Long eta = null;
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
+        // the former statuspage endpoints (status*.huobigroup.com) were
+        // decommissioned after the huobi -> htx rebrand and no longer resolve,
+        // so this method uses the live native endpoints instead
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        String status = null;
+        Long eta = null;
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
+            response = (this.spotPublicGetV2MarketStatus(paramsMarketType)).join();
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": {
+            //             "marketStatus": 1, // 1 normal, 2 halted, 3 cancel-only
+            //             "haltStartTime": 1614852011000, // only when halted
+            //             "haltEndTime": 1614852400000 // only when the end time is estimable
+            //         }
+            //     }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Long marketStatus = this.safeInteger(data, "marketStatus");
+            if ((marketStatus != null && marketStatus == 1))
             {
-                response = (this.spotPublicGetV2MarketStatus(paramsMarketType)).join();
-                //
-                //     {
-                //         "code": 200,
-                //         "message": "success",
-                //         "data": {
-                //             "marketStatus": 1, // 1 normal, 2 halted, 3 cancel-only
-                //             "haltStartTime": 1614852011000, // only when halted
-                //             "haltEndTime": 1614852400000 // only when the end time is estimable
-                //         }
-                //     }
-                //
-                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                Long marketStatus = this.safeInteger(data, "marketStatus");
-                if ((marketStatus != null && marketStatus == 1))
-                {
-                    status = "ok";
-                } else
-                {
-                    status = "maintenance";
-                }
-                eta = this.safeInteger(data, "haltEndTime");
+                status = "ok";
             } else
             {
-                Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchStatus", (Map<String, Object>) null, paramsMarketType, (Object) null);
-                String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-                Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-                response = (this.contractPublicGetHeartbeat(paramsSubType)).join();
-                //
-                //     {
-                //         "status": "ok",
-                //         "data": {
-                //             "heartbeat": 1, // 1 available, 0 unavailable
-                //             "estimated_recovery_time": null,
-                //             "swap_heartbeat": 1,
-                //             "swap_estimated_recovery_time": null,
-                //             "option_heartbeat": 1,
-                //             "option_estimated_recovery_time": null,
-                //             "linear_swap_heartbeat": 1,
-                //             "linear_swap_estimated_recovery_time": null
-                //         },
-                //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
-                //     }
-                //
-                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                String heartbeatKey = "heartbeat";
-                String etaKey = "estimated_recovery_time";
-                if (java.util.Objects.equals(subType, "linear"))
-                {
-                    heartbeatKey = "linear_swap_heartbeat";
-                    etaKey = "linear_swap_estimated_recovery_time";
-                } else if (java.util.Objects.equals(marketType, "swap"))
-                {
-                    heartbeatKey = "swap_heartbeat";
-                    etaKey = "swap_estimated_recovery_time";
-                }
-                Long heartbeat = this.safeInteger(data, heartbeatKey);
-                if ((heartbeat != null && heartbeat == 1))
-                {
-                    status = "ok";
-                } else
-                {
-                    status = "maintenance";
-                }
-                eta = this.safeInteger(data, etaKey);
+                status = "maintenance";
             }
+            eta = this.safeInteger(data, "haltEndTime");
+        } else
+        {
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchStatus", null, paramsMarketType, null);
+            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+            response = (this.contractPublicGetHeartbeat(paramsSubType)).join();
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "heartbeat": 1, // 1 available, 0 unavailable
+            //             "estimated_recovery_time": null,
+            //             "swap_heartbeat": 1,
+            //             "swap_estimated_recovery_time": null,
+            //             "option_heartbeat": 1,
+            //             "option_estimated_recovery_time": null,
+            //             "linear_swap_heartbeat": 1,
+            //             "linear_swap_estimated_recovery_time": null
+            //         },
+            //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
+            //     }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            String heartbeatKey = "heartbeat";
+            String etaKey = "estimated_recovery_time";
+            if (java.util.Objects.equals(subType, "linear"))
             {
-                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-                h2kMap0.put("status", status);
-                h2kMap0.put("updated", null);
-                h2kMap0.put("eta", eta);
-                h2kMap0.put("url", null);
-                h2kMap0.put("info", response);
-                return h2kMap0;
+                heartbeatKey = "linear_swap_heartbeat";
+                etaKey = "linear_swap_estimated_recovery_time";
+            } else if (java.util.Objects.equals(marketType, "swap"))
+            {
+                heartbeatKey = "swap_heartbeat";
+                etaKey = "swap_estimated_recovery_time";
             }
-        }).thenApply(Status::new);
+            Long heartbeat = this.safeInteger(data, heartbeatKey);
+            if ((heartbeat != null && heartbeat == 1))
+            {
+                status = "ok";
+            } else
+            {
+                status = "maintenance";
+            }
+            eta = this.safeInteger(data, etaKey);
+        }
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("eta", eta);
+            h2kMap0.put("url", null);
+            h2kMap0.put("info", response);
+            return h2kMap0;
+        }
 
     }
 
@@ -2298,32 +2300,34 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTimeCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Long fetchTimeCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> options = this.safeDict(this.options, "fetchTime", new HashMap<String, Object>() {{}});
-            String defaultType = this.safeString(this.options, "defaultType", "spot");
-            String type = this.safeString(options, "type", defaultType);
-            type = this.safeString(parameters, "type", type);
-            Map<String, Object> response = null;
-            if ((java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "swap")))
-            {
-                response = (this.contractPublicGetApiV1Timestamp(parameters)).join();
-            } else
-            {
-                response = (this.spotPublicGetV1CommonTimestamp(parameters)).join();
-            }
-            //
-            // spot
-            //
-            //     {"status":"ok","data":1637504261099}
-            //
-            // future, swap
-            //
-            //     {"status":"ok","ts":1637504164707}
-            //
-            return this.safeInteger2(response, "data", "ts");
-        });
+        Map<String, Object> options = this.safeDict(this.options, "fetchTime", new HashMap<String, Object>() {{}});
+        String defaultType = this.safeString(this.options, "defaultType", "spot");
+        String type = this.safeString(options, "type", defaultType);
+        type = this.safeString(parameters, "type", type);
+        Map<String, Object> response = null;
+        if ((java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "swap")))
+        {
+            response = (this.contractPublicGetApiV1Timestamp(parameters)).join();
+        } else
+        {
+            response = (this.spotPublicGetV1CommonTimestamp(parameters)).join();
+        }
+        //
+        // spot
+        //
+        //     {"status":"ok","data":1637504261099}
+        //
+        // future, swap
+        //
+        //     {"status":"ok","ts":1637504164707}
+        //
+        return this.safeInteger2(response, "data", "ts");
 
     }
 
@@ -2340,9 +2344,9 @@ public class Htx extends HtxApi
         //
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", Htx.this.safeSymbol(Htx.this.safeString(fee, "symbol"), market, (String) null, (String) null) );
-            put( "maker", Htx.this.safeNumber(fee, "actualMakerRate", (Object) null) );
-            put( "taker", Htx.this.safeNumber(fee, "actualTakerRate", (Object) null) );
+            put( "symbol", Htx.this.safeSymbol(Htx.this.safeString(fee, "symbol"), market, null, null) );
+            put( "maker", Htx.this.safeNumber(fee, "actualMakerRate", null) );
+            put( "taker", Htx.this.safeNumber(fee, "actualTakerRate", null) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -2359,69 +2363,73 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingFeeCore(symbol, parameters)).thenApply(TradingFeeInterface::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradingFeeCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbols", market.get("id") );
-            }};
-            Map<String, Object> response = (this.spotPrivateGetV2ReferenceTransactFeeRate(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code":200,
-            //         "data":[
-            //             {
-            //                 "symbol":"btcusdt",
-            //                 "actualMakerRate":"0.002",
-            //                 "actualTakerRate":"0.002",
-            //                 "takerFeeRate":"0.002",
-            //                 "makerFeeRate":"0.002"
-            //             }
-            //         ],
-            //         "success":true
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(first, market);
-        }).thenApply(TradingFeeInterface::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbols", market.get("id") );
+        }};
+        Map<String, Object> response = (this.spotPrivateGetV2ReferenceTransactFeeRate(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code":200,
+        //         "data":[
+        //             {
+        //                 "symbol":"btcusdt",
+        //                 "actualMakerRate":"0.002",
+        //                 "actualTakerRate":"0.002",
+        //                 "takerFeeRate":"0.002",
+        //                 "makerFeeRate":"0.002"
+        //             }
+        //         ],
+        //         "success":true
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        return this.parseTradingFee(first, market);
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingLimitsCore(symbols, parameters));
+    }
+
+    private Map<String, Object> fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            // this method should not be called directly, use loadTradingLimits () instead
-            //  by default it will try load withdrawal fees of all currencies (with separate requests)
-            //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsValue = symbols;
-            if (java.util.Objects.equals(symbols, null))
-            {
-                symbolsValue = this.symbols;
-            }
-            if (java.util.Objects.equals(symbolsValue, null))
-            {
-                throw new ExchangeError((this.id + " markets not loaded")) ;
-            }
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < symbolsValue.size(); i++)
-            {
-                String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
-                result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
-            }
-            return result;
-        });
+        // this method should not be called directly, use loadTradingLimits () instead
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsValue = symbols;
+        if (java.util.Objects.equals(symbols, null))
+        {
+            symbolsValue = this.symbols;
+        }
+        if (java.util.Objects.equals(symbolsValue, null))
+        {
+            throw new ExchangeError((this.id + " markets not loaded")) ;
+        }
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < symbolsValue.size(); i++)
+        {
+            String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
+            result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+        }
+        return result;
 
     }
 
@@ -2436,31 +2444,33 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Map<String, Object>> fetchTradingLimitsById(String id, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingLimitsByIdCore(id, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> fetchTradingLimitsByIdCore(String id, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", id );
-            }};
-            Map<String, Object> response = (this.spotPublicGetV1CommonExchange(this.extend(request, parameters))).join();
-            //
-            //     { status:   "ok",
-            //         "data": {                                  symbol: "aidocbtc",
-            //                              "buy-limit-must-less-than":  1.1,
-            //                          "sell-limit-must-greater-than":  0.9,
-            //                         "limit-order-must-greater-than":  1,
-            //                            "limit-order-must-less-than":  5000000,
-            //                    "market-buy-order-must-greater-than":  0.0001,
-            //                       "market-buy-order-must-less-than":  100,
-            //                   "market-sell-order-must-greater-than":  1,
-            //                      "market-sell-order-must-less-than":  500000,
-            //                       "circuit-break-when-greater-than":  10000,
-            //                          "circuit-break-when-less-than":  10,
-            //                 "market-sell-order-rate-must-less-than":  0.1,
-            //                  "market-buy-order-rate-must-less-than":  0.1        } }
-            //
-            return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", id );
+        }};
+        Map<String, Object> response = (this.spotPublicGetV1CommonExchange(this.extend(request, parameters))).join();
+        //
+        //     { status:   "ok",
+        //         "data": {                                  symbol: "aidocbtc",
+        //                              "buy-limit-must-less-than":  1.1,
+        //                          "sell-limit-must-greater-than":  0.9,
+        //                         "limit-order-must-greater-than":  1,
+        //                            "limit-order-must-less-than":  5000000,
+        //                    "market-buy-order-must-greater-than":  0.0001,
+        //                       "market-buy-order-must-less-than":  100,
+        //                   "market-sell-order-must-greater-than":  1,
+        //                      "market-sell-order-must-less-than":  500000,
+        //                       "circuit-break-when-greater-than":  10000,
+        //                          "circuit-break-when-less-than":  10,
+        //                 "market-sell-order-rate-must-less-than":  0.1,
+        //                  "market-buy-order-rate-must-less-than":  0.1        } }
+        //
+        return this.parseTradingLimits(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2485,8 +2495,8 @@ public class Htx extends HtxApi
             put( "info", limits );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Htx.this.safeNumber(limits, "limit-order-must-greater-than", (Object) null) );
-                    put( "max", Htx.this.safeNumber(limits, "limit-order-must-less-than", (Object) null) );
+                    put( "min", Htx.this.safeNumber(limits, "limit-order-must-greater-than", null) );
+                    put( "max", Htx.this.safeNumber(limits, "limit-order-must-less-than", null) );
                 }} );
             }} );
         }};
@@ -2494,7 +2504,8 @@ public class Htx extends HtxApi
 
     public String costToPrecision(Object symbol, Object cost)
     {
-        return this.decimalToPrecision(cost, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)this.market(symbol)).get("precision")).get("cost"), this.precisionMode);
+        Map<String, Object> market = this.market(symbol);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeValue(market.get("precision"), "cost"), this.precisionMode);
     }
 
     /**
@@ -2508,48 +2519,51 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
+        {
+            (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
+        }
+        Object types = new HashMap<String, Object>() {{}};
+        Map<String, Object> paramsTypes = new HashMap<String, Object>() {{}};
+        List<Object> typesparamsTypesVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "types", new HashMap<String, Object>() {{}});
+        types = ((List<Object>) typesparamsTypesVariable).get(0);
+        paramsTypes = (Map<String, Object>) ((List<Object>) typesparamsTypesVariable).get(1);
+        List<Object> allMarkets = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        Map<String, Object> typesDict = this.extend(new HashMap<String, Object>() {{}}, types);
+        List<String> keys = new ArrayList<String>(typesDict.keySet());
+        for (var i = 0; i < keys.size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (Boolean.TRUE.equals(this.safeBool(types, key, false)))
             {
-                (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
-            }
-            Object types = new HashMap<String, Object>() {{}};
-            Map<String, Object> paramsTypes = new HashMap<String, Object>() {{}};
-            List<Object> typesparamsTypesVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "types", new HashMap<String, Object>() {{}});
-            types = ((List<Object>) typesparamsTypesVariable).get(0);
-            paramsTypes = (Map<String, Object>) ((List<Object>) typesparamsTypesVariable).get(1);
-            List<Object> allMarkets = new ArrayList<Object>(Arrays.asList());
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)types).keySet());
-            for (var i = 0; i < keys.size(); i++)
-            {
-                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                if (Boolean.TRUE.equals(this.safeBool(types, key, false)))
+                if (java.util.Objects.equals(key, "spot"))
                 {
-                    if (java.util.Objects.equals(key, "spot"))
-                    {
-                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("spot", (String) (null), paramsTypes));
-                    } else if (java.util.Objects.equals(key, "linear"))
-                    {
-                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType((String) (null), "linear", paramsTypes));
-                    } else if (java.util.Objects.equals(key, "inverse"))
-                    {
-                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("swap", "inverse", paramsTypes));
-                        ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("future", "inverse", paramsTypes));
-                    }
+                    promises.add(this.fetchMarketsByTypeAndSubType("spot", null, paramsTypes));
+                } else if (java.util.Objects.equals(key, "linear"))
+                {
+                    promises.add(this.fetchMarketsByTypeAndSubType(null, "linear", paramsTypes));
+                } else if (java.util.Objects.equals(key, "inverse"))
+                {
+                    promises.add(this.fetchMarketsByTypeAndSubType("swap", "inverse", paramsTypes));
+                    promises.add(this.fetchMarketsByTypeAndSubType("future", "inverse", paramsTypes));
                 }
             }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < responses.size(); i++)
-            {
-                allMarkets = (List<Object>) this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
-            }
-            return allMarkets;
-        });
+        }
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        for (var i = 0; i < responses.size(); i++)
+        {
+            allMarkets = this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
+        }
+        return allMarkets;
 
     }
 
@@ -2567,359 +2581,365 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarketsByTypeAndSubType(String type, String subType, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsByTypeAndSubType(String type, String subType, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsByTypeAndSubTypeCore(type, subType, parameters));
+    }
+
+    private List<Object> fetchMarketsByTypeAndSubTypeCore(String type, String subType, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            String typeStr = type;
-            String subTypeStr = subType;
-            Boolean isSpot = (java.util.Objects.equals(typeStr, "spot"));
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (!Boolean.TRUE.equals(isSpot))
+        String typeStr = type;
+        String subTypeStr = subType;
+        Boolean isSpot = (java.util.Objects.equals(typeStr, "spot"));
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (!Boolean.TRUE.equals(isSpot))
+        {
+            if (java.util.Objects.equals(subTypeStr, "linear"))
             {
-                if (java.util.Objects.equals(subTypeStr, "linear"))
+                request.put("business_type", "all"); // override default to fetch all linear markets
+                response = (this.contractPublicGetLinearSwapApiV1SwapContractInfo(this.extend(request, parameters))).join();
+            } else if (java.util.Objects.equals(subTypeStr, "inverse"))
+            {
+                if (java.util.Objects.equals(typeStr, "future"))
                 {
-                    request.put("business_type", "all"); // override default to fetch all linear markets
-                    response = (this.contractPublicGetLinearSwapApiV1SwapContractInfo(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(subTypeStr, "inverse"))
+                    response = (this.contractPublicGetApiV1ContractContractInfo(this.extend(request, parameters))).join();
+                } else if (java.util.Objects.equals(typeStr, "swap"))
                 {
-                    if (java.util.Objects.equals(typeStr, "future"))
+                    response = (this.contractPublicGetSwapApiV1SwapContractInfo(this.extend(request, parameters))).join();
+                }
+            }
+        } else
+        {
+            response = (this.spotPublicGetV1CommonSymbols(this.extend(request, parameters))).join();
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "base-currency":"xrp3s",
+        //                 "quote-currency":"usdt",
+        //                 "price-precision":4,
+        //                 "amount-precision":4,
+        //                 "symbol-partition":"innovation",
+        //                 "symbol":"xrp3susdt",
+        //                 "state":"online",
+        //                 "value-precision":8,
+        //                 "min-order-amt":0.01,
+        //                 "max-order-amt":1616.4353,
+        //                 "min-order-value":5,
+        //                 "limit-order-min-order-amt":0.01,
+        //                 "limit-order-max-order-amt":1616.4353,
+        //                 "limit-order-max-buy-amt":1616.4353,
+        //                 "limit-order-max-sell-amt":1616.4353,
+        //                 "sell-market-min-order-amt":0.01,
+        //                 "sell-market-max-order-amt":1616.4353,
+        //                 "buy-market-max-order-value":2500,
+        //                 "max-order-value":2500,
+        //                 "underlying":"xrpusdt",
+        //                 "mgmt-fee-rate":0.035000000000000000,
+        //                 "charge-time":"23:55:00",
+        //                 "rebal-time":"00:00:00",
+        //                 "rebal-threshold":-5,
+        //                 "init-nav":10.000000000000000000,
+        //                 "api-trading":"enabled",
+        //                 "tags":"etp,nav,holdinglimit"
+        //             },
+        //         ]
+        //     }
+        //
+        // inverse (swap & future)
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC211126", /// BTC-USD in swap
+        //                 "contract_type":"this_week", // only in future
+        //                 "contract_size":100,
+        //                 "price_tick":0.1,
+        //                 "delivery_date":"20211126", // only in future
+        //                 "delivery_time":"1637913600000", // empty in swap
+        //                 "create_date":"20211112",
+        //                 "contract_status":1,
+        //                 "settlement_time":"1637481600000" // only in future
+        //                 "settlement_date":"16xxxxxxxxxxx" // only in swap
+        //             },
+        //           ...
+        //         ],
+        //         "ts":1637474595140
+        //     }
+        //
+        // linear (swap & future)
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT-211231", // or "BTC-USDT" in swap
+        //                 "contract_size":0.001,
+        //                 "price_tick":0.1,
+        //                 "delivery_date":"20211231", // empty in swap
+        //                 "delivery_time":"1640937600000", // empty in swap
+        //                 "create_date":"20211228",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1640764800000",
+        //                 "support_margin_mode":"cross", // "all" or "cross"
+        //                 "business_type":"futures", // "swap" or "futures"
+        //                 "pair":"BTC-USDT",
+        //                 "contract_type":"this_week", // "swap", "this_week", "next_week", "quarter"
+        //                 "trade_partition":"USDT",
+        //             }
+        //         ],
+        //         "ts":1640736207263
+        //     }
+        //
+        List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Integer numMarkets = markets.size();
+        if (((numMarkets == null || numMarkets < 1)))
+        {
+            throw new OperationFailed(((this.id + " fetchMarkets() returned an empty response: ") + this.json(response))) ;
+        }
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < markets.size(); i++)
+        {
+            Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
+            String marketType = null;
+            String baseId = null;
+            String quoteId = null;
+            String settleId = null;
+            String id = null;
+            String lowercaseId = null;
+            Boolean contract = (!java.util.Objects.equals(this.safeString(market, "contract_code"), null));
+            Boolean spot = !Boolean.TRUE.equals(contract);
+            Boolean swap = false;
+            Boolean future = false;
+            Boolean linear = null;
+            Boolean inverse = null;
+            // check if parsed market is contract
+            if (Boolean.TRUE.equals(contract))
+            {
+                String contractId = this.safeString(market, "contract_code");
+                if (java.util.Objects.equals(contractId, null))
+                {
+                    throw new ExchangeError((this.id + " method() missing id")) ;
+                }
+                id = this.safeString(market, "contract_code");
+                lowercaseId = contractId.toLowerCase();
+                String delivery_date = this.safeString(market, "delivery_date");
+                String business_type = this.safeString(market, "business_type");
+                future = !java.util.Objects.equals(delivery_date, null);
+                swap = !Boolean.TRUE.equals(future);
+                linear = !java.util.Objects.equals(business_type, null);
+                inverse = !Boolean.TRUE.equals(linear);
+                if (Boolean.TRUE.equals(swap))
+                {
+                    marketType = "swap";
+                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)contractId).split(java.util.regex.Pattern.quote("-"))));
+                    String swapBaseId = this.safeStringLower(market, "symbol");
+                    String swapQuoteId = this.safeStringLower(parts, 1);
+                    baseId = swapBaseId;
+                    quoteId = swapQuoteId;
+                    if (Boolean.TRUE.equals(inverse))
                     {
-                        response = (this.contractPublicGetApiV1ContractContractInfo(this.extend(request, parameters))).join();
-                    } else if (java.util.Objects.equals(typeStr, "swap"))
+                        settleId = swapBaseId;
+                    } else
                     {
-                        response = (this.contractPublicGetSwapApiV1SwapContractInfo(this.extend(request, parameters))).join();
+                        settleId = swapQuoteId;
+                    }
+                } else if (Boolean.TRUE.equals(future))
+                {
+                    marketType = "future";
+                    String futureBaseId = this.safeStringLower(market, "symbol");
+                    baseId = futureBaseId;
+                    if (Boolean.TRUE.equals(inverse))
+                    {
+                        quoteId = "USD";
+                        settleId = futureBaseId;
+                    } else
+                    {
+                        String pair = this.safeString(market, "pair");
+                        if (java.util.Objects.equals(pair, null))
+                        {
+                            throw new ExchangeError((this.id + " method() missing pair")) ;
+                        }
+                        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote("-"))));
+                        String futureQuoteId = this.safeStringLower(parts, 1);
+                        quoteId = futureQuoteId;
+                        settleId = futureQuoteId;
                     }
                 }
             } else
             {
-                response = (this.spotPublicGetV1CommonSymbols(this.extend(request, parameters))).join();
+                marketType = "spot";
+                String spotBaseId = this.safeString(market, "base-currency");
+                String spotQuoteId = this.safeString(market, "quote-currency");
+                if (java.util.Objects.equals(spotQuoteId, null))
+                {
+                    throw new ExchangeError((this.id + " method() missing quoteId")) ;
+                }
+                if (java.util.Objects.equals(spotBaseId, null))
+                {
+                    throw new ExchangeError((this.id + " method() missing baseId")) ;
+                }
+                baseId = spotBaseId;
+                quoteId = spotQuoteId;
+                String spotId = (spotBaseId + spotQuoteId);
+                id = spotId;
+                lowercaseId = spotId.toLowerCase();
             }
-            //
-            // spot
-            //
-            //     {
-            //         "status":"ok",
-            //         "data":[
-            //             {
-            //                 "base-currency":"xrp3s",
-            //                 "quote-currency":"usdt",
-            //                 "price-precision":4,
-            //                 "amount-precision":4,
-            //                 "symbol-partition":"innovation",
-            //                 "symbol":"xrp3susdt",
-            //                 "state":"online",
-            //                 "value-precision":8,
-            //                 "min-order-amt":0.01,
-            //                 "max-order-amt":1616.4353,
-            //                 "min-order-value":5,
-            //                 "limit-order-min-order-amt":0.01,
-            //                 "limit-order-max-order-amt":1616.4353,
-            //                 "limit-order-max-buy-amt":1616.4353,
-            //                 "limit-order-max-sell-amt":1616.4353,
-            //                 "sell-market-min-order-amt":0.01,
-            //                 "sell-market-max-order-amt":1616.4353,
-            //                 "buy-market-max-order-value":2500,
-            //                 "max-order-value":2500,
-            //                 "underlying":"xrpusdt",
-            //                 "mgmt-fee-rate":0.035000000000000000,
-            //                 "charge-time":"23:55:00",
-            //                 "rebal-time":"00:00:00",
-            //                 "rebal-threshold":-5,
-            //                 "init-nav":10.000000000000000000,
-            //                 "api-trading":"enabled",
-            //                 "tags":"etp,nav,holdinglimit"
-            //             },
-            //         ]
-            //     }
-            //
-            // inverse (swap & future)
-            //
-            //     {
-            //         "status":"ok",
-            //         "data":[
-            //             {
-            //                 "symbol":"BTC",
-            //                 "contract_code":"BTC211126", /// BTC-USD in swap
-            //                 "contract_type":"this_week", // only in future
-            //                 "contract_size":100,
-            //                 "price_tick":0.1,
-            //                 "delivery_date":"20211126", // only in future
-            //                 "delivery_time":"1637913600000", // empty in swap
-            //                 "create_date":"20211112",
-            //                 "contract_status":1,
-            //                 "settlement_time":"1637481600000" // only in future
-            //                 "settlement_date":"16xxxxxxxxxxx" // only in swap
-            //             },
-            //           ...
-            //         ],
-            //         "ts":1637474595140
-            //     }
-            //
-            // linear (swap & future)
-            //
-            //     {
-            //         "status":"ok",
-            //         "data":[
-            //             {
-            //                 "symbol":"BTC",
-            //                 "contract_code":"BTC-USDT-211231", // or "BTC-USDT" in swap
-            //                 "contract_size":0.001,
-            //                 "price_tick":0.1,
-            //                 "delivery_date":"20211231", // empty in swap
-            //                 "delivery_time":"1640937600000", // empty in swap
-            //                 "create_date":"20211228",
-            //                 "contract_status":1,
-            //                 "settlement_date":"1640764800000",
-            //                 "support_margin_mode":"cross", // "all" or "cross"
-            //                 "business_type":"futures", // "swap" or "futures"
-            //                 "pair":"BTC-USDT",
-            //                 "contract_type":"this_week", // "swap", "this_week", "next_week", "quarter"
-            //                 "trade_partition":"USDT",
-            //             }
-            //         ],
-            //         "ts":1640736207263
-            //     }
-            //
-            List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer numMarkets = markets.size();
-            if (((numMarkets == null || numMarkets < 1)))
+            String base = this.safeCurrencyCode(baseId, null);
+            String quote = this.safeCurrencyCode(quoteId, null);
+            if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
-                throw new OperationFailed(((this.id + " fetchMarkets() returned an empty response: ") + this.json(response))) ;
+                continue;
             }
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < markets.size(); i++)
+            String settle = this.safeCurrencyCode(settleId, null);
+            String symbol = ((base + "/") + quote);
+            Long expiry = null;
+            if (Boolean.TRUE.equals(contract))
             {
-                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
-                String marketType = null;
-                String baseId = null;
-                String quoteId = null;
-                String settleId = null;
-                Object id = null;
-                Object lowercaseId = null;
-                Boolean contract = (((Map<?, ?>)market).containsKey("contract_code"));
-                Boolean spot = !Boolean.TRUE.equals(contract);
-                Boolean swap = false;
-                Boolean future = false;
-                Boolean linear = null;
-                Boolean inverse = null;
-                // check if parsed market is contract
-                if (Boolean.TRUE.equals(contract))
+                if (java.util.Objects.equals(inverse, true))
                 {
-                    String contractId = this.safeString(market, "contract_code");
-                    if (java.util.Objects.equals(contractId, null))
-                    {
-                        throw new ExchangeError((this.id + " method() missing id")) ;
-                    }
-                    id = this.safeString(market, "contract_code");
-                    lowercaseId = contractId.toLowerCase();
-                    String delivery_date = this.safeString(market, "delivery_date");
-                    String business_type = this.safeString(market, "business_type");
-                    future = !java.util.Objects.equals(delivery_date, null);
-                    swap = !Boolean.TRUE.equals(future);
-                    linear = !java.util.Objects.equals(business_type, null);
-                    inverse = !Boolean.TRUE.equals(linear);
-                    if (Boolean.TRUE.equals(swap))
-                    {
-                        marketType = "swap";
-                        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)contractId).split(java.util.regex.Pattern.quote("-"))));
-                        baseId = this.safeStringLower(market, "symbol");
-                        quoteId = this.safeStringLower(parts, 1);
-                        if (Boolean.TRUE.equals(inverse))
-                        {
-                            settleId = baseId;
-                        } else
-                        {
-                            settleId = quoteId;
-                        }
-                    } else if (Boolean.TRUE.equals(future))
-                    {
-                        marketType = "future";
-                        baseId = this.safeStringLower(market, "symbol");
-                        if (Boolean.TRUE.equals(inverse))
-                        {
-                            quoteId = "USD";
-                            settleId = baseId;
-                        } else
-                        {
-                            String pair = this.safeString(market, "pair");
-                            if (java.util.Objects.equals(pair, null))
-                            {
-                                throw new ExchangeError((this.id + " method() missing pair")) ;
-                            }
-                            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote("-"))));
-                            quoteId = this.safeStringLower(parts, 1);
-                            settleId = quoteId;
-                        }
-                    }
-                } else
+                    symbol = (symbol + (":" + base));
+                } else if (java.util.Objects.equals(linear, true))
                 {
-                    marketType = "spot";
-                    String spotBaseId = this.safeString(market, "base-currency");
-                    String spotQuoteId = this.safeString(market, "quote-currency");
-                    if (java.util.Objects.equals(spotQuoteId, null))
-                    {
-                        throw new ExchangeError((this.id + " method() missing quoteId")) ;
-                    }
-                    if (java.util.Objects.equals(spotBaseId, null))
-                    {
-                        throw new ExchangeError((this.id + " method() missing baseId")) ;
-                    }
-                    baseId = spotBaseId;
-                    quoteId = spotQuoteId;
-                    String spotId = (spotBaseId + spotQuoteId);
-                    id = spotId;
-                    lowercaseId = spotId.toLowerCase();
+                    symbol = (symbol + (":" + quote));
                 }
-                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                if (Boolean.TRUE.equals(future))
                 {
-                    continue;
+                    expiry = this.safeInteger(market, "delivery_time");
+                    symbol = (symbol + ("-" + this.yymmdd(expiry)));
                 }
-                String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-                String symbol = ((base + "/") + quote);
-                Long expiry = null;
-                if (Boolean.TRUE.equals(contract))
-                {
-                    if (java.util.Objects.equals(inverse, true))
-                    {
-                        symbol = (symbol + (":" + base));
-                    } else if (java.util.Objects.equals(linear, true))
-                    {
-                        symbol = (symbol + (":" + quote));
-                    }
-                    if (Boolean.TRUE.equals(future))
-                    {
-                        expiry = this.safeInteger(market, "delivery_time");
-                        symbol = (symbol + ("-" + this.yymmdd(expiry)));
-                    }
-                }
-                Double contractSize = this.safeNumber(market, "contract_size", (Object) null);
-                Double minCost = this.safeNumber(market, "min-order-value", (Object) null);
-                Double maxAmount = this.safeNumber(market, "max-order-amt", (Object) null);
-                Double minAmount = this.safeNumber(market, "min-order-amt", (Object) null);
-                if (Boolean.TRUE.equals(contract))
-                {
-                    if (java.util.Objects.equals(linear, true))
-                    {
-                        minAmount = contractSize;
-                    } else if (java.util.Objects.equals(inverse, true))
-                    {
-                        minCost = contractSize;
-                    }
-                }
-                Double pricePrecision = null;
-                Double amountPrecision = null;
-                Double costPrecision = null;
-                Double maker = null;
-                Double taker = null;
-                Boolean active = null;
-                if (Boolean.TRUE.equals(spot))
-                {
-                    pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "price-precision")));
-                    amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount-precision")));
-                    costPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "value-precision")));
-                    maker = this.parseNumber("0.002");
-                    taker = this.parseNumber("0.002");
-                    String state = this.safeString(market, "state");
-                    active = (java.util.Objects.equals(state, "online"));
-                } else
-                {
-                    pricePrecision = this.safeNumber(market, "price_tick", (Object) null);
-                    amountPrecision = this.parseNumber("1"); // other markets have step size of 1 contract
-                    maker = this.parseNumber("0.0002");
-                    taker = this.parseNumber("0.0005");
-                    Long contractStatus = this.safeInteger(market, "contract_status");
-                    active = ((contractStatus != null && contractStatus == 1));
-                }
-                String leverageRatio = this.safeString(market, "leverage-ratio", "1");
-                String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-                Boolean hasLeverage = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
-                // 0 Delisting
-                // 1 Listing
-                // 2 Pending Listing
-                // 3 Suspension
-                // 4 Suspending of Listing
-                // 5 In Settlement
-                // 6 Delivering
-                // 7 Settlement Completed
-                // 8 Delivered
-                // 9 Suspending of Trade
-                Long created = null;
-                String createdDate = this.safeString(market, "create_date"); // i.e 20230101
-                if (!java.util.Objects.equals(createdDate, null))
-                {
-                    List<String> createdArray = this.stringToCharsArray(createdDate);
-                    Integer createdLength = createdArray.size();
-                    if (((createdLength != null && createdLength >= 8)))
-                    {
-                        String yearPart = (((this.safeString(createdArray, 0, "") + this.safeString(createdArray, 1, "")) + this.safeString(createdArray, 2, "")) + this.safeString(createdArray, 3, ""));
-                        String monthPart = (this.safeString(createdArray, 4, "") + this.safeString(createdArray, 5, ""));
-                        String dayPart = (this.safeString(createdArray, 6, "") + this.safeString(createdArray, 7, ""));
-                        createdDate = (((((yearPart + "-") + monthPart) + "-") + dayPart) + " 00:00:00");
-                        created = this.parse8601(createdDate);
-                    }
-                }
-                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                j39v5.put("id", id);
-                j39v5.put("lowercaseId", lowercaseId);
-                j39v5.put("symbol", symbol);
-                j39v5.put("base", base);
-                j39v5.put("quote", quote);
-                j39v5.put("settle", settle);
-                j39v5.put("baseId", baseId);
-                j39v5.put("quoteId", quoteId);
-                j39v5.put("settleId", settleId);
-                j39v5.put("type", marketType);
-                j39v5.put("spot", spot);
-                j39v5.put("margin", (Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(hasLeverage)));
-                j39v5.put("swap", swap);
-                j39v5.put("future", future);
-                j39v5.put("option", false);
-                j39v5.put("active", active);
-                j39v5.put("contract", contract);
-                j39v5.put("linear", linear);
-                j39v5.put("inverse", inverse);
-                j39v5.put("taker", taker);
-                j39v5.put("maker", maker);
-                j39v5.put("contractSize", contractSize);
-                j39v5.put("expiry", expiry);
-                j39v5.put("expiryDatetime", this.iso8601(expiry));
-                j39v5.put("strike", null);
-                j39v5.put("optionType", null);
-                j39v5.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                        j39v4.put("amount", amountPrecision);
-                        j39v4.put("price", pricePrecision);
-                        j39v4.put("cost", costPrecision);
-                        yield j39v4; } }));
-                j39v5.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                        j39v3.put("leverage", new HashMap<String, Object>() {{
-                            put( "min", Htx.this.parseNumber("1") );
-                            put( "max", Htx.this.parseNumber(leverageRatio) );
-                            put( "superMax", Htx.this.parseNumber(superLeverageRatio) );
-                        }});
-                        j39v3.put("amount", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                            j39v2.put("min", minAmount);
-                            j39v2.put("max", maxAmount);
-                            yield j39v2; } }));
-                        j39v3.put("price", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }});
-                        j39v3.put("cost", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                            j39v1.put("min", minCost);
-                            j39v1.put("max", null);
-                            yield j39v1; } }));
-                        yield j39v3; } }));
-                j39v5.put("created", created);
-                j39v5.put("info", market);
-                ((List<Object>)result).add(j39v5);
             }
-            return result;
-        });
+            Double contractSize = this.safeNumber(market, "contract_size", null);
+            Double minCost = this.safeNumber(market, "min-order-value", null);
+            Double maxAmount = this.safeNumber(market, "max-order-amt", null);
+            Double minAmount = this.safeNumber(market, "min-order-amt", null);
+            if (Boolean.TRUE.equals(contract))
+            {
+                if (java.util.Objects.equals(linear, true))
+                {
+                    minAmount = contractSize;
+                } else if (java.util.Objects.equals(inverse, true))
+                {
+                    minCost = contractSize;
+                }
+            }
+            Double pricePrecision = null;
+            Double amountPrecision = null;
+            Double costPrecision = null;
+            Double maker = null;
+            Double taker = null;
+            Boolean active = null;
+            if (Boolean.TRUE.equals(spot))
+            {
+                pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "price-precision")));
+                amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount-precision")));
+                costPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "value-precision")));
+                maker = this.parseNumber("0.002");
+                taker = this.parseNumber("0.002");
+                String state = this.safeString(market, "state");
+                active = (java.util.Objects.equals(state, "online"));
+            } else
+            {
+                pricePrecision = this.safeNumber(market, "price_tick", null);
+                amountPrecision = this.parseNumber("1"); // other markets have step size of 1 contract
+                maker = this.parseNumber("0.0002");
+                taker = this.parseNumber("0.0005");
+                Long contractStatus = this.safeInteger(market, "contract_status");
+                active = ((contractStatus != null && contractStatus == 1));
+            }
+            String leverageRatio = this.safeString(market, "leverage-ratio", "1");
+            String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
+            Boolean hasLeverage = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
+            // 0 Delisting
+            // 1 Listing
+            // 2 Pending Listing
+            // 3 Suspension
+            // 4 Suspending of Listing
+            // 5 In Settlement
+            // 6 Delivering
+            // 7 Settlement Completed
+            // 8 Delivered
+            // 9 Suspending of Trade
+            Long created = null;
+            String createdDate = this.safeString(market, "create_date"); // i.e 20230101
+            if (!java.util.Objects.equals(createdDate, null))
+            {
+                List<String> createdArray = this.stringToCharsArray(createdDate);
+                Integer createdLength = createdArray.size();
+                if (((createdLength != null && createdLength >= 8)))
+                {
+                    String yearPart = (((this.safeString(createdArray, 0, "") + this.safeString(createdArray, 1, "")) + this.safeString(createdArray, 2, "")) + this.safeString(createdArray, 3, ""));
+                    String monthPart = (this.safeString(createdArray, 4, "") + this.safeString(createdArray, 5, ""));
+                    String dayPart = (this.safeString(createdArray, 6, "") + this.safeString(createdArray, 7, ""));
+                    createdDate = (((((yearPart + "-") + monthPart) + "-") + dayPart) + " 00:00:00");
+                    created = this.parse8601(createdDate);
+                }
+            }
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", id);
+            mapLiteral1.put("lowercaseId", lowercaseId);
+            mapLiteral1.put("symbol", symbol);
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", settle);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", settleId);
+            mapLiteral1.put("type", marketType);
+            mapLiteral1.put("spot", spot);
+            mapLiteral1.put("margin", (Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(hasLeverage)));
+            mapLiteral1.put("swap", swap);
+            mapLiteral1.put("future", future);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", active);
+            mapLiteral1.put("contract", contract);
+            mapLiteral1.put("linear", linear);
+            mapLiteral1.put("inverse", inverse);
+            mapLiteral1.put("taker", taker);
+            mapLiteral1.put("maker", maker);
+            mapLiteral1.put("contractSize", contractSize);
+            mapLiteral1.put("expiry", expiry);
+            mapLiteral1.put("expiryDatetime", this.iso8601(expiry));
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("amount", amountPrecision);
+            mapLiteral2.put("price", pricePrecision);
+            mapLiteral2.put("cost", costPrecision);
+            mapLiteral1.put("precision", mapLiteral2);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("leverage", new HashMap<String, Object>() {{
+                        put( "min", Htx.this.parseNumber("1") );
+                        put( "max", Htx.this.parseNumber(leverageRatio) );
+                        put( "superMax", Htx.this.parseNumber(superLeverageRatio) );
+                    }});
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("min", minAmount);
+            mapLiteral4.put("max", maxAmount);
+            mapLiteral3.put("amount", mapLiteral4);
+            mapLiteral3.put("price", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }});
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("min", minCost);
+            mapLiteral5.put("max", null);
+            mapLiteral3.put("cost", mapLiteral5);
+            mapLiteral1.put("limits", mapLiteral3);
+            mapLiteral1.put("created", created);
+            mapLiteral1.put("info", market);
+            result.add(mapLiteral1);
+        }
+        return result;
 
     }
 
@@ -2938,9 +2958,10 @@ public class Htx extends HtxApi
             this.options.put("futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         }
         Map<String, Object> futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
-        if (futureMarketIdsForSymbols.containsKey(symbolOrMarketId))
+        String knownSymbol = this.safeString(futureMarketIdsForSymbols, symbolOrMarketId, "");
+        if (!java.util.Objects.equals(knownSymbol, ""))
         {
-            return (futureMarketIdsForSymbols == null || symbolOrMarketId == null ? null : futureMarketIdsForSymbols.get(symbolOrMarketId));
+            return knownSymbol;
         }
         List<Object> futureMarkets = this.filterBy(this.markets, "future", true);
         Map<String, Object> futuresCharsMaps = new HashMap<String, Object>() {{
@@ -2961,29 +2982,30 @@ public class Htx extends HtxApi
             }
             String marketBase = this.safeString(market, "base", "");
             String marketQuote = this.safeString(market, "quote", "");
-            Boolean marketLinear = (Boolean) this.safeBool(market, "linear", false);
+            Boolean marketLinear = this.safeBool(market, "linear", false);
             String marketSymbol = this.safeString(market, "symbol", "");
             // see comment on formats a bit above
-            String constructedId = null;
+            String constructedId = ((marketBase + "_") + contractSuffix);
             if (Boolean.TRUE.equals(marketLinear))
             {
                 constructedId = ((((marketBase + "-") + marketQuote) + "-") + contractSuffix);
-            } else
-            {
-                constructedId = ((marketBase + "_") + contractSuffix);
             }
             if (java.util.Objects.equals(constructedId, symbolOrMarketId))
             {
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("futureMarketIdsForSymbols")), symbolOrMarketId, marketSymbol);
+                Map<String, Object> futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+                futureMarketIdsForSymbolsDict1.put(symbolOrMarketId, marketSymbol);
+                this.options.put("futureMarketIdsForSymbols", futureMarketIdsForSymbolsDict1);
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("futureMarketIdsForSymbols")), symbolOrMarketId, symbolOrMarketId);
+        Map<String, Object> futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+        futureMarketIdsForSymbolsDict2.put(symbolOrMarketId, symbolOrMarketId);
+        this.options.put("futureMarketIdsForSymbols", futureMarketIdsForSymbolsDict2);
         return symbolOrMarketId;
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -3031,31 +3053,31 @@ public class Htx extends HtxApi
         //     }
         //
         String marketId = this.safeString2(ticker, "symbol", "contract_code");
-        Object symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        Object symbol = this.safeSymbol(marketId, market, null, null);
         symbol = this.tryGetSymbolFromFutureMarkets((String) (symbol));
         Long timestamp = (Long) this.safeInteger2(ticker, "ts", "quoteTime");
         String bid = null;
         String bidVolume = null;
         String ask = null;
         String askVolume = null;
-        if (((Map<?, ?>)ticker).containsKey("bid"))
+        if (ticker.containsKey("bid"))
         {
-            if ((((Map<String, Object>)ticker).get("bid") instanceof List))
+            if ((ticker.get("bid") instanceof List))
             {
-                bid = this.safeString(((Map<String, Object>)ticker).get("bid"), 0);
-                bidVolume = this.safeString(((Map<String, Object>)ticker).get("bid"), 1);
+                bid = this.safeString(ticker.get("bid"), 0);
+                bidVolume = this.safeString(ticker.get("bid"), 1);
             } else
             {
                 bid = this.safeString(ticker, "bid");
                 bidVolume = this.safeString(ticker, "bidSize");
             }
         }
-        if (((Map<?, ?>)ticker).containsKey("ask"))
+        if (ticker.containsKey("ask"))
         {
-            if ((((Map<String, Object>)ticker).get("ask") instanceof List))
+            if ((ticker.get("ask") instanceof List))
             {
-                ask = this.safeString(((Map<String, Object>)ticker).get("ask"), 0);
-                askVolume = this.safeString(((Map<String, Object>)ticker).get("ask"), 1);
+                ask = this.safeString(ticker.get("ask"), 0);
+                askVolume = this.safeString(ticker.get("ask"), 1);
             } else
             {
                 ask = this.safeString(ticker, "ask");
@@ -3078,28 +3100,28 @@ public class Htx extends HtxApi
                 quoteVolume = Precise.stringMul(quoteVolume, this.safeString(marketResolved, "contractSize"));
             }
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("high", this.safeString(ticker, "high"));
-        mapLiteral1.put("low", this.safeString(ticker, "low"));
-        mapLiteral1.put("bid", bid);
-        mapLiteral1.put("bidVolume", bidVolume);
-        mapLiteral1.put("ask", ask);
-        mapLiteral1.put("askVolume", askVolume);
-        mapLiteral1.put("vwap", null);
-        mapLiteral1.put("open", open);
-        mapLiteral1.put("close", close);
-        mapLiteral1.put("last", close);
-        mapLiteral1.put("previousClose", null);
-        mapLiteral1.put("change", null);
-        mapLiteral1.put("percentage", null);
-        mapLiteral1.put("average", null);
-        mapLiteral1.put("baseVolume", baseVolume);
-        mapLiteral1.put("quoteVolume", quoteVolume);
-        mapLiteral1.put("info", ticker);
-        return this.safeTicker(mapLiteral1, market);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("high", this.safeString(ticker, "high"));
+        mapLiteral6.put("low", this.safeString(ticker, "low"));
+        mapLiteral6.put("bid", bid);
+        mapLiteral6.put("bidVolume", bidVolume);
+        mapLiteral6.put("ask", ask);
+        mapLiteral6.put("askVolume", askVolume);
+        mapLiteral6.put("vwap", null);
+        mapLiteral6.put("open", open);
+        mapLiteral6.put("close", close);
+        mapLiteral6.put("last", close);
+        mapLiteral6.put("previousClose", null);
+        mapLiteral6.put("change", null);
+        mapLiteral6.put("percentage", null);
+        mapLiteral6.put("average", null);
+        mapLiteral6.put("baseVolume", baseVolume);
+        mapLiteral6.put("quoteVolume", quoteVolume);
+        mapLiteral6.put("info", ticker);
+        return this.safeTicker(mapLiteral6, market);
     }
 
     /**
@@ -3116,86 +3138,88 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                request.put("contract_code", market.get("id"));
-                response = (this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, parameters))).join();
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                {
-                    request.put("symbol", market.get("id"));
-                    response = (this.contractPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-                {
-                    request.put("contract_code", market.get("id"));
-                    response = (this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, parameters))).join();
-                }
-            } else
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            request.put("contract_code", market.get("id"));
+            response = (this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, parameters))).join();
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
             {
                 request.put("symbol", market.get("id"));
-                response = (this.spotPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
+                response = (this.contractPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+            {
+                request.put("contract_code", market.get("id"));
+                response = (this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, parameters))).join();
             }
-            //
-            // spot
-            //
-            //     {
-            //         "status": "ok",
-            //         "ch": "market.btcusdt.detail.merged",
-            //         "ts": 1583494336669,
-            //         "tick": {
-            //             "amount": 26228.672978342216,
-            //             "open": 9078.95,
-            //             "close": 9146.86,
-            //             "high": 9155.41,
-            //             "id": 209988544334,
-            //             "count": 265846,
-            //             "low": 8988.0,
-            //             "version": 209988544334,
-            //             "ask": [ 9146.87, 0.156134 ],
-            //             "vol": 2.3822168242201668E8,
-            //             "bid": [ 9146.86, 0.080758 ],
-            //         }
-            //     }
-            //
-            // future, swap
-            //
-            //     {
-            //         "ch":"market.BTC211126.detail.merged",
-            //         "status":"ok",
-            //         "tick":{
-            //             "amount":"669.3385682049668320322569544150680718474",
-            //             "ask":[59117.44,48],
-            //             "bid":[59082,48],
-            //             "close":"59087.97",
-            //             "count":5947,
-            //             "high":"59892.62",
-            //             "id":1637502670,
-            //             "low":"57402.87",
-            //             "open":"57638",
-            //             "ts":1637502670059,
-            //             "vol":"394598"
-            //         },
-            //         "ts":1637502670059
-            //     }
-            //
-            Map<String, Object> tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
-            Long timestamp = this.safeInteger(response, "ts");
-            ticker.put("timestamp", timestamp);
-            ticker.put("datetime", this.iso8601(timestamp));
-            return ticker;
-        }).thenApply(Ticker::new);
+        } else
+        {
+            request.put("symbol", market.get("id"));
+            response = (this.spotPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.detail.merged",
+        //         "ts": 1583494336669,
+        //         "tick": {
+        //             "amount": 26228.672978342216,
+        //             "open": 9078.95,
+        //             "close": 9146.86,
+        //             "high": 9155.41,
+        //             "id": 209988544334,
+        //             "count": 265846,
+        //             "low": 8988.0,
+        //             "version": 209988544334,
+        //             "ask": [ 9146.87, 0.156134 ],
+        //             "vol": 2.3822168242201668E8,
+        //             "bid": [ 9146.86, 0.080758 ],
+        //         }
+        //     }
+        //
+        // future, swap
+        //
+        //     {
+        //         "ch":"market.BTC211126.detail.merged",
+        //         "status":"ok",
+        //         "tick":{
+        //             "amount":"669.3385682049668320322569544150680718474",
+        //             "ask":[59117.44,48],
+        //             "bid":[59082,48],
+        //             "close":"59087.97",
+        //             "count":5947,
+        //             "high":"59892.62",
+        //             "id":1637502670,
+        //             "low":"57402.87",
+        //             "open":"57638",
+        //             "ts":1637502670059,
+        //             "vol":"394598"
+        //         },
+        //         "ts":1637502670059
+        //     }
+        //
+        Map<String, Object> tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
+        Long timestamp = this.safeInteger(response, "ts");
+        ticker.put("timestamp", timestamp);
+        ticker.put("datetime", this.iso8601(timestamp));
+        return ticker;
 
     }
 
@@ -3213,124 +3237,126 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        String first = this.safeString(symbolsNormalized, 0);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(first, null))
+        {
+            market = this.market(first);
+        }
+        Boolean isSubTypeRequested = (parameters.containsKey("subType")) || (parameters.containsKey("business_type"));
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, null);
+        String type = typeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, null);
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Boolean isSpot = (java.util.Objects.equals(type, "spot"));
+        Boolean future = (java.util.Objects.equals(type, "future"));
+        Boolean swap = (java.util.Objects.equals(type, "swap"));
+        Boolean linear = (java.util.Objects.equals(subType, "linear"));
+        Boolean inverse = (java.util.Objects.equals(subType, "inverse"));
+        Map<String, Object> response = null;
+        if (!Boolean.TRUE.equals(isSpot) || Boolean.TRUE.equals(isSubTypeRequested))
+        {
+            if (Boolean.TRUE.equals(linear))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String first = this.safeString(symbolsNormalized, 0);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(first, null))
-            {
-                market = this.market(first);
-            }
-            Boolean isSubTypeRequested = (parameters.containsKey("subType")) || (parameters.containsKey("business_type"));
-            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
-            String type = typeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Boolean future = (java.util.Objects.equals(type, "future"));
-            Boolean swap = (java.util.Objects.equals(type, "swap"));
-            Boolean linear = (java.util.Objects.equals(subType, "linear"));
-            Boolean inverse = (java.util.Objects.equals(subType, "inverse"));
-            Map<String, Object> response = null;
-            if (!Boolean.TRUE.equals(isSpot) || Boolean.TRUE.equals(isSubTypeRequested))
-            {
-                if (Boolean.TRUE.equals(linear))
+                // independently of type, supports calling all linear symbols i.e. fetchTickers(undefined, {subType:'linear'})
+                if (Boolean.TRUE.equals(future))
                 {
-                    // independently of type, supports calling all linear symbols i.e. fetchTickers(undefined, {subType:'linear'})
-                    if (Boolean.TRUE.equals(future))
-                    {
-                        request.put("business_type", "futures");
-                    } else if (Boolean.TRUE.equals(swap))
-                    {
-                        request.put("business_type", "swap");
-                    } else
-                    {
-                        request.put("business_type", "all");
-                    }
-                    response = (this.contractPublicGetLinearSwapExMarketDetailBatchMerged(this.extend(request, paramsSubType))).join();
-                } else if (Boolean.TRUE.equals(inverse))
+                    request.put("business_type", "futures");
+                } else if (Boolean.TRUE.equals(swap))
                 {
-                    if (Boolean.TRUE.equals(future))
-                    {
-                        response = (this.contractPublicGetMarketDetailBatchMerged(this.extend(request, paramsSubType))).join();
-                    } else if (Boolean.TRUE.equals(swap))
-                    {
-                        response = (this.contractPublicGetSwapExMarketDetailBatchMerged(this.extend(request, paramsSubType))).join();
-                    } else
-                    {
-                        throw new NotSupported((this.id + " fetchTickers() you have to set params[\"type\"] to either \"swap\" or \"future\" for inverse contracts")) ;
-                    }
+                    request.put("business_type", "swap");
                 } else
                 {
-                    throw new NotSupported((this.id + " fetchTickers() you have to set params[\"subType\"] to either \"linear\" or \"inverse\" for contracts")) ;
+                    request.put("business_type", "all");
+                }
+                response = (this.contractPublicGetLinearSwapExMarketDetailBatchMerged(this.extend(request, paramsSubType))).join();
+            } else if (Boolean.TRUE.equals(inverse))
+            {
+                if (Boolean.TRUE.equals(future))
+                {
+                    response = (this.contractPublicGetMarketDetailBatchMerged(this.extend(request, paramsSubType))).join();
+                } else if (Boolean.TRUE.equals(swap))
+                {
+                    response = (this.contractPublicGetSwapExMarketDetailBatchMerged(this.extend(request, paramsSubType))).join();
+                } else
+                {
+                    throw new NotSupported((this.id + " fetchTickers() you have to set params[\"type\"] to either \"swap\" or \"future\" for inverse contracts")) ;
                 }
             } else
             {
-                response = (this.spotPublicGetMarketTickers(this.extend(request, paramsSubType))).join();
+                throw new NotSupported((this.id + " fetchTickers() you have to set params[\"subType\"] to either \"linear\" or \"inverse\" for contracts")) ;
             }
-            //
-            // spot
-            //
-            //     {
-            //         "data":[
-            //             {
-            //                 "symbol":"hbcbtc",
-            //                 "open":5.313E-5,
-            //                 "high":5.34E-5,
-            //                 "low":5.112E-5,
-            //                 "close":5.175E-5,
-            //                 "amount":1183.87,
-            //                 "vol":0.0618599229,
-            //                 "count":205,
-            //                 "bid":5.126E-5,
-            //                 "bidSize":5.25,
-            //                 "ask":5.214E-5,
-            //                 "askSize":150.0
-            //             },
-            //         ],
-            //         "status":"ok",
-            //         "ts":1639547261293
-            //     }
-            //
-            // linear swap, linear future, inverse swap, inverse future
-            //
-            //     {
-            //         "status":"ok",
-            //         "ticks":[
-            //             {
-            //                 "id":1637504679,
-            //                 "ts":1637504679372,
-            //                 "ask":[0.10644,100],
-            //                 "bid":[0.10624,26],
-            //                 "symbol":"TRX_CW",
-            //                 "open":"0.10233",
-            //                 "close":"0.10644",
-            //                 "low":"0.1017",
-            //                 "high":"0.10725",
-            //                 "amount":"2340267.415144052378486261756692535687481566",
-            //                 "count":882,
-            //                 "vol":"24706",
-            //                 "trade_turnover":"840726.5048", // only in linear futures
-            //                 "business_type":"futures", // only in linear futures
-            //                 "contract_code":"BTC-USDT-CW", // only in linear futures, instead of 'symbol'
-            //             }
-            //         ],
-            //         "ts":1637504679376
-            //     }
-            //
-            List<Object> rawTickers = (List<Object>) this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
-            Object tickers = this.parseTickers(rawTickers, symbolsNormalized, paramsSubType);
-            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
-        }).thenApply(Tickers::new);
+        } else
+        {
+            response = (this.spotPublicGetMarketTickers(this.extend(request, paramsSubType))).join();
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "symbol":"hbcbtc",
+        //                 "open":5.313E-5,
+        //                 "high":5.34E-5,
+        //                 "low":5.112E-5,
+        //                 "close":5.175E-5,
+        //                 "amount":1183.87,
+        //                 "vol":0.0618599229,
+        //                 "count":205,
+        //                 "bid":5.126E-5,
+        //                 "bidSize":5.25,
+        //                 "ask":5.214E-5,
+        //                 "askSize":150.0
+        //             },
+        //         ],
+        //         "status":"ok",
+        //         "ts":1639547261293
+        //     }
+        //
+        // linear swap, linear future, inverse swap, inverse future
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1637504679,
+        //                 "ts":1637504679372,
+        //                 "ask":[0.10644,100],
+        //                 "bid":[0.10624,26],
+        //                 "symbol":"TRX_CW",
+        //                 "open":"0.10233",
+        //                 "close":"0.10644",
+        //                 "low":"0.1017",
+        //                 "high":"0.10725",
+        //                 "amount":"2340267.415144052378486261756692535687481566",
+        //                 "count":882,
+        //                 "vol":"24706",
+        //                 "trade_turnover":"840726.5048", // only in linear futures
+        //                 "business_type":"futures", // only in linear futures
+        //                 "contract_code":"BTC-USDT-CW", // only in linear futures, instead of 'symbol'
+        //             }
+        //         ],
+        //         "ts":1637504679376
+        //     }
+        //
+        List<Object> rawTickers = (List<Object>) this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> tickers = this.parseTickers(rawTickers, symbolsNormalized, paramsSubType);
+        return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
 
     }
 
@@ -3347,48 +3373,50 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLastPricesCore(symbols, parameters)).thenApply(LastPrices::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLastPricesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLastPrices", market, parameters, (Object) null);
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, paramsSubType, (String) null);
-            String type = typeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Map<String, Object> response = null;
-            if (((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"))) && (java.util.Objects.equals(subType, "linear")))
-            {
-                response = (this.contractPublicGetLinearSwapExMarketTrade(paramsMarketType)).join();
-            } else if ((java.util.Objects.equals(type, "swap")) && (java.util.Objects.equals(subType, "inverse")))
-            {
-                response = (this.contractPublicGetSwapExMarketTrade(paramsMarketType)).join();
-            } else if ((java.util.Objects.equals(type, "future")) && (java.util.Objects.equals(subType, "inverse")))
-            {
-                response = (this.contractPublicGetMarketTrade(paramsMarketType)).join();
-            } else
-            {
-                throw new NotSupported((((this.id + " fetchLastPrices() does not support ") + type) + " markets yet")) ;
-            }
-            Map<String, Object> tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            List<Object> data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLastPrices(data, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(LastPrices::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchLastPrices", market, parameters, null);
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, paramsSubType, null);
+        String type = typeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+        Map<String, Object> response = null;
+        if (((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"))) && (java.util.Objects.equals(subType, "linear")))
+        {
+            response = (this.contractPublicGetLinearSwapExMarketTrade(paramsMarketType)).join();
+        } else if ((java.util.Objects.equals(type, "swap")) && (java.util.Objects.equals(subType, "inverse")))
+        {
+            response = (this.contractPublicGetSwapExMarketTrade(paramsMarketType)).join();
+        } else if ((java.util.Objects.equals(type, "future")) && (java.util.Objects.equals(subType, "inverse")))
+        {
+            response = (this.contractPublicGetMarketTrade(paramsMarketType)).join();
+        } else
+        {
+            throw new NotSupported((((this.id + " fetchLastPrices() does not support ") + type) + " markets yet")) ;
+        }
+        Map<String, Object> tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseLastPrices(data, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
+    public Map<String, Object> parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
     {
         // example responses are documented in fetchLastPrices
         String marketId = this.safeString2(entry, "symbol", "contract_code");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Double price = this.safeNumber(entry, "price", (Object) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        Double price = this.safeNumber(entry, "price", null);
         String direction = this.safeString(entry, "direction"); // "buy" or "sell"
         // group timestamp should not be assigned to the individual trades' times
         return new HashMap<String, Object>() {{
@@ -3414,99 +3442,101 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "step0" );
+        }};
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            request.put("contract_code", market.get("id"));
+            response = (this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, parameters))).join();
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "step0" );
-            }};
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+                request.put("symbol", market.get("id"));
+                response = (this.contractPublicGetMarketDepth(this.extend(request, parameters))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("contract_code", market.get("id"));
-                response = (this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, parameters))).join();
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                {
-                    request.put("symbol", market.get("id"));
-                    response = (this.contractPublicGetMarketDepth(this.extend(request, parameters))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-                {
-                    request.put("contract_code", market.get("id"));
-                    response = (this.contractPublicGetSwapExMarketDepth(this.extend(request, parameters))).join();
-                }
-            } else
-            {
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                    if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 150)))
-                    {
-                        throw new BadRequest((this.id + " fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150")) ;
-                    }
-                    // only set the depth if it is not 150
-                    // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
-                    // it is not accepted by the exchange if you set it explicitly
-                    if ((limit != 150))
-                    {
-                        request.put("depth", limit);
-                    }
-                }
-                request.put("symbol", market.get("id"));
-                response = (this.spotPublicGetMarketDepth(this.extend(request, parameters))).join();
+                response = (this.contractPublicGetSwapExMarketDepth(this.extend(request, parameters))).join();
             }
-            //
-            // spot, future, swap
-            //
-            //     {
-            //         "status": "ok",
-            //         "ch": "market.btcusdt.depth.step0",
-            //         "ts": 1583474832790,
-            //         "tick": {
-            //             "bids": [
-            //                 [ 9100.290000000000000000, 0.200000000000000000 ],
-            //                 [ 9099.820000000000000000, 0.200000000000000000 ],
-            //                 [ 9099.610000000000000000, 0.205000000000000000 ],
-            //             ],
-            //             "asks": [
-            //                 [ 9100.640000000000000000, 0.005904000000000000 ],
-            //                 [ 9101.010000000000000000, 0.287311000000000000 ],
-            //                 [ 9101.030000000000000000, 0.012121000000000000 ],
-            //             ],
-            //             "ch":"market.BTC-USD.depth.step0",
-            //             "ts":1583474832008,
-            //             "id":1637554816,
-            //             "mrid":121654491624,
-            //             "version":104999698781
-            //         }
-            //     }
-            //
-            if (java.util.Objects.equals(response, null))
+        } else
+        {
+            if (!java.util.Objects.equals(limit, null))
             {
-                throw new NullResponse((this.id + " fetchOrderBook() returned empty response")) ;
-            }
-            if (response.containsKey("tick"))
-            {
-                if (java.util.Objects.equals(this.safeValue(response, "tick"), null))
+                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+                if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 150)))
                 {
-                    throw new BadSymbol(((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
+                    throw new BadRequest((this.id + " fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150")) ;
                 }
-                Map<String, Object> tick = this.safeDict(response, "tick", null);
-                Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
-                result.put("nonce", this.safeInteger(tick, "version"));
-                return result;
+                // only set the depth if it is not 150
+                // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
+                // it is not accepted by the exchange if you set it explicitly
+                if ((limit != 150))
+                {
+                    request.put("depth", limit);
+                }
             }
-            throw new ExchangeError(((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
-        }).thenApply(OrderBook::new);
+            request.put("symbol", market.get("id"));
+            response = (this.spotPublicGetMarketDepth(this.extend(request, parameters))).join();
+        }
+        //
+        // spot, future, swap
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.depth.step0",
+        //         "ts": 1583474832790,
+        //         "tick": {
+        //             "bids": [
+        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
+        //             ],
+        //             "asks": [
+        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
+        //             ],
+        //             "ch":"market.BTC-USD.depth.step0",
+        //             "ts":1583474832008,
+        //             "id":1637554816,
+        //             "mrid":121654491624,
+        //             "version":104999698781
+        //         }
+        //     }
+        //
+        if (java.util.Objects.equals(response, null))
+        {
+            throw new NullResponse((this.id + " fetchOrderBook() returned empty response")) ;
+        }
+        if (response.containsKey("tick"))
+        {
+            Map<String, Object> tick = this.safeDict(response, "tick", null);
+            if (java.util.Objects.equals(tick, null))
+            {
+                throw new BadSymbol(((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
+            }
+            Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
+            Map<String, Object> result = this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
+            result.put("nonce", this.safeInteger(tick, "version"));
+            return result;
+        }
+        throw new ExchangeError(((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
 
     }
 
@@ -3617,8 +3647,8 @@ public class Htx extends HtxApi
         //     }
         //
         String marketId = this.safeString2(trade, "contract_code", "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("ts", "created-at", "created_at", "create_date", "created_time")));
         String order = this.safeString2(trade, "order-id", "order_id");
         String side = this.safeString2(trade, "direction", "side");
@@ -3642,7 +3672,7 @@ public class Htx extends HtxApi
             feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
         }
         String feeCurrencyId = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("fee-currency", "fee_asset", "fee_currency")));
-        String feeCurrency = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+        String feeCurrency = this.safeCurrencyCode(feeCurrencyId, null);
         String filledPoints = this.safeString(trade, "filled-points");
         if (!java.util.Objects.equals(filledPoints, null))
         {
@@ -3652,7 +3682,7 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(feeDeductCurrency, null))
                 {
                     feeCost = filledPoints;
-                    feeCurrency = this.safeCurrencyCode(feeDeductCurrency, (Map<String, Object>) null);
+                    feeCurrency = this.safeCurrencyCode(feeDeductCurrency, null);
                 }
             }
         }
@@ -3677,21 +3707,21 @@ public class Htx extends HtxApi
         {
             id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("trade_id", "trade-id", "id")));
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("order", order);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("type", type);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", priceString);
-        mapLiteral2.put("amount", amountString);
-        mapLiteral2.put("cost", costString);
-        mapLiteral2.put("fee", fee);
-        return this.safeTrade(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("info", trade);
+        mapLiteral7.put("order", order);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("takerOrMaker", takerOrMaker);
+        mapLiteral7.put("price", priceString);
+        mapLiteral7.put("amount", amountString);
+        mapLiteral7.put("cost", costString);
+        mapLiteral7.put("fee", fee);
+        return this.safeTrade(mapLiteral7, marketResolved);
     }
 
     /**
@@ -3708,23 +3738,25 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderTradesCore(id, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderTradesCore(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            if (!java.util.Objects.equals(marketType, "spot"))
-            {
-                throw new NotSupported((this.id + " fetchOrderTrades() is only supported for spot markets")) ;
-            }
-            return (this.fetchSpotOrderTrades((String) (id), symbol, since, limit, paramsMarketType)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        if (!java.util.Objects.equals(marketType, "spot"))
+        {
+            throw new NotSupported((this.id + " fetchOrderTrades() is only supported for spot markets")) ;
+        }
+        return (this.fetchSpotOrderTrades(id, symbol, since, limit, paramsMarketType)).join();
 
     }
 
@@ -3743,20 +3775,22 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Object> fetchSpotOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchSpotOrderTradesCore(id, symbol, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchSpotOrderTradesCore(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order-id", id );
-            }};
-            Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order-id", id );
+        }};
+        Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(data, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3776,198 +3810,200 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
-            }
-            Map<String, Object> market = null;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, null, true)).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Map<String, Object> paramsUntil = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
+                request.put("symbol", market.get("id"));
             }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> paramsUntil = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
+            if (!java.util.Objects.equals(limit, null))
             {
-                if (!java.util.Objects.equals(symbol, null))
-                {
-                    market = this.market(symbol);
-                    request.put("symbol", market.get("id"));
-                }
+                request.put("size", limit); // default 100, max 500
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start-time", since); // a date within 120 days from today
+            }
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", request, paramsMarketType, 1);
+            request = requestparamsUntilVariable.first();
+            paramsUntil = requestparamsUntilVariable.second();
+            response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, paramsUntil))).join();
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", since);
+            }
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, paramsMarketType, 1);
+            request = requestparamsUntilVariable.first();
+            paramsUntil = requestparamsUntilVariable.second();
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                request.put("contract_code", this.safeString(market, "id"));
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("size", limit); // default 100, max 500
+                    request.put("limit", limit); // default 100, max 500
                 }
-                if (!java.util.Objects.equals(since, null))
-                {
-                    request.put("start-time", since); // a date within 120 days from today
-                }
-                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end-time", request, (Map<String, Object>) (paramsMarketType), 1);
-                request = requestparamsUntilVariable.first();
-                paramsUntil = requestparamsUntilVariable.second();
-                response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, paramsUntil))).join();
-            } else
+                response = (this.contractPrivateGetV5TradeOrderDetails(this.extend(request, paramsUntil))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
-                if (java.util.Objects.equals(symbol, null))
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
+                    request.put("page_size", limit); // default 100, max 500
                 }
-                if (!java.util.Objects.equals(since, null))
+                request.put("contract", this.safeString(market, "id"));
+                request.put("trade_type", 0); // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+                if (java.util.Objects.equals(marketType, "future"))
                 {
-                    request.put("start_time", since);
-                }
-                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsMarketType), 1);
-                request = requestparamsUntilVariable.first();
-                paramsUntil = requestparamsUntilVariable.second();
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+                    request.put("symbol", this.safeString(market, "settleId"));
+                    response = (this.contractPrivatePostApiV3ContractMatchresultsExact(this.extend(request, paramsUntil))).join();
+                } else if (java.util.Objects.equals(marketType, "swap"))
                 {
-                    request.put("contract_code", this.safeString(market, "id"));
-                    if (!java.util.Objects.equals(limit, null))
-                    {
-                        request.put("limit", limit); // default 100, max 500
-                    }
-                    response = (this.contractPrivateGetV5TradeOrderDetails(this.extend(request, paramsUntil))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+                    response = (this.contractPrivatePostSwapApiV3SwapMatchresultsExact(this.extend(request, paramsUntil))).join();
+                } else
                 {
-                    if (!java.util.Objects.equals(limit, null))
-                    {
-                        request.put("page_size", limit); // default 100, max 500
-                    }
-                    request.put("contract", this.safeString(market, "id"));
-                    request.put("trade_type", 0); // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-                    if (java.util.Objects.equals(marketType, "future"))
-                    {
-                        request.put("symbol", this.safeString(market, "settleId"));
-                        response = (this.contractPrivatePostApiV3ContractMatchresultsExact(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(marketType, "swap"))
-                    {
-                        response = (this.contractPrivatePostSwapApiV3SwapMatchresultsExact(this.extend(request, paramsUntil))).join();
-                    } else
-                    {
-                        throw new NotSupported((((this.id + " fetchMyTrades() does not support ") + marketType) + " markets")) ;
-                    }
+                    throw new NotSupported((((this.id + " fetchMyTrades() does not support ") + marketType) + " markets")) ;
                 }
             }
-            //
-            // spot
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "symbol": "polyusdt",
-            //                 "fee-currency": "poly",
-            //                 "source": "spot-web",
-            //                 "price": "0.338",
-            //                 "created-at": 1629443051839,
-            //                 "role": "taker",
-            //                 "order-id": 345487249132375,
-            //                 "match-id": 5014,
-            //                 "trade-id": 1085,
-            //                 "filled-amount": "147.928994082840236",
-            //                 "filled-fees": "0",
-            //                 "filled-points": "0.1",
-            //                 "fee-deduct-currency": "hbpoint",
-            //                 "fee-deduct-state": "done",
-            //                 "id": 313288753120940,
-            //                 "type": "buy-market"
-            //             }
-            //         ]
-            //     }
-            //
-            // contracts
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "trades": [
-            //                 {
-            //                     "query_id": 2424420723,
-            //                     "match_id": 113891764710,
-            //                     "order_id": 773135295142658048,
-            //                     "symbol": "ADA",
-            //                     "contract_type": "quarter", // swap
-            //                     "business_type": "futures", // swap
-            //                     "contract_code": "ADA201225",
-            //                     "direction": "buy",
-            //                     "offset": "open",
-            //                     "trade_volume": 1,
-            //                     "trade_price": 0.092,
-            //                     "trade_turnover": 10,
-            //                     "trade_fee": -0.021739130434782608,
-            //                     "offset_profitloss": 0,
-            //                     "create_date": 1604371703183,
-            //                     "role": "Maker",
-            //                     "order_source": "web",
-            //                     "order_id_str": "773135295142658048",
-            //                     "fee_asset": "ADA",
-            //                     "margin_mode": "isolated", // cross
-            //                     "margin_account": "BTC-USDT",
-            //                     "real_profit": 0,
-            //                     "id": "113891764710-773135295142658048-1",
-            //                     "trade_partition":"USDT",
-            //                 }
-            //             ],
-            //             "remain_size": 15,
-            //             "next_id": 2424413094
-            //         },
-            //         "ts": 1604372202243
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "id": "1513834754679549965",
-            //                 "contract_code": "BTC-USDT",
-            //                 "order_id": "1513834754585190400",
-            //                 "trade_id": "152022944",
-            //                 "side": "sell",
-            //                 "position_side": "long",
-            //                 "order_type": "1",
-            //                 "margin_mode": "cross",
-            //                 "type": "market",
-            //                 "role": "TAKER",
-            //                 "trade_price": "62688.2",
-            //                 "trade_volume": "2",
-            //                 "trade_turnover": "125.3764",
-            //                 "created_time": "1780967931197",
-            //                 "updated_time": "1780967931197",
-            //                 "order_source": "api",
-            //                 "fee_currency": "USDT",
-            //                 "trade_fee": "0.07522584",
-            //                 "deduction_price": "",
-            //                 "profit": "-0.3656",
-            //                 "contract_type": "swap"
-            //             }
-            //         ],
-            //         "ts": 1781066959396
-            //     }
-            //
-            List<Object> trades = this.safeList(response, "data", null);
-            if (java.util.Objects.equals(trades, null))
-            {
-                trades = (List<Object>) this.safeList(this.safeDict(response, "data", null), "trades", new ArrayList<Object>(Arrays.asList()));
-            }
-            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "polyusdt",
+        //                 "fee-currency": "poly",
+        //                 "source": "spot-web",
+        //                 "price": "0.338",
+        //                 "created-at": 1629443051839,
+        //                 "role": "taker",
+        //                 "order-id": 345487249132375,
+        //                 "match-id": 5014,
+        //                 "trade-id": 1085,
+        //                 "filled-amount": "147.928994082840236",
+        //                 "filled-fees": "0",
+        //                 "filled-points": "0.1",
+        //                 "fee-deduct-currency": "hbpoint",
+        //                 "fee-deduct-state": "done",
+        //                 "id": 313288753120940,
+        //                 "type": "buy-market"
+        //             }
+        //         ]
+        //     }
+        //
+        // contracts
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "query_id": 2424420723,
+        //                     "match_id": 113891764710,
+        //                     "order_id": 773135295142658048,
+        //                     "symbol": "ADA",
+        //                     "contract_type": "quarter", // swap
+        //                     "business_type": "futures", // swap
+        //                     "contract_code": "ADA201225",
+        //                     "direction": "buy",
+        //                     "offset": "open",
+        //                     "trade_volume": 1,
+        //                     "trade_price": 0.092,
+        //                     "trade_turnover": 10,
+        //                     "trade_fee": -0.021739130434782608,
+        //                     "offset_profitloss": 0,
+        //                     "create_date": 1604371703183,
+        //                     "role": "Maker",
+        //                     "order_source": "web",
+        //                     "order_id_str": "773135295142658048",
+        //                     "fee_asset": "ADA",
+        //                     "margin_mode": "isolated", // cross
+        //                     "margin_account": "BTC-USDT",
+        //                     "real_profit": 0,
+        //                     "id": "113891764710-773135295142658048-1",
+        //                     "trade_partition":"USDT",
+        //                 }
+        //             ],
+        //             "remain_size": 15,
+        //             "next_id": 2424413094
+        //         },
+        //         "ts": 1604372202243
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "1513834754679549965",
+        //                 "contract_code": "BTC-USDT",
+        //                 "order_id": "1513834754585190400",
+        //                 "trade_id": "152022944",
+        //                 "side": "sell",
+        //                 "position_side": "long",
+        //                 "order_type": "1",
+        //                 "margin_mode": "cross",
+        //                 "type": "market",
+        //                 "role": "TAKER",
+        //                 "trade_price": "62688.2",
+        //                 "trade_volume": "2",
+        //                 "trade_turnover": "125.3764",
+        //                 "created_time": "1780967931197",
+        //                 "updated_time": "1780967931197",
+        //                 "order_source": "api",
+        //                 "fee_currency": "USDT",
+        //                 "trade_fee": "0.07522584",
+        //                 "deduction_price": "",
+        //                 "profit": "-0.3656",
+        //                 "contract_type": "swap"
+        //             }
+        //         ],
+        //         "ts": 1781066959396
+        //     }
+        //
+        List<Object> trades = this.safeList(response, "data", null);
+        if (java.util.Objects.equals(trades, null))
+        {
+            trades = (List<Object>) this.safeList(this.safeDict(response, "data", null), "trades", new ArrayList<Object>(Arrays.asList()));
+        }
+        return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3987,88 +4023,90 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 1000L), null))
-            {
-                request.put("size", Math.min(java.util.Objects.requireNonNullElse(limit, 1000L), 2000L)); // max 2000
-            }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    request.put("symbol", market.get("id"));
-                    response = (this.contractPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    request.put("contract_code", market.get("id"));
-                    response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
-                }
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                request.put("contract_code", market.get("id"));
-                if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    response = (this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
-                }
-            } else
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 1000L), null))
+        {
+            request.put("size", Math.min(java.util.Objects.requireNonNullElse(limit, 1000L), 2000L)); // max 2000
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 request.put("symbol", market.get("id"));
-                response = (this.spotPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
-            }
-            //
-            //     {
-            //         "status": "ok",
-            //         "ch": "market.btcusdt.trade.detail",
-            //         "ts": 1583497692365,
-            //         "data": [
-            //             {
-            //                 "id": 105005170342,
-            //                 "ts": 1583497692182,
-            //                 "data": [
-            //                     {
-            //                         "amount": 0.010411000000000000,
-            //                         "trade-id": 102090736910,
-            //                         "ts": 1583497692182,
-            //                         "id": 10500517034273194594947,
-            //                         "price": 9096.050000000000000000,
-            //                         "direction": "sell"
-            //                     }
-            //                 ]
-            //             },
-            //             // ...
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
+                response = (this.contractPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                List<Object> trades = this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < trades.size(); j++)
-                {
-                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
-                    ((List<Object>)result).add(trade);
-                }
+                request.put("contract_code", market.get("id"));
+                response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
             }
-            result = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            request.put("contract_code", market.get("id"));
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                response = (this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
+            }
+        } else
+        {
+            request.put("symbol", market.get("id"));
+            response = (this.spotPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583497692365,
+        //         "data": [
+        //             {
+        //                 "id": 105005170342,
+        //                 "ts": 1583497692182,
+        //                 "data": [
+        //                     {
+        //                         "amount": 0.010411000000000000,
+        //                         "trade-id": 102090736910,
+        //                         "ts": 1583497692182,
+        //                         "id": 10500517034273194594947,
+        //                         "price": 9096.050000000000000000,
+        //                         "direction": "sell"
+        //                     }
+        //                 ]
+        //             },
+        //             // ...
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            List<Object> trades = this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < trades.size(); j++)
+            {
+                Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(trades, j, new HashMap<String, Object>() {{}}), market);
+                result.add(trade);
+            }
+        }
+        result = this.sortBy(result, "timestamp");
+        return this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, java.util.Objects.requireNonNullElse(limit, 1000L), false);
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -4082,7 +4120,7 @@ public class Htx extends HtxApi
         //         "vol":0.0303205097
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "id"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "amount", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "id"), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "amount", null)));
     }
 
     /**
@@ -4104,183 +4142,183 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 1000L)).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "period", Htx.this.safeString(Htx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+        }};
+        String priceType = this.safeString2(paramsPaginate, "priceType", "price");
+        Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("priceType", "price")));
+        Long until = this.safeInteger(paramsOmitted, "until");
+        Map<String, Object> paramsUntil = this.omit(paramsOmitted, "until");
+        Long untilSeconds = null;
+        if (!java.util.Objects.equals(until, null))
+        {
+            untilSeconds = this.parseToInt((((double) until) / ((double) 1000)));
+        }
+        Boolean isContract = (java.util.Objects.equals(market.get("contract"), true));
+        String marketType = this.safeString(market, "type", "");
+        Long contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000; // only used for from/to calculation
+        Long rangeLimit = limit;
+        if (Boolean.TRUE.equals(isContract))
+        {
+            rangeLimit = contractLimit;
+        }
+        if (Boolean.TRUE.equals(isContract))
+        {
+            if (!java.util.Objects.equals(limit, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                request.put("size", Math.min(limit, 2000)); // when using limit: from & to are ignored
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
+            if (java.util.Objects.equals(priceType, null))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 1000L)).join();
+                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+                Object calcualtedEnd = null;
+                if (java.util.Objects.equals(since, null))
+                {
+                    Long now = this.seconds();
+                    request.put("from", (now - (((long) duration) * ((contractLimit - 1L)))));
+                    calcualtedEnd = now;
+                } else
+                {
+                    Long start = this.parseToInt((((double) since) / ((double) 1000)));
+                    request.put("from", start);
+                    calcualtedEnd = this.sum(start, (((long) duration) * ((contractLimit - 1L))));
+                }
+                request.put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
             }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "period", Htx.this.safeString(Htx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-            }};
-            String priceType = this.safeString2(paramsPaginate, "priceType", "price");
-            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("priceType", "price")));
-            List<Object> untilParamparamsUntilVariable = (List<Object>) this.handleParamInteger(paramsOmitted, "until", (Long) null);
-            Long untilParam = (Long) ((List<Object>) untilParamparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilParamparamsUntilVariable).get(1);
-            Long until = this.safeInteger(paramsOmitted, "until", untilParam);
-            Long untilSeconds = null;
-            if (!java.util.Objects.equals(until, null))
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
-                untilSeconds = this.parseToInt((((double) until) / ((double) 1000)));
-            }
-            Boolean isContract = (java.util.Objects.equals(market.get("contract"), true));
-            String marketType = (String) market.get("type");
-            Long contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000; // only used for from/to calculation
-            Long rangeLimit = limit;
-            if (Boolean.TRUE.equals(isContract))
+                request.put("symbol", market.get("id"));
+                if (java.util.Objects.equals(priceType, "mark"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistoryMarkPriceKline(this.extend(request, paramsUntil))).join();
+                } else if (java.util.Objects.equals(priceType, "index"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistoryIndex(this.extend(request, paramsUntil))).join();
+                } else if (java.util.Objects.equals(priceType, "premiumIndex"))
+                {
+                    throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                } else
+                {
+                    response = (this.contractPublicGetMarketHistoryKline(this.extend(request, paramsUntil))).join();
+                }
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                rangeLimit = contractLimit;
+                request.put("contract_code", market.get("id"));
+                if (java.util.Objects.equals(priceType, "mark"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, paramsUntil))).join();
+                } else if (java.util.Objects.equals(priceType, "index"))
+                {
+                    throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                } else if (java.util.Objects.equals(priceType, "premiumIndex"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, paramsUntil))).join();
+                } else
+                {
+                    response = (this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, paramsUntil))).join();
+                }
             }
-            if (Boolean.TRUE.equals(isContract))
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            request.put("contract_code", market.get("id"));
+            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                if (java.util.Objects.equals(priceType, "mark"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistorySwapMarkPriceKline(this.extend(request, paramsUntil))).join();
+                } else if (java.util.Objects.equals(priceType, "index"))
+                {
+                    throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                } else if (java.util.Objects.equals(priceType, "premiumIndex"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.extend(request, paramsUntil))).join();
+                } else
+                {
+                    response = (this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, paramsUntil))).join();
+                }
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                if (java.util.Objects.equals(priceType, "mark"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, paramsUntil))).join();
+                } else if (java.util.Objects.equals(priceType, "index"))
+                {
+                    throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
+                } else if (java.util.Objects.equals(priceType, "premiumIndex"))
+                {
+                    response = (this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, paramsUntil))).join();
+                } else
+                {
+                    response = (this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, paramsUntil))).join();
+                }
+            }
+        } else
+        {
+            request.put("symbol", market.get("id"));
+            Pair<Boolean, Map<String, Object>> useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+            Boolean useHistorical = useHistoricalparamsHistoricalVariable.first();
+            Map<String, Object> paramsHistorical = useHistoricalparamsHistoricalVariable.second();
+            if (!Boolean.TRUE.equals(useHistorical))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("size", Math.min(limit, 2000)); // when using limit: from & to are ignored
+                    request.put("size", Math.min(limit, 2000)); // max 2000
                 }
-                if (java.util.Objects.equals(priceType, null))
-                {
-                    int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                    Object calcualtedEnd = null;
-                    if (java.util.Objects.equals(since, null))
-                    {
-                        Long now = this.seconds();
-                        request.put("from", (now - (((long) duration) * ((contractLimit - 1L)))));
-                        calcualtedEnd = now;
-                    } else
-                    {
-                        Long start = this.parseToInt((((double) since) / ((double) 1000)));
-                        request.put("from", start);
-                        calcualtedEnd = this.sum(start, (((long) duration) * ((contractLimit - 1L))));
-                    }
-                    request.put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
-                }
-            }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    request.put("symbol", market.get("id"));
-                    if (java.util.Objects.equals(priceType, "mark"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistoryMarkPriceKline(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(priceType, "index"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistoryIndex(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(priceType, "premiumIndex"))
-                    {
-                        throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
-                    } else
-                    {
-                        response = (this.contractPublicGetMarketHistoryKline(this.extend(request, paramsUntil))).join();
-                    }
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    request.put("contract_code", market.get("id"));
-                    if (java.util.Objects.equals(priceType, "mark"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(priceType, "index"))
-                    {
-                        throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
-                    } else if (java.util.Objects.equals(priceType, "premiumIndex"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, paramsUntil))).join();
-                    } else
-                    {
-                        response = (this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, paramsUntil))).join();
-                    }
-                }
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                request.put("contract_code", market.get("id"));
-                if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    if (java.util.Objects.equals(priceType, "mark"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistorySwapMarkPriceKline(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(priceType, "index"))
-                    {
-                        throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
-                    } else if (java.util.Objects.equals(priceType, "premiumIndex"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.extend(request, paramsUntil))).join();
-                    } else
-                    {
-                        response = (this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, paramsUntil))).join();
-                    }
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    if (java.util.Objects.equals(priceType, "mark"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(priceType, "index"))
-                    {
-                        throw new BadRequest((((((this.id + " ") + marketType) + " has no api endpoint for ") + priceType) + " kline data")) ;
-                    } else if (java.util.Objects.equals(priceType, "premiumIndex"))
-                    {
-                        response = (this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.extend(request, paramsUntil))).join();
-                    } else
-                    {
-                        response = (this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, paramsUntil))).join();
-                    }
-                }
+                response = (this.spotPublicGetMarketHistoryKline(this.extend(request, paramsHistorical))).join();
             } else
             {
-                request.put("symbol", market.get("id"));
-                Pair<Boolean, Map<String, Object>> useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUntil), "fetchOHLCV", "useHistoricalEndpointForSpot", true);
-                Boolean useHistorical = useHistoricalparamsHistoricalVariable.first();
-                Map<String, Object> paramsHistorical = useHistoricalparamsHistoricalVariable.second();
-                if (!Boolean.TRUE.equals(useHistorical))
+                // "from & to" only available for the this endpoint
+                if (!java.util.Objects.equals(since, null))
                 {
-                    if (!java.util.Objects.equals(limit, null))
-                    {
-                        request.put("size", Math.min(limit, 2000)); // max 2000
-                    }
-                    response = (this.spotPublicGetMarketHistoryKline(this.extend(request, paramsHistorical))).join();
-                } else
-                {
-                    // "from & to" only available for the this endpoint
-                    if (!java.util.Objects.equals(since, null))
-                    {
-                        request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
-                    }
-                    if (!java.util.Objects.equals(untilSeconds, null))
-                    {
-                        request.put("to", untilSeconds);
-                    }
-                    if (!java.util.Objects.equals(limit, null))
-                    {
-                        request.put("size", Math.min(1000, limit)); // max 1000, otherwise default returns 150
-                    }
-                    response = (this.spotPublicGetMarketHistoryCandles(this.extend(request, paramsHistorical))).join();
+                    request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
                 }
+                if (!java.util.Objects.equals(untilSeconds, null))
+                {
+                    request.put("to", untilSeconds);
+                }
+                if (!java.util.Objects.equals(limit, null))
+                {
+                    request.put("size", Math.min(1000, limit)); // max 1000, otherwise default returns 150
+                }
+                response = (this.spotPublicGetMarketHistoryCandles(this.extend(request, paramsHistorical))).join();
             }
-            //
-            //     {
-            //         "status":"ok",
-            //         "ch":"market.ethbtc.kline.1min",
-            //         "ts":1591515374371,
-            //         "data":[
-            //             {"amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0},
-            //             {"amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097},
-            //             {"amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208},
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, rangeLimit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }
+        //
+        //     {
+        //         "status":"ok",
+        //         "ch":"market.ethbtc.kline.1min",
+        //         "ts":1591515374371,
+        //         "data":[
+        //             {"amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0},
+        //             {"amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097},
+        //             {"amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208},
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, rangeLimit, false);
 
     }
 
@@ -4294,30 +4332,32 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.spotPrivateGetV1AccountAccounts(parameters)).join();
-            //
-            //     {
-            //         "status":"ok",
-            //         "data":[
-            //             {"id":5202591,"type":"point","subtype":"","state":"working"},
-            //             {"id":1528640,"type":"spot","subtype":"","state":"working"},
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", null);
-            return this.parseAccounts(data, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.spotPrivateGetV1AccountAccounts(parameters)).join();
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {"id":5202591,"type":"point","subtype":"","state":"working"},
+        //             {"id":1528640,"type":"spot","subtype":"","state":"working"},
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", null);
+        return this.parseAccounts(data, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         //
         //     {
@@ -4351,51 +4391,53 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<String> fetchAccountIdByType(String type, String marginMode, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountIdByTypeCore(type, marginMode, symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private String fetchAccountIdByTypeCore(String type, String marginMode, String symbol, Map<String, Object> parameters)
+    {
 
-            List<Account> accounts = (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            String accountId = this.safeString2(parameters, "accountId", "account-id");
-            if (!java.util.Objects.equals(accountId, null))
+        List<Account> accounts = (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        String accountId = this.safeString2(parameters, "accountId", "account-id");
+        if (!java.util.Objects.equals(accountId, null))
+        {
+            return accountId;
+        }
+        String accountType = type;
+        if (java.util.Objects.equals(type, "spot"))
+        {
+            if (java.util.Objects.equals(marginMode, "cross"))
             {
-                return accountId;
+                accountType = "super-margin";
+            } else if (java.util.Objects.equals(marginMode, "isolated"))
+            {
+                accountType = "margin";
             }
-            String accountType = type;
-            if (java.util.Objects.equals(type, "spot"))
+        }
+        String marketId = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            marketId = this.marketId(symbol);
+        }
+        for (var i = 0; i < accounts.size(); i++)
+        {
+            Map<String, Object> account = this.safeDict(accounts, i, null);
+            Map<String, Object> info = this.safeDict(account, "info", null);
+            String subtype = this.safeString(info, "subtype");
+            String typeFromAccount = this.safeString(account, "type");
+            if (java.util.Objects.equals(accountType, "margin"))
             {
-                if (java.util.Objects.equals(marginMode, "cross"))
-                {
-                    accountType = "super-margin";
-                } else if (java.util.Objects.equals(marginMode, "isolated"))
-                {
-                    accountType = "margin";
-                }
-            }
-            String marketId = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                marketId = this.marketId((String) (symbol));
-            }
-            for (var i = 0; i < accounts.size(); i++)
-            {
-                Map<String, Object> account = this.safeDict(accounts, i, null);
-                Map<String, Object> info = this.safeDict(account, "info", null);
-                String subtype = this.safeString(info, "subtype");
-                String typeFromAccount = this.safeString(account, "type");
-                if (java.util.Objects.equals(accountType, "margin"))
-                {
-                    if (java.util.Objects.equals(subtype, marketId))
-                    {
-                        return this.safeString(account, "id");
-                    }
-                } else if (java.util.Objects.equals(accountType, typeFromAccount))
+                if (java.util.Objects.equals(subtype, marketId))
                 {
                     return this.safeString(account, "id");
                 }
+            } else if (java.util.Objects.equals(accountType, typeFromAccount))
+            {
+                return this.safeString(account, "id");
             }
-            Map<String, Object> defaultAccount = this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
-            return this.safeString(defaultAccount, "id");
-        });
+        }
+        Map<String, Object> defaultAccount = this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
+        return this.safeString(defaultAccount, "id");
 
     }
 
@@ -4407,53 +4449,55 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
+
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
-            //
-            //    {
-            //        "code": 200,
-            //        "data": [
-            //            {
-            //                "currency": "sxp",
-            //                "assetType": "1",
-            //                "chains": [
-            //                    {
-            //                        "chain": "sxp",
-            //                        "displayName": "ERC20",
-            //                        "baseChain": "ETH",
-            //                        "baseChainProtocol": "ERC20",
-            //                        "isDynamic": true,
-            //                        "numOfConfirmations": "12",
-            //                        "numOfFastConfirmations": "12",
-            //                        "depositStatus": "allowed",
-            //                        "minDepositAmt": "0.23",
-            //                        "withdrawStatus": "allowed",
-            //                        "minWithdrawAmt": "0.23",
-            //                        "withdrawPrecision": "8",
-            //                        "maxWithdrawAmt": "227000.000000000000000000",
-            //                        "withdrawQuotaPerDay": "227000.000000000000000000",
-            //                        "withdrawQuotaPerYear": null,
-            //                        "withdrawQuotaTotal": null,
-            //                        "withdrawFeeType": "fixed",
-            //                        "transactFeeWithdraw": "11.1654",
-            //                        "addrWithTag": false,
-            //                        "addrDepositTag": false
-            //                    }
-            //                ],
-            //                "instStatus": "normal"
-            //            }
-            //        ]
-            //    }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            this.options.put("networkNamesByChainIds", new HashMap<String, Object>() {{}});
-            this.options.put("networkChainIdsByNames", new HashMap<String, Object>() {{}});
-            return this.parseCurrencies(data);
-        });
+        Map<String, Object> response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
+        //
+        //    {
+        //        "code": 200,
+        //        "data": [
+        //            {
+        //                "currency": "sxp",
+        //                "assetType": "1",
+        //                "chains": [
+        //                    {
+        //                        "chain": "sxp",
+        //                        "displayName": "ERC20",
+        //                        "baseChain": "ETH",
+        //                        "baseChainProtocol": "ERC20",
+        //                        "isDynamic": true,
+        //                        "numOfConfirmations": "12",
+        //                        "numOfFastConfirmations": "12",
+        //                        "depositStatus": "allowed",
+        //                        "minDepositAmt": "0.23",
+        //                        "withdrawStatus": "allowed",
+        //                        "minWithdrawAmt": "0.23",
+        //                        "withdrawPrecision": "8",
+        //                        "maxWithdrawAmt": "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear": null,
+        //                        "withdrawQuotaTotal": null,
+        //                        "withdrawFeeType": "fixed",
+        //                        "transactFeeWithdraw": "11.1654",
+        //                        "addrWithTag": false,
+        //                        "addrDepositTag": false
+        //                    }
+        //                ],
+        //                "instStatus": "normal"
+        //            }
+        //        ]
+        //    }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        this.options.put("networkNamesByChainIds", new HashMap<String, Object>() {{}});
+        this.options.put("networkChainIdsByNames", new HashMap<String, Object>() {{}});
+        return this.parseCurrencies(data);
 
     }
 
@@ -4468,7 +4512,7 @@ public class Htx extends HtxApi
             this.options.put("networkChainIdsByNames", new HashMap<String, Object>() {{}});
         }
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         String assetType = this.safeString(rawCurrency, "assetType");
         String type = "fiat";
         if (java.util.Objects.equals(assetType, "1"))
@@ -4477,7 +4521,9 @@ public class Htx extends HtxApi
         }
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code, new HashMap<String, Object>() {{}});
+            Map<String, Object> chainIdsByNames = this.safeDict(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+            chainIdsByNames.put(code, new HashMap<String, Object>() {{}});
+            this.options.put("networkChainIdsByNames", chainIdsByNames);
         }
         List<Object> chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -4488,48 +4534,54 @@ public class Htx extends HtxApi
             String title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(title, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code), title, uniqueChainId);
+                Map<String, Object> chainIdsByNamesDict = this.safeDict(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+                Map<String, Object> chainIdsByTitle = this.safeDict(chainIdsByNamesDict, code, new HashMap<String, Object>() {{}});
+                chainIdsByTitle.put(title, uniqueChainId);
+                chainIdsByNamesDict.put(code, chainIdsByTitle);
+                this.options.put("networkChainIdsByNames", chainIdsByNamesDict);
             }
             if (!java.util.Objects.equals(uniqueChainId, null))
             {
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkNamesByChainIds")), uniqueChainId, title);
+                Map<String, Object> networkNamesByChainIdsDict3 = this.safeDict(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
+                networkNamesByChainIdsDict3.put(uniqueChainId, title);
+                this.options.put("networkNamesByChainIds", networkNamesByChainIdsDict3);
             }
             String networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-                mapLiteral3.put("info", chainEntry);
-                mapLiteral3.put("id", uniqueChainId);
-                mapLiteral3.put("network", networkCode);
-                mapLiteral3.put("limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("info", chainEntry);
+                mapLiteral8.put("id", uniqueChainId);
+                mapLiteral8.put("network", networkCode);
+                mapLiteral8.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
-            put( "min", Htx.this.safeNumber(chainEntry, "minDepositAmt", (Object) null) );
+            put( "min", Htx.this.safeNumber(chainEntry, "minDepositAmt", null) );
             put( "max", null );
         }} );
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Htx.this.safeNumber(chainEntry, "minWithdrawAmt", (Object) null) );
-            put( "max", Htx.this.safeNumber(chainEntry, "maxWithdrawAmt", (Object) null) );
+            put( "min", Htx.this.safeNumber(chainEntry, "minWithdrawAmt", null) );
+            put( "max", Htx.this.safeNumber(chainEntry, "maxWithdrawAmt", null) );
         }} );
     }});
-                mapLiteral3.put("active", null);
-                mapLiteral3.put("deposit", java.util.Objects.equals(this.safeString(chainEntry, "depositStatus"), "allowed"));
-                mapLiteral3.put("withdraw", java.util.Objects.equals(this.safeString(chainEntry, "withdrawStatus"), "allowed"));
-                mapLiteral3.put("fee", this.safeNumber(chainEntry, "transactFeeWithdraw", (Object) null));
-                mapLiteral3.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))));
-                networks.put(networkCode, mapLiteral3);
+                mapLiteral8.put("active", null);
+                mapLiteral8.put("deposit", java.util.Objects.equals(this.safeString(chainEntry, "depositStatus"), "allowed"));
+                mapLiteral8.put("withdraw", java.util.Objects.equals(this.safeString(chainEntry, "withdrawStatus"), "allowed"));
+                mapLiteral8.put("fee", this.safeNumber(chainEntry, "transactFeeWithdraw", null));
+                mapLiteral8.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))));
+                networks.put(networkCode, mapLiteral8);
             }
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", rawCurrency);
-        mapLiteral4.put("code", code);
-        mapLiteral4.put("id", currencyId);
-        mapLiteral4.put("active", java.util.Objects.equals(this.safeString(rawCurrency, "instStatus"), "normal"));
-        mapLiteral4.put("deposit", null);
-        mapLiteral4.put("withdraw", null);
-        mapLiteral4.put("fee", null);
-        mapLiteral4.put("name", null);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", rawCurrency);
+        mapLiteral9.put("code", code);
+        mapLiteral9.put("id", currencyId);
+        mapLiteral9.put("active", java.util.Objects.equals(this.safeString(rawCurrency, "instStatus"), "normal"));
+        mapLiteral9.put("deposit", null);
+        mapLiteral9.put("withdraw", null);
+        mapLiteral9.put("fee", null);
+        mapLiteral9.put("name", null);
+        mapLiteral9.put("type", type);
+        mapLiteral9.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -4543,9 +4595,9 @@ public class Htx extends HtxApi
                     put( "max", null );
                 }} );
             }});
-        mapLiteral4.put("precision", null);
-        mapLiteral4.put("networks", networks);
-        return this.safeCurrencyStructure(mapLiteral4);
+        mapLiteral9.put("precision", null);
+        mapLiteral9.put("networks", networks);
+        return this.safeCurrencyStructure(mapLiteral9);
     }
 
     public String networkIdToCode(String networkId, String currencyCode)
@@ -4555,7 +4607,8 @@ public class Htx extends HtxApi
         {
             return null;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkNamesByChainIds"))) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> namesByChainIds = this.safeDict(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(namesByChainIds.keySet());
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
@@ -4575,16 +4628,18 @@ public class Htx extends HtxApi
         {
             return super.networkCodeToId(networkCode, (String) null);
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkChainIdsByNames"))) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> chainIdsByNames = this.safeDict(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(chainIdsByNames.keySet());
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
         Map<String, Object> uniqueNetworkIds = this.safeDict(this.options.get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
-        if (uniqueNetworkIds.containsKey(networkCode))
+        String uniqueNetworkId = this.safeString(uniqueNetworkIds, networkCode);
+        if (!java.util.Objects.equals(uniqueNetworkId, null))
         {
-            return (String) (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
+            return uniqueNetworkId;
         } else
         {
             Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
@@ -4609,297 +4664,298 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchBalance", "unified", "uta", false);
-            Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedVariable.first();
-            Map<String, Object> paramsUnified = isUnifiedAccountparamsUnifiedVariable.second();
-            if (Boolean.TRUE.equals(isUnifiedAccount))
-            {
-                throw new NotSupported((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
-            }
-            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUnified, (String) null);
-            String type = typeparamsTypeVariable.first();
-            Map<String, Object> paramsType = typeparamsTypeVariable.second();
-            Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsType), "fetchBalance", "defaultSubType", "subType", (String) null);
-            String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
-            Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
-            Pair<Boolean, Map<String, Object>> isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsSubType), "fetchBalance", "multiAssetMode", false);
-            Boolean isMultiAssetMode = isMultiAssetModeparamsMultiAssetVariable.first();
-            Map<String, Object> paramsMultiAsset = isMultiAssetModeparamsMultiAssetVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean spot = (java.util.Objects.equals(type, "spot"));
-            Boolean future = (java.util.Objects.equals(type, "future"));
-            Boolean swap = (java.util.Objects.equals(type, "swap"));
-            Boolean linear = (java.util.Objects.equals(subTypeOption, null)) || (java.util.Objects.equals(subTypeOption, "linear"));
-            Boolean inverse = !java.util.Objects.equals(subTypeOption, null) && java.util.Objects.equals(subTypeOption, "inverse");
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset, (String) null);
-            String marginMode = marginModeparamsMarginModeVariable.first();
-            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            Boolean isolated = (java.util.Objects.equals(marginMode, "isolated"));
-            Boolean cross = (java.util.Objects.equals(marginMode, "cross"));
-            Boolean margin = (java.util.Objects.equals(type, "margin")) || (Boolean.TRUE.equals(spot) && (Boolean.TRUE.equals(cross) || Boolean.TRUE.equals(isolated)));
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
-            {
-                response = (this.contractPrivateGetV5AccountBalance(this.extend(request, paramsMarginMode))).join();
-            } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
-            {
-                if (Boolean.TRUE.equals(margin))
-                {
-                    if (Boolean.TRUE.equals(isolated))
-                    {
-                        response = (this.spotPrivateGetV1MarginAccountsBalance(this.extend(request, paramsMarginMode))).join();
-                    } else
-                    {
-                        response = (this.spotPrivateGetV1CrossMarginAccountsBalance(this.extend(request, paramsMarginMode))).join();
-                    }
-                } else
-                {
-                    (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-                    String accountId = (this.fetchAccountIdByType(type, (String) null, (String) null, paramsMarginMode)).join();
-                    request.put("account-id", accountId);
-                    response = (this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode))).join();
-                }
-            } else if (Boolean.TRUE.equals(inverse))
-            {
-                if (Boolean.TRUE.equals(future))
-                {
-                    response = (this.contractPrivatePostApiV1ContractAccountInfo(this.extend(request, paramsMarginMode))).join();
-                } else
-                {
-                    response = (this.contractPrivatePostSwapApiV1SwapAccountInfo(this.extend(request, paramsMarginMode))).join();
-                }
-            }
-            //
-            // spot
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "id": 1528640,
-            //             "type": "spot",
-            //             "state": "working",
-            //             "list": [
-            //                 { "currency": "lun", "type": "trade", "balance": "0", "seq-num": "0" },
-            //                 { "currency": "lun", "type": "frozen", "balance": "0", "seq-num": "0" },
-            //                 { "currency": "ht", "type": "frozen", "balance": "0", "seq-num": "145" },
-            //             ]
-            //         },
-            //         "ts":1637644827566
-            //     }
-            //
-            // cross margin
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "id": 51015302,
-            //             "type": "cross-margin",
-            //             "state": "working",
-            //             "risk-rate": "2",
-            //             "acct-balance-sum": "100",
-            //             "debt-balance-sum": "0",
-            //             "list": [
-            //                 { "currency": "usdt", "type": "trade", "balance": "100" },
-            //                 { "currency": "usdt", "type": "frozen", "balance": "0" },
-            //                 { "currency": "usdt", "type": "loan-available", "balance": "200" },
-            //                 { "currency": "usdt", "type": "transfer-out-available", "balance": "-1" },
-            //                 { "currency": "ht", "type": "loan-available", "balance": "36.60724091" },
-            //                 { "currency": "ht", "type": "transfer-out-available", "balance": "-1" },
-            //                 { "currency": "btc", "type": "trade", "balance": "1168.533000000000000000" },
-            //                 { "currency": "btc", "type": "frozen", "balance": "0.000000000000000000" },
-            //                 { "currency": "btc", "type": "loan", "balance": "-2.433000000000000000" },
-            //                 { "currency": "btc", "type": "interest", "balance": "-0.000533000000000000" },
-            //                 { "currency": "btc", "type": "transfer-out-available", "balance": "1163.872174670000000000" },
-            //                 { "currency": "btc", "type": "loan-available", "balance": "8161.876538350676000000" }
-            //             ]
-            //         },
-            //         "code": 200
-            //     }
-            //
-            // isolated margin
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                 "id": 18264,
-            //                 "type": "margin",
-            //                 "state": "working",
-            //                 "symbol": "btcusdt",
-            //                 "fl-price": "0",
-            //                 "fl-type": "safe",
-            //                 "risk-rate": "475.952571086994250554",
-            //                 "list": [
-            //                     { "currency": "btc","type": "trade","balance": "1168.533000000000000000" },
-            //                     { "currency": "btc","type": "frozen","balance": "0.000000000000000000" },
-            //                     { "currency": "btc","type": "loan","balance": "-2.433000000000000000" },
-            //                     { "currency": "btc","type": "interest","balance": "-0.000533000000000000" },
-            //                     { "currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000" },
-            //                     { "currency": "btc","type": "loan-available", "balance": "8161.876538350676000000" }
-            //                 ]
-            //             }
-            //         ]
-            //     }
-            //
-            // future, swap isolated
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "symbol": "BTC",
-            //                 "margin_balance": 0,
-            //                 "margin_position": 0E-18,
-            //                 "margin_frozen": 0,
-            //                 "margin_available": 0E-18,
-            //                 "profit_real": 0,
-            //                 "profit_unreal": 0,
-            //                 "risk_rate": null,
-            //                 "withdraw_available": 0,
-            //                 "liquidation_price": null,
-            //                 "lever_rate": 5,
-            //                 "adjust_factor": 0.025000000000000000,
-            //                 "margin_static": 0,
-            //                 "is_debit": 0, // future only
-            //                 "contract_code": "BTC-USD", // swap only
-            //                 "margin_asset": "USDT", // linear only
-            //                 "margin_mode": "isolated", // linear only
-            //                 "margin_account": "BTC-USDT" // linear only
-            //                 "transfer_profit_ratio": null // inverse only
-            //             },
-            //         ],
-            //         "ts": 1637644827566
-            //     }
-            //
-            // linear swap and multi asset mode
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": {
-            //             "state": "normal",
-            //             "equity": "174.216697577770536136",
-            //             "details": [
-            //                 {
-            //                     "currency": "USDT",
-            //                     "equity": "174.216697577770536136",
-            //                     "available": "174.216697577770536136",
-            //                     "profit_unreal": "0",
-            //                     "initial_margin": "0",
-            //                     "maintenance_margin": "0",
-            //                     "maintenance_margin_rate": "0",
-            //                     "initial_margin_rate": "0",
-            //                     "available_margin": "174.216697577770536136",
-            //                     "voucher": "0",
-            //                     "voucher_value": "0",
-            //                     "withdraw_available": "174.216697577770536136",
-            //                     "created_time": 1770293270932,
-            //                     "updated_time": 1770293270932,
-            //                     "isolated_equity": "0",
-            //                     "isolated_profit_unreal": "0"
-            //                 }
-            //             ],
-            //             "initial_margin": "0",
-            //             "maintenance_margin": "0",
-            //             "maintenance_margin_rate": "0",
-            //             "profit_unreal": "0",
-            //             "available_margin": "174.216697577770536136",
-            //             "voucher_value": "0",
-            //             "created_time": 1770293268881,
-            //             "updated_time": 1770293270932
-            //         },
-            //         "ts": 1770293281344
-            //     }
-            //
-            Map<String, Object> finalResponse = response;
-            Map<String, Object> result = new HashMap<String, Object>() {{
-                put( "info", finalResponse );
-            }};
-            Object data = this.safeValue(response, "data");
-            if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
-            {
-                List<Object> details = this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < details.size(); i++)
-                {
-                    Map<String, Object> balance = this.safeDict(details, i, null);
-                    String currencyId = this.safeString(balance, "currency");
-                    String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                    Map<String, Object> account = this.account();
-                    account.put("free", this.safeString(balance, "available_margin"));
-                    account.put("total", this.safeString(balance, "equity"));
-                    if (!java.util.Objects.equals(code, null))
-                    {
-                        result.put(code, account);
-                    }
-                }
-                result = this.safeBalance(result);
-            } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+        Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedVariable.first();
+        Map<String, Object> paramsUnified = isUnifiedAccountparamsUnifiedVariable.second();
+        if (Boolean.TRUE.equals(isUnifiedAccount))
+        {
+            throw new NotSupported((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
+        }
+        Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("fetchBalance", null, paramsUnified, null);
+        String type = typeparamsTypeVariable.first();
+        Map<String, Object> paramsType = typeparamsTypeVariable.second();
+        Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType", null);
+        String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
+        Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
+        Pair<Boolean, Map<String, Object>> isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false);
+        Boolean isMultiAssetMode = isMultiAssetModeparamsMultiAssetVariable.first();
+        Map<String, Object> paramsMultiAsset = isMultiAssetModeparamsMultiAssetVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Boolean spot = (java.util.Objects.equals(type, "spot"));
+        Boolean future = (java.util.Objects.equals(type, "future"));
+        Boolean swap = (java.util.Objects.equals(type, "swap"));
+        Boolean linear = (java.util.Objects.equals(subTypeOption, null)) || (java.util.Objects.equals(subTypeOption, "linear"));
+        Boolean inverse = !java.util.Objects.equals(subTypeOption, null) && java.util.Objects.equals(subTypeOption, "inverse");
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset, null);
+        String marginMode = marginModeparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+        Boolean isolated = (java.util.Objects.equals(marginMode, "isolated"));
+        Boolean cross = (java.util.Objects.equals(marginMode, "cross"));
+        Boolean margin = (java.util.Objects.equals(type, "margin")) || (Boolean.TRUE.equals(spot) && (Boolean.TRUE.equals(cross) || Boolean.TRUE.equals(isolated)));
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
+        {
+            response = (this.contractPrivateGetV5AccountBalance(this.extend(request, paramsMarginMode))).join();
+        } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
+        {
+            if (Boolean.TRUE.equals(margin))
             {
                 if (Boolean.TRUE.equals(isolated))
                 {
-                    for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
-                    {
-                        Map<String, Object> entry = this.safeDict(data, i, null);
-                        List<Object> balances = this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
-                        Map<String, Object> subResult = new HashMap<String, Object>() {{}};
-                        for (var j = 0; j < balances.size(); j++)
-                        {
-                            Map<String, Object> balance = (Map<String, Object>) (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
-                            String currencyId = this.safeString(balance, "currency");
-                            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                            if (!java.util.Objects.equals(code, null))
-                            {
-                                subResult.put(code, this.parseMarginBalanceHelper(balance, code, subResult));
-                            }
-                        }
-                        List<String> subCodes = new ArrayList<String>(subResult.keySet());
-                        for (var j = 0; j < subCodes.size(); j++)
-                        {
-                            String subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
-                            result = (Map<String, Object>) this.mergeBalanceAccount(result, subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
-                        }
-                    }
-                    result = this.safeBalance(result);
+                    response = (this.spotPrivateGetV1MarginAccountsBalance(this.extend(request, paramsMarginMode))).join();
                 } else
                 {
-                    List<Object> balances = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-                    for (var i = 0; i < balances.size(); i++)
+                    response = (this.spotPrivateGetV1CrossMarginAccountsBalance(this.extend(request, paramsMarginMode))).join();
+                }
+            } else
+            {
+                (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+                String accountId = (this.fetchAccountIdByType("spot", null, null, paramsMarginMode)).join();
+                request.put("account-id", accountId);
+                response = (this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode))).join();
+            }
+        } else if (Boolean.TRUE.equals(inverse))
+        {
+            if (Boolean.TRUE.equals(future))
+            {
+                response = (this.contractPrivatePostApiV1ContractAccountInfo(this.extend(request, paramsMarginMode))).join();
+            } else
+            {
+                response = (this.contractPrivatePostSwapApiV1SwapAccountInfo(this.extend(request, paramsMarginMode))).join();
+            }
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "id": 1528640,
+        //             "type": "spot",
+        //             "state": "working",
+        //             "list": [
+        //                 { "currency": "lun", "type": "trade", "balance": "0", "seq-num": "0" },
+        //                 { "currency": "lun", "type": "frozen", "balance": "0", "seq-num": "0" },
+        //                 { "currency": "ht", "type": "frozen", "balance": "0", "seq-num": "145" },
+        //             ]
+        //         },
+        //         "ts":1637644827566
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "id": 51015302,
+        //             "type": "cross-margin",
+        //             "state": "working",
+        //             "risk-rate": "2",
+        //             "acct-balance-sum": "100",
+        //             "debt-balance-sum": "0",
+        //             "list": [
+        //                 { "currency": "usdt", "type": "trade", "balance": "100" },
+        //                 { "currency": "usdt", "type": "frozen", "balance": "0" },
+        //                 { "currency": "usdt", "type": "loan-available", "balance": "200" },
+        //                 { "currency": "usdt", "type": "transfer-out-available", "balance": "-1" },
+        //                 { "currency": "ht", "type": "loan-available", "balance": "36.60724091" },
+        //                 { "currency": "ht", "type": "transfer-out-available", "balance": "-1" },
+        //                 { "currency": "btc", "type": "trade", "balance": "1168.533000000000000000" },
+        //                 { "currency": "btc", "type": "frozen", "balance": "0.000000000000000000" },
+        //                 { "currency": "btc", "type": "loan", "balance": "-2.433000000000000000" },
+        //                 { "currency": "btc", "type": "interest", "balance": "-0.000533000000000000" },
+        //                 { "currency": "btc", "type": "transfer-out-available", "balance": "1163.872174670000000000" },
+        //                 { "currency": "btc", "type": "loan-available", "balance": "8161.876538350676000000" }
+        //             ]
+        //         },
+        //         "code": 200
+        //     }
+        //
+        // isolated margin
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "id": 18264,
+        //                 "type": "margin",
+        //                 "state": "working",
+        //                 "symbol": "btcusdt",
+        //                 "fl-price": "0",
+        //                 "fl-type": "safe",
+        //                 "risk-rate": "475.952571086994250554",
+        //                 "list": [
+        //                     { "currency": "btc","type": "trade","balance": "1168.533000000000000000" },
+        //                     { "currency": "btc","type": "frozen","balance": "0.000000000000000000" },
+        //                     { "currency": "btc","type": "loan","balance": "-2.433000000000000000" },
+        //                     { "currency": "btc","type": "interest","balance": "-0.000533000000000000" },
+        //                     { "currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000" },
+        //                     { "currency": "btc","type": "loan-available", "balance": "8161.876538350676000000" }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        // future, swap isolated
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC",
+        //                 "margin_balance": 0,
+        //                 "margin_position": 0E-18,
+        //                 "margin_frozen": 0,
+        //                 "margin_available": 0E-18,
+        //                 "profit_real": 0,
+        //                 "profit_unreal": 0,
+        //                 "risk_rate": null,
+        //                 "withdraw_available": 0,
+        //                 "liquidation_price": null,
+        //                 "lever_rate": 5,
+        //                 "adjust_factor": 0.025000000000000000,
+        //                 "margin_static": 0,
+        //                 "is_debit": 0, // future only
+        //                 "contract_code": "BTC-USD", // swap only
+        //                 "margin_asset": "USDT", // linear only
+        //                 "margin_mode": "isolated", // linear only
+        //                 "margin_account": "BTC-USDT" // linear only
+        //                 "transfer_profit_ratio": null // inverse only
+        //             },
+        //         ],
+        //         "ts": 1637644827566
+        //     }
+        //
+        // linear swap and multi asset mode
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "state": "normal",
+        //             "equity": "174.216697577770536136",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "174.216697577770536136",
+        //                     "available": "174.216697577770536136",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "available_margin": "174.216697577770536136",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "withdraw_available": "174.216697577770536136",
+        //                     "created_time": 1770293270932,
+        //                     "updated_time": 1770293270932,
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "174.216697577770536136",
+        //             "voucher_value": "0",
+        //             "created_time": 1770293268881,
+        //             "updated_time": 1770293270932
+        //         },
+        //         "ts": 1770293281344
+        //     }
+        //
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("info", response);
+        List<Object> dataRows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Object data = this.safeValue(response, "data");
+        if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
+        {
+            List<Object> details = this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < details.size(); i++)
+            {
+                Map<String, Object> balance = this.safeDict(details, i, null);
+                String currencyId = this.safeString(balance, "currency");
+                String code = this.safeCurrencyCode(currencyId, null);
+                Map<String, Object> account = this.account();
+                account.put("free", this.safeString(balance, "available_margin"));
+                account.put("total", this.safeString(balance, "equity"));
+                if (!java.util.Objects.equals(code, null))
+                {
+                    result.put(code, account);
+                }
+            }
+            result = this.safeBalance(result);
+        } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
+        {
+            if (Boolean.TRUE.equals(isolated))
+            {
+                for (var i = 0; i < dataRows.size(); i++)
+                {
+                    Map<String, Object> entry = this.safeDict(dataRows, i, null);
+                    List<Object> balances = this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
+                    Map<String, Object> subResult = new HashMap<String, Object>() {{}};
+                    for (var j = 0; j < balances.size(); j++)
                     {
-                        Map<String, Object> balance = (Map<String, Object>) (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                        Map<String, Object> balance = (Map<String, Object>) (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
                         String currencyId = this.safeString(balance, "currency");
-                        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                        String code = this.safeCurrencyCode(currencyId, null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            result.put(code, this.parseMarginBalanceHelper(balance, code, result));
+                            subResult.put(code, this.parseMarginBalanceHelper(balance, code, subResult));
                         }
                     }
-                    result = this.safeBalance(result);
+                    List<String> subCodes = new ArrayList<String>(subResult.keySet());
+                    for (var j = 0; j < subCodes.size(); j++)
+                    {
+                        String subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
+                        result = (Map<String, Object>) this.mergeBalanceAccount(result, subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
+                    }
                 }
-            } else if (Boolean.TRUE.equals(inverse))
+                result = this.safeBalance(result);
+            } else
             {
-                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+                List<Object> balances = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                for (var i = 0; i < balances.size(); i++)
                 {
-                    Map<String, Object> balance = this.safeDict(data, i, null);
-                    String currencyId = this.safeString(balance, "symbol");
-                    String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                    Map<String, Object> account = this.account();
-                    account.put("free", this.safeString(balance, "margin_available"));
-                    account.put("used", this.safeString(balance, "margin_frozen"));
+                    Map<String, Object> balance = (Map<String, Object>) (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                    String currencyId = this.safeString(balance, "currency");
+                    String code = this.safeCurrencyCode(currencyId, null);
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put(code, account);
+                        result.put(code, this.parseMarginBalanceHelper(balance, code, result));
                     }
                 }
                 result = this.safeBalance(result);
             }
-            return result;
-        }).thenApply(Balances::new);
+        } else if (Boolean.TRUE.equals(inverse))
+        {
+            for (var i = 0; i < dataRows.size(); i++)
+            {
+                Map<String, Object> balance = this.safeDict(dataRows, i, null);
+                String currencyId = this.safeString(balance, "symbol");
+                String code = this.safeCurrencyCode(currencyId, null);
+                Map<String, Object> account = this.account();
+                account.put("free", this.safeString(balance, "margin_available"));
+                account.put("used", this.safeString(balance, "margin_frozen"));
+                if (!java.util.Objects.equals(code, null))
+                {
+                    result.put(code, account);
+                }
+            }
+            result = this.safeBalance(result);
+        }
+        return result;
 
     }
 
@@ -4922,393 +4978,74 @@ public class Htx extends HtxApi
      * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
-            {
-                String clientOrderId = this.safeString(paramsMarketType, "clientOrderId");
-                if (!java.util.Objects.equals(clientOrderId, null))
-                {
-                    // will be filled below in extend ()
-                    // they expect clientOrderId instead of client-order-id
-                    // request['clientOrderId'] = clientOrderId;
-                    response = (this.spotPrivateGetV1OrderOrdersGetClientOrder(this.extend(request, paramsMarketType))).join();
-                } else
-                {
-                    request.put("order-id", id);
-                    response = (this.spotPrivateGetV1OrderOrdersOrderId(this.extend(request, paramsMarketType))).join();
-                }
-            } else
-            {
-                Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-                Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", false);
-                Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", false);
-                Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
-                Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
-                String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
-                Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
-                if (java.util.Objects.equals(clientOrderId, null))
-                {
-                    if (Boolean.TRUE.equals(isAlgo))
-                    {
-                        request.put("algo_id", id);
-                    } else
-                    {
-                        request.put("order_id", id);
-                    }
-                } else
-                {
-                    if (Boolean.TRUE.equals(isAlgo))
-                    {
-                        request.put("algo_client_order_id", clientOrderId);
-                    } else
-                    {
-                        request.put("client_order_id", clientOrderId);
-                    }
-                }
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    if (Boolean.TRUE.equals(isAlgo))
-                    {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            request.put("type", "trigger");
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            request.put("type", "trailing_stop");
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            request.put("type", "tpsl");
-                        } else if (Boolean.TRUE.equals(stopLoss))
-                        {
-                            request.put("type", "sl");
-                        } else if (Boolean.TRUE.equals(takeProfit))
-                        {
-                            request.put("type", "tp");
-                        }
-                        response = (this.contractPrivateGetV5AlgoOrder(this.extend(request, paramsClientOrderId))).join();
-                    } else
-                    {
-                        if (java.util.Objects.equals(symbol, null))
-                        {
-                            throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
-                        }
-                        request.put("contract_code", this.safeString(market, "id"));
-                        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, "cross");
-                        String marginMode = marginModeparamsMarginModeVariable.first();
-                        Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-                        request.put("margin_mode", marginMode);
-                        response = (this.contractPrivateGetV5TradeOrder(this.extend(request, paramsMarginMode))).join();
-                    }
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    if (java.util.Objects.equals(marketType, "future"))
-                    {
-                        request.put("symbol", this.safeString(market, "settleId"));
-                        response = (this.contractPrivatePostApiV1ContractOrderInfo(this.extend(request, paramsClientOrderId))).join();
-                    } else if (java.util.Objects.equals(marketType, "swap"))
-                    {
-                        request.put("contract_code", this.safeString(market, "id"));
-                        response = (this.contractPrivatePostSwapApiV1SwapOrderInfo(this.extend(request, paramsClientOrderId))).join();
-                    } else
-                    {
-                        throw new NotSupported((((this.id + " fetchOrder() does not support ") + marketType) + " markets")) ;
-                    }
-                }
-            }
-            //
-            // spot
-            //
-            //     {
-            //         "status":"ok",
-            //         "data":{
-            //             "id":438398393065481,
-            //             "symbol":"ethusdt",
-            //             "account-id":1528640,
-            //             "client-order-id":"AA03022abc2163433e-006b-480e-9ad1-d4781478c5e7",
-            //             "amount":"0.100000000000000000",
-            //             "price":"3000.000000000000000000",
-            //             "created-at":1640549994642,
-            //             "type":"buy-limit",
-            //             "field-amount":"0.0",
-            //             "field-cash-amount":"0.0",
-            //             "field-fees":"0.0",
-            //             "finished-at":0,
-            //             "source":"spot-api",
-            //             "state":"submitted",
-            //             "canceled-at":0
-            //         }
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": {
-            //             "id": "1513828877079584768",
-            //             "side": "buy",
-            //             "type": "limit",
-            //             "price": "50000",
-            //             "volume": "1",
-            //             "state": "new",
-            //             "profit": null,
-            //             "contract_code": "BTC-USDT",
-            //             "position_side": "long",
-            //             "price_match": null,
-            //             "order_id": "1513828877079584768",
-            //             "client_order_id": "1513828877079584768",
-            //             "margin_mode": "cross",
-            //             "lever_rate": 20,
-            //             "order_source": "api",
-            //             "reduce_only": false,
-            //             "time_in_force": "gtc",
-            //             "tp_trigger_price": "",
-            //             "tp_order_price": "",
-            //             "tp_type": "0",
-            //             "tp_trigger_price_type": "",
-            //             "sl_trigger_price": "",
-            //             "sl_order_price": "",
-            //             "sl_type": "0",
-            //             "sl_trigger_price_type": "",
-            //             "trade_avg_price": "0",
-            //             "trade_volume": "0",
-            //             "trade_turnover": "0",
-            //             "fee_currency": "",
-            //             "fee": "0",
-            //             "price_protect": false,
-            //             "real_profit": null,
-            //             "contract_type": "swap",
-            //             "created_time": "1780966529876",
-            //             "updated_time": "1780966572409",
-            //             "cancel_reason": null,
-            //             "self_match_prevent": "cancel_taker"
-            //         },
-            //         "ts": 1780966573200
-            //     }
-            //
-            // linear swap algo
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "id": "162320614",
-            //                 "volume": "2",
-            //                 "type": "tp",
-            //                 "state": "active",
-            //                 "side": "sell",
-            //                 "algo_id": "1513832307038027776",
-            //                 "contract_code": "BTC-USDT",
-            //                 "position_side": "long",
-            //                 "margin_mode": "cross",
-            //                 "created_time": "1780967347642",
-            //                 "updated_time": "1780967347848",
-            //                 "order_source": "api",
-            //                 "tp_trigger_price": "101000",
-            //                 "tp_order_price": "0",
-            //                 "tp_type": "market",
-            //                 "tp_trigger_price_type": "last"
-            //             }
-            //         ],
-            //         "ts": 1780967407144
-            //     }
-            //
-            Map<String, Object> order = this.safeDict(response, "data", null);
-            if (java.util.Objects.equals(order, null))
-            {
-                order = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
-            }
-            return this.parseOrder(order, market);
-        }).thenApply(Order::new);
-
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
     }
 
-    public Map<String, Object> parseMarginBalanceHelper(Map<String, Object> balance, String code, Map<String, Object> result)
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
-        Map<String, Object> account = null;
-        if (result.containsKey(code))
+
+        if (java.util.Objects.equals(this.markets, null))
         {
-            account = (Map<String, Object>) this.safeDict(result, code, null);
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
+            String clientOrderId = this.safeString(paramsMarketType, "clientOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                // will be filled below in extend ()
+                // they expect clientOrderId instead of client-order-id
+                // request['clientOrderId'] = clientOrderId;
+                response = (this.spotPrivateGetV1OrderOrdersGetClientOrder(this.extend(request, paramsMarketType))).join();
+            } else
+            {
+                request.put("order-id", id);
+                response = (this.spotPrivateGetV1OrderOrdersOrderId(this.extend(request, paramsMarketType))).join();
+            }
         } else
         {
-            account = this.account();
-        }
-        if (java.util.Objects.equals(account, null))
-        {
-            throw new ExchangeError((this.id + " parseMarginBalanceHelper() could not resolve account")) ;
-        }
-        if (java.util.Objects.equals(this.safeString(balance, "type"), "trade"))
-        {
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
-        }
-        if (java.util.Objects.equals(this.safeString(balance, "type"), "frozen"))
-        {
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "balance"));
-        }
-        return account;
-    }
-
-    public CompletableFuture<Object> fetchSpotOrdersByStates(String states, String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            String method = this.safeString(this.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders"); // spot_private_get_v1_order_history
-            if (java.util.Objects.equals(method, "spot_private_get_v1_order_orders"))
+            Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+            Boolean stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
+            Boolean takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
+            Boolean trailing = this.safeBool(paramsMarketType, "trailing", false);
+            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+            String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+            Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
+            if (java.util.Objects.equals(clientOrderId, null))
             {
-                if (java.util.Objects.equals(symbol, null))
+                if (Boolean.TRUE.equals(isAlgo))
                 {
-                    throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
+                    request.put("algo_id", id);
+                } else
+                {
+                    request.put("order_id", id);
                 }
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "states", states );
-            }};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start-time", since); // a window of 48 hours within 180 days
-                request.put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
-            }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", request, (Map<String, Object>) (parameters), 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            if (!java.util.Objects.equals(limit, null))
-            {
-                ((Map<String, Object>)requestUntil).put("size", limit);
-            }
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(method, "spot_private_get_v1_order_orders"))
-            {
-                response = (this.spotPrivateGetV1OrderOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                response = (this.spotPrivateGetV1OrderHistory(this.extend(requestUntil, paramsUntil))).join();
+                if (Boolean.TRUE.equals(isAlgo))
+                {
+                    request.put("algo_client_order_id", clientOrderId);
+                } else
+                {
+                    request.put("client_order_id", clientOrderId);
+                }
             }
-            //
-            // spot_private_get_v1_order_orders GET /v1/order/orders
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "id": 13997833014,
-            //                 "symbol": "ethbtc",
-            //                 "account-id": 3398321,
-            //                 "client-order-id": "23456",
-            //                 "amount": "0.045000000000000000",
-            //                 "price": "0.034014000000000000",
-            //                 "created-at": 1545836976871,
-            //                 "type": "sell-limit",
-            //                 "field-amount": "0.045000000000000000",
-            //                 "field-cash-amount": "0.001530630000000000",
-            //                 "field-fees": "0.000003061260000000",
-            //                 "finished-at": 1545837948214,
-            //                 "source": "spot-api",
-            //                 "state": "filled",
-            //                 "canceled-at": 0
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
-        });
-
-    }
-
-    public CompletableFuture<Object> fetchSpotOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            return (this.fetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters)).join();
-        });
-
-    }
-
-    public CompletableFuture<Object> fetchClosedSpotOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            return (this.fetchSpotOrdersByStates("filled", symbol, since, limit, parameters)).join();
-        });
-
-    }
-
-    public CompletableFuture<Object> fetchContractOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
-    {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchContractOrders() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> paramsUntil = null;
-            Map<String, Object> response = null;
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit", false);
-            Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", false);
-            Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", false);
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", since);
-            }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, paramsOmitted, 1);
-            request = requestparamsUntilVariable.first();
-            paramsUntil = requestparamsUntilVariable.second();
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("limit", limit);
-                }
-                Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, "cross");
-                String marginMode = marginModeparamsMarginModeVariable.first();
-                Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-                request.put("margin_mode", marginMode);
-                request.put("contract_code", market.get("id"));
                 if (Boolean.TRUE.equals(isAlgo))
                 {
                     if (java.util.Objects.equals(trigger, true))
@@ -5327,96 +5064,421 @@ public class Htx extends HtxApi
                     {
                         request.put("type", "tp");
                     }
-                    response = (this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, paramsMarginMode))).join();
+                    response = (this.contractPrivateGetV5AlgoOrder(this.extend(request, paramsClientOrderId))).join();
                 } else
                 {
-                    response = (this.contractPrivateGetV5TradeOrderHistory(this.extend(request, paramsMarginMode))).join();
+                    if (java.util.Objects.equals(symbol, null))
+                    {
+                        throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
+                    }
+                    request.put("contract_code", this.safeString(market, "id"));
+                    Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, "cross");
+                    String marginMode = marginModeparamsMarginModeVariable.first();
+                    Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+                    request.put("margin_mode", marginMode);
+                    response = (this.contractPrivateGetV5TradeOrder(this.extend(request, paramsMarginMode))).join();
                 }
             } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
-                request.put("contract", market.get("id"));
-                request.put("type", 1); // 1:All Orders,2:Order in Finished Status
-                request.put("trade_type", 0); // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-                request.put("status", "0"); // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+                if (java.util.Objects.equals(marketType, "future"))
                 {
-                    if (java.util.Objects.equals(trigger, true))
-                    {
-                        response = (this.contractPrivatePostSwapApiV1SwapTriggerHisorders(this.extend(request, paramsUntil))).join();
-                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                    {
-                        response = (this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, paramsUntil))).join();
-                    } else if (Boolean.TRUE.equals(trailing))
-                    {
-                        response = (this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, paramsUntil))).join();
-                    } else
-                    {
-                        response = (this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, paramsUntil))).join();
-                    }
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+                    request.put("symbol", this.safeString(market, "settleId"));
+                    response = (this.contractPrivatePostApiV1ContractOrderInfo(this.extend(request, paramsClientOrderId))).join();
+                } else if (java.util.Objects.equals(marketType, "swap"))
                 {
-                    request.put("symbol", market.get("settleId"));
-                    if (java.util.Objects.equals(trigger, true))
-                    {
-                        response = (this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, paramsUntil))).join();
-                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                    {
-                        response = (this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, paramsUntil))).join();
-                    } else if (Boolean.TRUE.equals(trailing))
-                    {
-                        response = (this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, paramsUntil))).join();
-                    } else
-                    {
-                        response = (this.contractPrivatePostApiV3ContractHisorders(this.extend(request, paramsUntil))).join();
-                    }
+                    request.put("contract_code", this.safeString(market, "id"));
+                    response = (this.contractPrivatePostSwapApiV1SwapOrderInfo(this.extend(request, paramsClientOrderId))).join();
+                } else
+                {
+                    throw new NotSupported((((this.id + " fetchOrder() does not support ") + marketType) + " markets")) ;
                 }
             }
-            List<Object> orders = this.safeList(response, "data", null);
-            if (java.util.Objects.equals(orders, null))
-            {
-                orders = (List<Object>) this.safeList(this.safeDict(response, "data", null), "orders", new ArrayList<Object>(Arrays.asList()));
-            }
-            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
-        });
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "id":438398393065481,
+        //             "symbol":"ethusdt",
+        //             "account-id":1528640,
+        //             "client-order-id":"AA03022abc2163433e-006b-480e-9ad1-d4781478c5e7",
+        //             "amount":"0.100000000000000000",
+        //             "price":"3000.000000000000000000",
+        //             "created-at":1640549994642,
+        //             "type":"buy-limit",
+        //             "field-amount":"0.0",
+        //             "field-cash-amount":"0.0",
+        //             "field-fees":"0.0",
+        //             "finished-at":0,
+        //             "source":"spot-api",
+        //             "state":"submitted",
+        //             "canceled-at":0
+        //         }
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "id": "1513828877079584768",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "50000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": null,
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "long",
+        //             "price_match": null,
+        //             "order_id": "1513828877079584768",
+        //             "client_order_id": "1513828877079584768",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 20,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "0",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "0",
+        //             "sl_trigger_price_type": "",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": "",
+        //             "fee": "0",
+        //             "price_protect": false,
+        //             "real_profit": null,
+        //             "contract_type": "swap",
+        //             "created_time": "1780966529876",
+        //             "updated_time": "1780966572409",
+        //             "cancel_reason": null,
+        //             "self_match_prevent": "cancel_taker"
+        //         },
+        //         "ts": 1780966573200
+        //     }
+        //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "162320614",
+        //                 "volume": "2",
+        //                 "type": "tp",
+        //                 "state": "active",
+        //                 "side": "sell",
+        //                 "algo_id": "1513832307038027776",
+        //                 "contract_code": "BTC-USDT",
+        //                 "position_side": "long",
+        //                 "margin_mode": "cross",
+        //                 "created_time": "1780967347642",
+        //                 "updated_time": "1780967347848",
+        //                 "order_source": "api",
+        //                 "tp_trigger_price": "101000",
+        //                 "tp_order_price": "0",
+        //                 "tp_type": "market",
+        //                 "tp_trigger_price_type": "last"
+        //             }
+        //         ],
+        //         "ts": 1780967407144
+        //     }
+        //
+        Map<String, Object> order = this.safeDict(response, "data", null);
+        if (java.util.Objects.equals(order, null))
+        {
+            order = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
+        }
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
-    public CompletableFuture<Object> fetchClosedContractOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public Object parseMarginBalanceHelper(Map<String, Object> balance, String code, Map<String, Object> result)
+    {
+        Map<String, Object> account = this.account();
+        if (result.containsKey(code))
+        {
+            account = (Map<String, Object>) this.safeDict(result, code, new HashMap<String, Object>() {{}});
+        }
+        Map<String, Object> updates = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(this.safeString(balance, "type"), "trade"))
+        {
+            updates.put("free", this.safeString(balance, "balance"));
+        }
+        if (java.util.Objects.equals(this.safeString(balance, "type"), "frozen"))
+        {
+            updates.put("used", this.safeString(balance, "balance"));
+        }
+        return this.extend(account, updates);
+    }
+
+    public CompletableFuture<List<Order>> fetchSpotOrdersByStates(String states, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchSpotOrdersByStatesCore(states, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchSpotOrdersByStatesCore(String states, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
+        String method = this.safeString(this.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders"); // spot_private_get_v1_order_history
+        if (java.util.Objects.equals(method, "spot_private_get_v1_order_orders"))
+        {
             if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired((this.id + " fetchClosedContractOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "states", states );
+        }};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("symbol", market.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start-time", since); // a window of 48 hours within 180 days
+            request.put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", request, parameters, 1);
+        Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+        Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+        if (!java.util.Objects.equals(limit, null))
+        {
+            ((Map<String, Object>)requestUntil).put("size", limit);
+        }
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(method, "spot_private_get_v1_order_orders"))
+        {
+            response = (this.spotPrivateGetV1OrderOrders(this.extend(requestUntil, paramsUntil))).join();
+        } else
+        {
+            response = (this.spotPrivateGetV1OrderHistory(this.extend(requestUntil, paramsUntil))).join();
+        }
+        //
+        // spot_private_get_v1_order_orders GET /v1/order/orders
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": 13997833014,
+        //                 "symbol": "ethbtc",
+        //                 "account-id": 3398321,
+        //                 "client-order-id": "23456",
+        //                 "amount": "0.045000000000000000",
+        //                 "price": "0.034014000000000000",
+        //                 "created-at": 1545836976871,
+        //                 "type": "sell-limit",
+        //                 "field-amount": "0.045000000000000000",
+        //                 "field-cash-amount": "0.001530630000000000",
+        //                 "field-fees": "0.000003061260000000",
+        //                 "finished-at": 1545837948214,
+        //                 "source": "spot-api",
+        //                 "state": "filled",
+        //                 "canceled-at": 0
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
+
+    }
+
+    public CompletableFuture<List<Order>> fetchSpotOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchSpotOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchSpotOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return (this.fetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters)).join();
+
+    }
+
+    public CompletableFuture<List<Order>> fetchClosedSpotOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedSpotOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchClosedSpotOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return (this.fetchSpotOrdersByStates("filled", symbol, since, limit, parameters)).join();
+
+    }
+
+    public CompletableFuture<List<Order>> fetchContractOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchContractOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchContractOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchContractOrders() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> paramsUntil = null;
+        Map<String, Object> response = null;
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit", false);
+        Boolean stopLoss = this.safeBool(parameters, "stopLoss", false);
+        Boolean takeProfit = this.safeBool(parameters, "takeProfit", false);
+        Boolean trailing = this.safeBool(parameters, "trailing", false);
+        Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", since);
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", request, paramsOmitted, 1);
+        request = requestparamsUntilVariable.first();
+        paramsUntil = requestparamsUntilVariable.second();
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            if (!java.util.Objects.equals(limit, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                request.put("limit", limit);
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = this.market(symbol);
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, "cross");
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+            request.put("margin_mode", marginMode);
+            request.put("contract_code", market.get("id"));
+            if (Boolean.TRUE.equals(isAlgo))
             {
-                Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit", false);
-                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", false);
-                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", false);
-                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
-                if (Boolean.TRUE.equals(isAlgo))
+                if (java.util.Objects.equals(trigger, true))
                 {
-                    request.put("states", "effective");
-                } else
+                    request.put("type", "trigger");
+                } else if (Boolean.TRUE.equals(trailing))
                 {
-                    request.put("states", "filled");
+                    request.put("type", "trailing_stop");
+                } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                {
+                    request.put("type", "tpsl");
+                } else if (Boolean.TRUE.equals(stopLoss))
+                {
+                    request.put("type", "sl");
+                } else if (Boolean.TRUE.equals(takeProfit))
+                {
+                    request.put("type", "tp");
                 }
+                response = (this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, paramsMarginMode))).join();
             } else
             {
-                request.put("status", "6");
+                response = (this.contractPrivateGetV5TradeOrderHistory(this.extend(request, paramsMarginMode))).join();
             }
-            return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        {
+            request.put("contract", market.get("id"));
+            request.put("type", 1); // 1:All Orders,2:Order in Finished Status
+            request.put("trade_type", 0); // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            request.put("status", "0"); // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+            {
+                if (java.util.Objects.equals(trigger, true))
+                {
+                    response = (this.contractPrivatePostSwapApiV1SwapTriggerHisorders(this.extend(request, paramsUntil))).join();
+                } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                {
+                    response = (this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, paramsUntil))).join();
+                } else if (Boolean.TRUE.equals(trailing))
+                {
+                    response = (this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, paramsUntil))).join();
+                } else
+                {
+                    response = (this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, paramsUntil))).join();
+                }
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+            {
+                request.put("symbol", market.get("settleId"));
+                if (java.util.Objects.equals(trigger, true))
+                {
+                    response = (this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, paramsUntil))).join();
+                } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                {
+                    response = (this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, paramsUntil))).join();
+                } else if (Boolean.TRUE.equals(trailing))
+                {
+                    response = (this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, paramsUntil))).join();
+                } else
+                {
+                    response = (this.contractPrivatePostApiV3ContractHisorders(this.extend(request, paramsUntil))).join();
+                }
+            }
+        }
+        List<Object> orders = this.safeList(response, "data", null);
+        if (java.util.Objects.equals(orders, null))
+        {
+            orders = (List<Object>) this.safeList(this.safeDict(response, "data", null), "orders", new ArrayList<Object>(Arrays.asList()));
+        }
+        return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
+
+    }
+
+    public CompletableFuture<List<Order>> fetchClosedContractOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedContractOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchClosedContractOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchClosedContractOrders() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = this.market(symbol);
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit", false);
+            Boolean stopLoss = this.safeBool(parameters, "stopLoss", false);
+            Boolean takeProfit = this.safeBool(parameters, "takeProfit", false);
+            Boolean trailing = this.safeBool(parameters, "trailing", false);
+            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
+            if (Boolean.TRUE.equals(isAlgo))
+            {
+                request.put("states", "effective");
+            } else
+            {
+                request.put("states", "filled");
+            }
+        } else
+        {
+            request.put("status", "6");
+        }
+        return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -5444,34 +5506,36 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Boolean contract = (java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future"));
-            if (Boolean.TRUE.equals(contract) && (java.util.Objects.equals(symbol, null)))
-            {
-                throw new ArgumentsRequired((((this.id + " fetchOrders() requires a symbol argument for ") + marketType) + " orders")) ;
-            }
-            if (Boolean.TRUE.equals(contract))
-            {
-                return (this.fetchContractOrders(symbol, since, limit, paramsMarketType)).join();
-            } else
-            {
-                return (this.fetchSpotOrders(symbol, since, limit, paramsMarketType)).join();
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Boolean contract = (java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future"));
+        if (Boolean.TRUE.equals(contract) && (java.util.Objects.equals(symbol, null)))
+        {
+            throw new ArgumentsRequired((((this.id + " fetchOrders() requires a symbol argument for ") + marketType) + " orders")) ;
+        }
+        if (Boolean.TRUE.equals(contract))
+        {
+            return (this.fetchContractOrders(symbol, since, limit, paramsMarketType)).join();
+        } else
+        {
+            return (this.fetchSpotOrders(symbol, since, limit, paramsMarketType)).join();
+        }
 
     }
 
@@ -5495,60 +5559,62 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, paramsPaginate, 100L, true)).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, paramsPaginate, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
+            return (this.fetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, paramsMarketType)).join();
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new ArgumentsRequired((((this.id + " fetchCanceledOrders() requires a symbol argument for ") + marketType) + " orders")) ;
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledOrders", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                return (this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, paramsPaginate, 100L, true)).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, paramsPaginate, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            if (java.util.Objects.equals(marketType, "spot"))
-            {
-                return (this.fetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, paramsMarketType)).join();
-            } else
-            {
-                if (java.util.Objects.equals(symbol, null))
+                Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+                Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+                Boolean stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
+                Boolean takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
+                Boolean trailing = this.safeBool(paramsMarketType, "trailing", false);
+                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
+                if (Boolean.TRUE.equals(isAlgo))
                 {
-                    throw new ArgumentsRequired((((this.id + " fetchCanceledOrders() requires a symbol argument for ") + marketType) + " orders")) ;
-                }
-                Map<String, Object> request = new HashMap<String, Object>() {{}};
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
-                    Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-                    Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", false);
-                    Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", false);
-                    Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                    Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
-                    if (Boolean.TRUE.equals(isAlgo))
-                    {
-                        request.put("states", "canceled");
-                    } else
-                    {
-                        request.put("states", "partially_canceled,canceled");
-                    }
+                    request.put("states", "canceled");
                 } else
                 {
-                    request.put("status", "5,7"); // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+                    request.put("states", "partially_canceled,canceled");
                 }
-                return (this.fetchContractOrders(symbol, since, limit, this.extend(request, paramsMarketType))).join();
+            } else
+            {
+                request.put("status", "5,7"); // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             }
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+            return (this.fetchContractOrders(symbol, since, limit, this.extend(request, paramsMarketType))).join();
+        }
 
     }
 
@@ -5572,36 +5638,38 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, 100L, true)).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            if (java.util.Objects.equals(marketType, "spot"))
-            {
-                return (this.fetchClosedSpotOrders(symbol, since, limit, paramsMarketType)).join();
-            } else
-            {
-                return (this.fetchClosedContractOrders(symbol, since, limit, paramsMarketType)).join();
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, 100L, true)).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
+            return (this.fetchClosedSpotOrders(symbol, since, limit, paramsMarketType)).join();
+        } else
+        {
+            return (this.fetchClosedContractOrders(symbol, since, limit, paramsMarketType)).join();
+        }
 
     }
 
@@ -5625,410 +5693,412 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear");
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                request.put("symbol", this.safeString(market, "id"));
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, "linear");
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
+            // todo replace with fetchAccountIdByType
+            String accountId = this.safeString(paramsSubType, "account-id");
+            if (java.util.Objects.equals(accountId, null))
             {
-                if (!java.util.Objects.equals(symbol, null))
+                // pick the first account
+                (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+                for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
                 {
-                    request.put("symbol", this.safeString(market, "id"));
-                }
-                // todo replace with fetchAccountIdByType
-                String accountId = this.safeString(paramsSubType, "account-id");
-                if (java.util.Objects.equals(accountId, null))
-                {
-                    // pick the first account
-                    (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-                    for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
+                    Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
+                    if (java.util.Objects.equals(this.safeString(account, "type"), "spot"))
                     {
-                        Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
-                        if (java.util.Objects.equals(this.safeString(account, "type"), "spot"))
+                        accountId = this.safeString(account, "id");
+                        if (!java.util.Objects.equals(accountId, null))
                         {
-                            accountId = this.safeString(account, "id");
-                            if (!java.util.Objects.equals(accountId, null))
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
-                request.put("account-id", accountId);
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("size", limit);
-                }
-                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "account-id");
-                response = (this.spotPrivateGetV1OrderOpenOrders(this.extend(request, paramsOmitted))).join();
-            } else
+            }
+            request.put("account-id", accountId);
+            if (!java.util.Objects.equals(limit, null))
             {
-                if (!java.util.Objects.equals(symbol, null))
-                {
-                    // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-                    request.put("contract_code", this.safeString(market, "id"));
-                }
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    if (Boolean.TRUE.equals(isLinear))
-                    {
-                        request.put("limit", limit);
-                    } else
-                    {
-                        request.put("page_size", limit);
-                    }
-                }
-                Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", (Object) null);
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
-                Boolean stopLoss = (Boolean) this.safeBool(paramsSubType, "stopLoss", false);
-                Boolean takeProfit = (Boolean) this.safeBool(paramsSubType, "takeProfit", false);
-                Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
-                Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+                request.put("size", limit);
+            }
+            Map<String, Object> paramsOmitted = this.omit(paramsSubType, "account-id");
+            response = (this.spotPrivateGetV1OrderOpenOrders(this.extend(request, paramsOmitted))).join();
+        } else
+        {
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+                request.put("contract_code", this.safeString(market, "id"));
+            }
+            if (!java.util.Objects.equals(limit, null))
+            {
                 if (Boolean.TRUE.equals(isLinear))
                 {
-                    if ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit))
+                    request.put("limit", limit);
+                } else
+                {
+                    request.put("page_size", limit);
+                }
+            }
+            Boolean trigger = this.safeBool2(paramsSubType, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+            Boolean stopLoss = this.safeBool(paramsSubType, "stopLoss", false);
+            Boolean takeProfit = this.safeBool(paramsSubType, "takeProfit", false);
+            Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
+            Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+            if (Boolean.TRUE.equals(isLinear))
+            {
+                if ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit))
+                {
+                    if (java.util.Objects.equals(trigger, true))
                     {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            request.put("type", "trigger");
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            request.put("type", "trailing_stop");
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            request.put("type", "tpsl");
-                        } else if (Boolean.TRUE.equals(stopLoss))
-                        {
-                            request.put("type", "sl");
-                        } else if (Boolean.TRUE.equals(takeProfit))
-                        {
-                            request.put("type", "tp");
-                        }
-                        response = (this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, paramsOmitted))).join();
+                        request.put("type", "trigger");
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        request.put("type", "trailing_stop");
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                    {
+                        request.put("type", "tpsl");
+                    } else if (Boolean.TRUE.equals(stopLoss))
+                    {
+                        request.put("type", "sl");
+                    } else if (Boolean.TRUE.equals(takeProfit))
+                    {
+                        request.put("type", "tp");
+                    }
+                    response = (this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, paramsOmitted))).join();
+                } else
+                {
+                    response = (this.contractPrivateGetV5TradeOrderOpens(this.extend(request, paramsOmitted))).join();
+                }
+            } else if (java.util.Objects.equals(subType, "inverse"))
+            {
+                if (java.util.Objects.equals(marketType, "swap"))
+                {
+                    if (java.util.Objects.equals(trigger, true))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, paramsOmitted))).join();
                     } else
                     {
-                        response = (this.contractPrivateGetV5TradeOrderOpens(this.extend(request, paramsOmitted))).join();
+                        response = (this.contractPrivatePostSwapApiV1SwapOpenorders(this.extend(request, paramsOmitted))).join();
                     }
-                } else if (java.util.Objects.equals(subType, "inverse"))
+                } else if (java.util.Objects.equals(marketType, "future"))
                 {
-                    if (java.util.Objects.equals(marketType, "swap"))
+                    request.put("symbol", this.safeString(market, "settleId", "usdt"));
+                    if (java.util.Objects.equals(trigger, true))
                     {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapOpenorders(this.extend(request, paramsOmitted))).join();
-                        }
-                    } else if (java.util.Objects.equals(marketType, "future"))
+                        response = (this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
                     {
-                        request.put("symbol", this.safeString(market, "settleId", "usdt"));
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostApiV1ContractOpenorders(this.extend(request, paramsOmitted))).join();
-                        }
+                        response = (this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, paramsOmitted))).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostApiV1ContractOpenorders(this.extend(request, paramsOmitted))).join();
                     }
                 }
             }
-            //
-            // spot
-            //
-            //     {
-            //         "status":"ok",
-            //         "data":[
-            //             {
-            //                 "symbol":"ethusdt",
-            //                 "source":"api",
-            //                 "amount":"0.010000000000000000",
-            //                 "account-id":1528640,
-            //                 "created-at":1561597491963,
-            //                 "price":"400.000000000000000000",
-            //                 "filled-amount":"0.0",
-            //                 "filled-cash-amount":"0.0",
-            //                 "filled-fees":"0.0",
-            //                 "id":38477101630,
-            //                 "state":"submitted",
-            //                 "type":"sell-limit"
-            //             }
-            //         ]
-            //     }
-            //
-            // futures
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "orders": [
-            //                 {
-            //                     "symbol": "ADA",
-            //                     "contract_code": "ADA201225",
-            //                     "contract_type": "quarter",
-            //                     "volume": 1,
-            //                     "price": 0.0925,
-            //                     "order_price_type": "post_only",
-            //                     "order_type": 1,
-            //                     "direction": "buy",
-            //                     "offset": "close",
-            //                     "lever_rate": 20,
-            //                     "order_id": 773131315209248768,
-            //                     "client_order_id": null,
-            //                     "created_at": 1604370469629,
-            //                     "trade_volume": 0,
-            //                     "trade_turnover": 0,
-            //                     "fee": 0,
-            //                     "trade_avg_price": null,
-            //                     "margin_frozen": 0,
-            //                     "profit": 0,
-            //                     "status": 3,
-            //                     "order_source": "web",
-            //                     "order_id_str": "773131315209248768",
-            //                     "fee_asset": "ADA",
-            //                     "liquidation_type": null,
-            //                     "canceled_at": null,
-            //                     "is_tpsl": 0,
-            //                     "update_time": 1606975980467,
-            //                     "real_profit": 0
-            //                 }
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 1
-            //         },
-            //         "ts": 1604370488518
-            //     }
-            //
-            // trigger
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "orders": [
-            //                 {
-            //                     "contract_type": "swap",
-            //                     "business_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "trigger_type": "le",
-            //                     "volume": 1.000000000000000000,
-            //                     "order_type": 1,
-            //                     "direction": "buy",
-            //                     "offset": "open",
-            //                     "lever_rate": 1,
-            //                     "order_id": 1103670703588327424,
-            //                     "order_id_str": "1103670703588327424",
-            //                     "order_source": "web",
-            //                     "trigger_price": 25000.000000000000000000,
-            //                     "order_price": 24000.000000000000000000,
-            //                     "created_at": 1683177200945,
-            //                     "order_price_type": "limit",
-            //                     "status": 2,
-            //                     "margin_mode": "cross",
-            //                     "margin_account": "USDT",
-            //                     "trade_partition": "USDT",
-            //                     "reduce_only": 0
-            //                 }
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 1
-            //         },
-            //         "ts": 1683177805320
-            //     }
-            //
-            // stop-loss and take-profit
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "orders": [
-            //                 {
-            //                     "contract_type": "swap",
-            //                     "business_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "margin_mode": "cross",
-            //                     "margin_account": "USDT",
-            //                     "volume": 1.000000000000000000,
-            //                     "order_type": 1,
-            //                     "direction": "sell",
-            //                     "order_id": 1103680386844839936,
-            //                     "order_id_str": "1103680386844839936",
-            //                     "order_source": "web",
-            //                     "trigger_type": "le",
-            //                     "trigger_price": 25000.000000000000000000,
-            //                     "order_price": 0E-18,
-            //                     "created_at": 1683179509613,
-            //                     "order_price_type": "market",
-            //                     "status": 2,
-            //                     "tpsl_order_type": "sl",
-            //                     "source_order_id": null,
-            //                     "relation_tpsl_order_id": "-1",
-            //                     "trade_partition": "USDT"
-            //                 }
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 1
-            //         },
-            //         "ts": 1683179527011
-            //     }
-            //
-            // trailing
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "orders": [
-            //                 {
-            //                     "contract_type": "swap",
-            //                     "business_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "volume": 1.000000000000000000,
-            //                     "order_type": 1,
-            //                     "direction": "sell",
-            //                     "offset": "close",
-            //                     "lever_rate": 1,
-            //                     "order_id": 1192021437253877761,
-            //                     "order_id_str": "1192021437253877761",
-            //                     "order_source": "api",
-            //                     "created_at": 1704241657328,
-            //                     "order_price_type": "formula_price",
-            //                     "status": 2,
-            //                     "callback_rate": 0.050000000000000000,
-            //                     "active_price": 50000.000000000000000000,
-            //                     "is_active": 0,
-            //                     "margin_mode": "cross",
-            //                     "margin_account": "USDT",
-            //                     "trade_partition": "USDT",
-            //                     "reduce_only": 1
-            //                 },
-            //             ],
-            //             "total_page": 1,
-            //             "current_page": 1,
-            //             "total_size": 2
-            //         },
-            //         "ts": 1704242440106
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "id": "1512509978516443136",
-            //                 "side": "buy",
-            //                 "type": "limit",
-            //                 "price": "30",
-            //                 "volume": "1",
-            //                 "state": "new",
-            //                 "profit": null,
-            //                 "contract_code": "LTC-USDT",
-            //                 "position_side": "long",
-            //                 "price_match": null,
-            //                 "order_id": "1512509978516443136",
-            //                 "client_order_id": "1512509978516443136",
-            //                 "margin_mode": "isolated",
-            //                 "lever_rate": 10,
-            //                 "order_source": "api",
-            //                 "reduce_only": false,
-            //                 "time_in_force": "gtc",
-            //                 "tp_trigger_price": "",
-            //                 "tp_order_price": "",
-            //                 "tp_type": "0",
-            //                 "tp_trigger_price_type": "",
-            //                 "sl_trigger_price": "",
-            //                 "sl_order_price": "",
-            //                 "sl_type": "0",
-            //                 "sl_trigger_price_type": "",
-            //                 "trade_avg_price": "0",
-            //                 "trade_volume": "0",
-            //                 "trade_turnover": "0",
-            //                 "fee_currency": "",
-            //                 "fee": "0",
-            //                 "price_protect": false,
-            //                 "contract_type": "swap",
-            //                 "created_time": "1780652079954",
-            //                 "updated_time": "1780652079954",
-            //                 "cancel_reason": null,
-            //                 "self_match_prevent": "cancel_taker"
-            //             }
-            //         ],
-            //         "ts": 1780652167077
-            //     }
-            //
-            // linear swap algo
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "id": "162173672",
-            //                 "volume": "1",
-            //                 "type": "tp",
-            //                 "state": "active",
-            //                 "side": "sell",
-            //                 "algo_id": "1512871666507657216",
-            //                 "contract_code": "BTC-USDT",
-            //                 "position_side": "long",
-            //                 "margin_mode": "cross",
-            //                 "created_time": "1780738313091",
-            //                 "updated_time": "1780738313187",
-            //                 "order_source": "api",
-            //                 "tp_trigger_price": "101000",
-            //                 "tp_order_price": "0",
-            //                 "tp_type": "market",
-            //                 "tp_trigger_price_type": "last"
-            //             }
-            //         ],
-            //         "ts": 1780739390596
-            //     }
-            //
-            List<Object> orders = this.safeList(response, "data", null);
-            if (java.util.Objects.equals(orders, null))
-            {
-                orders = (List<Object>) this.safeList(this.safeDict(response, "data", null), "orders", new ArrayList<Object>(Arrays.asList()));
-            }
-            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"ethusdt",
+        //                 "source":"api",
+        //                 "amount":"0.010000000000000000",
+        //                 "account-id":1528640,
+        //                 "created-at":1561597491963,
+        //                 "price":"400.000000000000000000",
+        //                 "filled-amount":"0.0",
+        //                 "filled-cash-amount":"0.0",
+        //                 "filled-fees":"0.0",
+        //                 "id":38477101630,
+        //                 "state":"submitted",
+        //                 "type":"sell-limit"
+        //             }
+        //         ]
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "ADA",
+        //                     "contract_code": "ADA201225",
+        //                     "contract_type": "quarter",
+        //                     "volume": 1,
+        //                     "price": 0.0925,
+        //                     "order_price_type": "post_only",
+        //                     "order_type": 1,
+        //                     "direction": "buy",
+        //                     "offset": "close",
+        //                     "lever_rate": 20,
+        //                     "order_id": 773131315209248768,
+        //                     "client_order_id": null,
+        //                     "created_at": 1604370469629,
+        //                     "trade_volume": 0,
+        //                     "trade_turnover": 0,
+        //                     "fee": 0,
+        //                     "trade_avg_price": null,
+        //                     "margin_frozen": 0,
+        //                     "profit": 0,
+        //                     "status": 3,
+        //                     "order_source": "web",
+        //                     "order_id_str": "773131315209248768",
+        //                     "fee_asset": "ADA",
+        //                     "liquidation_type": null,
+        //                     "canceled_at": null,
+        //                     "is_tpsl": 0,
+        //                     "update_time": 1606975980467,
+        //                     "real_profit": 0
+        //                 }
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1604370488518
+        //     }
+        //
+        // trigger
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "trigger_type": "le",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "buy",
+        //                     "offset": "open",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1103670703588327424,
+        //                     "order_id_str": "1103670703588327424",
+        //                     "order_source": "web",
+        //                     "trigger_price": 25000.000000000000000000,
+        //                     "order_price": 24000.000000000000000000,
+        //                     "created_at": 1683177200945,
+        //                     "order_price_type": "limit",
+        //                     "status": 2,
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 0
+        //                 }
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1683177805320
+        //     }
+        //
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "sell",
+        //                     "order_id": 1103680386844839936,
+        //                     "order_id_str": "1103680386844839936",
+        //                     "order_source": "web",
+        //                     "trigger_type": "le",
+        //                     "trigger_price": 25000.000000000000000000,
+        //                     "order_price": 0E-18,
+        //                     "created_at": 1683179509613,
+        //                     "order_price_type": "market",
+        //                     "status": 2,
+        //                     "tpsl_order_type": "sl",
+        //                     "source_order_id": null,
+        //                     "relation_tpsl_order_id": "-1",
+        //                     "trade_partition": "USDT"
+        //                 }
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1683179527011
+        //     }
+        //
+        // trailing
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "sell",
+        //                     "offset": "close",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1192021437253877761,
+        //                     "order_id_str": "1192021437253877761",
+        //                     "order_source": "api",
+        //                     "created_at": 1704241657328,
+        //                     "order_price_type": "formula_price",
+        //                     "status": 2,
+        //                     "callback_rate": 0.050000000000000000,
+        //                     "active_price": 50000.000000000000000000,
+        //                     "is_active": 0,
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 1
+        //                 },
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 2
+        //         },
+        //         "ts": 1704242440106
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "1512509978516443136",
+        //                 "side": "buy",
+        //                 "type": "limit",
+        //                 "price": "30",
+        //                 "volume": "1",
+        //                 "state": "new",
+        //                 "profit": null,
+        //                 "contract_code": "LTC-USDT",
+        //                 "position_side": "long",
+        //                 "price_match": null,
+        //                 "order_id": "1512509978516443136",
+        //                 "client_order_id": "1512509978516443136",
+        //                 "margin_mode": "isolated",
+        //                 "lever_rate": 10,
+        //                 "order_source": "api",
+        //                 "reduce_only": false,
+        //                 "time_in_force": "gtc",
+        //                 "tp_trigger_price": "",
+        //                 "tp_order_price": "",
+        //                 "tp_type": "0",
+        //                 "tp_trigger_price_type": "",
+        //                 "sl_trigger_price": "",
+        //                 "sl_order_price": "",
+        //                 "sl_type": "0",
+        //                 "sl_trigger_price_type": "",
+        //                 "trade_avg_price": "0",
+        //                 "trade_volume": "0",
+        //                 "trade_turnover": "0",
+        //                 "fee_currency": "",
+        //                 "fee": "0",
+        //                 "price_protect": false,
+        //                 "contract_type": "swap",
+        //                 "created_time": "1780652079954",
+        //                 "updated_time": "1780652079954",
+        //                 "cancel_reason": null,
+        //                 "self_match_prevent": "cancel_taker"
+        //             }
+        //         ],
+        //         "ts": 1780652167077
+        //     }
+        //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "162173672",
+        //                 "volume": "1",
+        //                 "type": "tp",
+        //                 "state": "active",
+        //                 "side": "sell",
+        //                 "algo_id": "1512871666507657216",
+        //                 "contract_code": "BTC-USDT",
+        //                 "position_side": "long",
+        //                 "margin_mode": "cross",
+        //                 "created_time": "1780738313091",
+        //                 "updated_time": "1780738313187",
+        //                 "order_source": "api",
+        //                 "tp_trigger_price": "101000",
+        //                 "tp_order_price": "0",
+        //                 "tp_type": "market",
+        //                 "tp_trigger_price_type": "last"
+        //             }
+        //         ],
+        //         "ts": 1780739390596
+        //     }
+        //
+        List<Object> orders = this.safeList(response, "data", null);
+        if (java.util.Objects.equals(orders, null))
+        {
+            orders = (List<Object>) this.safeList(this.safeDict(response, "data", null), "orders", new ArrayList<Object>(Arrays.asList()));
+        }
+        return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -6057,7 +6127,7 @@ public class Htx extends HtxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -6263,7 +6333,7 @@ public class Htx extends HtxApi
         //     }
         //
         String marketId = this.safeString2(order, "contract_code", "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
         String status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
         if (!java.util.Objects.equals(rejectedCreateOrders, null))
@@ -6322,14 +6392,20 @@ public class Htx extends HtxApi
         Map<String, Object> fee = null;
         if ((!java.util.Objects.equals(feeCost, null)) && (!java.util.Objects.equals(feeCost, "0")) && (!java.util.Objects.equals(feeCost, "0.0")))
         {
-            Object feeCurrency = null;
+            String feeCurrency = null;
             String feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             if (!java.util.Objects.equals(feeCurrencyId, null))
             {
-                feeCurrency = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+                feeCurrency = this.safeCurrencyCode(feeCurrencyId, null);
             } else
             {
-                feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? marketResolved.get("quote") : marketResolved.get("base");
+                if (java.util.Objects.equals(side, "sell"))
+                {
+                    feeCurrency = this.safeString(marketResolved, "quote");
+                } else
+                {
+                    feeCurrency = this.safeString(marketResolved, "base");
+                }
             }
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
@@ -6343,7 +6419,7 @@ public class Htx extends HtxApi
         Object reduceOnly = null;
         if (Boolean.TRUE.equals(isLinearOrder))
         {
-            reduceOnly = this.safeBool(order, "reduce_only", (Object) null);
+            reduceOnly = this.safeBool(order, "reduce_only", null);
         } else
         {
             Long reduceOnlyInteger = this.safeInteger(order, "reduce_only");
@@ -6358,32 +6434,32 @@ public class Htx extends HtxApi
                 }
             }
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", order);
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("clientOrderId", clientOrderId);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", type);
-        mapLiteral5.put("timeInForce", this.safeStringUpper(order, "time_in_force"));
-        mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("triggerPrice", this.safeString2(order, "stop-price", "trigger_price"));
-        mapLiteral5.put("stopLossPrice", this.safeString2(order, "sl_trigger_price", "sl_order_price"));
-        mapLiteral5.put("takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"));
-        mapLiteral5.put("average", average);
-        mapLiteral5.put("cost", cost);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("filled", filled);
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("status", status);
-        mapLiteral5.put("reduceOnly", reduceOnly);
-        mapLiteral5.put("fee", fee);
-        mapLiteral5.put("trades", trades);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("info", order);
+        mapLiteral10.put("id", id);
+        mapLiteral10.put("clientOrderId", clientOrderId);
+        mapLiteral10.put("timestamp", timestamp);
+        mapLiteral10.put("datetime", this.iso8601(timestamp));
+        mapLiteral10.put("lastTradeTimestamp", null);
+        mapLiteral10.put("symbol", marketResolved.get("symbol"));
+        mapLiteral10.put("type", type);
+        mapLiteral10.put("timeInForce", this.safeStringUpper(order, "time_in_force"));
+        mapLiteral10.put("postOnly", null);
+        mapLiteral10.put("side", side);
+        mapLiteral10.put("price", price);
+        mapLiteral10.put("triggerPrice", this.safeString2(order, "stop-price", "trigger_price"));
+        mapLiteral10.put("stopLossPrice", this.safeString2(order, "sl_trigger_price", "sl_order_price"));
+        mapLiteral10.put("takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"));
+        mapLiteral10.put("average", average);
+        mapLiteral10.put("cost", cost);
+        mapLiteral10.put("amount", amount);
+        mapLiteral10.put("filled", filled);
+        mapLiteral10.put("remaining", null);
+        mapLiteral10.put("status", status);
+        mapLiteral10.put("reduceOnly", reduceOnly);
+        mapLiteral10.put("fee", fee);
+        mapLiteral10.put("trades", trades);
+        return this.safeOrder(mapLiteral10, marketResolved);
     }
 
     /**
@@ -6396,23 +6472,25 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
+    }
+
+    private Object createMarketBuyOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
-            {
-                throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
-            }
-            parameters.put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+        {
+            throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
+        }
+        parameters.put("createMarketBuyOrderRequiresPrice", false);
+        return (this.createOrder(symbol, "market", "buy", cost, (Double) null, parameters)).join();
 
     }
 
@@ -6430,23 +6508,25 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
+    }
+
+    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(trailingPercent, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
-            }
-            if (java.util.Objects.equals(trailingTriggerPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
-            }
-            parameters.put("trailingPercent", trailingPercent);
-            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(trailingPercent, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
+        }
+        if (java.util.Objects.equals(trailingTriggerPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
+        }
+        parameters.put("trailingPercent", trailingPercent);
+        parameters.put("trailingTriggerPrice", trailingTriggerPrice);
+        return (this.createOrder(symbol, type, side, amount, price, parameters)).join();
 
     }
 
@@ -6465,153 +6545,156 @@ public class Htx extends HtxApi
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public CompletableFuture<Map<String, Object>> createSpotOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSpotOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createSpotOrderRequestCore(symbol, type, side, amount, price, parameters));
+    }
+
+    private Map<String, Object> createSpotOrderRequestCore(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(type, null))
+        if (java.util.Objects.equals(type, null))
+        {
+            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
+        }
+        if (java.util.Objects.equals(side, null))
+        {
+            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        String typeStr = type;
+        String sideStr = side;
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
+        String marginMode = marginModeparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+        String accountId = (this.fetchAccountIdByType(this.safeString(market, "type", ""), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "account-id", accountId );
+            put( "symbol", market.get("id") );
+        }};
+        Object orderType = (typeStr == null ? null : ((String)typeStr).replaceFirst("buy-", ""));
+        orderType = (orderType == null ? null : ((String)orderType).replaceFirst("sell-", ""));
+        Map<String, Object> options = this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
+        String triggerPrice = this.safeStringN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price")));
+        if (java.util.Objects.equals(triggerPrice, null))
+        {
+            Map<String, Object> stopOrderTypes = this.safeDict(options, "stopOrderTypes", new HashMap<String, Object>() {{}});
+            if (stopOrderTypes.containsKey(orderType))
             {
-                throw new ArgumentsRequired((this.id + " requires a type argument")) ;
+                throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice for a trigger order")) ;
             }
-            if (java.util.Objects.equals(side, null))
+        } else
+        {
+            String defaultOperator = "gte";
+            if (java.util.Objects.equals(sideStr, "sell"))
             {
-                throw new ArgumentsRequired((this.id + " requires a side argument")) ;
+                defaultOperator = "lte";
             }
-            if (java.util.Objects.equals(this.markets, null))
+            String stopOperator = this.safeString(paramsMarginMode, "operator", defaultOperator);
+            request.put("stop-price", this.priceToPrecision(symbol, triggerPrice));
+            request.put("operator", stopOperator);
+            if ((java.util.Objects.equals(orderType, "limit")) || (java.util.Objects.equals(orderType, "limit-fok")))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                orderType = ("stop-" + orderType);
+            } else if ((!java.util.Objects.equals(orderType, "stop-limit")) && (!java.util.Objects.equals(orderType, "stop-limit-fok")))
+            {
+                throw new NotSupported((((this.id + " createOrder() does not support ") + typeStr) + " orders")) ;
             }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            String typeStr = type;
-            String sideStr = side;
-            Map<String, Object> market = this.market(symbol);
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
-            String marginMode = marginModeparamsMarginModeVariable.first();
-            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            String accountId = (this.fetchAccountIdByType((String) (market.get("type")), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account-id", accountId );
-                put( "symbol", market.get("id") );
-            }};
-            Object orderType = (typeStr == null ? null : ((String)typeStr).replaceFirst("buy-", ""));
-            orderType = (orderType == null ? null : ((String)orderType).replaceFirst("sell-", ""));
-            Map<String, Object> options = this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
-            String triggerPrice = this.safeStringN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price")));
-            if (java.util.Objects.equals(triggerPrice, null))
+        }
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(orderType, "market"), java.util.Objects.equals(orderType, "limit-maker"), paramsMarginMode);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            orderType = "limit-maker";
+        }
+        String timeInForce = this.safeString(paramsPostOnly, "timeInForce", "GTC");
+        if (java.util.Objects.equals(timeInForce, "FOK"))
+        {
+            orderType = (orderType + "-fok");
+        } else if (java.util.Objects.equals(timeInForce, "IOC"))
+        {
+            orderType = "ioc";
+        }
+        request.put("type", ((sideStr + "-") + orderType));
+        String clientOrderId = this.safeString2(paramsPostOnly, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
+        if (java.util.Objects.equals(clientOrderId, null))
+        {
+            Map<String, Object> broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+            String brokerId = this.safeString(broker, "id", "");
+            request.put("client-order-id", (brokerId + this.uuid()));
+        } else
+        {
+            request.put("client-order-id", clientOrderId);
+        }
+        if (java.util.Objects.equals(marginMode, "cross"))
+        {
+            request.put("source", "super-margin-api");
+        } else if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            request.put("source", "margin-api");
+        } else if (java.util.Objects.equals(marginMode, "c2c"))
+        {
+            request.put("source", "c2c-margin-api");
+        }
+        Boolean isMarketBuy = (java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(sideStr, "buy"));
+        Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricerequiresPriceParamsVariable = this.handleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricerequiresPriceParamsVariable.first();
+        Map<String, Object> requiresPriceParams = createMarketBuyOrderRequiresPricerequiresPriceParamsVariable.second();
+        Double cost = this.safeNumber(requiresPriceParams, "cost", null);
+        Map<String, Object> paramsCost = paramsPostOnly;
+        if (Boolean.TRUE.equals(isMarketBuy))
+        {
+            paramsCost = this.omit(requiresPriceParams, "cost");
+        }
+        if (Boolean.TRUE.equals(isMarketBuy))
+        {
+            String quoteAmount = null;
+            if (!java.util.Objects.equals(cost, null))
             {
-                Map<String, Object> stopOrderTypes = this.safeDict(options, "stopOrderTypes", new HashMap<String, Object>() {{}});
-                if (stopOrderTypes.containsKey(orderType))
+                quoteAmount = this.amountToPrecision(symbol, cost);
+            } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
+            {
+                if (java.util.Objects.equals(price, null))
                 {
-                    throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice for a trigger order")) ;
-                }
-            } else
-            {
-                String defaultOperator = "gte";
-                if (java.util.Objects.equals(sideStr, "sell"))
-                {
-                    defaultOperator = "lte";
-                }
-                String stopOperator = this.safeString(paramsMarginMode, "operator", defaultOperator);
-                request.put("stop-price", this.priceToPrecision(symbol, triggerPrice));
-                request.put("operator", stopOperator);
-                if ((java.util.Objects.equals(orderType, "limit")) || (java.util.Objects.equals(orderType, "limit-fok")))
-                {
-                    orderType = ("stop-" + orderType);
-                } else if ((!java.util.Objects.equals(orderType, "stop-limit")) && (!java.util.Objects.equals(orderType, "stop-limit-fok")))
-                {
-                    throw new NotSupported((((this.id + " createOrder() does not support ") + typeStr) + " orders")) ;
-                }
-            }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(orderType, "market"), java.util.Objects.equals(orderType, "limit-maker"), paramsMarginMode);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-            if (Boolean.TRUE.equals(postOnly))
-            {
-                orderType = "limit-maker";
-            }
-            String timeInForce = this.safeString(paramsPostOnly, "timeInForce", "GTC");
-            if (java.util.Objects.equals(timeInForce, "FOK"))
-            {
-                orderType = (orderType + "-fok");
-            } else if (java.util.Objects.equals(timeInForce, "IOC"))
-            {
-                orderType = "ioc";
-            }
-            request.put("type", ((sideStr + "-") + orderType));
-            String clientOrderId = this.safeString2(paramsPostOnly, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
-            if (java.util.Objects.equals(clientOrderId, null))
-            {
-                Map<String, Object> broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
-                String brokerId = this.safeString(broker, "id", "");
-                request.put("client-order-id", (brokerId + this.uuid()));
-            } else
-            {
-                request.put("client-order-id", clientOrderId);
-            }
-            if (java.util.Objects.equals(marginMode, "cross"))
-            {
-                request.put("source", "super-margin-api");
-            } else if (java.util.Objects.equals(marginMode, "isolated"))
-            {
-                request.put("source", "margin-api");
-            } else if (java.util.Objects.equals(marginMode, "c2c"))
-            {
-                request.put("source", "c2c-margin-api");
-            }
-            Boolean isMarketBuy = (java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(sideStr, "buy"));
-            List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            Double cost = this.safeNumber(((List<Object>)requiresPriceAndParams).get(1), "cost", (Object) null);
-            Object paramsCost = paramsPostOnly;
-            if (Boolean.TRUE.equals(isMarketBuy))
-            {
-                paramsCost = this.omit(((List<Object>)requiresPriceAndParams).get(1), "cost");
-            }
-            if (Boolean.TRUE.equals(isMarketBuy))
-            {
-                String quoteAmount = null;
-                Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>)requiresPriceAndParams).get(0);
-                if (!java.util.Objects.equals(cost, null))
-                {
-                    quoteAmount = this.amountToPrecision(symbol, cost);
-                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
-                {
-                    if (java.util.Objects.equals(price, null))
-                    {
-                        throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
-                    } else
-                    {
-                        // despite that cost = amount * price is in quote currency and should have quote precision
-                        // the exchange API requires the cost supplied in 'amount' to be of base precision
-                        // more about it here:
-                        // https://github.com/ccxt/ccxt/pull/4395
-                        // https://github.com/ccxt/ccxt/issues/7611
-                        // we use amountToPrecision here because the exchange requires cost in base precision
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
-                        quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
-                    }
+                    throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    quoteAmount = this.amountToPrecision(symbol, amount);
+                    // despite that cost = amount * price is in quote currency and should have quote precision
+                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // more about it here:
+                    // https://github.com/ccxt/ccxt/pull/4395
+                    // https://github.com/ccxt/ccxt/issues/7611
+                    // we use amountToPrecision here because the exchange requires cost in base precision
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
+                    quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                 }
-                request.put("amount", quoteAmount);
             } else
             {
-                request.put("amount", this.amountToPrecision(symbol, amount));
+                quoteAmount = this.amountToPrecision(symbol, amount);
             }
-            Map<String, Object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
-            if (limitOrderTypes.containsKey(orderType))
-            {
-                request.put("price", this.priceToPrecision(symbol, price));
-            }
-            Object paramsOmitted = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
-            return this.extend(request, paramsOmitted);
-        });
+            request.put("amount", quoteAmount);
+        } else
+        {
+            request.put("amount", this.amountToPrecision(symbol, amount));
+        }
+        Map<String, Object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
+        if (limitOrderTypes.containsKey(orderType))
+        {
+            request.put("price", this.priceToPrecision(symbol, price));
+        }
+        Map<String, Object> paramsOmitted = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
+        return this.extend(request, paramsOmitted);
 
     }
 
-    public Object createContractOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Object createContractOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -6650,17 +6733,21 @@ public class Htx extends HtxApi
             put( "contract_code", market.get("id") );
             put( "volume", Htx.this.amountToPrecision(symbol, amount) );
         }};
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        String orderType = ((Boolean.TRUE.equals(postOnly))) ? "post_only" : type;
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("createOrder", market, paramsPostOnly, (Object) null);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
+        String orderType = type;
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            orderType = "post_only";
+        }
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("createOrder", market, paramsPostOnly, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> query = paramsSubType;
         Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
-        Boolean reduceOnly = (Boolean) this.safeBool2(query, "reduceOnly", "reduce_only", false);
-        Boolean hedged = (Boolean) this.safeBool(query, "hedged", false);
+        Boolean reduceOnly = this.safeBool2(query, "reduceOnly", "reduce_only", false);
+        Boolean hedged = this.safeBool(query, "hedged", false);
         String timeInForce = this.safeStringLower2(query, "timeInForce", "time_in_force", "gtc");
         if (Boolean.TRUE.equals(isLinear))
         {
@@ -6676,11 +6763,11 @@ public class Htx extends HtxApi
             }
             Map<String, Object> stopLoss = this.safeDict(query, "stopLoss", null);
             Map<String, Object> takeProfit = this.safeDict(query, "takeProfit", null);
-            Double stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice", (Object) null);
-            Double stopLossOrderPrice = this.safeNumber(stopLoss, "price", (Object) null);
+            Double stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice", null);
+            Double stopLossOrderPrice = this.safeNumber(stopLoss, "price", null);
             String stopLossType = this.safeString(stopLoss, "type");
-            Double takeProfitTriggerPriceAttached = this.safeNumber(takeProfit, "triggerPrice", (Object) null);
-            Double takeProfitOrderPrice = this.safeNumber(takeProfit, "price", (Object) null);
+            Double takeProfitTriggerPriceAttached = this.safeNumber(takeProfit, "triggerPrice", null);
+            Double takeProfitOrderPrice = this.safeNumber(takeProfit, "price", null);
             String takeProfitType = this.safeString(takeProfit, "type");
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
             if (!java.util.Objects.equals(stopLoss, null))
@@ -6737,8 +6824,8 @@ public class Htx extends HtxApi
             request.put("direction", side);
         }
         Double triggerPrice = this.safeNumberN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")), (Object) null);
-        Double stopLossTriggerPrice = this.safeNumber2(query, "stopLossPrice", "sl_trigger_price", (Object) null);
-        Double takeProfitTriggerPrice = this.safeNumber2(query, "takeProfitPrice", "tp_trigger_price", (Object) null);
+        Double stopLossTriggerPrice = this.safeNumber2(query, "stopLossPrice", "sl_trigger_price", null);
+        Double takeProfitTriggerPrice = this.safeNumber2(query, "takeProfitPrice", "tp_trigger_price", null);
         String trailingPercent = this.safeString2(query, "trailingPercent", "callback_rate");
         Double trailingTriggerPrice = this.safeNumber(query, "trailingTriggerPrice", price);
         Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
@@ -6853,7 +6940,7 @@ public class Htx extends HtxApi
         Map<String, Object> broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
         String brokerId = this.safeString(broker, "id");
         request.put("channel_code", brokerId);
-        Object paramsOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged")));
+        Map<String, Object> paramsOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged")));
         return this.extend(request, paramsOmitted);
     }
 
@@ -6901,203 +6988,205 @@ public class Htx extends HtxApi
      * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")), (Object) null);
+        Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price", null);
+        Double takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price", null);
+        Double trailingPercent = this.safeNumber(parameters, "trailingPercent", null);
+        Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
+        Boolean isTrigger = !java.util.Objects.equals(triggerPrice, null);
+        Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
+        Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+        {
+            if (Boolean.TRUE.equals(isTrailingPercentOrder))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new NotSupported((this.id + " createOrder() does not support trailing orders for spot markets")) ;
             }
-            Map<String, Object> market = this.market(symbol);
-            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")), (Object) null);
-            Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price", (Object) null);
-            Double takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price", (Object) null);
-            Double trailingPercent = this.safeNumber(parameters, "trailingPercent", (Object) null);
-            Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-            Boolean isTrigger = !java.util.Objects.equals(triggerPrice, null);
-            Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
-            Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+            Map<String, Object> spotRequest = (this.createSpotOrderRequest(symbol, type, side, amount, price, parameters)).join();
+            response = (this.spotPrivatePostV1OrderOrdersPlace(spotRequest)).join();
+        } else
+        {
+            Map<String, Object> contractRequest = (Map<String, Object>) this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                if (Boolean.TRUE.equals(isTrailingPercentOrder))
+                if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
-                    throw new NotSupported((this.id + " createOrder() does not support trailing orders for spot markets")) ;
-                }
-                Map<String, Object> spotRequest = (this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
-                response = (this.spotPrivatePostV1OrderOrdersPlace(spotRequest)).join();
-            } else
-            {
-                Map<String, Object> contractRequest = (Map<String, Object>) this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
-                    {
-                        response = (this.contractPrivatePostV5AlgoOrder(contractRequest)).join();
-                    } else
-                    {
-                        response = (this.contractPrivatePostV5TradeOrder(contractRequest)).join();
-                    }
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    String offset = this.safeString(parameters, "offset");
-                    if (java.util.Objects.equals(offset, null))
-                    {
-                        throw new ArgumentsRequired((this.id + " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
-                    }
-                    if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-                    {
-                        if (Boolean.TRUE.equals(isTrigger))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)).join();
-                        } else if (Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest)).join();
-                        } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTrackOrder(contractRequest)).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapOrder(contractRequest)).join();
-                        }
-                    } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                    {
-                        if (Boolean.TRUE.equals(isTrigger))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTriggerOrder(contractRequest)).join();
-                        } else if (Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTpslOrder(contractRequest)).join();
-                        } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTrackOrder(contractRequest)).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostApiV1ContractOrder(contractRequest)).join();
-                        }
-                    }
-                }
-            }
-            //
-            // spot
-            //
-            //     {"status":"ok","data":"438398393065481"}
-            //
-            // swap and future
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "order_id": 924660854912552960,
-            //             "order_id_str": "924660854912552960"
-            //         },
-            //         "ts": 1640497927185
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": {
-            //             "order_id": "1512501029504577536",
-            //             "client_order_id": "1512501029504577536"
-            //         },
-            //         "ts": 1780649946353
-            //     }
-            //
-            // linear swap algo
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "algo_id": "1512871666507657216",
-            //                 "algo_client_order_id": null
-            //             }
-            //         ],
-            //         "ts": 1780738313102
-            //     }
-            //
-            // stop-loss and take-profit
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "tp_order": {
-            //                 "order_id": 1101494204040163328,
-            //                 "order_id_str": "1101494204040163328"
-            //             },
-            //             "sl_order": null
-            //         },
-            //         "ts": :1682658283024
-            //     }
-            //
-            Object data = null;
-            Map<String, Object> result = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
-            {
-                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-                mapLiteral6.put("info", response);
-                mapLiteral6.put("id", this.safeString(response, "data"));
-                mapLiteral6.put("timestamp", null);
-                mapLiteral6.put("datetime", null);
-                mapLiteral6.put("lastTradeTimestamp", null);
-                mapLiteral6.put("status", null);
-                mapLiteral6.put("symbol", null);
-                mapLiteral6.put("type", type);
-                mapLiteral6.put("side", side);
-                mapLiteral6.put("price", price);
-                mapLiteral6.put("amount", amount);
-                mapLiteral6.put("filled", null);
-                mapLiteral6.put("remaining", null);
-                mapLiteral6.put("cost", null);
-                mapLiteral6.put("trades", null);
-                mapLiteral6.put("fee", null);
-                mapLiteral6.put("clientOrderId", null);
-                mapLiteral6.put("average", null);
-                return this.safeOrder(mapLiteral6, market);
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
-                {
-                    data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                    result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                    response = (this.contractPrivatePostV5AlgoOrder(contractRequest)).join();
                 } else
                 {
-                    result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    response = (this.contractPrivatePostV5TradeOrder(contractRequest)).join();
                 }
-                if (java.util.Objects.equals(result, null))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                String offset = this.safeString(parameters, "offset");
+                if (java.util.Objects.equals(offset, null))
                 {
-                    throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
+                    throw new ArgumentsRequired((this.id + " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
                 }
-                return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
-                    put( "type", type );
-                    put( "side", side );
-                    put( "price", price );
-                    put( "amount", amount );
-                }});
-            } else if (Boolean.TRUE.equals(isStopLossTriggerOrder))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+                {
+                    if (Boolean.TRUE.equals(isTrigger))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)).join();
+                    } else if (Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest)).join();
+                    } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTrackOrder(contractRequest)).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapOrder(contractRequest)).join();
+                    }
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+                {
+                    if (Boolean.TRUE.equals(isTrigger))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTriggerOrder(contractRequest)).join();
+                    } else if (Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTpslOrder(contractRequest)).join();
+                    } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTrackOrder(contractRequest)).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostApiV1ContractOrder(contractRequest)).join();
+                    }
+                }
+            }
+        }
+        //
+        // spot
+        //
+        //     {"status":"ok","data":"438398393065481"}
+        //
+        // swap and future
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "order_id": 924660854912552960,
+        //             "order_id_str": "924660854912552960"
+        //         },
+        //         "ts": 1640497927185
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "order_id": "1512501029504577536",
+        //             "client_order_id": "1512501029504577536"
+        //         },
+        //         "ts": 1780649946353
+        //     }
+        //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "algo_id": "1512871666507657216",
+        //                 "algo_client_order_id": null
+        //             }
+        //         ],
+        //         "ts": 1780738313102
+        //     }
+        //
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "tp_order": {
+        //                 "order_id": 1101494204040163328,
+        //                 "order_id_str": "1101494204040163328"
+        //             },
+        //             "sl_order": null
+        //         },
+        //         "ts": :1682658283024
+        //     }
+        //
+        Object data = null;
+        Map<String, Object> result = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+        {
+            HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+            mapLiteral11.put("info", response);
+            mapLiteral11.put("id", this.safeString(response, "data"));
+            mapLiteral11.put("timestamp", null);
+            mapLiteral11.put("datetime", null);
+            mapLiteral11.put("lastTradeTimestamp", null);
+            mapLiteral11.put("status", null);
+            mapLiteral11.put("symbol", null);
+            mapLiteral11.put("type", type);
+            mapLiteral11.put("side", side);
+            mapLiteral11.put("price", price);
+            mapLiteral11.put("amount", amount);
+            mapLiteral11.put("filled", null);
+            mapLiteral11.put("remaining", null);
+            mapLiteral11.put("cost", null);
+            mapLiteral11.put("trades", null);
+            mapLiteral11.put("fee", null);
+            mapLiteral11.put("clientOrderId", null);
+            mapLiteral11.put("average", null);
+            return this.safeOrder(mapLiteral11, market);
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                result = (Map<String, Object>) this.safeDict(data, "sl_order", new HashMap<String, Object>() {{}});
-            } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
-            {
-                data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                result = (Map<String, Object>) this.safeDict(data, "tp_order", new HashMap<String, Object>() {{}});
+                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             if (java.util.Objects.equals(result, null))
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+            return this.extend(this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market), new HashMap<String, Object>() {{
+                put( "type", type );
+                put( "side", side );
+                put( "price", price );
+                put( "amount", amount );
+            }});
+        } else if (Boolean.TRUE.equals(isStopLossTriggerOrder))
+        {
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            result = this.safeDict(data, "sl_order", new HashMap<String, Object>() {{}});
+        } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
+        {
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            result = this.safeDict(data, "tp_order", new HashMap<String, Object>() {{}});
+        } else
+        {
+            result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        }
+        if (java.util.Objects.equals(result, null))
+        {
+            throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
+        }
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 
@@ -7113,171 +7202,173 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+        String symbol = null;
+        Map<String, Object> market = null;
+        String marginMode = null;
+        for (var i = 0; i < orders.size(); i++)
+        {
+            Map<String, Object> rawOrder = this.safeDict(orders, i, null);
+            String marketId = this.safeString(rawOrder, "symbol");
+            if (java.util.Objects.equals(symbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            String symbol = null;
-            Map<String, Object> market = null;
-            Object marginMode = null;
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
-            {
-                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
-                String marketId = this.safeString(rawOrder, "symbol");
-                if (java.util.Objects.equals(symbol, null))
-                {
-                    symbol = marketId;
-                } else
-                {
-                    if (!java.util.Objects.equals(symbol, marketId))
-                    {
-                        throw new BadRequest((this.id + " createOrders() requires all orders to have the same symbol")) ;
-                    }
-                }
-                String type = this.safeString(rawOrder, "type");
-                String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
-                String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
-                if (!java.util.Objects.equals(currentMarginMode, null))
-                {
-                    if (java.util.Objects.equals(marginMode, null))
-                    {
-                        marginMode = currentMarginMode;
-                    } else
-                    {
-                        if (!java.util.Objects.equals(marginMode, currentMarginMode))
-                        {
-                            throw new BadRequest((this.id + " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
-                        }
-                    }
-                }
-                market = this.market(symbol);
-                Object orderRequest = null;
-                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
-                {
-                    orderRequest = (this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams)).join();
-                } else
-                {
-                    orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);
-                }
-                orderRequest = this.omit(orderRequest, "marginMode");
-                ((List<Object>)ordersRequests).add(orderRequest);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
-            {
-                response = (this.privatePostOrderBatchOrders(ordersRequests)).join();
+                symbol = marketId;
             } else
             {
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+                if (!java.util.Objects.equals(symbol, marketId))
                 {
-                    response = (this.contractPrivatePostV5TradeBatchOrders(ordersRequests)).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+                    throw new BadRequest((this.id + " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            String type = this.safeString(rawOrder, "type");
+            String side = this.safeString(rawOrder, "side");
+            Double amount = this.safeNumber(rawOrder, "amount", null);
+            Double price = this.safeNumber(rawOrder, "price", null);
+            Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Pair<String, Map<String, Object>> currentMarginModeVariable = this.handleMarginModeAndParams("createOrders", orderParams, null);
+            String currentMarginMode = currentMarginModeVariable.first();
+            if (!java.util.Objects.equals(currentMarginMode, null))
+            {
+                if (java.util.Objects.equals(marginMode, null))
                 {
-                    request.put("orders_data", ordersRequests);
-                    if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+                    marginMode = currentMarginMode;
+                } else
+                {
+                    if (!java.util.Objects.equals(marginMode, currentMarginMode))
                     {
-                        response = (this.contractPrivatePostSwapApiV1SwapBatchorder(request)).join();
-                    } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                    {
-                        response = (this.contractPrivatePostApiV1ContractBatchorder(request)).join();
+                        throw new BadRequest((this.id + " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
                     }
                 }
             }
-            //
-            // spot
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "order-id": 936847569789079,
-            //                 "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
-            //             },
-            //             {
-            //                 "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
-            //                 "err-code": "account-frozen-balance-insufficient-error",
-            //                 "err-msg": "trade account balance is not enough, left: `89`"
-            //             }
-            //         ]
-            //     }
-            //
-            // swap and future
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "errors": [
-            //                 {
-            //                     "index": 2,
-            //                     "err_code": 1047,
-            //                     "err_msg": "Insufficient margin available."
-            //                 }
-            //             ],
-            //             "success": [
-            //                 {
-            //                     "order_id": 1172923090632953857,
-            //                     "index": 1,
-            //                     "order_id_str": "1172923090632953857"
-            //                 }
-            //             ]
-            //         },
-            //         "ts": 1699688256671
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "code": 200,
-            //                 "message": "Success",
-            //                 "order_id": "1513217421638275072",
-            //                 "client_order_id": "1513217421638275072"
-            //             },
-            //             {
-            //                 "code": 200,
-            //                 "message": "Success",
-            //                 "order_id": "1513217421638275073",
-            //                 "client_order_id": "1513217421638275073"
-            //             }
-            //         ],
-            //         "ts": 1780820747555
-            //     }
-            //
-            //
-            Object result = null;
+            market = this.market(symbol);
+            Object orderRequest = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                orderRequest = (this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams)).join();
             } else
             {
-                List<Object> data = this.safeList(response, "data", null);
-                if (!java.util.Objects.equals(data, null))
+                orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);
+            }
+            orderRequest = this.omit(orderRequest, "marginMode");
+            ordersRequests.add(orderRequest);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+        {
+            response = (this.privatePostOrderBatchOrders(ordersRequests)).join();
+        } else
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                response = (this.contractPrivatePostV5TradeBatchOrders(ordersRequests)).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                request.put("orders_data", ordersRequests);
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
-                    result = data;
-                } else
+                    response = (this.contractPrivatePostSwapApiV1SwapBatchorder(request)).join();
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
                 {
-                    Map<String, Object> batchData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    List<Object> success = this.safeList(batchData, "success", new ArrayList<Object>(Arrays.asList()));
-                    List<Object> errors = this.safeList(batchData, "errors", new ArrayList<Object>(Arrays.asList()));
-                    result = this.arrayConcat(success, errors);
+                    response = (this.contractPrivatePostApiV1ContractBatchorder(request)).join();
                 }
             }
-            return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "order-id": 936847569789079,
+        //                 "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //             },
+        //             {
+        //                 "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //                 "err-code": "account-frozen-balance-insufficient-error",
+        //                 "err-msg": "trade account balance is not enough, left: `89`"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [
+        //                 {
+        //                     "index": 2,
+        //                     "err_code": 1047,
+        //                     "err_msg": "Insufficient margin available."
+        //                 }
+        //             ],
+        //             "success": [
+        //                 {
+        //                     "order_id": 1172923090632953857,
+        //                     "index": 1,
+        //                     "order_id_str": "1172923090632953857"
+        //                 }
+        //             ]
+        //         },
+        //         "ts": 1699688256671
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
+        //             }
+        //         ],
+        //         "ts": 1780820747555
+        //     }
+        //
+        //
+        List<Object> result = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+        {
+            result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        } else
+        {
+            List<Object> data = this.safeList(response, "data", null);
+            if (!java.util.Objects.equals(data, null))
+            {
+                result = data;
+            } else
+            {
+                Map<String, Object> batchData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                List<Object> success = this.safeList(batchData, "success", new ArrayList<Object>(Arrays.asList()));
+                List<Object> errors = this.safeList(batchData, "errors", new ArrayList<Object>(Arrays.asList()));
+                result = this.arrayConcat(success, errors);
+            }
+        }
+        return this.parseOrders(result, market, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -7299,199 +7390,201 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, null);
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Boolean trigger = this.safeBool2(paramsSubType, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBoolN(paramsSubType, new ArrayList<Object>(Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")), null);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
+        Map<String, Object> query = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
+            String clientOrderId = this.safeString2(query, "client-order-id", "clientOrderId");
+            if (java.util.Objects.equals(clientOrderId, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", (Object) null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBoolN(paramsSubType, new ArrayList<Object>(Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")), (Object) null);
-            Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
-            Map<String, Object> query = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
-            {
-                String clientOrderId = this.safeString2(query, "client-order-id", "clientOrderId");
-                if (java.util.Objects.equals(clientOrderId, null))
-                {
-                    request.put("order-id", id);
-                    response = (this.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(this.extend(request, query))).join();
-                } else
-                {
-                    request.put("client-order-id", clientOrderId);
-                    query = this.omit(query, new ArrayList<Object>(Arrays.asList("client-order-id", "clientOrderId")));
-                    response = (this.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(this.extend(request, query))).join();
-                }
+                request.put("order-id", id);
+                response = (this.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(this.extend(request, query))).join();
             } else
             {
-                if (java.util.Objects.equals(symbol, null))
+                request.put("client-order-id", clientOrderId);
+                query = this.omit(query, new ArrayList<Object>(Arrays.asList("client-order-id", "clientOrderId")));
+                response = (this.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(this.extend(request, query))).join();
+            }
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+            }
+            String clientOrderId = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+            if (!(Boolean.TRUE.equals(isLinear) && ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))))
+            {
+                if (java.util.Objects.equals(clientOrderId, null))
                 {
-                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
-                }
-                String clientOrderId = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
-                if (!(Boolean.TRUE.equals(isLinear) && ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))))
-                {
-                    if (java.util.Objects.equals(clientOrderId, null))
-                    {
-                        request.put("order_id", id);
-                    } else
-                    {
-                        request.put("client_order_id", clientOrderId);
-                        query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId")));
-                    }
-                }
-                if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                {
-                    request.put("symbol", this.safeString(market, "settleId"));
+                    request.put("order_id", id);
                 } else
                 {
-                    request.put("contract_code", this.safeString(market, "id"));
-                }
-                if (Boolean.TRUE.equals(isLinear))
-                {
-                    if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
-                    {
-                        Map<String, Object> requestItem = new HashMap<String, Object>();
-                        requestItem.put("contract_code", this.safeString(market, "id"));
-                        if (java.util.Objects.equals(clientOrderId, null))
-                        {
-                            requestItem.put("algo_id", id);
-                            query = this.omit(query, "algo_id");
-                        } else
-                        {
-                            requestItem.put("algo_client_order_id", clientOrderId);
-                            query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
-                        }
-                        List<Object> requestBody = new ArrayList<Object>(Arrays.asList(this.extend(requestItem, query)));
-                        response = (this.contractPrivatePostV5AlgoCancelOrders(requestBody)).join();
-                    } else
-                    {
-                        response = (this.contractPrivatePostV5TradeCancelOrder(this.extend(request, query))).join();
-                    }
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-                    {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, query))).join();
-                        } else if (java.util.Objects.equals(stopLossTakeProfit, true))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, query))).join();
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTrackCancel(this.extend(request, query))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query))).join();
-                        }
-                    } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                    {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, query))).join();
-                        } else if (java.util.Objects.equals(stopLossTakeProfit, true))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, query))).join();
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTrackCancel(this.extend(request, query))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostApiV1ContractCancel(this.extend(request, query))).join();
-                        }
-                    }
-                } else
-                {
-                    throw new NotSupported((((this.id + " cancelOrder() does not support ") + marketType) + " markets")) ;
+                    request.put("client_order_id", clientOrderId);
+                    query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId")));
                 }
             }
-            //
-            // spot
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": "10138899000",
-            //     }
-            //
-            // future and swap
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "errors": [],
-            //             "successes": "924660854912552960"
-            //         },
-            //         "ts": 1640504486089
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "data": {
-            //             "client_order_id": "1512509978516443136",
-            //             "order_id": "1512509978516443136"
-            //         },
-            //         "message": "Success",
-            //         "ts": 1780653244729
-            //     }
-            //
-            // linear swap algo
-            //
-            //     {
-            //         "code": 200,
-            //         "data": [
-            //             {
-            //                 "algo_client_order_id": "1329854623927160832",
-            //                 "code": 200,
-            //                 "message": "Success",
-            //                 "algo_id": "1329854623927160832"
-            //             },
-            //         ],
-            //         "message": "Success",
-            //         "ts": 1737103890390
-            //     }
-            //
-            Map<String, Object> result = null;
+            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+            {
+                request.put("symbol", this.safeString(market, "settleId"));
+            } else
+            {
+                request.put("contract_code", this.safeString(market, "id"));
+            }
             if (Boolean.TRUE.equals(isLinear))
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
                 {
-                    List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                    result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                    Map<String, Object> requestItem = new HashMap<String, Object>();
+                    requestItem.put("contract_code", this.safeString(market, "id"));
+                    if (java.util.Objects.equals(clientOrderId, null))
+                    {
+                        requestItem.put("algo_id", id);
+                        query = this.omit(query, "algo_id");
+                    } else
+                    {
+                        requestItem.put("algo_client_order_id", clientOrderId);
+                        query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+                    }
+                    List<Object> requestBody = new ArrayList<Object>(Arrays.asList(this.extend(requestItem, query)));
+                    response = (this.contractPrivatePostV5AlgoCancelOrders(requestBody)).join();
                 } else
                 {
-                    result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    response = (this.contractPrivatePostV5TradeCancelOrder(this.extend(request, query))).join();
+                }
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+                {
+                    if (java.util.Objects.equals(trigger, true))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, query))).join();
+                    } else if (java.util.Objects.equals(stopLossTakeProfit, true))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, query))).join();
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTrackCancel(this.extend(request, query))).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query))).join();
+                    }
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+                {
+                    if (java.util.Objects.equals(trigger, true))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, query))).join();
+                    } else if (java.util.Objects.equals(stopLossTakeProfit, true))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, query))).join();
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTrackCancel(this.extend(request, query))).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostApiV1ContractCancel(this.extend(request, query))).join();
+                    }
                 }
             } else
             {
-                result = response;
+                throw new NotSupported((((this.id + " cancelOrder() does not support ") + marketType) + " markets")) ;
             }
-            if (java.util.Objects.equals(result, null))
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "10138899000",
+        //     }
+        //
+        // future and swap
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [],
+        //             "successes": "924660854912552960"
+        //         },
+        //         "ts": 1640504486089
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "data": {
+        //             "client_order_id": "1512509978516443136",
+        //             "order_id": "1512509978516443136"
+        //         },
+        //         "message": "Success",
+        //         "ts": 1780653244729
+        //     }
+        //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "algo_client_order_id": "1329854623927160832",
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "algo_id": "1329854623927160832"
+        //             },
+        //         ],
+        //         "message": "Success",
+        //         "ts": 1737103890390
+        //     }
+        //
+        Map<String, Object> result = null;
+        if (Boolean.TRUE.equals(isLinear))
+        {
+            if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
             {
-                throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            } else
+            {
+                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "status", "canceled" );
-            }});
-        }).thenApply(Order::new);
+        } else
+        {
+            result = response;
+        }
+        if (java.util.Objects.equals(result, null))
+        {
+            throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
+        }
+        return this.extend(this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market), new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "status", "canceled" );
+        }});
 
     }
 
@@ -7507,211 +7600,201 @@ public class Htx extends HtxApi
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+        Map<String, Object> query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
+            Object clientOrderIds = this.safeStringList(query, new ArrayList<Object>(Arrays.asList("client-order-ids", "clientOrderIds", "client-order-id", "clientOrderId")));
+            if (java.util.Objects.equals(clientOrderIds, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-            Map<String, Object> query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
-            {
-                Object clientOrderIds = this.safeValue2(query, "client-order-id", "clientOrderId");
-                clientOrderIds = this.safeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds);
-                if (java.util.Objects.equals(clientOrderIds, null))
-                {
-                    if ((clientOrderIds instanceof String))
-                    {
-                        request.put("order-ids", new ArrayList<Object>(Arrays.asList(ids)));
-                    } else
-                    {
-                        request.put("order-ids", ids);
-                    }
-                } else
-                {
-                    if ((clientOrderIds instanceof String))
-                    {
-                        request.put("client-order-ids", new ArrayList<Object>(Arrays.asList(clientOrderIds)));
-                    } else
-                    {
-                        request.put("client-order-ids", clientOrderIds);
-                    }
-                    query = this.omit(query, new ArrayList<Object>(Arrays.asList("client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds")));
-                }
-                response = (this.spotPrivatePostV1OrderOrdersBatchcancel(this.extend(request, query))).join();
+                request.put("order-ids", ids);
             } else
             {
-                if (java.util.Objects.equals(symbol, null))
+                request.put("client-order-ids", clientOrderIds);
+                query = this.omit(query, new ArrayList<Object>(Arrays.asList("client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds")));
+            }
+            response = (this.spotPrivatePostV1OrderOrdersBatchcancel(this.extend(request, query))).join();
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
+            }
+            Object clientOrderIds = this.safeValue2(query, "client_order_id", "clientOrderId");
+            clientOrderIds = this.safeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds);
+            String clientOrderIdsString = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("client_order_ids", "clientOrderIds", "client_order_id", "clientOrderId")));
+            query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds")));
+            if (!Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                if (java.util.Objects.equals(clientOrderIds, null))
                 {
-                    throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
+                    request.put("order_id", String.join(",", (List<String>)ids));
+                } else
+                {
+                    request.put("client_order_id", clientOrderIds);
                 }
-                Object clientOrderIds = this.safeValue2(query, "client_order_id", "clientOrderId");
-                clientOrderIds = this.safeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds);
-                query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds")));
-                if (!Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            }
+            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+            {
+                request.put("symbol", this.safeString(market, "settleId"));
+            } else
+            {
+                request.put("contract_code", this.safeString(market, "id"));
+            }
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                if (java.util.Objects.equals(clientOrderIds, null))
                 {
-                    if (java.util.Objects.equals(clientOrderIds, null))
+                    request.put("order_id", ids);
+                } else
+                {
+                    if (!java.util.Objects.equals(clientOrderIdsString, null))
                     {
-                        request.put("order_id", String.join(",", (List<String>)ids));
+                        request.put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIdsString).split(java.util.regex.Pattern.quote(",")))));
                     } else
                     {
                         request.put("client_order_id", clientOrderIds);
                     }
                 }
-                if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+                response = (this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, query))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
-                    request.put("symbol", this.safeString(market, "settleId"));
-                } else
-                {
-                    request.put("contract_code", this.safeString(market, "id"));
-                }
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    if (java.util.Objects.equals(clientOrderIds, null))
+                    if (java.util.Objects.equals(trigger, true))
                     {
-                        request.put("order_id", ids);
+                        response = (this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, query))).join();
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, query))).join();
                     } else
                     {
-                        if ((clientOrderIds instanceof String))
-                        {
-                            request.put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIds).split(java.util.regex.Pattern.quote(",")))));
-                        } else
-                        {
-                            request.put("client_order_id", clientOrderIds);
-                        }
+                        response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query))).join();
                     }
-                    response = (this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, query))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
                 {
-                    if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+                    if (java.util.Objects.equals(trigger, true))
                     {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, query))).join();
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, query))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, query))).join();
-                        }
-                    } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+                        response = (this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, query))).join();
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
                     {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, query))).join();
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, query))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostApiV1ContractCancel(this.extend(request, query))).join();
-                        }
+                        response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, query))).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostApiV1ContractCancel(this.extend(request, query))).join();
                     }
-                } else
-                {
-                    throw new NotSupported((((this.id + " cancelOrders() does not support ") + marketType) + " markets")) ;
                 }
-            }
-            //
-            // spot
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "success": [
-            //                 "5983466"
-            //             ],
-            //             "failed": [
-            //                 {
-            //                     "err-msg": "Incorrect order state",
-            //                     "order-state": 7,
-            //                     "order-id": "",
-            //                     "err-code": "order-orderstate-error",
-            //                     "client-order-id": "first"
-            //                 },
-            //                 {
-            //                     "err-msg": "Incorrect order state",
-            //                     "order-state": 7,
-            //                     "order-id": "",
-            //                     "err-code": "order-orderstate-error",
-            //                     "client-order-id": "second"
-            //                 },
-            //                 {
-            //                     "err-msg": "The record is not found.",
-            //                     "order-id": "",
-            //                     "err-code": "base-not-found",
-            //                     "client-order-id": "third"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            // future and swap
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "errors": [
-            //                 {
-            //                     "order_id": "769206471845261312",
-            //                     "err_code": 1061,
-            //                     "err_msg": "This order doesnt exist."
-            //                 }
-            //             ],
-            //             "successes": "773120304138219520"
-            //         },
-            //         "ts": 1604367997451
-            //     }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "code": 200,
-            //                 "message": "Success",
-            //                 "order_id": "1513217421638275072",
-            //                 "client_order_id": "1513217421638275072"
-            //             },
-            //             {
-            //                 "code": 200,
-            //                 "message": "Success",
-            //                 "order_id": "1513217421638275073",
-            //                 "client_order_id": "1513217421638275073"
-            //             }
-            //         ],
-            //         "ts": 1780822053167
-            //     }
-            //
-            if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && (!java.util.Objects.equals(trigger, true)) && !Boolean.TRUE.equals(stopLossTakeProfit))
+            } else
             {
-                return this.parseCancelOrders(response);
+                throw new NotSupported((((this.id + " cancelOrders() does not support ") + marketType) + " markets")) ;
             }
-            Map<String, Object> data = this.safeDict(response, "data", null);
-            return this.parseCancelOrders(data);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "success": [
+        //                 "5983466"
+        //             ],
+        //             "failed": [
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "first"
+        //                 },
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "second"
+        //                 },
+        //                 {
+        //                     "err-msg": "The record is not found.",
+        //                     "order-id": "",
+        //                     "err-code": "base-not-found",
+        //                     "client-order-id": "third"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // future and swap
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [
+        //                 {
+        //                     "order_id": "769206471845261312",
+        //                     "err_code": 1061,
+        //                     "err_msg": "This order doesnt exist."
+        //                 }
+        //             ],
+        //             "successes": "773120304138219520"
+        //         },
+        //         "ts": 1604367997451
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
+        //             }
+        //         ],
+        //         "ts": 1780822053167
+        //     }
+        //
+        if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && (!java.util.Objects.equals(trigger, true)) && !Boolean.TRUE.equals(stopLossTakeProfit))
+        {
+            return this.parseCancelOrders(response);
+        }
+        Map<String, Object> data = this.safeDict(response, "data", null);
+        return this.parseCancelOrders(data);
 
     }
 
-    public Object parseCancelOrders(Object orders)
+    public Object parseCancelOrders(Map<String, Object> orders)
     {
         //
         //    {
@@ -7764,7 +7847,7 @@ public class Htx extends HtxApi
         //     }
         //
         String successes = this.safeString(orders, "successes");
-        Object success = null;
+        List<Object> success = null;
         if (!java.util.Objects.equals(successes, null))
         {
             success = new ArrayList<Object>(Arrays.asList(((String)successes).split(java.util.regex.Pattern.quote(","))));
@@ -7778,31 +7861,31 @@ public class Htx extends HtxApi
         for (var i = 0; i < data.size(); i++)
         {
             Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Htx.this.safeString(order, "order_id") );
                 put( "status", "canceled" );
                 put( "clientOrderId", Htx.this.safeString(order, "client_order_id") );
-            }}, (Map<String, Object>) null));
+            }}, null));
         }
-        for (var i = 0; i < ((List<?>)success).size(); i++)
+        for (var i = 0; i < success.size(); i++)
         {
-            Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            String order = this.safeString(success, i);
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
                 put( "status", "canceled" );
-            }}, (Map<String, Object>) null));
+            }}, null));
         }
         for (var i = 0; i < failed.size(); i++)
         {
             Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Htx.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
                 put( "clientOrderId", Htx.this.safeString(order, "client-order-id") );
-            }}, (Map<String, Object>) null));
+            }}, null));
         }
         return result;
     }
@@ -7821,117 +7904,119 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "spot"))
+        {
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
+                request.put("symbol", this.safeString(market, "id"));
             }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "spot"))
+            response = (this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, paramsMarketType))).join();
+            //
+            //     {
+            //         "code": 200,
+            //         "data": {
+            //             "success-count": 2,
+            //             "failed-count": 0,
+            //             "next-id": 5454600
+            //         }
+            //     }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", null);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+    put( "info", data );
+}}, null)));
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
             {
-                if (!java.util.Objects.equals(symbol, null))
+                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
+            }
+            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+            {
+                request.put("symbol", this.safeString(market, "settleId"));
+            }
+            request.put("contract_code", this.safeString(market, "id"));
+            Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+            Boolean trailing = this.safeBool(paramsMarketType, "trailing", false);
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                response = (this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, paramsOmitted))).join();
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            {
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
-                    request.put("symbol", this.safeString(market, "id"));
+                    if (java.util.Objects.equals(trigger, true))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, paramsOmitted))).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, paramsOmitted))).join();
+                    }
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+                {
+                    if (java.util.Objects.equals(trigger, true))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(stopLossTakeProfit))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, paramsOmitted))).join();
+                    } else if (Boolean.TRUE.equals(trailing))
+                    {
+                        response = (this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, paramsOmitted))).join();
+                    } else
+                    {
+                        response = (this.contractPrivatePostApiV1ContractCancelall(this.extend(request, paramsOmitted))).join();
+                    }
                 }
-                response = (this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, paramsMarketType))).join();
-                //
-                //     {
-                //         "code": 200,
-                //         "data": {
-                //             "success-count": 2,
-                //             "failed-count": 0,
-                //             "next-id": 5454600
-                //         }
-                //     }
-                //
-                Map<String, Object> data = this.safeDict(response, "data", null);
-                return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", data );
-    }}, (Map<String, Object>) null)));
             } else
             {
-                if (java.util.Objects.equals(symbol, null))
-                {
-                    throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
-                }
-                if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                {
-                    request.put("symbol", this.safeString(market, "settleId"));
-                }
-                request.put("contract_code", this.safeString(market, "id"));
-                Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", (Object) null);
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-                Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    response = (this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, paramsOmitted))).join();
-                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-                {
-                    if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-                    {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, paramsOmitted))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, paramsOmitted))).join();
-                        }
-                    } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-                    {
-                        if (java.util.Objects.equals(trigger, true))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(stopLossTakeProfit))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, paramsOmitted))).join();
-                        } else if (Boolean.TRUE.equals(trailing))
-                        {
-                            response = (this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, paramsOmitted))).join();
-                        } else
-                        {
-                            response = (this.contractPrivatePostApiV1ContractCancelall(this.extend(request, paramsOmitted))).join();
-                        }
-                    }
-                } else
-                {
-                    throw new NotSupported((((this.id + " cancelAllOrders() does not support ") + marketType) + " markets")) ;
-                }
-                //
-                //     {
-                //         "status": "ok",
-                //         "data": {
-                //             "errors": [],
-                //             "successes": "1104754904426696704"
-                //         },
-                //         "ts": "1683435723755"
-                //     }
-                //
-                if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && ((!java.util.Objects.equals(trigger, true)) && (!Boolean.TRUE.equals(trailing)) && !Boolean.TRUE.equals(stopLossTakeProfit)))
-                {
-                    return this.parseCancelOrders(response);
-                }
-                Map<String, Object> data = this.safeDict(response, "data", null);
-                return this.parseCancelOrders(data);
+                throw new NotSupported((((this.id + " cancelAllOrders() does not support ") + marketType) + " markets")) ;
             }
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "errors": [],
+            //             "successes": "1104754904426696704"
+            //         },
+            //         "ts": "1683435723755"
+            //     }
+            //
+            if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && ((!java.util.Objects.equals(trigger, true)) && (!Boolean.TRUE.equals(trailing)) && !Boolean.TRUE.equals(stopLossTakeProfit)))
+            {
+                return this.parseCancelOrders(response);
+            }
+            Map<String, Object> data = this.safeDict(response, "data", null);
+            return this.parseCancelOrders(data);
+        }
 
     }
 
@@ -7944,38 +8029,40 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfter(Long timeout, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersAfterCore(timeout, parameters));
+    }
+
+    private Map<String, Object> cancelAllOrdersAfterCore(Long timeout, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(timeout, null))
-            {
-                throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("timeout", ((((timeout != null && ((Number) timeout).doubleValue() > 0)))) ? ((Object) this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000))) : 0);
-            Map<String, Object> response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "success",
-            //         "data": {
-            //             "currentTime": 1630491627230,
-            //             "triggerTime": 1630491637230
-            //         }
-            //     }
-            //
-            return response;
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(timeout, null))
+        {
+            throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("timeout", ((((timeout != null && timeout > 0)))) ? ((Object) this.parseToInt((((double) timeout) / ((double) 1000)))) : 0);
+        Map<String, Object> response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "currentTime": 1630491627230,
+        //             "triggerTime": 1630491637230
+        //         }
+        //     }
+        //
+        return response;
 
     }
 
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -7992,7 +8079,7 @@ public class Htx extends HtxApi
         String code = this.safeCurrencyCode(currencyId, currencyResolved);
         String note = this.safeString(depositAddress, "note");
         String networkId = this.safeString(depositAddress, "chain");
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         return new HashMap<String, Object>() {{
             put( "currency", code );
             put( "address", address );
@@ -8012,37 +8099,39 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(String code, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesByNetworkCore(code, parameters));
+    }
+
+    private Map<String, Object> fetchDepositAddressesByNetworkCore(String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-            }};
-            Map<String, Object> response = (this.spotPrivateGetV2AccountDepositAddress(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code": 200,
-            //         "data": [
-            //             {
-            //                 "currency": "eth",
-            //                 "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-            //                 "addressTag": "",
-            //                 "chain": "eth"
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
-            return this.indexBy(parsed, "network");
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+        }};
+        Map<String, Object> response = (this.spotPrivateGetV2AccountDepositAddress(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "currency": "eth",
+        //                 "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 "addressTag": "",
+        //                 "chain": "eth"
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsed = this.parseDepositAddresses(data, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
+        return this.indexBy(parsed, "network");
 
     }
 
@@ -8057,67 +8146,71 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
-            String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
-            Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
-            Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
-            return this.safeDict(indexedAddresses, selectedNetworkCode, null);
-        }).thenApply(DepositAddress::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+        String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
+        Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
+        Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
+        Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(this.safeString(currency, "code", ""), networkCode, indexedAddresses, true);
+        return this.safeDict(indexedAddresses, selectedNetworkCode, null);
 
     }
 
     public CompletableFuture<Object> fetchWithdrawAddresses(String code, String note, String networkCode, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawAddressesCore(code, note, networkCode, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawAddressesCore(String code, String note, String networkCode, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+        }};
+        Map<String, Object> response = (this.spotPrivateGetV2AccountWithdrawAddress(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "currency": "eth",
+        //                 "chain": "eth"
+        //                 "note": "Binance - TRC20",
+        //                 "addressTag": "",
+        //                 "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> allAddresses = this.parseDepositAddresses(data, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
+        List<Object> addresses = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < allAddresses.size(); i++)
+        {
+            Map<String, Object> address = (Map<String, Object>) (allAddresses == null || i < 0 || i >= allAddresses.size() ? null : allAddresses.get(i));
+            Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(this.safeString(address, "note"), note));
+            Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(this.safeString(address, "network"), networkCode));
+            if (Boolean.TRUE.equals(noteMatch) && Boolean.TRUE.equals(networkMatch))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                addresses.add(address);
             }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-            }};
-            Map<String, Object> response = (this.spotPrivateGetV2AccountWithdrawAddress(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code": 200,
-            //         "data": [
-            //             {
-            //                 "currency": "eth",
-            //                 "chain": "eth"
-            //                 "note": "Binance - TRC20",
-            //                 "addressTag": "",
-            //                 "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> allAddresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
-            List<Object> addresses = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < allAddresses.size(); i++)
-            {
-                Object address = (allAddresses == null || i < 0 || i >= allAddresses.size() ? null : allAddresses.get(i));
-                Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(this.safeString(address, "note"), note));
-                Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(this.safeString(address, "network"), networkCode));
-                if (Boolean.TRUE.equals(noteMatch) && Boolean.TRUE.equals(networkMatch))
-                {
-                    ((List<Object>)addresses).add(address);
-                }
-            }
-            return addresses;
-        });
+        }
+        return addresses;
 
     }
 
@@ -8134,59 +8227,61 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100 : limit;
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "deposit" );
-                put( "direct", "next" );
-                put( "from", 0 );
-            }};
-            if (!java.util.Objects.equals(currency, null))
-            {
-                request.put("currency", currency.get("id"));
-            }
-            request.put("size", limitValue); // max 100
-            Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
-            //
-            //    {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "id": "75115912",
-            //                 "type": "deposit",
-            //                 "sub-type": "NORMAL",
-            //                 "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
-            //                 "currency": "usdt",
-            //                 "chain": "trc20usdt",
-            //                 "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
-            //                 "amount": "12.000000000000000000",
-            //                 "from-addr-tag": "",
-            //                 "address-id": "0",
-            //                 "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
-            //                 "address-tag": "",
-            //                 "fee": "0",
-            //                 "state": "safe",
-            //                 "wallet-confirm": "2",
-            //                 "created-at": "1621843808662",
-            //                 "updated-at": "1621843857137"
-            //             },
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limitValue, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100 : limit;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "deposit" );
+            put( "direct", "next" );
+            put( "from", 0 );
+        }};
+        if (!java.util.Objects.equals(currency, null))
+        {
+            request.put("currency", currency.get("id"));
+        }
+        request.put("size", limitValue); // max 100
+        Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
+        //
+        //    {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "75115912",
+        //                 "type": "deposit",
+        //                 "sub-type": "NORMAL",
+        //                 "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "0",
+        //                 "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //                 "address-tag": "",
+        //                 "fee": "0",
+        //                 "state": "safe",
+        //                 "wallet-confirm": "2",
+        //                 "created-at": "1621843808662",
+        //                 "updated-at": "1621843857137"
+        //             },
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(data, currency, since, limitValue, new HashMap<String, Object>() {{}});
 
     }
 
@@ -8203,61 +8298,63 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100 : limit;
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "withdraw" );
-                put( "direct", "next" );
-                put( "from", 0 );
-            }};
-            if (!java.util.Objects.equals(currency, null))
-            {
-                request.put("currency", currency.get("id"));
-            }
-            request.put("size", limitValue); // max 100
-            Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
-            //
-            //    {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "id": "61335312",
-            //                 "type": "withdraw",
-            //                 "sub-type": "NORMAL",
-            //                 "currency": "usdt",
-            //                 "chain": "trc20usdt",
-            //                 "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
-            //                 "amount": "12.000000000000000000",
-            //                 "from-addr-tag": "",
-            //                 "address-id": "27321591",
-            //                 "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
-            //                 "address-tag": "",
-            //                 "fee": "1.000000000000000000",
-            //                 "state": "confirmed",
-            //                 "created-at": "1621852316553",
-            //                 "updated-at": "1621852467041"
-            //             },
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limitValue, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100 : limit;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "withdraw" );
+            put( "direct", "next" );
+            put( "from", 0 );
+        }};
+        if (!java.util.Objects.equals(currency, null))
+        {
+            request.put("currency", currency.get("id"));
+        }
+        request.put("size", limitValue); // max 100
+        Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
+        //
+        //    {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "61335312",
+        //                 "type": "withdraw",
+        //                 "sub-type": "NORMAL",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "27321591",
+        //                 "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //                 "address-tag": "",
+        //                 "fee": "1.000000000000000000",
+        //                 "state": "confirmed",
+        //                 "created-at": "1621852316553",
+        //                 "updated-at": "1621852467041"
+        //             },
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(data, currency, since, limitValue, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -8346,17 +8443,17 @@ public class Htx extends HtxApi
             h2kMap1.put("tagTo", null);
             h2kMap1.put("tagFrom", null);
             h2kMap1.put("type", type);
-            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap1.put("currency", code);
             h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "state")));
             h2kMap1.put("updated", this.safeInteger(transaction, "updated-at"));
             h2kMap1.put("comment", null);
             h2kMap1.put("internal", intern);
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("currency", code);
-            mapLiteral7.put("cost", this.parseNumber(feeCost));
-            mapLiteral7.put("rate", null);
-            h2kMap1.put("fee", mapLiteral7);
+            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+            mapLiteral12.put("currency", code);
+            mapLiteral12.put("cost", this.parseNumber(feeCost));
+            mapLiteral12.put("rate", null);
+            h2kMap1.put("fee", mapLiteral12);
             return h2kMap1;
         }
     }
@@ -8396,98 +8493,100 @@ public class Htx extends HtxApi
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
+
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> tagValueparamsTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-            String tagValue = (String) ((List<Object>) tagValueparamsTagVariable).get(0);
-            Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagValueparamsTagVariable).get(1);
-            if (java.util.Objects.equals(this.markets, null))
+        List<Object> tagValueparamsTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
+        String tagValue = (String) ((List<Object>) tagValueparamsTagVariable).get(0);
+        Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagValueparamsTagVariable).get(1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        this.checkAddress(address, code, tagValue);
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", address );
+            put( "currency", Htx.this.safeStringLower(currency, "id", "") );
+        }};
+        if (!java.util.Objects.equals(tagValue, null))
+        {
+            request.put("addr-tag", tagValue); // only for XRP?
+        }
+        List<Object> networkCodeparamsNetworkVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsTag));
+        String networkCode = (String) ((List<Object>) networkCodeparamsNetworkVariable).get(0);
+        Map<String, Object> paramsNetwork = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkVariable).get(1);
+        if (!java.util.Objects.equals(networkCode, null))
+        {
+            request.put("chain", this.networkCodeToId(networkCode, code));
+        }
+        String amountPrecision = (String) this.currencyToPrecision(code, amount, networkCode);
+        if (java.util.Objects.equals(amountPrecision, null))
+        {
+            amountPrecision = "0";
+        }
+        Double amountValue = this.parseNumber(amountPrecision);
+        Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
+        Boolean includeFee = this.safeBool(withdrawOptions, "includeFee", false);
+        Map<String, Object> paramsFee = paramsNetwork;
+        if (Boolean.TRUE.equals(includeFee))
+        {
+            paramsFee = this.omit(paramsNetwork, "fee");
+        }
+        if (Boolean.TRUE.equals(includeFee))
+        {
+            Double fee = this.safeNumber(paramsNetwork, "fee", null);
+            if (java.util.Objects.equals(fee, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            this.checkAddress(address, code, tagValue);
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", address );
-                put( "currency", ((String)currency.get("id")).toLowerCase() );
-            }};
-            if (!java.util.Objects.equals(tagValue, null))
-            {
-                request.put("addr-tag", tagValue); // only for XRP?
-            }
-            List<Object> networkCodeparamsNetworkVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsTag));
-            String networkCode = (String) ((List<Object>) networkCodeparamsNetworkVariable).get(0);
-            Map<String, Object> paramsNetwork = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkVariable).get(1);
-            if (!java.util.Objects.equals(networkCode, null))
-            {
-                request.put("chain", this.networkCodeToId(networkCode, code));
-            }
-            String amountPrecision = (String) this.currencyToPrecision((String) (code), amount, networkCode);
-            if (java.util.Objects.equals(amountPrecision, null))
-            {
-                amountPrecision = "0";
-            }
-            Double amountValue = this.parseNumber(amountPrecision);
-            Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-            Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
-            Map<String, Object> paramsFee = paramsNetwork;
-            if (Boolean.TRUE.equals(includeFee))
-            {
-                paramsFee = this.omit(paramsNetwork, "fee");
-            }
-            if (Boolean.TRUE.equals(includeFee))
-            {
-                Double fee = this.safeNumber(paramsNetwork, "fee", (Object) null);
+                Map<String, Object> currencies = (this.fetchCurrencies(new HashMap<String, Object>() {{}})).join();
+                this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
+                Map<String, Object> targetNetwork = this.safeDict(currency.get("networks"), networkCode, new HashMap<String, Object>() {{}});
+                fee = this.safeNumber(targetNetwork, "fee", null);
                 if (java.util.Objects.equals(fee, null))
                 {
-                    Object currencies = (this.fetchCurrencies(new HashMap<String, Object>() {{}})).join();
-                    this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-                    Map<String, Object> targetNetwork = this.safeDict(currency.get("networks"), networkCode, new HashMap<String, Object>() {{}});
-                    fee = this.safeNumber(targetNetwork, "fee", (Object) null);
-                    if (java.util.Objects.equals(fee, null))
-                    {
-                        throw new ArgumentsRequired((this.id + " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter")) ;
-                    }
+                    throw new ArgumentsRequired((this.id + " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter")) ;
                 }
-                // fee needs to be deducted from whole amount
-                String feeString = (String) this.currencyToPrecision((String) (code), fee, networkCode);
-                String amountString = this.numberToString(amountValue);
-                String amountSubtractedString = Precise.stringSub(amountString, feeString);
-                String amountSubtractedParsed = amountSubtractedString;
-                if (java.util.Objects.equals(amountSubtractedParsed, null))
-                {
-                    amountSubtractedParsed = "0";
-                }
-                String feeParsed = feeString;
-                if (java.util.Objects.equals(feeParsed, null))
-                {
-                    feeParsed = "0";
-                }
-                request.put("fee", this.parseNumber(feeParsed));
-                String amountAfterFee = (String) this.currencyToPrecision((String) (code), this.parseNumber(amountSubtractedParsed), networkCode);
-                if (java.util.Objects.equals(amountAfterFee, null))
-                {
-                    amountAfterFee = "0";
-                }
-                amountValue = this.parseNumber(amountAfterFee);
             }
-            request.put("amount", amountValue);
-            Map<String, Object> response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, paramsFee))).join();
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": "99562054"
-            //     }
-            //
-            return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+            // fee needs to be deducted from whole amount
+            String feeString = (String) this.currencyToPrecision(code, fee, networkCode);
+            String amountString = this.numberToString(amountValue);
+            String amountSubtractedString = Precise.stringSub(amountString, feeString);
+            String amountSubtractedParsed = amountSubtractedString;
+            if (java.util.Objects.equals(amountSubtractedParsed, null))
+            {
+                amountSubtractedParsed = "0";
+            }
+            String feeParsed = feeString;
+            if (java.util.Objects.equals(feeParsed, null))
+            {
+                feeParsed = "0";
+            }
+            request.put("fee", this.parseNumber(feeParsed));
+            String amountAfterFee = (String) this.currencyToPrecision(code, this.parseNumber(amountSubtractedParsed), networkCode);
+            if (java.util.Objects.equals(amountAfterFee, null))
+            {
+                amountAfterFee = "0";
+            }
+            amountValue = this.parseNumber(amountAfterFee);
+        }
+        request.put("amount", amountValue);
+        Map<String, Object> response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, paramsFee))).join();
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "99562054"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
 
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -8516,7 +8615,7 @@ public class Htx extends HtxApi
         String id = this.safeString2(transfer, "transfer_id", "data");
         String currencyId = this.safeString(transfer, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Double amount = this.safeNumber(transfer, "amount", (Object) null);
+        Double amount = this.safeNumber(transfer, "amount", null);
         Long timestamp = this.safeInteger(transfer, "transfer_time");
         String fromAccountRaw = this.safeString(transfer, "from_account_type");
         String toAccountRaw = this.safeString(transfer, "to_account_type");
@@ -8569,106 +8668,108 @@ public class Htx extends HtxApi
      * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
+    }
+
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        String transferAmount = (String) this.currencyToPrecision(code, amount, null);
+        if (java.util.Objects.equals(transferAmount, null))
+        {
+            transferAmount = "0";
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("currency", currency.get("id"));
+        request.put("amount", this.parseNumber(transferAmount));
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", null, parameters, null);
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        String fromAccountId = this.convertTypeToAccount(fromAccount);
+        String toAccountId = this.convertTypeToAccount(toAccount);
+        String fromAccountIdStr = fromAccountId;
+        String toAccountIdStr = toAccountId;
+        Boolean toCross = java.util.Objects.equals(toAccountIdStr, "cross");
+        Boolean fromCross = java.util.Objects.equals(fromAccountIdStr, "cross");
+        Boolean toIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(toAccountIdStr, this.ids));
+        Boolean fromIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(fromAccountIdStr, this.ids));
+        Boolean fromSpot = java.util.Objects.equals(fromAccountIdStr, "pro");
+        Boolean toSpot = java.util.Objects.equals(toAccountIdStr, "pro");
+        if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toSpot))
+        {
+            throw new BadRequest(((((this.id + " transfer () cannot make a transfer between ") + fromAccount) + " and ") + toAccount)) ;
+        }
+        Boolean fromOrToFuturesAccount = (java.util.Objects.equals(fromAccountIdStr, "futures")) || (java.util.Objects.equals(toAccountIdStr, "futures"));
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(fromOrToFuturesAccount))
+        {
+            String type = ((fromAccountIdStr + "-to-") + toAccountIdStr);
+            type = this.safeString(paramsSubType, "type", type);
+            request.put("type", type);
+            response = (this.spotPrivatePostV1FuturesTransfer(this.extend(request, paramsSubType))).join();
+        } else if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toCross))
+        {
+            response = (this.privatePostCrossMarginTransferIn(this.extend(request, paramsSubType))).join();
+        } else if (Boolean.TRUE.equals(fromCross) && Boolean.TRUE.equals(toSpot))
+        {
+            response = (this.privatePostCrossMarginTransferOut(this.extend(request, paramsSubType))).join();
+        } else if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toIsolated))
+        {
+            request.put("symbol", toAccountId);
+            response = (this.privatePostDwTransferInMargin(this.extend(request, paramsSubType))).join();
+        } else if (Boolean.TRUE.equals(fromIsolated) && Boolean.TRUE.equals(toSpot))
+        {
+            request.put("symbol", fromAccountId);
+            response = (this.privatePostDwTransferOutMargin(this.extend(request, paramsSubType))).join();
+        } else
+        {
+            Map<String, Object> query = paramsSubType;
+            if (java.util.Objects.equals(subType, "linear"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            String transferAmount = (String) this.currencyToPrecision((String) (code), amount, (String) null);
-            if (java.util.Objects.equals(transferAmount, null))
-            {
-                transferAmount = "0";
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("currency", currency.get("id"));
-            request.put("amount", this.parseNumber(transferAmount));
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Object fromAccountId = this.convertTypeToAccount(fromAccount);
-            Object toAccountId = this.convertTypeToAccount(toAccount);
-            Object fromAccountIdStr = fromAccountId;
-            Object toAccountIdStr = toAccountId;
-            Boolean toCross = java.util.Objects.equals(toAccountIdStr, "cross");
-            Boolean fromCross = java.util.Objects.equals(fromAccountIdStr, "cross");
-            Boolean toIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(toAccountIdStr, this.ids));
-            Boolean fromIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(fromAccountIdStr, this.ids));
-            Boolean fromSpot = java.util.Objects.equals(fromAccountIdStr, "pro");
-            Boolean toSpot = java.util.Objects.equals(toAccountIdStr, "pro");
-            if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toSpot))
-            {
-                throw new BadRequest(((((this.id + " transfer () cannot make a transfer between ") + fromAccount) + " and ") + toAccount)) ;
-            }
-            Boolean fromOrToFuturesAccount = (java.util.Objects.equals(fromAccountIdStr, "futures")) || (java.util.Objects.equals(toAccountIdStr, "futures"));
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(fromOrToFuturesAccount))
-            {
-                String type = ((fromAccountIdStr + "-to-") + toAccountIdStr);
-                type = this.safeString(paramsSubType, "type", type);
-                request.put("type", type);
-                response = (this.spotPrivatePostV1FuturesTransfer(this.extend(request, paramsSubType))).join();
-            } else if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toCross))
-            {
-                response = (this.privatePostCrossMarginTransferIn(this.extend(request, paramsSubType))).join();
-            } else if (Boolean.TRUE.equals(fromCross) && Boolean.TRUE.equals(toSpot))
-            {
-                response = (this.privatePostCrossMarginTransferOut(this.extend(request, paramsSubType))).join();
-            } else if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toIsolated))
-            {
-                request.put("symbol", toAccountId);
-                response = (this.privatePostDwTransferInMargin(this.extend(request, paramsSubType))).join();
-            } else if (Boolean.TRUE.equals(fromIsolated) && Boolean.TRUE.equals(toSpot))
-            {
-                request.put("symbol", fromAccountId);
-                response = (this.privatePostDwTransferOutMargin(this.extend(request, paramsSubType))).join();
-            } else
-            {
-                Map<String, Object> query = paramsSubType;
-                if (java.util.Objects.equals(subType, "linear"))
+                if ((java.util.Objects.equals(fromAccountIdStr, "swap")) || (java.util.Objects.equals(fromAccount, "linear-swap")))
                 {
-                    if ((java.util.Objects.equals(fromAccountIdStr, "swap")) || (java.util.Objects.equals(fromAccount, "linear-swap")))
-                    {
-                        fromAccountId = "linear-swap";
-                    } else
-                    {
-                        toAccountId = "linear-swap";
-                    }
-                    // check if cross-margin or isolated
-                    String symbol = this.safeString(paramsSubType, "symbol");
-                    query = this.omit(paramsSubType, "symbol");
-                    if (!java.util.Objects.equals(symbol, null))
-                    {
-                        symbol = this.marketId(symbol);
-                        request.put("margin-account", symbol);
-                    } else
-                    {
-                        request.put("margin-account", "USDT"); // cross-margin
-                    }
+                    fromAccountId = "linear-swap";
+                } else
+                {
+                    toAccountId = "linear-swap";
                 }
-                request.put("from", ((Boolean.TRUE.equals(fromSpot))) ? "spot" : fromAccountId);
-                request.put("to", ((Boolean.TRUE.equals(toSpot))) ? "spot" : toAccountId);
-                response = (this.v2PrivatePostAccountTransfer(this.extend(request, query))).join();
+                // check if cross-margin or isolated
+                String symbol = this.safeString(paramsSubType, "symbol");
+                query = this.omit(paramsSubType, "symbol");
+                if (!java.util.Objects.equals(symbol, null))
+                {
+                    symbol = this.marketId(symbol);
+                    request.put("margin-account", symbol);
+                } else
+                {
+                    request.put("margin-account", "USDT"); // cross-margin
+                }
             }
-            //
-            //    {
-            //        "code": "200",
-            //        "data": "660150061",
-            //        "message": "Succeed",
-            //        "success": true,
-            //        "print-log": true
-            //    }
-            //
-            if (java.util.Objects.equals(response, null))
-            {
-                throw new NullResponse((this.id + " parseTransfer() returned empty response")) ;
-            }
-            return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+            request.put("from", ((Boolean.TRUE.equals(fromSpot))) ? "spot" : fromAccountId);
+            request.put("to", ((Boolean.TRUE.equals(toSpot))) ? "spot" : toAccountId);
+            response = (this.v2PrivatePostAccountTransfer(this.extend(request, query))).join();
+        }
+        //
+        //    {
+        //        "code": "200",
+        //        "data": "660150061",
+        //        "message": "Succeed",
+        //        "success": true,
+        //        "print-log": true
+        //    }
+        //
+        if (java.util.Objects.equals(response, null))
+        {
+            throw new NullResponse((this.id + " parseTransfer() returned empty response")) ;
+        }
+        return this.parseTransfer(response, currency);
 
     }
 
@@ -8689,58 +8790,60 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTransfersCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTransfersCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", currency.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", since);
-            }
-            Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_time", until);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Map<String, Object> response = (this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "id": 12345,
-            //                 "transfer_id": "12345",
-            //                 "amount": "10",
-            //                 "currency": "USDT",
-            //                 "status": "success",
-            //                 "from_account_type": "spot",
-            //                 "to_account_type": "margin",
-            //                 "from_asset_type": "",
-            //                 "to_asset_type": "ETHUSDT",
-            //                 "transfer_time": 1770357494000
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+            request.put("currency", currency.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", since);
+        }
+        Long until = this.safeInteger(parameters, "until");
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_time", until);
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Map<String, Object> response = (this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": 12345,
+        //                 "transfer_id": "12345",
+        //                 "amount": "10",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "from_account_type": "spot",
+        //                 "to_account_type": "margin",
+        //                 "from_asset_type": "",
+        //                 "to_asset_type": "ETHUSDT",
+        //                 "transfer_time": 1770357494000
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -8754,46 +8857,48 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRates(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchIsolatedBorrowRatesCore(parameters)).thenApply(IsolatedBorrowRates::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchIsolatedBorrowRatesCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.spotPrivateGetV1MarginLoanInfo(parameters)).join();
-            //
-            // {
-            //     "status": "ok",
-            //     "data": [
-            //         {
-            //             "symbol": "1inchusdt",
-            //             "currencies": [
-            //                 {
-            //                     "currency": "1inch",
-            //                     "interest-rate": "0.00098",
-            //                     "min-loan-amt": "90.000000000000000000",
-            //                     "max-loan-amt": "1000.000000000000000000",
-            //                     "loanable-amt": "0.0",
-            //                     "actual-rate": "0.00098"
-            //                 },
-            //                 {
-            //                     "currency": "usdt",
-            //                     "interest-rate": "0.00098",
-            //                     "min-loan-amt": "100.000000000000000000",
-            //                     "max-loan-amt": "1000.000000000000000000",
-            //                     "loanable-amt": "0.0",
-            //                     "actual-rate": "0.00098"
-            //                 }
-            //             ]
-            //         },
-            //         ...
-            //     ]
-            // }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIsolatedBorrowRates(data);
-        }).thenApply(IsolatedBorrowRates::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.spotPrivateGetV1MarginLoanInfo(parameters)).join();
+        //
+        // {
+        //     "status": "ok",
+        //     "data": [
+        //         {
+        //             "symbol": "1inchusdt",
+        //             "currencies": [
+        //                 {
+        //                     "currency": "1inch",
+        //                     "interest-rate": "0.00098",
+        //                     "min-loan-amt": "90.000000000000000000",
+        //                     "max-loan-amt": "1000.000000000000000000",
+        //                     "loanable-amt": "0.0",
+        //                     "actual-rate": "0.00098"
+        //                 },
+        //                 {
+        //                     "currency": "usdt",
+        //                     "interest-rate": "0.00098",
+        //                     "min-loan-amt": "100.000000000000000000",
+        //                     "max-loan-amt": "1000.000000000000000000",
+        //                     "loanable-amt": "0.0",
+        //                     "actual-rate": "0.00098"
+        //                 }
+        //             ]
+        //         },
+        //         ...
+        //     ]
+        // }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseIsolatedBorrowRates(data);
 
     }
 
@@ -8823,7 +8928,7 @@ public class Htx extends HtxApi
         //     },
         //
         String marketId = this.safeString(info, "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         List<Object> currencies = this.safeList(info, "currencies", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> baseData = this.safeDict(currencies, 0, null);
         Map<String, Object> quoteData = this.safeDict(currencies, 1, null);
@@ -8831,10 +8936,10 @@ public class Htx extends HtxApi
         String quoteId = this.safeString(quoteData, "currency");
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "base", Htx.this.safeCurrencyCode(baseId, (Map<String, Object>) null) );
-            put( "baseRate", Htx.this.safeNumber(baseData, "actual-rate", (Object) null) );
-            put( "quote", Htx.this.safeCurrencyCode(quoteId, (Map<String, Object>) null) );
-            put( "quoteRate", Htx.this.safeNumber(quoteData, "actual-rate", (Object) null) );
+            put( "base", Htx.this.safeCurrencyCode(baseId, null) );
+            put( "baseRate", Htx.this.safeNumber(baseData, "actual-rate", null) );
+            put( "quote", Htx.this.safeCurrencyCode(quoteId, null) );
+            put( "quoteRate", Htx.this.safeNumber(quoteData, "actual-rate", null) );
             put( "period", 86400000 );
             put( "timestamp", null );
             put( "datetime", null );
@@ -8859,111 +8964,115 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                if (Boolean.TRUE.equals(market.get("linear")))
-                {
-                    return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100L, true)).join();
-                }
-                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1L, 50L)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "contract_code", market.get("id") );
-            }};
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("limit", Math.min(limit, 100)); // max 100
-                }
-                if (!java.util.Objects.equals(since, null))
-                {
-                    request.put("start_time", since);
-                }
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100L, true)).join();
+            }
+            return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1L, 50L)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "contract_code", market.get("id") );
+        }};
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("limit", Math.min(limit, 100)); // max 100
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", since);
+            }
+        } else
+        {
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("page_size", limit);
             } else
             {
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("page_size", limit);
-                } else
-                {
-                    request.put("page_size", 50); // max
-                }
+                request.put("page_size", 50); // max
             }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        {
+            response = (this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, paramsPaginate))).join();
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, paramsPaginate, 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+            response = (this.contractPublicGetV5MarketFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchFundingRateHistory() supports inverse and linear swaps only")) ;
+        }
+        Object data = this.safeValue(response, "data");
+        List<Object> rates = new ArrayList<Object>(Arrays.asList());
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            List<Object> linearRates = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < linearRates.size(); i++)
             {
-                response = (this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, paramsPaginate))).join();
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsPaginate), 1);
-                Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-                Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-                response = (this.contractPublicGetV5MarketFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchFundingRateHistory() supports inverse and linear swaps only")) ;
+                Object entry = (linearRates == null || i < 0 || i >= linearRates.size() ? null : linearRates.get(i));
+                String marketId = this.safeString(entry, "contract_code");
+                String symbolInner = this.safeSymbol(marketId, market, null, null);
+                Long timestamp = this.safeInteger(entry, "funding_time");
+                rates.add(new HashMap<String, Object>() {{
+                    put( "info", entry );
+                    put( "symbol", symbolInner );
+                    put( "fundingRate", Htx.this.safeNumber(entry, "funding_rate", null) );
+                    put( "timestamp", timestamp );
+                    put( "datetime", Htx.this.iso8601(timestamp) );
+                }});
             }
-            Object data = this.safeValue(response, "data");
-            List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        } else
+        {
+            String cursor = this.safeString(data, "current_page");
+            List<Object> result = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < result.size(); i++)
             {
-                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
-                {
-                    Object entry = Helpers.GetValue(data, i);
-                    String marketId = this.safeString(entry, "contract_code");
-                    String symbolInner = this.safeSymbol(marketId, market, (String) null, (String) null);
-                    Long timestamp = this.safeInteger(entry, "funding_time");
-                    ((List<Object>)rates).add(new HashMap<String, Object>() {{
-                        put( "info", entry );
-                        put( "symbol", symbolInner );
-                        put( "fundingRate", Htx.this.safeNumber(entry, "funding_rate", (Object) null) );
-                        put( "timestamp", timestamp );
-                        put( "datetime", Htx.this.iso8601(timestamp) );
-                    }});
-                }
-            } else
-            {
-                Object cursor = this.safeValue(data, "current_page");
-                List<Object> result = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < result.size(); i++)
-                {
-                    Map<String, Object> entry = (Map<String, Object>) (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                    Helpers.addElementToObject(entry, "current_page", cursor);
-                    String marketId = this.safeString(entry, "contract_code");
-                    String symbolInner = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                    Long timestamp = this.safeInteger(entry, "funding_time");
-                    ((List<Object>)rates).add(new HashMap<String, Object>() {{
-                        put( "info", entry );
-                        put( "symbol", symbolInner );
-                        put( "fundingRate", Htx.this.safeNumber(entry, "funding_rate", (Object) null) );
-                        put( "timestamp", timestamp );
-                        put( "datetime", Htx.this.iso8601(timestamp) );
-                    }});
-                }
+                Map<String, Object> entry = this.extend((result == null || i < 0 || i >= result.size() ? null : result.get(i)), new HashMap<String, Object>() {{
+                    put( "current_page", cursor );
+                }});
+                String marketId = this.safeString(entry, "contract_code");
+                String symbolInner = this.safeSymbol(marketId, null, null, null);
+                Long timestamp = this.safeInteger(entry, "funding_time");
+                rates.add(new HashMap<String, Object>() {{
+                    put( "info", entry );
+                    put( "symbol", symbolInner );
+                    put( "fundingRate", Htx.this.safeNumber(entry, "funding_rate", null) );
+                    put( "timestamp", timestamp );
+                    put( "datetime", Htx.this.iso8601(timestamp) );
+                }});
             }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        }
+        List<Object> sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
 
     }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         // inverse swap
@@ -8989,14 +9098,14 @@ public class Htx extends HtxApi
         //         "max_funding_rate": "0.003750000000000000"
         //     }
         //
-        Double nextFundingRate = this.safeNumber(contract, "estimated_rate", (Object) null);
+        Double nextFundingRate = this.safeNumber(contract, "estimated_rate", null);
         Long fundingTimestamp = this.safeInteger(contract, "funding_time");
         Long nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
         String fundingTimeString = this.safeString(contract, "funding_time");
         String nextFundingTimeString = this.safeString(contract, "next_funding_time");
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         String marketId = this.safeString(contract, "contract_code");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -9006,7 +9115,7 @@ public class Htx extends HtxApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Htx.this.safeNumber(contract, "funding_rate", (Object) null) );
+            put( "fundingRate", Htx.this.safeNumber(contract, "funding_rate", null) );
             put( "fundingTimestamp", fundingTimestamp );
             put( "fundingDatetime", Htx.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", nextFundingRate );
@@ -9043,39 +9152,41 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "contract_code", market.get("id") );
-            }};
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-            {
-                response = (this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters))).join();
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                response = (this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchFundingRate() supports inverse and linear swaps only")) ;
-            }
-            Map<String, Object> result = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            } else
-            {
-                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            }
-            return this.parseFundingRate(result, market);
-        }).thenApply(FundingRate::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "contract_code", market.get("id") );
+        }};
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        {
+            response = (this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters))).join();
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            response = (this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchFundingRate() supports inverse and linear swaps only")) ;
+        }
+        Map<String, Object> result = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        } else
+        {
+            result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        }
+        return this.parseFundingRate(result, market);
 
     }
 
@@ -9090,59 +9201,61 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRatesCore(symbols, parameters)).thenApply(FundingRates::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRatesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String defaultSubType = "linear";
-            Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingRates", "subType", defaultSubType);
-            String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
-            Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
-            String subType = subTypeOption;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                String firstSymbol = this.safeString(symbolsNormalized, 0);
-                Map<String, Object> market = this.market(firstSymbol);
-                Boolean isLinear = (Boolean) market.get("linear");
-                subType = (((java.util.Objects.equals(isLinear, true)))) ? "linear" : "inverse";
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(subType, "linear"))
-            {
-                throw new NotSupported((this.id + " fetchFundingRates() not support this market type")) ;
-            } else if (java.util.Objects.equals(subType, "inverse"))
-            {
-                response = (this.contractPublicGetSwapApiV1SwapBatchFundingRate(this.extend(request, paramsSubType))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchFundingRates() not support this market type")) ;
-            }
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "estimated_rate": "0.000100000000000000",
-            //                 "funding_rate": "0.000100000000000000",
-            //                 "contract_code": "MANA-USDT",
-            //                 "symbol": "MANA",
-            //                 "fee_asset": "USDT",
-            //                 "funding_time": "1643356800000",
-            //                 "next_funding_time": "1643385600000",
-            //                 "trade_partition":"USDT"
-            //             },
-            //         ],
-            //         "ts": 1643346173103
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, symbolsNormalized);
-        }).thenApply(FundingRates::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        String defaultSubType = "linear";
+        Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
+        Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
+        String subType = subTypeOption;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            String firstSymbol = this.safeString(symbolsNormalized, 0);
+            Map<String, Object> market = this.market(firstSymbol);
+            Boolean isLinear = (Boolean) market.get("linear");
+            subType = (((java.util.Objects.equals(isLinear, true)))) ? "linear" : "inverse";
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(subType, "linear"))
+        {
+            throw new NotSupported((this.id + " fetchFundingRates() not support this market type")) ;
+        } else if (java.util.Objects.equals(subType, "inverse"))
+        {
+            response = (this.contractPublicGetSwapApiV1SwapBatchFundingRate(this.extend(request, paramsSubType))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchFundingRates() not support this market type")) ;
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "estimated_rate": "0.000100000000000000",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "contract_code": "MANA-USDT",
+        //                 "symbol": "MANA",
+        //                 "fee_asset": "USDT",
+        //                 "funding_time": "1643356800000",
+        //                 "next_funding_time": "1643385600000",
+        //                 "trade_partition":"USDT"
+        //             },
+        //         ],
+        //         "ts": 1643346173103
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseFundingRates(data, symbolsNormalized);
 
     }
 
@@ -9161,74 +9274,76 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowInterestCore(code, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBorrowInterestCore(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, null);
+        String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start-date", this.yyyymmdd(since));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("size", limit);
+        }
+        Map<String, Object> market = null;
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marginModeOption, "isolated"))
+        {
+            if (!java.util.Objects.equals(symbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                market = this.market(symbol);
+                request.put("symbol", market.get("id"));
             }
-            Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, (String) null);
-            String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
-            Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(since, null))
+            response = (this.privateGetMarginLoanOrders(this.extend(request, paramsMarginMode))).join();
+        } else
+        {
+            if (!java.util.Objects.equals(code, null))
             {
-                request.put("start-date", this.yyyymmdd(since));
+                Map<String, Object> currency = this.currency(code);
+                request.put("currency", currency.get("id"));
             }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("size", limit);
-            }
-            Map<String, Object> market = null;
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marginModeOption, "isolated"))
-            {
-                if (!java.util.Objects.equals(symbol, null))
-                {
-                    market = this.market(symbol);
-                    request.put("symbol", market.get("id"));
-                }
-                response = (this.privateGetMarginLoanOrders(this.extend(request, paramsMarginMode))).join();
-            } else
-            {
-                if (!java.util.Objects.equals(code, null))
-                {
-                    Map<String, Object> currency = this.currency((String) (code));
-                    request.put("currency", currency.get("id"));
-                }
-                response = (this.privateGetCrossMarginLoanOrders(this.extend(request, paramsMarginMode))).join();
-            }
-            //
-            //    {
-            //        "status":"ok",
-            //        "data":[
-            //            {
-            //                "loan-balance":"0.100000000000000000",
-            //                "interest-balance":"0.000200000000000000",
-            //                "loan-amount":"0.100000000000000000",
-            //                "accrued-at":1511169724531,
-            //                "interest-amount":"0.000200000000000000",
-            //                "filled-points":"0.2",
-            //                "filled-ht":"0.2",
-            //                "currency":"btc",
-            //                "id":394,
-            //                "state":"accrual",
-            //                "account-id":17747,
-            //                "user-id":119913,
-            //                "created-at":1511169724531
-            //            }
-            //        ]
-            //    }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> interest = this.parseBorrowInterests(data, market);
-            return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+            response = (this.privateGetCrossMarginLoanOrders(this.extend(request, paramsMarginMode))).join();
+        }
+        //
+        //    {
+        //        "status":"ok",
+        //        "data":[
+        //            {
+        //                "loan-balance":"0.100000000000000000",
+        //                "interest-balance":"0.000200000000000000",
+        //                "loan-amount":"0.100000000000000000",
+        //                "accrued-at":1511169724531,
+        //                "interest-amount":"0.000200000000000000",
+        //                "filled-points":"0.2",
+        //                "filled-ht":"0.2",
+        //                "currency":"btc",
+        //                "id":394,
+        //                "state":"accrual",
+        //                "account-id":17747,
+        //                "user-id":119913,
+        //                "created-at":1511169724531
+        //            }
+        //        ]
+        //    }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> interest = this.parseBorrowInterests(data, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         // isolated
         //    {
@@ -9277,17 +9392,17 @@ public class Htx extends HtxApi
         {
             marginMode = "cross";
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(info, "accrued-at");
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("info", info);
             h2kMap3.put("symbol", symbol);
-            h2kMap3.put("currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null));
-            h2kMap3.put("interest", this.safeNumber(info, "interest-amount", (Object) null));
-            h2kMap3.put("interestRate", this.safeNumber(info, "interest-rate", (Object) null));
-            h2kMap3.put("amountBorrowed", this.safeNumber(info, "loan-amount", (Object) null));
+            h2kMap3.put("currency", this.safeCurrencyCode(this.safeString(info, "currency"), null));
+            h2kMap3.put("interest", this.safeNumber(info, "interest-amount", null));
+            h2kMap3.put("interestRate", this.safeNumber(info, "interest-rate", null));
+            h2kMap3.put("amountBorrowed", this.safeNumber(info, "loan-amount", null));
             h2kMap3.put("marginMode", marginMode);
             h2kMap3.put("timestamp", timestamp);
             h2kMap3.put("datetime", this.iso8601(timestamp));
@@ -9297,14 +9412,14 @@ public class Htx extends HtxApi
 
     public Long nonce()
     {
-        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
+        return (long) ((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> signedHeaders = null;
         String signedBody = null;
-        Object pathString = path;
+        String pathString = path;
         String url = "/";
         Boolean isArrayParams = (parameters instanceof List);
         Object query = new HashMap<String, Object>() {{}};
@@ -9312,7 +9427,7 @@ public class Htx extends HtxApi
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        Integer apiLength = ((List<?>)api).size();
+        Integer apiLength = api.size();
         if (java.util.Objects.equals(apiLength, 1))
         {
             // signing implementation for the old endpoints
@@ -9344,7 +9459,7 @@ public class Htx extends HtxApi
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), this.hostname, url, auth));
                 String payload = String.join("\n", (List<String>)content); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9452,11 +9567,11 @@ public class Htx extends HtxApi
                     Map<String,Object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                String auth = Helpers.replace(((String)this.urlencode(request, true)), "%2c", "%2C"); // in c# it manually needs to be uppercased
+                String auth = this.urlencode(request, true).replaceFirst("%2c", "%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), hostname, url, auth));
                 String payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9471,10 +9586,13 @@ public class Htx extends HtxApi
                     {
                         bodyRequest = query;
                     }
-                    signedBody = this.json(bodyRequest);
-                    if (!Boolean.TRUE.equals(isArrayParams) && ((signedBody.length() == 2)))
+                    String bodyJson = this.json(bodyRequest);
+                    if (!Boolean.TRUE.equals(isArrayParams) && ((bodyJson.length() == 2)))
                     {
                         signedBody = "{}";
+                    } else
+                    {
+                        signedBody = bodyJson;
                     }
                     signedHeaders = new HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );
@@ -9508,35 +9626,36 @@ public class Htx extends HtxApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v20 -> j39v20.contains("status"); case Map<?, ?> j39v19 -> j39v19.containsKey("status"); case null, default -> false; }))
+        String status = this.safeString(response, "status");
+        if (!java.util.Objects.equals(status, null))
         {
             //
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            String status = this.safeString(response, "status");
             if (java.util.Objects.equals(status, "error"))
             {
                 String codeError = this.safeString2(response, "err-code", "err_code");
                 String feedback = ((this.id + " ") + body);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
                 this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
                 String message = this.safeString2(response, "err-msg", "err_msg");
                 this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }
-        if ((switch ((Object)(response)) { case List<?> j39v18 -> j39v18.contains("code"); case Map<?, ?> j39v17 -> j39v17.containsKey("code"); case null, default -> false; }))
+        String responseCode = this.safeString(response, "code");
+        if (!java.util.Objects.equals(responseCode, null))
         {
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
-            String codeError = this.safeString(response, "code");
+            String codeError = responseCode;
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
         }
         Map<String, Object> data = this.safeDict(response, "data", null);
@@ -9569,81 +9688,85 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Map<String, Object> initialRequest = new HashMap<String, Object>() {{
+            put( "type", "30,31" );
+        }};
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", initialRequest, paramsMarketType, 1);
+        Map<String, Object> request = requestparamsUntilVariable.first();
+        Map<String, Object> paramsUntil = requestparamsUntilVariable.second();
+        if (!java.util.Objects.equals(since, null))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> initialRequest = new HashMap<String, Object>() {{
-                put( "type", "30,31" );
-            }};
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("end_time", initialRequest, (Map<String, Object>) (paramsMarketType), 1);
-            Map<String, Object> request = requestparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestparamsUntilVariable.second();
-            if (!java.util.Objects.equals(since, null))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    ((Map<String, Object>)request).put("start_time", since);
-                } else
-                {
-                    ((Map<String, Object>)request).put("start_date", since);
-                }
-            }
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "swap"))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
-                    String marginMode = marginModeparamsMarginModeVariable.first();
-                    Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-                    request.put("margin_mode", marginMode);
-                    request.put("contract_code", market.get("id"));
-                    if (!java.util.Objects.equals(limit, null))
-                    {
-                        ((Map<String, Object>)request).put("limit", limit);
-                    }
-                    response = (this.contractPrivateGetV5AccountBills(this.extend(request, paramsMarginMode))).join();
-                } else
-                {
-                    request.put("contract", market.get("id"));
-                    //
-                    //     {
-                    //         "code": 200,
-                    //         "msg": "",
-                    //         "data": [
-                    //             {
-                    //                 "query_id": 138798248,
-                    //                 "id": 117840,
-                    //                 "type": 5,
-                    //                 "amount": -0.024464850000000000,
-                    //                 "ts": 1638758435635,
-                    //                 "contract_code": "BTC-USDT-211210",
-                    //                 "asset": "USDT",
-                    //                 "margin_account": "USDT",
-                    //                 "face_margin_account": ""
-                    //             }
-                    //         ],
-                    //         "ts": 1604312615051
-                    //     }
-                    //
-                    response = (this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, paramsUntil))).join();
-                }
+                ((Map<String, Object>)request).put("start_time", since);
             } else
             {
-                request.put("symbol", market.get("id"));
-                response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, paramsUntil))).join();
+                ((Map<String, Object>)request).put("start_date", since);
             }
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+        }
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "swap"))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
+                String marginMode = marginModeparamsMarginModeVariable.first();
+                Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+                Map<String, Object> linearRequest = new HashMap<String, Object>() {{
+                    put( "margin_mode", marginMode );
+                    put( "contract_code", market.get("id") );
+                }};
+                if (!java.util.Objects.equals(limit, null))
+                {
+                    linearRequest.put("limit", limit);
+                }
+                response = (this.contractPrivateGetV5AccountBills(this.extend(this.extend(request, linearRequest), paramsMarginMode))).join();
+            } else
+            {
+                request.put("contract", market.get("id"));
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "",
+                //         "data": [
+                //             {
+                //                 "query_id": 138798248,
+                //                 "id": 117840,
+                //                 "type": 5,
+                //                 "amount": -0.024464850000000000,
+                //                 "ts": 1638758435635,
+                //                 "contract_code": "BTC-USDT-211210",
+                //                 "asset": "USDT",
+                //                 "margin_account": "USDT",
+                //                 "face_margin_account": ""
+                //             }
+                //         ],
+                //         "ts": 1604312615051
+                //     }
+                //
+                response = (this.contractPrivatePostSwapApiV3SwapFinancialRecordExact(this.extend(request, paramsUntil))).join();
+            }
+        } else
+        {
+            request.put("symbol", market.get("id"));
+            response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, paramsUntil))).join();
+        }
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseIncomes(data, market, since, limit);
 
     }
 
@@ -9660,63 +9783,65 @@ public class Htx extends HtxApi
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
+    }
+
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(symbol, null))
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("setLeverage", market, parameters, null);
+        String marketType = marketTypequeryVariable.first();
+        Map<String, Object> query = marketTypequeryVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "lever_rate", leverage );
+        }};
+        if (java.util.Objects.equals(marketType, "future") && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
+        {
+            request.put("symbol", market.get("settleId"));
+        } else
+        {
+            request.put("contract_code", market.get("id"));
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Pair<String, Map<String, Object>> marginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            String marginMode = marginModeVariable.first();
+            request.put("margin_mode", marginMode);
+            response = (this.contractPrivatePostV5PositionLever(this.extend(request, query))).join();
+        } else
+        {
+            if (java.util.Objects.equals(marketType, "future"))
             {
-                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
+                response = (this.contractPrivatePostApiV1ContractSwitchLeverRate(this.extend(request, query))).join();
+            } else if (java.util.Objects.equals(marketType, "swap"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("setLeverage", market, parameters, (String) null);
-            String marketType = marketTypequeryVariable.first();
-            Map<String, Object> query = marketTypequeryVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "lever_rate", leverage );
-            }};
-            if (java.util.Objects.equals(marketType, "future") && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
-            {
-                request.put("symbol", market.get("settleId"));
+                response = (this.contractPrivatePostSwapApiV1SwapSwitchLeverRate(this.extend(request, query))).join();
             } else
             {
-                request.put("contract_code", market.get("id"));
+                throw new NotSupported((this.id + " setLeverage() not support this market type")) ;
             }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                List<Object> marginModeAndParams = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-                String marginMode = (String) ((List<Object>)marginModeAndParams).get(0);
-                request.put("margin_mode", marginMode);
-                response = (this.contractPrivatePostV5PositionLever(this.extend(request, query))).join();
-            } else
-            {
-                if (java.util.Objects.equals(marketType, "future"))
-                {
-                    response = (this.contractPrivatePostApiV1ContractSwitchLeverRate(this.extend(request, query))).join();
-                } else if (java.util.Objects.equals(marketType, "swap"))
-                {
-                    response = (this.contractPrivatePostSwapApiV1SwapSwitchLeverRate(this.extend(request, query))).join();
-                } else
-                {
-                    throw new NotSupported((this.id + " setLeverage() not support this market type")) ;
-                }
-            }
-            if (java.util.Objects.equals(response, null))
-            {
-                throw new NullResponse((this.id + " setLeverage() returned empty response")) ;
-            }
-            return response;
-        });
+        }
+        if (java.util.Objects.equals(response, null))
+        {
+            throw new NullResponse((this.id + " setLeverage() returned empty response")) ;
+        }
+        return response;
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -9741,12 +9866,12 @@ public class Htx extends HtxApi
         //     }
         //
         String marketId = this.safeString(income, "contract_code");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        Double amount = this.safeNumber(income, "amount", (Object) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
+        Double amount = this.safeNumber(income, "amount", null);
         Long timestamp = (Long) this.safeInteger2(income, "ts", "created_time");
         String id = this.safeString(income, "id");
         String currencyId = this.safeStringN(income, new ArrayList<Object>(Arrays.asList("symbol", "asset", "currency")));
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         return new HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", symbol );
@@ -9758,7 +9883,7 @@ public class Htx extends HtxApi
         }};
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //    {
@@ -9818,12 +9943,12 @@ public class Htx extends HtxApi
         //         "updated_time": "1780903703234"
         //     }
         //
-        Map<String, Object> marketResolved = this.safeMarket(this.safeString(position, "contract_code"), (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(this.safeString(position, "contract_code"), null, null, null);
+        String symbol = this.safeString(marketResolved, "symbol");
         String contracts = this.safeString(position, "volume");
-        Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
+        Double contractSize = this.safeNumber(marketResolved, "contractSize", null);
         String contractSizeString = this.numberToString(contractSize);
-        Double entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price", (Object) null);
+        Double entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price", null);
         String initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         String rawSide = this.safeString(position, "direction");
         String directionSide = "short";
@@ -9839,7 +9964,7 @@ public class Htx extends HtxApi
         {
             side = rawPositionSide;
         }
-        Double unrealizedProfit = this.safeNumber(position, "profit_unreal", (Object) null);
+        Double unrealizedProfit = this.safeNumber(position, "profit_unreal", null);
         String marginMode = this.safeString(position, "margin_mode");
         String leverage = this.safeString(position, "lever_rate");
         String percentage = Precise.stringMul(this.safeString(position, "profit_rate"), "100");
@@ -9880,35 +10005,35 @@ public class Htx extends HtxApi
             marginRatio = marginRatioLinear;
         }
         Long timestamp = this.safeInteger(position, "created_time");
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("info", position);
-        mapLiteral8.put("id", null);
-        mapLiteral8.put("symbol", symbol);
-        mapLiteral8.put("contracts", this.parseNumber(contracts));
-        mapLiteral8.put("contractSize", contractSize);
-        mapLiteral8.put("entryPrice", entryPrice);
-        mapLiteral8.put("collateral", this.parseNumber(collateral));
-        mapLiteral8.put("side", side);
-        mapLiteral8.put("unrealizedPnl", unrealizedProfit);
-        mapLiteral8.put("leverage", this.parseNumber(leverage));
-        mapLiteral8.put("percentage", this.parseNumber(percentage));
-        mapLiteral8.put("marginMode", marginMode);
-        mapLiteral8.put("notional", this.parseNumber(notional));
-        mapLiteral8.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
-        mapLiteral8.put("lastPrice", this.parseNumber(lastPrice));
-        mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
-        mapLiteral8.put("initialMargin", this.parseNumber(initialMargin));
-        mapLiteral8.put("initialMarginPercentage", this.parseNumber(intialMarginPercentage));
-        mapLiteral8.put("maintenanceMargin", this.parseNumber(maintenanceMargin));
-        mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentageResult);
-        mapLiteral8.put("marginRatio", this.parseNumber(marginRatio));
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("hedged", null);
-        mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updated_time"));
-        mapLiteral8.put("stopLossPrice", null);
-        mapLiteral8.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral8);
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", position);
+        mapLiteral13.put("id", null);
+        mapLiteral13.put("symbol", symbol);
+        mapLiteral13.put("contracts", this.parseNumber(contracts));
+        mapLiteral13.put("contractSize", contractSize);
+        mapLiteral13.put("entryPrice", entryPrice);
+        mapLiteral13.put("collateral", this.parseNumber(collateral));
+        mapLiteral13.put("side", side);
+        mapLiteral13.put("unrealizedPnl", unrealizedProfit);
+        mapLiteral13.put("leverage", this.parseNumber(leverage));
+        mapLiteral13.put("percentage", this.parseNumber(percentage));
+        mapLiteral13.put("marginMode", marginMode);
+        mapLiteral13.put("notional", this.parseNumber(notional));
+        mapLiteral13.put("markPrice", this.safeNumber(position, "mark_price", null));
+        mapLiteral13.put("lastPrice", this.parseNumber(lastPrice));
+        mapLiteral13.put("liquidationPrice", this.safeNumber(position, "liquidation_price", null));
+        mapLiteral13.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral13.put("initialMarginPercentage", this.parseNumber(intialMarginPercentage));
+        mapLiteral13.put("maintenanceMargin", this.parseNumber(maintenanceMargin));
+        mapLiteral13.put("maintenanceMarginPercentage", maintenanceMarginPercentageResult);
+        mapLiteral13.put("marginRatio", this.parseNumber(marginRatio));
+        mapLiteral13.put("timestamp", timestamp);
+        mapLiteral13.put("datetime", this.iso8601(timestamp));
+        mapLiteral13.put("hedged", null);
+        mapLiteral13.put("lastUpdateTimestamp", this.safeInteger(position, "updated_time"));
+        mapLiteral13.put("stopLossPrice", null);
+        mapLiteral13.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral13);
     }
 
     /**
@@ -9927,66 +10052,68 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            Integer symbolsLength = symbolsNormalized.size();
+            if ((symbolsLength != null && symbolsLength > 0))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String first = this.safeString(symbolsNormalized, 0);
+                market = this.market(first);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
+        }
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, paramsSubType, null);
+        String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
+        String marketType = marketTypeOption;
+        if (java.util.Objects.equals(marketTypeOption, "spot"))
+        {
+            marketType = "future";
+        }
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(subType, "linear"))
+        {
+            response = (this.contractPrivateGetV5TradePositionOpens(paramsMarketType)).join();
+        } else
+        {
+            if (java.util.Objects.equals(marketType, "future"))
             {
-                Integer symbolsLength = symbolsNormalized.size();
-                if ((symbolsLength != null && symbolsLength > 0))
-                {
-                    String first = this.safeString(symbolsNormalized, 0);
-                    market = this.market(first);
-                }
-            }
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, paramsSubType, (String) null);
-            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
-            String marketType = marketTypeOption;
-            if (java.util.Objects.equals(marketTypeOption, "spot"))
+                response = (this.contractPrivatePostApiV1ContractPositionInfo(paramsMarketType)).join();
+            } else if (java.util.Objects.equals(marketType, "swap"))
             {
-                marketType = "future";
-            }
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(subType, "linear"))
-            {
-                response = (this.contractPrivateGetV5TradePositionOpens(paramsMarketType)).join();
+                response = (this.contractPrivatePostSwapApiV1SwapPositionInfo(paramsMarketType)).join();
             } else
             {
-                if (java.util.Objects.equals(marketType, "future"))
-                {
-                    response = (this.contractPrivatePostApiV1ContractPositionInfo(paramsMarketType)).join();
-                } else if (java.util.Objects.equals(marketType, "swap"))
-                {
-                    response = (this.contractPrivatePostSwapApiV1SwapPositionInfo(paramsMarketType)).join();
-                } else
-                {
-                    throw new NotSupported((this.id + " fetchPositions() not support this market type")) ;
-                }
+                throw new NotSupported((this.id + " fetchPositions() not support this market type")) ;
             }
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Long timestamp = this.safeInteger(response, "ts");
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> position = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(position, (Map<String, Object>) null);
-                ((List<Object>)result).add(this.extend(parsed, new HashMap<String, Object>() {{
-                    put( "timestamp", timestamp );
-                    put( "datetime", Htx.this.iso8601(timestamp) );
-                }}));
-            }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        }
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Long timestamp = this.safeInteger(response, "ts");
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> position = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> parsed = this.parsePosition(position, null);
+            result.add(this.extend(parsed, new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+                put( "datetime", Htx.this.iso8601(timestamp) );
+            }}));
+        }
+        return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
     }
 
@@ -10001,90 +10128,93 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionCore(symbol, parameters)).thenApply(Position::new);
+    }
+
+    private Object fetchPositionCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters, null);
+        String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
+        Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, paramsMarginMode, null);
+        String marketType = marketTypequeryVariable.first();
+        Map<String, Object> query = marketTypequeryVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (Boolean.TRUE.equals((this.safeBool(market, "future", false))) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
+        {
+            request.put("symbol", market.get("settleId"));
+        } else
+        {
+            if ((!Boolean.TRUE.equals(this.safeBool(market, "linear", false))) && ((java.util.Objects.equals(marginModeOption, null)) || (java.util.Objects.equals(marginModeOption, "cross"))))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                request.put("margin_account", "USDT"); // only allowed value
             }
-            Map<String, Object> market = this.market(symbol);
-            Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters, (String) null);
-            String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
-            Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
-            Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, paramsMarginMode, (String) null);
-            String marketType = marketTypequeryVariable.first();
-            Map<String, Object> query = marketTypequeryVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Boolean.TRUE.equals((this.safeBool(market, "future", false))) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
+            request.put("contract_code", market.get("id"));
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            response = (this.contractPrivateGetV5TradePositionOpens(this.extend(request, query))).join();
+        } else
+        {
+            if (java.util.Objects.equals(marketType, "future"))
             {
-                request.put("symbol", market.get("settleId"));
+                response = (this.contractPrivatePostApiV1ContractAccountPositionInfo(this.extend(request, query))).join();
+            } else if (java.util.Objects.equals(marketType, "swap"))
+            {
+                response = (this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query))).join();
             } else
             {
-                if ((!Boolean.TRUE.equals(this.safeBool(market, "linear", false))) && ((java.util.Objects.equals(marginModeOption, null)) || (java.util.Objects.equals(marginModeOption, "cross"))))
+                throw new NotSupported((this.id + " fetchPosition() not support this market type")) ;
+            }
+        }
+        Object data = this.safeValue(response, "data");
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            List<Object> positionRows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> positionRow = this.safeDict(positionRows, 0, new HashMap<String, Object>() {{}});
+            return this.parsePosition(positionRow, market);
+        }
+        Object account = null;
+        if ((java.util.Objects.equals(marginModeOption, null)) || (java.util.Objects.equals(marginModeOption, "cross")))
+        {
+            account = data;
+        } else
+        {
+            account = this.safeDict(data, 0, null);
+        }
+        Object omitted = this.omit(account, new ArrayList<Object>(Arrays.asList("positions")));
+        List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
+        Object position = null;
+        if (Boolean.TRUE.equals((this.safeBool(market, "future", false))) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
+        {
+            String marketId = this.safeString(market, "id");
+            for (var i = 0; i < positions.size(); i++)
+            {
+                Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                if (java.util.Objects.equals(this.safeString(entry, "contract_code"), marketId))
                 {
-                    request.put("margin_account", "USDT"); // only allowed value
+                    position = entry;
+                    break;
                 }
-                request.put("contract_code", market.get("id"));
             }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                response = (this.contractPrivateGetV5TradePositionOpens(this.extend(request, query))).join();
-            } else
-            {
-                if (java.util.Objects.equals(marketType, "future"))
-                {
-                    response = (this.contractPrivatePostApiV1ContractAccountPositionInfo(this.extend(request, query))).join();
-                } else if (java.util.Objects.equals(marketType, "swap"))
-                {
-                    response = (this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query))).join();
-                } else
-                {
-                    throw new NotSupported((this.id + " fetchPosition() not support this market type")) ;
-                }
-            }
-            Object data = this.safeValue(response, "data");
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                Map<String, Object> linearPosition = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-                return this.parsePosition(linearPosition, market);
-            }
-            Object account = null;
-            if ((java.util.Objects.equals(marginModeOption, null)) || (java.util.Objects.equals(marginModeOption, "cross")))
-            {
-                account = data;
-            } else
-            {
-                account = this.safeDict(data, 0, null);
-            }
-            Object omitted = this.omit(account, new ArrayList<Object>(Arrays.asList("positions")));
-            List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
-            Object position = null;
-            if (Boolean.TRUE.equals((this.safeBool(market, "future", false))) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
-            {
-                String marketId = this.safeString(market, "id");
-                for (var i = 0; i < positions.size(); i++)
-                {
-                    Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                    if (java.util.Objects.equals(this.safeString(entry, "contract_code"), marketId))
-                    {
-                        position = entry;
-                        break;
-                    }
-                }
-            } else
-            {
-                position = this.safeDict(positions, 0, null);
-            }
-            Long timestamp = this.safeInteger(response, "ts");
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.extend(position, omitted)), market);
-            parsed.put("timestamp", timestamp);
-            parsed.put("datetime", this.iso8601(timestamp));
-            return parsed;
-        }).thenApply(Position::new);
+        } else
+        {
+            position = this.safeDict(positions, 0, null);
+        }
+        Long timestamp = this.safeInteger(response, "ts");
+        Map<String, Object> parsed = this.parsePosition(this.extend(position, omitted), market);
+        parsed.put("timestamp", timestamp);
+        parsed.put("datetime", this.iso8601(timestamp));
+        return parsed;
 
     }
 
@@ -10109,7 +10239,7 @@ public class Htx extends HtxApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //     {
@@ -10140,7 +10270,7 @@ public class Htx extends HtxApi
             put( "referenceAccount", account );
             put( "type", Htx.this.parseLedgerEntryType(transferType) );
             put( "currency", code );
-            put( "amount", Htx.this.safeNumber(item, "transactAmt", (Object) null) );
+            put( "amount", Htx.this.safeNumber(item, "transactAmt", null) );
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
             put( "before", null );
@@ -10165,77 +10295,79 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLedgerCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLedgerCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500L, true)).join();
-            }
-            String accountId = (this.fetchAccountIdByType("spot", (String) null, (String) null, paramsPaginate)).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-            }};
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", currency.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("startTime", since);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit); // max 500
-            }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsPaginate), 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(requestUntil, paramsUntil))).join();
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "success",
-            //         "data": [
-            //             {
-            //                 "accountId": 10000001,
-            //                 "currency": "usdt",
-            //                 "transactAmt": 10.000000000000000000,
-            //                 "transactType": "transfer",
-            //                 "transferType": "margin-transfer-out",
-            //                 "transactId": 0,
-            //                 "transactTime": 1629882331066,
-            //                 "transferer": 28483123,
-            //                 "transferee": 13496526
-            //             },
-            //             {
-            //                 "accountId": 10000001,
-            //                 "currency": "usdt",
-            //                 "transactAmt": -10.000000000000000000,
-            //                 "transactType": "transfer",
-            //                 "transferType": "margin-transfer-in",
-            //                 "transactId": 0,
-            //                 "transactTime": 1629882096562,
-            //                 "transferer": 13496526,
-            //                 "transferee": 28483123
-            //             }
-            //         ],
-            //         "nextId": 1624316679,
-            //         "ok": true
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500L, true)).join();
+        }
+        String accountId = (this.fetchAccountIdByType("spot", null, null, paramsPaginate)).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+        }};
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+            request.put("currency", currency.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("startTime", since);
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit); // max 500
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, paramsPaginate, 1);
+        Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+        Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+        Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(requestUntil, paramsUntil))).join();
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "accountId": 10000001,
+        //                 "currency": "usdt",
+        //                 "transactAmt": 10.000000000000000000,
+        //                 "transactType": "transfer",
+        //                 "transferType": "margin-transfer-out",
+        //                 "transactId": 0,
+        //                 "transactTime": 1629882331066,
+        //                 "transferer": 28483123,
+        //                 "transferee": 13496526
+        //             },
+        //             {
+        //                 "accountId": 10000001,
+        //                 "currency": "usdt",
+        //                 "transactAmt": -10.000000000000000000,
+        //                 "transactType": "transfer",
+        //                 "transferType": "margin-transfer-in",
+        //                 "transactId": 0,
+        //                 "transactTime": 1629882096562,
+        //                 "transferer": 13496526,
+        //                 "transferee": 28483123
+        //             }
+        //         ],
+        //         "nextId": 1624316679,
+        //         "ok": true
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -10249,50 +10381,52 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLeverageTiersCore(symbols, parameters)).thenApply(LeverageTiers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLeverageTiersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(parameters)).join();
-            //
-            //    {
-            //        "status": "ok",
-            //        "data": [
-            //            {
-            //                "symbol": "MANA",
-            //                "contract_code": "MANA-USDT",
-            //                "margin_mode": "isolated",
-            //                "trade_partition": "USDT",
-            //                "list": [
-            //                    {
-            //                        "lever_rate": 75,
-            //                        "ladders": [
-            //                            {
-            //                                "ladder": 0,
-            //                                "min_size": 0,
-            //                                "max_size": 999,
-            //                                "adjust_factor": 0.7
-            //                            },
-            //                            ...
-            //                        ]
-            //                    }
-            //                    ...
-            //                ]
-            //            },
-            //            ...
-            //        ]
-            //    }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverageTiers(data, symbols, "contract_code");
-        }).thenApply(LeverageTiers::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(parameters)).join();
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "symbol": "MANA",
+        //                "contract_code": "MANA-USDT",
+        //                "margin_mode": "isolated",
+        //                "trade_partition": "USDT",
+        //                "list": [
+        //                    {
+        //                        "lever_rate": 75,
+        //                        "ladders": [
+        //                            {
+        //                                "ladder": 0,
+        //                                "min_size": 0,
+        //                                "max_size": 999,
+        //                                "adjust_factor": 0.7
+        //                            },
+        //                            ...
+        //                        ]
+        //                    }
+        //                    ...
+        //                ]
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseLeverageTiers(data, symbols, "contract_code");
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         String currencyId = this.safeString(info, "trade_partition");
         String marketId = this.safeString(info, "contract_code");
@@ -10307,12 +10441,12 @@ public class Htx extends HtxApi
             {
                 Object bracket = (ladders == null || k < 0 || k >= ladders.size() ? null : ladders.get(k));
                 String adjustFactor = this.safeString(bracket, "adjust_factor");
-                ((List<Object>)tiers).add(new HashMap<String, Object>() {{
+                tiers.add(new HashMap<String, Object>() {{
                     put( "tier", Htx.this.safeInteger(bracket, "ladder") );
-                    put( "symbol", Htx.this.safeSymbol(marketId, market, (String) null, "swap") );
-                    put( "currency", Htx.this.safeCurrencyCode(currencyId, (Map<String, Object>) null) );
-                    put( "minNotional", Htx.this.safeNumber(bracket, "min_size", (Object) null) );
-                    put( "maxNotional", Htx.this.safeNumber(bracket, "max_size", (Object) null) );
+                    put( "symbol", Htx.this.safeSymbol(marketId, market, null, "swap") );
+                    put( "currency", Htx.this.safeCurrencyCode(currencyId, null) );
+                    put( "minNotional", Htx.this.safeNumber(bracket, "min_size", null) );
+                    put( "maxNotional", Htx.this.safeNumber(bracket, "max_size", null) );
                     put( "maintenanceMarginRate", Htx.this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) );
                     put( "maxLeverage", Htx.this.parseNumber(leverage) );
                     put( "info", bracket );
@@ -10340,116 +10474,118 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestHistoryCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestHistoryCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "1h") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "4h") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "12h") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "1d"))
-            {
-                throw new BadRequest((this.id + " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> timeframes = new HashMap<String, Object>() {{
-                put( "1h", "60min" );
-                put( "4h", "4hour" );
-                put( "12h", "12hour" );
-                put( "1d", "1day" );
-            }};
-            Map<String, Object> market = this.market(symbol);
-            Long amountType = (Long) this.safeInteger2(parameters, "amount_type", "amountType", 2);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("period", (timeframes == null || !(java.util.Objects.requireNonNullElse(timeframe, "1h") instanceof String) ? null : timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1h"))));
-            request.put("amount_type", amountType);
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("size", limit);
-            }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-            {
-                request.put("contract_type", this.safeString(market.get("info"), "contract_type"));
-                request.put("symbol", market.get("baseId")); // currency code on coin-m futures
-                // coin-m futures
-                response = (this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, parameters))).join();
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                request.put("contract_type", "swap");
-                request.put("contract_code", market.get("id"));
-                request.put("contract_code", market.get("id"));
-                // USDT-M
-                response = (this.contractPublicGetLinearSwapApiV1SwapHisOpenInterest(this.extend(request, parameters))).join();
-            } else
-            {
-                request.put("contract_code", market.get("id"));
-                // coin-m swaps
-                response = (this.contractPublicGetSwapApiV1SwapHisOpenInterest(this.extend(request, parameters))).join();
-            }
-            //
-            //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
-            //    {
-            //        "status": "ok",
-            //        "data": {
-            //            "symbol": "BTC",
-            //            "tick": [
-            //                {
-            //                    "volume": "4385.4350000000000000",
-            //                    "amount_type": "2",
-            //                    "ts": "1648220400000",
-            //                    "value": "194059884.1850000000000000"
-            //                },
-            //                ...
-            //            ],
-            //            "contract_code": "BTC-USDT",
-            //            "business_type": "swap",
-            //            "pair": "BTC-USDT",
-            //            "contract_type": "swap",
-            //            "trade_partition": "USDT"
-            //        },
-            //        "ts": "1648223733007"
-            //    }
-            //
-            //  contractPublicGetSwapApiV1SwapHisOpenInterest
-            //    {
-            //        "status": "ok",
-            //        "data": {
-            //            "symbol": "CRV",
-            //            "tick": [
-            //                {
-            //                    "volume": 19174.0000000000000000,
-            //                    "amount_type": 1,
-            //                    "ts": 1648224000000
-            //                },
-            //                ...
-            //            ],
-            //            "contract_code": "CRV-USD"
-            //        },
-            //        "ts": 1648226554260
-            //    }
-            //
-            //  contractPublicGetApiV1ContractHisOpenInterest
-            //    {
-            //         "status": "ok",
-            //         "data": {
-            //             "symbol": "BTC",
-            //             "contract_type": "this_week",
-            //             "tick": [
-            //                {
-            //                     "volume": "48419.0000000000000000",
-            //                     "amount_type": 1,
-            //                     "ts": 1648224000000
-            //                },
-            //                ...
-            //            ]
-            //        },
-            //        "ts": 1648227062944
-            //    }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", null);
-            List<Object> tick = this.safeList(data, "tick", null);
-            return this.parseOpenInterestsHistory(tick, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "1h") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "4h") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "12h") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "1d"))
+        {
+            throw new BadRequest((this.id + " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> timeframes = new HashMap<String, Object>() {{
+            put( "1h", "60min" );
+            put( "4h", "4hour" );
+            put( "12h", "12hour" );
+            put( "1d", "1day" );
+        }};
+        Map<String, Object> market = this.market(symbol);
+        Long amountType = (Long) this.safeInteger2(parameters, "amount_type", "amountType", 2);
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("period", (timeframes == null || !(java.util.Objects.requireNonNullElse(timeframe, "1h") instanceof String) ? null : timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1h"))));
+        request.put("amount_type", amountType);
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("size", limit);
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+        {
+            request.put("contract_type", this.safeString(market.get("info"), "contract_type"));
+            request.put("symbol", market.get("baseId")); // currency code on coin-m futures
+            // coin-m futures
+            response = (this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, parameters))).join();
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            request.put("contract_type", "swap");
+            request.put("contract_code", market.get("id"));
+            request.put("contract_code", market.get("id"));
+            // USDT-M
+            response = (this.contractPublicGetLinearSwapApiV1SwapHisOpenInterest(this.extend(request, parameters))).join();
+        } else
+        {
+            request.put("contract_code", market.get("id"));
+            // coin-m swaps
+            response = (this.contractPublicGetSwapApiV1SwapHisOpenInterest(this.extend(request, parameters))).join();
+        }
+        //
+        //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //            "symbol": "BTC",
+        //            "tick": [
+        //                {
+        //                    "volume": "4385.4350000000000000",
+        //                    "amount_type": "2",
+        //                    "ts": "1648220400000",
+        //                    "value": "194059884.1850000000000000"
+        //                },
+        //                ...
+        //            ],
+        //            "contract_code": "BTC-USDT",
+        //            "business_type": "swap",
+        //            "pair": "BTC-USDT",
+        //            "contract_type": "swap",
+        //            "trade_partition": "USDT"
+        //        },
+        //        "ts": "1648223733007"
+        //    }
+        //
+        //  contractPublicGetSwapApiV1SwapHisOpenInterest
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //            "symbol": "CRV",
+        //            "tick": [
+        //                {
+        //                    "volume": 19174.0000000000000000,
+        //                    "amount_type": 1,
+        //                    "ts": 1648224000000
+        //                },
+        //                ...
+        //            ],
+        //            "contract_code": "CRV-USD"
+        //        },
+        //        "ts": 1648226554260
+        //    }
+        //
+        //  contractPublicGetApiV1ContractHisOpenInterest
+        //    {
+        //         "status": "ok",
+        //         "data": {
+        //             "symbol": "BTC",
+        //             "contract_type": "this_week",
+        //             "tick": [
+        //                {
+        //                     "volume": "48419.0000000000000000",
+        //                     "amount_type": 1,
+        //                     "ts": 1648224000000
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        "ts": 1648227062944
+        //    }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", null);
+        List<Object> tick = this.safeList(data, "tick", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOpenInterestsHistory(tick, market, since, limit);
 
     }
 
@@ -10465,45 +10601,47 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestsCore(symbols, parameters)).thenApply(OpenInterests::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            Integer symbolsLength = symbolsNormalized.size();
+            if ((symbolsLength != null && symbolsLength > 0))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String first = this.safeString(symbolsNormalized, 0);
+                market = this.market(first);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                Integer symbolsLength = symbolsNormalized.size();
-                if ((symbolsLength != null && symbolsLength > 0))
-                {
-                    String first = this.safeString(symbolsNormalized, 0);
-                    market = this.market(first);
-                }
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenInterests", market, paramsSubType, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "future"))
-            {
-                response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, paramsMarketType))).join();
-            } else if (java.util.Objects.equals(subType, "inverse"))
-            {
-                response = (this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, paramsMarketType))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchOpenInterests() does not currently support linear markets")) ;
-            }
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterests(data, symbolsNormalized);
-        }).thenApply(OpenInterests::new);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenInterests", market, paramsSubType, null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(marketType, "future"))
+        {
+            response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, paramsMarketType))).join();
+        } else if (java.util.Objects.equals(subType, "inverse"))
+        {
+            response = (this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, paramsMarketType))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchOpenInterests() does not currently support linear markets")) ;
+        }
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOpenInterests(data, symbolsNormalized);
 
     }
 
@@ -10520,115 +10658,117 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestCore(symbol, parameters)).thenApply(OpenInterest::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
-            {
-                throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
-            }
-            if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
-            {
-                throw new NotSupported((this.id + " fetchOpenInterest() does not currently support option markets")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "contract_code", market.get("id") );
-            }};
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-            {
-                request.put("contract_type", this.safeString(market.get("info"), "contract_type"));
-                request.put("symbol", market.get("baseId"));
-                // COIN-M futures
-                response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters))).join();
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                // USDT-M swaps
-                response = (this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
-            } else
-            {
-                // COIN-M swaps
-                response = (this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, parameters))).join();
-            }
-            //
-            // USDT-M linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": {
-            //             "amount": "32476.092",
-            //             "volume": "32476092",
-            //             "value": "2063137924.9668",
-            //             "contract_code": "BTC-USDT",
-            //             "trade_amount": "11371.362",
-            //             "trade_volume": "11371362",
-            //             "trade_turnover": "723600792.7222"
-            //         },
-            //         "ts": 1781327941440
-            //     }
-            //
-            // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "volume": 518018.000000000000000000,
-            //                 "amount": 2769.675777407074725180,
-            //                 "symbol": "BTC",
-            //                 "contract_code": "BTC-USD",
-            //                 "trade_amount": 9544.4032080046491323463688602729806842458,
-            //                 "trade_volume": 1848448,
-            //                 "trade_turnover": 184844800.000000000000000000
-            //             }
-            //         ],
-            //         "ts": 1664337226028
-            //     }
-            //
-            // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "volume": 118850.000000000000000000,
-            //                 "amount": 635.502025211544374189,
-            //                 "symbol": "BTC",
-            //                 "contract_type": "this_week",
-            //                 "contract_code": "BTC220930",
-            //                 "trade_amount": 1470.9400749347598691119206024033947897351,
-            //                 "trade_volume": 286286,
-            //                 "trade_turnover": 28628600.000000000000000000
-            //             }
-            //         ],
-            //         "ts": 1664337928805
-            //     }
-            //
-            Long timestamp = this.safeInteger(response, "ts");
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.extend(this.parseOpenInterest(result, market), new HashMap<String, Object>() {{
-                    put( "timestamp", timestamp );
-                    put( "datetime", Htx.this.iso8601(timestamp) );
-                }});
-            }
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> openInterest = (Map<String, Object>) this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
-            openInterest.put("timestamp", timestamp);
-            openInterest.put("datetime", this.iso8601(timestamp));
-            return openInterest;
-        }).thenApply(OpenInterest::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
+        {
+            throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
+        }
+        if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
+        {
+            throw new NotSupported((this.id + " fetchOpenInterest() does not currently support option markets")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "contract_code", market.get("id") );
+        }};
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+        {
+            request.put("contract_type", this.safeString(market.get("info"), "contract_type"));
+            request.put("symbol", market.get("baseId"));
+            // COIN-M futures
+            response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters))).join();
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            // USDT-M swaps
+            response = (this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
+        } else
+        {
+            // COIN-M swaps
+            response = (this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, parameters))).join();
+        }
+        //
+        // USDT-M linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "amount": "32476.092",
+        //             "volume": "32476092",
+        //             "value": "2063137924.9668",
+        //             "contract_code": "BTC-USDT",
+        //             "trade_amount": "11371.362",
+        //             "trade_volume": "11371362",
+        //             "trade_turnover": "723600792.7222"
+        //         },
+        //         "ts": 1781327941440
+        //     }
+        //
+        // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 518018.000000000000000000,
+        //                 "amount": 2769.675777407074725180,
+        //                 "symbol": "BTC",
+        //                 "contract_code": "BTC-USD",
+        //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+        //                 "trade_volume": 1848448,
+        //                 "trade_turnover": 184844800.000000000000000000
+        //             }
+        //         ],
+        //         "ts": 1664337226028
+        //     }
+        //
+        // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 118850.000000000000000000,
+        //                 "amount": 635.502025211544374189,
+        //                 "symbol": "BTC",
+        //                 "contract_type": "this_week",
+        //                 "contract_code": "BTC220930",
+        //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+        //                 "trade_volume": 286286,
+        //                 "trade_turnover": 28628600.000000000000000000
+        //             }
+        //         ],
+        //         "ts": 1664337928805
+        //     }
+        //
+        Long timestamp = this.safeInteger(response, "ts");
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.extend(this.parseOpenInterest(result, market), new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+                put( "datetime", Htx.this.iso8601(timestamp) );
+            }});
+        }
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> openInterest = this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
+        openInterest.put("timestamp", timestamp);
+        openInterest.put("datetime", this.iso8601(timestamp));
+        return openInterest;
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
         // fetchOpenInterestHistory
@@ -10678,11 +10818,11 @@ public class Htx extends HtxApi
         //     }
         //
         Long timestamp = this.safeInteger(interest, "ts");
-        Double amount = this.safeNumber(interest, "volume", (Object) null);
-        Double value = this.safeNumber(interest, "value", (Object) null);
+        Double amount = this.safeNumber(interest, "volume", null);
+        Double value = this.safeNumber(interest, "value", null);
         String marketId = this.safeString(interest, "contract_code");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
-            put( "symbol", Htx.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Htx.this.safeSymbol(marketId, market, null, null) );
             put( "baseVolume", amount );
             put( "quoteVolume", value );
             put( "openInterestAmount", amount );
@@ -10705,36 +10845,38 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.borrowIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
+    }
+
+    private Object borrowIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-                put( "amount", Htx.this.currencyToPrecision((String) (code), amount, (String) null) );
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.privatePostMarginOrders(this.extend(request, parameters))).join();
-            //
-            // Isolated
-            //
-            //     {
-            //         "data": 1000
-            //     }
-            //
-            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
-            return this.extend(transaction, new HashMap<String, Object>() {{
-                put( "amount", amount );
-                put( "symbol", symbol );
-            }});
-        }).thenApply(MarginLoan::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+            put( "amount", Htx.this.currencyToPrecision(code, amount, null) );
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.privatePostMarginOrders(this.extend(request, parameters))).join();
+        //
+        // Isolated
+        //
+        //     {
+        //         "data": 1000
+        //     }
+        //
+        Map<String, Object> transaction = this.parseMarginLoan(response, currency);
+        return this.extend(transaction, new HashMap<String, Object>() {{
+            put( "amount", amount );
+            put( "symbol", symbol );
+        }});
 
     }
 
@@ -10749,34 +10891,36 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.borrowCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
+    }
+
+    private Object borrowCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-                put( "amount", Htx.this.currencyToPrecision((String) (code), amount, (String) null) );
-            }};
-            Map<String, Object> response = (this.privatePostCrossMarginOrders(this.extend(request, parameters))).join();
-            //
-            // Cross
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": null
-            //     }
-            //
-            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
-            return this.extend(transaction, new HashMap<String, Object>() {{
-                put( "amount", amount );
-            }});
-        }).thenApply(MarginLoan::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+            put( "amount", Htx.this.currencyToPrecision(code, amount, null) );
+        }};
+        Map<String, Object> response = (this.privatePostCrossMarginOrders(this.extend(request, parameters))).join();
+        //
+        // Cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        Map<String, Object> transaction = this.parseMarginLoan(response, currency);
+        return this.extend(transaction, new HashMap<String, Object>() {{
+            put( "amount", amount );
+        }});
 
     }
 
@@ -10791,42 +10935,44 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.repayIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
+    }
+
+    private Object repayIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            String accountId = (this.fetchAccountIdByType("spot", "isolated", symbol, parameters)).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-                put( "amount", Htx.this.currencyToPrecision((String) (code), amount, (String) null) );
-                put( "accountId", accountId );
-            }};
-            Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code":200,
-            //         "data": [
-            //             {
-            //                 "repayId":1174424,
-            //                 "repayTime":1600747722018
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> loan = this.safeDict(data, 0, null);
-            Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
-            return this.extend(transaction, new HashMap<String, Object>() {{
-                put( "amount", amount );
-                put( "symbol", symbol );
-            }});
-        }).thenApply(MarginLoan::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        String accountId = (this.fetchAccountIdByType("spot", "isolated", symbol, parameters)).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+            put( "amount", Htx.this.currencyToPrecision(code, amount, null) );
+            put( "accountId", accountId );
+        }};
+        Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code":200,
+        //         "data": [
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> loan = this.safeDict(data, 0, null);
+        Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
+        return this.extend(transaction, new HashMap<String, Object>() {{
+            put( "amount", amount );
+            put( "symbol", symbol );
+        }});
 
     }
 
@@ -10840,45 +10986,47 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.repayCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
+    }
+
+    private Object repayCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            String accountId = (this.fetchAccountIdByType("spot", "cross", (String) null, parameters)).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-                put( "amount", Htx.this.currencyToPrecision((String) (code), amount, (String) null) );
-                put( "accountId", accountId );
-            }};
-            Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code":200,
-            //         "data": [
-            //             {
-            //                 "repayId":1174424,
-            //                 "repayTime":1600747722018
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> loan = this.safeDict(data, 0, null);
-            Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
-            return this.extend(transaction, new HashMap<String, Object>() {{
-                put( "amount", amount );
-            }});
-        }).thenApply(MarginLoan::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        String accountId = (this.fetchAccountIdByType("spot", "cross", null, parameters)).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+            put( "amount", Htx.this.currencyToPrecision(code, amount, null) );
+            put( "accountId", accountId );
+        }};
+        Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code":200,
+        //         "data": [
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> loan = this.safeDict(data, 0, null);
+        Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
+        return this.extend(transaction, new HashMap<String, Object>() {{
+            put( "amount", amount );
+        }});
 
     }
 
-    public Map<String, Object> parseMarginLoan(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Map<String, Object> currency)
     {
         //
         // borrowMargin cross
@@ -10904,7 +11052,7 @@ public class Htx extends HtxApi
         Long timestamp = this.safeInteger(info, "repayTime");
         return new HashMap<String, Object>() {{
             put( "id", Htx.this.safeString2(info, "repayId", "data") );
-            put( "currency", Htx.this.safeCurrencyCode((String) (null), currency) );
+            put( "currency", Htx.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "symbol", null );
             put( "timestamp", timestamp );
@@ -10929,135 +11077,137 @@ public class Htx extends HtxApi
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
+    }
+
+    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(symbol, null))
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchSettlementHistory() requires a symbol argument")) ;
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+        {
+            request.put("symbol", market.get("baseId"));
+        } else
+        {
+            request.put("contract_code", market.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && Boolean.TRUE.equals((this.safeBool(market, "swap", false))))
             {
-                throw new ArgumentsRequired((this.id + " fetchSettlementHistory() requires a symbol argument")) ;
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-            {
-                request.put("symbol", market.get("baseId"));
+                request.put("limit", limit);
             } else
             {
-                request.put("contract_code", market.get("id"));
+                request.put("page_size", limit);
             }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && Boolean.TRUE.equals((this.safeBool(market, "swap", false))))
-                {
-                    request.put("limit", limit);
-                } else
-                {
-                    request.put("page_size", limit);
-                }
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", since);
-            }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-                {
-                    response = (this.contractPublicGetV5MarketSettlementHistory(this.extend(requestUntil, paramsUntil))).join();
-                } else
-                {
-                    response = (this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(requestUntil, paramsUntil))).join();
-                }
-            } else
-            {
-                response = (this.contractPublicGetApiV1ContractSettlementRecords(this.extend(requestUntil, paramsUntil))).join();
-            }
-            //
-            // coin-m swap
-            //
-            //    {
-            //        "status": "ok",
-            //        "data": {
-            //        "total_page": 14,
-            //        "current_page": 1,
-            //        "total_size": 270,
-            //        "settlement_record": [
-            //            {
-            //                "symbol": "ADA",
-            //                "contract_code": "ADA-USDT",
-            //                "settlement_time": 1652313600000,
-            //                "clawback_ratio": 0E-18,
-            //                "settlement_price": 0.512303000000000000,
-            //                "settlement_type": "settlement",
-            //                "business_type": "swap",
-            //                "pair": "ADA-USDT",
-            //                "trade_partition": "USDT"
-            //            },
-            //            ...
-            //        ],
-            //        "ts": 1652338693256
-            //    }
-            //
-            // coin-m future
-            //
-            //    {
-            //        "status": "ok",
-            //        "data": {
-            //            "total_page": 5,
-            //            "current_page": 1,
-            //            "total_size": 90,
-            //            "settlement_record": [
-            //                {
-            //                    "symbol": "FIL",
-            //                    "settlement_time": 1652342400000,
-            //                    "clawback_ratio": 0E-18,
-            //                    "list": [
-            //                        {
-            //                            "contract_code": "FIL220513",
-            //                            "settlement_price": 7.016000000000000000,
-            //                            "settlement_type": "settlement"
-            //                        },
-            //                        ...
-            //                    ]
-            //                },
-            //            ]
-            //        }
-            //    }
-            //
-            // linear swap
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": [
-            //             {
-            //                 "id": "14900",
-            //                 "contract_code": "BTC-USDT",
-            //                 "settlement_time": "1781827200000",
-            //                 "clawback_ratio": "0",
-            //                 "settlement_price": "62933.747161774209291325"
-            //             },
-            //         ],
-            //         "ts": 1781853150623
-            //     }
-            //
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", since);
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, parameters, 1);
+        Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+        Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                List<Object> dataLinear = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                List<Object> settlementsLinear = this.parseSettlements(dataLinear, market);
-                return this.sortBy(settlementsLinear, "timestamp");
+                response = (this.contractPublicGetV5MarketSettlementHistory(this.extend(requestUntil, paramsUntil))).join();
+            } else
+            {
+                response = (this.contractPublicGetSwapApiV1SwapSettlementRecords(this.extend(requestUntil, paramsUntil))).join();
             }
-            Map<String, Object> data = this.safeDict(response, "data", null);
-            List<Object> settlementRecord = this.safeList(data, "settlement_record", null);
-            List<Object> settlements = this.parseSettlements(settlementRecord, market);
-            return this.sortBy(settlements, "timestamp");
-        });
+        } else
+        {
+            response = (this.contractPublicGetApiV1ContractSettlementRecords(this.extend(requestUntil, paramsUntil))).join();
+        }
+        //
+        // coin-m swap
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //        "total_page": 14,
+        //        "current_page": 1,
+        //        "total_size": 270,
+        //        "settlement_record": [
+        //            {
+        //                "symbol": "ADA",
+        //                "contract_code": "ADA-USDT",
+        //                "settlement_time": 1652313600000,
+        //                "clawback_ratio": 0E-18,
+        //                "settlement_price": 0.512303000000000000,
+        //                "settlement_type": "settlement",
+        //                "business_type": "swap",
+        //                "pair": "ADA-USDT",
+        //                "trade_partition": "USDT"
+        //            },
+        //            ...
+        //        ],
+        //        "ts": 1652338693256
+        //    }
+        //
+        // coin-m future
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //            "total_page": 5,
+        //            "current_page": 1,
+        //            "total_size": 90,
+        //            "settlement_record": [
+        //                {
+        //                    "symbol": "FIL",
+        //                    "settlement_time": 1652342400000,
+        //                    "clawback_ratio": 0E-18,
+        //                    "list": [
+        //                        {
+        //                            "contract_code": "FIL220513",
+        //                            "settlement_price": 7.016000000000000000,
+        //                            "settlement_type": "settlement"
+        //                        },
+        //                        ...
+        //                    ]
+        //                },
+        //            ]
+        //        }
+        //    }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "14900",
+        //                 "contract_code": "BTC-USDT",
+        //                 "settlement_time": "1781827200000",
+        //                 "clawback_ratio": "0",
+        //                 "settlement_price": "62933.747161774209291325"
+        //             },
+        //         ],
+        //         "ts": 1781853150623
+        //     }
+        //
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            List<Object> dataLinear = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> settlementsLinear = this.parseSettlements(dataLinear, market);
+            return this.sortBy(settlementsLinear, "timestamp");
+        }
+        Map<String, Object> data = this.safeDict(response, "data", null);
+        List<Object> settlementRecord = this.safeList(data, "settlement_record", null);
+        List<Object> settlements = this.parseSettlements(settlementRecord, market);
+        return this.sortBy(settlements, "timestamp");
 
     }
 
@@ -11070,59 +11220,61 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(List<String> codes, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositWithdrawFeesCore(codes, parameters)).thenApply(DepositWithdrawFees::new);
+    }
+
+    private Object fetchDepositWithdrawFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
-            //
-            //    {
-            //        "code": 200,
-            //        "data": [
-            //            {
-            //                "currency": "sxp",
-            //                "assetType": "1",
-            //                "chains": [
-            //                    {
-            //                        "chain": "sxp",
-            //                        "displayName": "ERC20",
-            //                        "baseChain": "ETH",
-            //                        "baseChainProtocol": "ERC20",
-            //                        "isDynamic": true,
-            //                        "numOfConfirmations": "12",
-            //                        "numOfFastConfirmations": "12",
-            //                        "depositStatus": "allowed",
-            //                        "minDepositAmt": "0.23",
-            //                        "withdrawStatus": "allowed",
-            //                        "minWithdrawAmt": "0.23",
-            //                        "withdrawPrecision": "8",
-            //                        "maxWithdrawAmt": "227000.000000000000000000",
-            //                        "withdrawQuotaPerDay": "227000.000000000000000000",
-            //                        "withdrawQuotaPerYear": null,
-            //                        "withdrawQuotaTotal": null,
-            //                        "withdrawFeeType": "fixed",
-            //                        "transactFeeWithdraw": "11.1653",
-            //                        "addrWithTag": false,
-            //                        "addrDepositTag": false
-            //                    }
-            //                ],
-            //                "instStatus": "normal"
-            //            }
-            //        ]
-            //    }
-            //
-            List<Object> data = this.safeList(response, "data", null);
-            return this.parseDepositWithdrawFees(data, codes, "currency");
-        }).thenApply(DepositWithdrawFees::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
+        //
+        //    {
+        //        "code": 200,
+        //        "data": [
+        //            {
+        //                "currency": "sxp",
+        //                "assetType": "1",
+        //                "chains": [
+        //                    {
+        //                        "chain": "sxp",
+        //                        "displayName": "ERC20",
+        //                        "baseChain": "ETH",
+        //                        "baseChainProtocol": "ERC20",
+        //                        "isDynamic": true,
+        //                        "numOfConfirmations": "12",
+        //                        "numOfFastConfirmations": "12",
+        //                        "depositStatus": "allowed",
+        //                        "minDepositAmt": "0.23",
+        //                        "withdrawStatus": "allowed",
+        //                        "minWithdrawAmt": "0.23",
+        //                        "withdrawPrecision": "8",
+        //                        "maxWithdrawAmt": "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear": null,
+        //                        "withdrawQuotaTotal": null,
+        //                        "withdrawFeeType": "fixed",
+        //                        "transactFeeWithdraw": "11.1653",
+        //                        "addrWithTag": false,
+        //                        "addrDepositTag": false
+        //                    }
+        //                ],
+        //                "instStatus": "normal"
+        //            }
+        //        ]
+        //    }
+        //
+        List<Object> data = this.safeList(response, "data", null);
+        return this.parseDepositWithdrawFees(data, codes, "currency");
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    public Map<String, Object> parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //            {
@@ -11158,6 +11310,7 @@ public class Htx extends HtxApi
         List<Object> chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeString(currency, "code");
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < chains.size(); j++)
         {
             Map<String, Object> chainEntry = this.safeDict(chains, j, null);
@@ -11168,7 +11321,7 @@ public class Htx extends HtxApi
             Map<String, Object> withdrawResult = null;
             if (java.util.Objects.equals(withdrawFeeType, "fixed"))
             {
-                withdrawFee = this.safeNumber(chainEntry, "transactFeeWithdraw", (Object) null);
+                withdrawFee = this.safeNumber(chainEntry, "transactFeeWithdraw", null);
                 {
                     HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                     hx4NewMap2.put("fee", withdrawFee);
@@ -11177,7 +11330,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                withdrawFee = this.safeNumber(chainEntry, "transactFeeRateWithdraw", (Object) null);
+                withdrawFee = this.safeNumber(chainEntry, "transactFeeRateWithdraw", null);
                 {
                     HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
                     hx4NewMap3.put("fee", withdrawFee);
@@ -11187,20 +11340,21 @@ public class Htx extends HtxApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, (switch (0) { default -> { HashMap<String, Object> j39v21 = new HashMap<String, Object>();
-                    j39v21.put("withdraw", withdrawResult);
-                    j39v21.put("deposit", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+                mapLiteral14.put("withdraw", withdrawResult);
+                mapLiteral14.put("deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }});
-                    yield j39v21; } }));
+                networks.put(networkCode, mapLiteral14);
+                result.put("networks", networks);
             }
             this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
     }
 
-    public List<Object> parseSettlements(Object settlements, Object market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory
@@ -11251,14 +11405,13 @@ public class Htx extends HtxApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(settlements)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; }); i++)
+        for (var i = 0; i < (settlements == null ? 0 : settlements.size()); i++)
         {
             Map<String, Object> settlement = this.safeDict(settlements, i, null);
             List<Object> list = this.safeList(settlement, "list", null);
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                Map<String, Object> parsedSettlement = this.parseSettlement(settlement, (Map<String, Object>) (market));
-                ((List<Object>)result).add(parsedSettlement);
+                result.add(this.parseSettlement(settlement, market));
             } else if (!java.util.Objects.equals(list, null))
             {
                 Long timestamp = this.safeInteger(settlement, "settlement_time");
@@ -11269,18 +11422,18 @@ public class Htx extends HtxApi
                 for (var j = 0; j < list.size(); j++)
                 {
                     Map<String, Object> item = this.safeDict(list, j, null);
-                    Map<String, Object> parsedSettlement = this.parseSettlement(item, (Map<String, Object>) (market));
-                    ((List<Object>)result).add(this.extend(parsedSettlement, timestampDetails));
+                    Map<String, Object> parsedSettlement = this.parseSettlement(item, market);
+                    result.add(this.extend(parsedSettlement, timestampDetails));
                 }
             } else
             {
-                ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), (Map<String, Object>) (market)));
+                result.add(this.parseSettlement(settlement, market));
             }
         }
         return result;
     }
 
-    public Map<String, Object> parseSettlement(Object settlement, Map<String, Object> market)
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory
@@ -11319,8 +11472,8 @@ public class Htx extends HtxApi
         String marketId = this.safeString(settlement, "contract_code");
         return new HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", Htx.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "price", Htx.this.safeNumber(settlement, "settlement_price", (Object) null) );
+            put( "symbol", Htx.this.safeSymbol(marketId, market, null, null) );
+            put( "price", Htx.this.safeNumber(settlement, "settlement_price", null) );
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
         }};
@@ -11343,82 +11496,84 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<Liquidation>> fetchLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLiquidationsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Long tradeType = (Long) this.safeInteger2(parameters, "trade_type", "tradeType", 0);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            request.put("trade_type", tradeType);
+        }
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_type", "tradeType")));
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", since);
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, paramsOmitted, 1);
+        Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+        Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Long tradeType = (Long) this.safeInteger2(parameters, "trade_type", "tradeType", 0);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                request.put("trade_type", tradeType);
-            }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_type", "tradeType")));
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", since);
-            }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, paramsOmitted, 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+                requestUntil.put("contract_code", market.get("id"));
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    requestUntil.put("contract_code", market.get("id"));
-                    if (!java.util.Objects.equals(limit, null))
-                    {
-                        ((Map<String, Object>)requestUntil).put("limit", limit);
-                    }
-                    response = (this.contractPublicGetV5MarketLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
-                } else
-                {
-                    requestUntil.put("contract", market.get("id"));
-                    response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
+                    ((Map<String, Object>)requestUntil).put("limit", limit);
                 }
-            } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
-            {
-                requestUntil.put("symbol", market.get("id"));
-                response = (this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
+                response = (this.contractPublicGetV5MarketLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
+                requestUntil.put("contract", market.get("id"));
+                response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
             }
-            //
-            //     {
-            //         "code": 200,
-            //         "msg": "",
-            //         "data": [
-            //             {
-            //                 "query_id": 452057,
-            //                 "contract_code": "BTC-USDT-211210",
-            //                 "symbol": "USDT",
-            //                 "direction": "sell",
-            //                 "offset": "close",
-            //                 "volume": 479.000000000000000000,
-            //                 "price": 51441.700000000000000000,
-            //                 "created_at": 1638593647864,
-            //                 "amount": 0.479000000000000000,
-            //                 "trade_turnover": 24640.574300000000000000,
-            //                 "business_type": "futures",
-            //                 "pair": "BTC-USDT"
-            //             }
-            //         ],
-            //         "ts": 1604312615051
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLiquidations(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "future", false)))
+        {
+            requestUntil.put("symbol", market.get("id"));
+            response = (this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(requestUntil, paramsUntil))).join();
+        } else
+        {
+            throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
+        }
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "query_id": 452057,
+        //                 "contract_code": "BTC-USDT-211210",
+        //                 "symbol": "USDT",
+        //                 "direction": "sell",
+        //                 "offset": "close",
+        //                 "volume": 479.000000000000000000,
+        //                 "price": 51441.700000000000000000,
+        //                 "created_at": 1638593647864,
+        //                 "amount": 0.479000000000000000,
+        //                 "trade_turnover": 24640.574300000000000000,
+        //                 "business_type": "futures",
+        //                 "pair": "BTC-USDT"
+        //             }
+        //         ],
+        //         "ts": 1604312615051
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseLiquidations(data, market, since, limit);
 
     }
 
-    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
+    public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         //     {
@@ -11452,18 +11607,18 @@ public class Htx extends HtxApi
         //
         String marketId = this.safeString(liquidation, "contract_code");
         Long timestamp = (Long) this.safeInteger2(liquidation, "created_at", "liquidation_time");
-        return this.safeLiquidation(new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
-            put( "symbol", Htx.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "contracts", Htx.this.safeNumber(liquidation, "volume", (Object) null) );
-            put( "contractSize", Htx.this.safeNumber(market, "contractSize", (Object) null) );
-            put( "price", Htx.this.safeNumber2(liquidation, "price", "bankrupt_price", (Object) null) );
+            put( "symbol", Htx.this.safeSymbol(marketId, market, null, null) );
+            put( "contracts", Htx.this.safeNumber(liquidation, "volume", null) );
+            put( "contractSize", Htx.this.safeNumber(market, "contractSize", null) );
+            put( "price", Htx.this.safeNumber2(liquidation, "price", "bankrupt_price", null) );
             put( "side", Htx.this.safeStringLower2(liquidation, "direction", "side") );
-            put( "baseValue", Htx.this.safeNumber(liquidation, "amount", (Object) null) );
-            put( "quoteValue", Htx.this.safeNumber(liquidation, "trade_turnover", (Object) null) );
+            put( "baseValue", Htx.this.safeNumber(liquidation, "amount", null) );
+            put( "quoteValue", Htx.this.safeNumber(liquidation, "trade_turnover", null) );
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        }}, null));
     }
 
     /**
@@ -11487,65 +11642,67 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.closePositionCore(symbol, side, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object closePositionCore(String symbol, String side, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
+        {
+            throw new BadRequest((this.id + " closePosition() symbol supports contract markets only")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "contract_code", market.get("id") );
+        }};
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("client_order_id", clientOrderId);
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+            request.put("margin_mode", marginMode);
+            response = (this.contractPrivatePostV5TradePosition(this.extend(request, paramsMarginMode))).join();
+        } else
+        {
+            this.checkRequiredArgument("closePosition", side, "side", new ArrayList<Object>(Arrays.asList()));
+            String amount = this.safeString2(paramsOmitted, "volume", "amount");
+            if (java.util.Objects.equals(amount, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new ArgumentsRequired((this.id + " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
             }
-            Map<String, Object> market = this.market(symbol);
-            String clientOrderId = this.safeString(parameters, "clientOrderId");
-            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
+            request.put("volume", this.amountToPrecision(symbol, amount));
+            request.put("direction", side);
+            Map<String, Object> paramsVolume = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("volume", "amount")));
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
-                throw new BadRequest((this.id + " closePosition() symbol supports contract markets only")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "contract_code", market.get("id") );
-            }};
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("client_order_id", clientOrderId);
-            }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
-                String marginMode = marginModeparamsMarginModeVariable.first();
-                Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-                request.put("margin_mode", marginMode);
-                response = (this.contractPrivatePostV5TradePosition(this.extend(request, paramsMarginMode))).join();
+                response = (this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, paramsVolume))).join();
             } else
             {
-                this.checkRequiredArgument("closePosition", side, "side", new ArrayList<Object>(Arrays.asList()));
-                String amount = this.safeString2(paramsOmitted, "volume", "amount");
-                if (java.util.Objects.equals(amount, null))
-                {
-                    throw new ArgumentsRequired((this.id + " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
-                }
-                request.put("volume", this.amountToPrecision(symbol, amount));
-                request.put("direction", side);
-                Map<String, Object> paramsVolume = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("volume", "amount")));
-                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-                {
-                    response = (this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, paramsVolume))).join();
-                } else
-                {
-                    response = (this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, paramsVolume))).join();
-                }
+                response = (this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, paramsVolume))).join();
             }
-            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-            {
-                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseOrder(data, market);
-            }
-            if (java.util.Objects.equals(response, null))
-            {
-                throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
-            }
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseOrder(data, market);
+        }
+        if (java.util.Objects.equals(response, null))
+        {
+            throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
+        }
+        return this.parseOrder(response, market);
 
     }
 
@@ -11560,44 +11717,46 @@ public class Htx extends HtxApi
      * @param {string} [params.marginMode] "cross" (default) or "isolated"
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.setPositionModeCore(hedged, symbol, parameters));
+    }
+
+    private Map<String, Object> setPositionModeCore(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String posMode = "single_side";
-            if (Boolean.TRUE.equals(hedged))
-            {
-                posMode = "dual_side";
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("position_mode", posMode);
-            if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
-            {
-                throw new BadRequest((this.id + " setPositionMode can only be used for linear markets")) ;
-            }
-            Map<String, Object> response = (this.contractPrivatePostV5PositionMode(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "code": 200,
-            //         "message": "Success",
-            //         "data": {
-            //             "position_mode": "single_side"
-            //         },
-            //         "ts": 1781233894454
-            //     }
-            //
-            return response;
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String posMode = "single_side";
+        if (Boolean.TRUE.equals(hedged))
+        {
+            posMode = "dual_side";
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("position_mode", posMode);
+        if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
+        {
+            throw new BadRequest((this.id + " setPositionMode can only be used for linear markets")) ;
+        }
+        Map<String, Object> response = (this.contractPrivatePostV5PositionMode(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "position_mode": "single_side"
+        //         },
+        //         "ts": 1781233894454
+        //     }
+        //
+        return response;
 
     }
 
@@ -11614,59 +11773,61 @@ public class Htx extends HtxApi
      */
     public CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsADLRankCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsADLRankCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            Integer symbolsLength = symbolsNormalized.size();
+            if ((symbolsLength != null && symbolsLength > 0))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String first = this.safeString(symbolsNormalized, 0);
+                market = this.market(first);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
+        }
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
+        String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+        Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType, null);
+        String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
+        String marketType = marketTypeOption;
+        if (java.util.Objects.equals(marketTypeOption, "spot"))
+        {
+            marketType = "future";
+        }
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(subType, "linear"))
+        {
+            response = (this.contractPrivateGetV5TradePositionOpens(paramsMarketType)).join();
+        } else
+        {
+            if (java.util.Objects.equals(marketType, "future"))
             {
-                Integer symbolsLength = symbolsNormalized.size();
-                if ((symbolsLength != null && symbolsLength > 0))
-                {
-                    String first = this.safeString(symbolsNormalized, 0);
-                    market = this.market(first);
-                }
-            }
-            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
-            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType, (String) null);
-            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
-            String marketType = marketTypeOption;
-            if (java.util.Objects.equals(marketTypeOption, "spot"))
+                response = (this.contractPrivatePostApiV1ContractPositionInfo(paramsMarketType)).join();
+            } else if (java.util.Objects.equals(marketType, "swap"))
             {
-                marketType = "future";
-            }
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(subType, "linear"))
-            {
-                response = (this.contractPrivateGetV5TradePositionOpens(paramsMarketType)).join();
+                response = (this.contractPrivatePostSwapApiV1SwapPositionInfo(paramsMarketType)).join();
             } else
             {
-                if (java.util.Objects.equals(marketType, "future"))
-                {
-                    response = (this.contractPrivatePostApiV1ContractPositionInfo(paramsMarketType)).join();
-                } else if (java.util.Objects.equals(marketType, "swap"))
-                {
-                    response = (this.contractPrivatePostSwapApiV1SwapPositionInfo(paramsMarketType)).join();
-                } else
-                {
-                    throw new NotSupported((this.id + " fetchPositionsADLRank() not support this market type")) ;
-                }
+                throw new NotSupported((this.id + " fetchPositionsADLRank() not support this market type")) ;
             }
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
+        }
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseADLRanks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseADLRank(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // fetchPositionADLRank linear
@@ -11723,7 +11884,7 @@ public class Htx extends HtxApi
         Long timestamp = this.safeInteger(info, "created_time");
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", Htx.this.safeSymbol(marketId, market, (String) null, "contract") );
+            put( "symbol", Htx.this.safeSymbol(marketId, market, null, "contract") );
             put( "rank", Htx.this.safeInteger(info, "adl_risk_percent") );
             put( "rating", null );
             put( "percentage", null );

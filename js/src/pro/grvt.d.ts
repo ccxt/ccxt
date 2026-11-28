@@ -1,5 +1,5 @@
 import grvtRest from '../grvt.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, Market, Position, Bool, Tickers, int } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, Market, Position, Tickers, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class grvt extends grvtRest {
     describe(): Dict;
@@ -136,7 +136,6 @@ export default class grvt extends grvtRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePosition(client: Client, message: Dict): void;
-    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name grvt#watchOrders
@@ -150,6 +149,6 @@ export default class grvt extends grvtRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrder(client: Client, message: Dict): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    handleErrorMessage(client: Client, response: Dict): Bool;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    handleErrorMessage(client: Client, response: Dict): boolean;
 }

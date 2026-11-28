@@ -937,7 +937,10 @@ class apex extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        $request['limit'] = ($limit === null) ? 100 : $limit; // max 100, default 100
+        $request['limit'] = 100; // max 100, default 100
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = Async\await($this->publicGetV3Depth($this->extend($request, $params)));
         //
         // {
@@ -1387,7 +1390,7 @@ class apex extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientId');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
         $orderType = $this->safe_string($order, 'type');
@@ -1471,15 +1474,15 @@ class apex extends Exchange {
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets))) {
                 $marketResolved = $this->markets[$marketId];
             } elseif (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
-                $marketResolved = $this->markets_by_id[$marketId];
+                $marketResolved = $this->safe_dict($this->markets_by_id[$marketId], 0);
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
                 if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($newMarketId ?? '', $this->markets_by_id))) {
                     $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
-                    if ($numMarkets > 0) {
-                        if ($markets[0]['id2'] === $marketId) {
-                            $marketResolved = $markets[0];
+                    for ($i = 0; $i < $numMarkets; $i++) {
+                        if (($i === 0) && ($this->safe_string($markets[$i], 'id2') === $marketId)) {
+                            $marketResolved = $markets[$i];
                         }
                     }
                 }
@@ -1489,13 +1492,11 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId): string {
-        $accountId = '';
+        $suffix = '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
         if (($_accountId !== null) && ($_accountId !== '')) {
-            $accountId = $_accountId;
-        } else {
-            $accountId = (string) $this->rand_number(12);
+            return 'apexomni-' . $_accountId . $suffix;
         }
-        return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
+        return 'apexomni-' . (string) $this->rand_number(12) . $suffix;
     }
 
     public function add_hyphen_before_usdt(string $symbol): string {
@@ -1569,7 +1570,7 @@ class apex extends Exchange {
         $fees = $this->safe_dict($this->fees, 'swap', array());
         $taker = $this->safe_string($fees, 'taker', '0.0005');
         $maker = $this->safe_string($fees, 'maker', '0.0002');
-        $pricePrecision = $market['precision']['price'];
+        $pricePrecision = $this->safe_number($market['precision'], 'price');
         $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($pricePrecision)), TRUNCATE, $pricePrecision, $this->precisionMode, $this->paddingMode);
         $timeNow = $this->milliseconds();
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
@@ -1587,7 +1588,7 @@ class apex extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for market orders');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $postOnly = $this->is_post_only($isMarket, false, $params);
         if ($timeInForce === null) {
             $timeInForce = 'GOOD_TIL_CANCEL';
         }
@@ -1675,7 +1676,8 @@ class apex extends Exchange {
         $subAccountId = $this->safe_string($spotAccount, 'defaultSubAccountId', '0');
         $subAccounts = $this->safe_list($spotAccount, 'subAccounts', array());
         $nonce = '0';
-        if (strlen($subAccounts) > 0) {
+        $subAccountsLength = count($subAccounts);
+        if ($subAccountsLength > 0) {
             $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
         }
         $finalNonce = $nonce; // java req
@@ -1958,7 +1960,10 @@ class apex extends Exchange {
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($endTimeExclusive !== null) {
+            $paramsOmitted = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
         $response = Async\await($this->privateGetV3HistoryOrders($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
@@ -2038,7 +2043,10 @@ class apex extends Exchange {
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($endTimeExclusive !== null) {
+            $paramsOmitted = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
         $response = Async\await($this->privateGetV3Fills($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
@@ -2083,7 +2091,10 @@ class apex extends Exchange {
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($endTimeExclusive !== null) {
+            $paramsOmitted = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
         $response = Async\await($this->privateGetV3Funding($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($response, 'data', array());
         $fundingValues = $this->safe_list($data, 'fundingValues', array());
@@ -2195,7 +2206,7 @@ class apex extends Exchange {
         // }
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'size');
         $timestamp = $this->safe_integer($position, 'updatedTime');
@@ -2270,7 +2281,7 @@ class apex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

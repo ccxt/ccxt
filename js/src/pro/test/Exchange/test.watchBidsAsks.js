@@ -25,7 +25,7 @@ async function testWatchBidsAsksHelper(exchange, skippedProperties, argSymbols, 
         let response = {};
         const startTime = exchange.milliseconds();
         try {
-            response = await exchange.watchBidsAsks(argSymbols, argParams);
+            response = await exchange.watchBidsAsks(argSymbols);
         }
         catch (e) {
             // for some exchanges, multi symbol methods might require symbols array to be present, so

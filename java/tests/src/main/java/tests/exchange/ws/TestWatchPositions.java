@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -24,8 +25,8 @@ public class TestWatchPositions extends BaseTest {
 
         String method = "watchPositions";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object ends = TestHelpers.add(now, 15000);
+        while (TestHelpers.isLessThan(now, ends))
         {
             Object response = null;
             Boolean success = true;
@@ -38,7 +39,7 @@ public class TestWatchPositions extends BaseTest {
                 }
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -54,11 +55,11 @@ public class TestWatchPositions extends BaseTest {
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; i < Helpers.getArrayLength(response); i++)
+                for (var i = 0; i < TestHelpers.getArrayLength(response); i++)
                 {
                     TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (null), now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
             }
             //
             // Test with specific symbol
@@ -70,7 +71,7 @@ public class TestWatchPositions extends BaseTest {
                 positionsForSymbols = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -86,9 +87,9 @@ public class TestWatchPositions extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)positionsForSymbols).size(); i++)
                 {
-                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), (String) (symbol), now);
+                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), symbol, now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), positionsForSymbols);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, positionsForSymbols);
             }
         }
         return true;

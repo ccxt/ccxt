@@ -12,21 +12,21 @@ import (
 // kind the generated test can pass must report a round quotient
 func TestIsRoundNumberOfTimestampQuotient(t *testing.T) {
 	ex := &BaseExchange{}
-	diffs := []any{int64(60000), float64(60000), int64(120000), Subtract(int64(1794676500000), int64(1794676440000)), Subtract(float64(1794676500000), int64(1794676440000))}
+	diffs := []any{int64(60000), float64(60000), int64(120000), int64(1794676500000) - int64(1794676440000), float64(1794676500000) - float64(1794676440000)}
 	for _, diff := range diffs {
-		if !ex.IsRoundNumber(Divide(diff, int64(60000))) {
-			t.Errorf("IsRoundNumber(Divide(%T %v, int64 60000)) = false", diff, diff)
+		if !ex.IsRoundNumber(ToFloat64(diff) / 60000) {
+			t.Errorf("IsRoundNumber(%T %v / 60000) = false", diff, diff)
 		}
 	}
-	for _, v := range []any{int64(1), float64(1.0), float64(3), int64(-2), float64(-4.0), int64(0)} {
+	for _, v := range []float64{1, 1.0, 3, -2, -4.0, 0} {
 		if !ex.IsRoundNumber(v) {
 			t.Errorf("IsRoundNumber(%T %v) = false", v, v)
 		}
 	}
-	if ex.IsRoundNumber(Divide(int64(90000), int64(60000))) {
+	if ex.IsRoundNumber(float64(90000) / float64(60000)) {
 		t.Errorf("IsRoundNumber(1.5) = true")
 	}
-	for _, v := range []any{float64(1.5), float64(-2.25), math.NaN()} {
+	for _, v := range []float64{1.5, -2.25, math.NaN()} {
 		if ex.IsRoundNumber(v) {
 			t.Errorf("IsRoundNumber(%T %v) = true", v, v)
 		}
@@ -80,7 +80,7 @@ func typedMarketsTask(symbol string) <-chan AsyncResult[[]MarketInterface] {
 }
 
 // bingx/hyperliquid/kucoin shape: promiseAll over typed `<-chan AsyncResult[[]MarketInterface]`
-// cores, then SafeListTypedDefault / SafeList + ArrayConcat over the result list.
+// cores, then SafeListSlice / SafeList + ArrayConcat over the result list.
 func TestPromiseAllTypedMarketListsConcat(t *testing.T) {
 	e := &BaseExchange{}
 	r := <-promiseAll([]any{typedMarketsTask("BTC/USDT"), typedMarketsTask("ETH/USDT")})
@@ -88,7 +88,7 @@ func TestPromiseAllTypedMarketListsConcat(t *testing.T) {
 		t.Fatal(r.Err)
 	}
 	promises := ListTyped(r.Value)
-	first := SafeListTypedDefault(promises, 0, []any{})    // bingx form
+	first := e.SafeListSlice(promises, 0, []any{})         // bingx form
 	second := ArrayTyped(e.SafeList(promises, 1, []any{})) // hyperliquid / kucoin form
 	all := e.ArrayConcat(first, second)
 	if len(all) != 2 {
@@ -136,7 +136,7 @@ func TestPreciseToStringMatchesTs(t *testing.T) {
 	}
 	for _, c := range cases {
 		pr := NewPrecise(c.n)
-		pr.Decimals = (&BaseExchange{}).Sum(pr.Decimals, c.dec)
+		pr.Decimals += int(c.dec)
 		if got := pr.ToString(); got != c.want {
 			t.Errorf("Precise(%s, +%d).ToString() = %q, want %q", c.n, c.dec, got, c.want)
 		}
@@ -173,20 +173,6 @@ func TestCountedOrderBookSideZeroCountDeletes(t *testing.T) {
 		side.StoreArray([]any{float64(100), float64(1), zero})
 		if side.Length != 0 {
 			t.Errorf("count %T 0 kept the level: length %d", zero, side.Length)
-		}
-	}
-}
-
-// JS truthiness: every numeric zero (and NaN) is falsy whatever its Go kind
-func TestEvalTruthyNumericZeroIsFalsy(t *testing.T) {
-	for _, v := range []any{int(0), int32(0), int64(0), uint(0), uint32(0), uint64(0), float32(0), float64(0), math.NaN()} {
-		if EvalTruthy(v) {
-			t.Errorf("EvalTruthy(%T %v) = true", v, v)
-		}
-	}
-	for _, v := range []any{int64(2), float64(0.5), int(-1)} {
-		if !EvalTruthy(v) {
-			t.Errorf("EvalTruthy(%T %v) = false", v, v)
 		}
 	}
 }

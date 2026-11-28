@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -79,7 +79,11 @@ class pacifica(ccxt.async_support.pacifica):
         else:
             if self.handle_option('setupApiKeyHeaders', 'apiKey') is not None:
                 headers['PF-API-KEY'] = self.options['apiKey']
-        self.options['ws']['options']['headers'] = headers
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsSubOptions = self.safe_dict(wsOptions, 'options', {})
+        wsSubOptions['headers'] = headers
+        wsOptions['options'] = wsSubOptions
+        self.options['ws'] = wsOptions
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -287,7 +291,7 @@ class pacifica(ccxt.async_support.pacifica):
         results = self.safe_list(data, 'results', [])
         ordersToReturn = []
         for i in range(0, len(results)):
-            order = self.safe_dict(results, i)
+            order = self.safe_dict(results, i, {})
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
@@ -522,7 +526,7 @@ class pacifica(ccxt.async_support.pacifica):
         entry = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         levels = self.safe_list(entry, 'l', [])
         result = {
             'bids': self.safe_list(levels, 0, []),
@@ -725,19 +729,15 @@ class pacifica(ccxt.async_support.pacifica):
         parsedTickers = []
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
-            info = data[i]
-            marketId = self.safe_string(info, 'symbol')
+            marketId = self.safe_string(data[i], 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
-            ticker = self.parse_ws_ticker(info, market)
+            symbol = self.safe_string(market, 'symbol', '')
+            ticker = self.parse_ticker(self.safe_dict(data, i, {}), market)
             self.tickers[symbol] = ticker
             parsedTickers.append(ticker)
         tickers = self.index_by(parsedTickers, 'symbol')
         client.resolve(tickers, 'tickers')
         return True
-
-    def parse_ws_ticker(self, rawTicker: dict, market: Market = None) -> Ticker:
-        return self.parse_ticker(rawTicker, market)
 
     def handle_my_trades(self, client: Client, message: dict):
         #
@@ -776,7 +776,7 @@ class pacifica(ccxt.async_support.pacifica):
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = self.parse_ws_trade(rawTrade)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if symbol is not None:
                 symbols[symbol] = True
             trades.append(parsed)
@@ -803,7 +803,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbolValue
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
@@ -841,7 +841,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         subMessageHash = 'trade:' + symbolValue
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
@@ -885,7 +885,7 @@ class pacifica(ccxt.async_support.pacifica):
         first = self.safe_dict(entry, 0, {})
         marketId = self.safe_string(first, 's')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbol
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -938,7 +938,7 @@ class pacifica(ccxt.async_support.pacifica):
         amount = self.safe_string(trade, 'a')
         marketId = self.safe_string(trade, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'h')
         fee = self.safe_string(trade, 'f')
         side = self.safe_string_2(trade, 'ts', 'd')
@@ -990,7 +990,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         isTestnet = self.isSandboxModeEnabled
         parsedTf = self.safe_string(self.timeframes, timeframe, timeframe)
         urlKey = 'api'
@@ -1031,7 +1031,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
@@ -1225,7 +1225,7 @@ class pacifica(ccxt.async_support.pacifica):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # 'rl' key is present only when a rate-limited API key is used
         # {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1240,7 +1240,7 @@ class pacifica(ccxt.async_support.pacifica):
         wsHeaders = self.safe_dict(wsOptions, 'options', {})
         wsHeadersFinal = self.safe_dict(wsHeaders, 'headers', {})
         try:
-            self.handle_errors(0, error, '', postType, wsHeadersFinal, self.json(data), message, {}, '')
+            self.handle_errors(0, error, '', postType, wsHeadersFinal, self.json(data), message, {}, None)
         except Exception as e:
             client.reject(e, id)
             return True

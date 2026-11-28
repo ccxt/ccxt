@@ -156,7 +156,7 @@ public partial class ndax : ccxt.ndax
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -263,9 +263,9 @@ public partial class ndax : ccxt.ndax
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -315,14 +315,14 @@ public partial class ndax : ccxt.ndax
                 {
                     continue;
                 }
-                Int64? candleTimestamp = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((double?)timestamp / duration)), duration));
+                Int64? candleTimestamp = (this.parseToInt(((double?)timestamp / duration)) * duration);
                 List<object> parsed = new List<object>() {candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
                 ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
                 if ((stored == null))
                 {
                     Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                     stored = new ArrayCacheByTimestamp(limit);
-                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                    (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
                 }
                 int length = (stored?.Count ?? 0);
                 object previous = this.safeValue(stored, (length - 1));
@@ -335,7 +335,7 @@ public partial class ndax : ccxt.ndax
                     if ((parsedHigh != null))
                     {
                         high = parsedHigh;
-                        if (((previousHigh != null)) && ((previousHigh != null && (parsedHigh == null || previousHigh > parsedHigh))))
+                        if (((previousHigh != null)) && (previousHigh.Value > parsedHigh.Value))
                         {
                             high = previousHigh;
                         }
@@ -346,7 +346,7 @@ public partial class ndax : ccxt.ndax
                     if ((parsedLow != null))
                     {
                         low = parsedLow;
-                        if (((previousLow != null)) && ((parsedLow != null && (previousLow == null || parsedLow > previousLow))))
+                        if (((previousLow != null)) && (parsedLow.Value > previousLow.Value))
                         {
                             low = previousLow;
                         }
@@ -382,7 +382,7 @@ public partial class ndax : ccxt.ndax
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            List<object> timeframes = new List<object>(((IDictionary<string,object>)(marketId != null && updates.ContainsKey(marketId) ? updates[marketId] : null)).Keys);
+            List<object> timeframes = new List<object>(((IDictionary<string,object>)this.safeDict(updates, marketId, new Dictionary<string, object>() {})).Keys);
             for (int j = 0; j < timeframes.Count; j++)
             {
                 string? timeframe = ((string)timeframes[j]);
@@ -541,7 +541,7 @@ public partial class ndax : ccxt.ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         //
         //     {
@@ -603,15 +603,15 @@ public partial class ndax : ccxt.ndax
         IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
-            object method = this.safeValue(subscription, "method");
-            if ((method != null))
+            bool method = (this.safeValue(subscription, "method")) != null;
+            if (method)
             {
-                DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -640,7 +640,7 @@ public partial class ndax : ccxt.ndax
         {
             return;
         }
-        ((IDictionary<string,object>)message)["o"] = JsonHelper.Deserialize(payload);
+        message["o"] = JsonHelper.Deserialize(payload);
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "SubscribeLevel2", this.handleSubscriptionStatus },
             { "SubscribeLevel1", this.handleTicker },

@@ -24,9 +24,9 @@ public class TestFetchTransfers extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
         for (var i = 0; i < ((List<?>)transfers).size(); i++)
         {
-            TestTransfer.testTransfer(exchange, skippedProperties, method, (transfers == null || i < 0 || i >= ((List<?>)transfers).size() ? null : ((List<?>)transfers).get(i)), (String) (code));
+            TestTransfer.testTransfer(exchange, skippedProperties, method, (transfers == null || i < 0 || i >= ((List<?>)transfers).size() ? null : ((List<?>)transfers).get(i)), code);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), transfers);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, code, transfers);
         return true;
         });
 

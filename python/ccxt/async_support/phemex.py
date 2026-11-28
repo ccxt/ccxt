@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import asyncio
 import hashlib
-import numbers
-from ccxt.base.types import ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import ADL, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -733,7 +732,8 @@ class phemex(Exchange, ImplicitAPI):
         if settleId != quoteId:
             inverse = True
             # some unhandled cases
-            if not ('baseCurrency' in market) and base == quote:
+            marketBaseCurrency = self.safe_string(market, 'baseCurrency')
+            if (marketBaseCurrency is None) and base == quote:
                 base = settle
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
@@ -1115,9 +1115,9 @@ class phemex(Exchange, ImplicitAPI):
         products = self.safe_list(v2ProductsData, 'products', [])
         perpetualProductsV2 = self.safe_list(v2ProductsData, 'perpProductsV2', [])
         products = self.array_concat(products, perpetualProductsV2)
-        riskLimits = self.safe_list(v2ProductsData, 'riskLimits', [])
+        riskLimitsV1 = self.safe_list(v2ProductsData, 'riskLimits', [])
         riskLimitsV2 = self.safe_list(v2ProductsData, 'riskLimitsV2', [])
-        riskLimits = self.array_concat(riskLimits, riskLimitsV2)
+        riskLimits = self.array_concat(riskLimitsV1, riskLimitsV2)
         currencies = self.safe_list(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
@@ -1137,8 +1137,7 @@ class phemex(Exchange, ImplicitAPI):
                 baseCurrency = self.safe_string(market, 'baseCurrency')
                 currencyValues = self.safe_dict(currenciesByCode, baseCurrency, {})
                 valueScale = self.safe_string(currencyValues, 'valueScale', '8')
-                market = self.extend(market, {'valueScale': valueScale})
-                market = self.parse_spot_market(market)
+                market = self.parse_spot_market(self.extend(market, {'valueScale': valueScale}))
             if market is not None:
                 result.append(market)
         return result
@@ -1172,7 +1171,7 @@ class phemex(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         valueScaleString = self.safe_string(rawCurrency, 'valueScale')
-        valueScale = int(valueScaleString)
+        valueScale = self.safe_integer(rawCurrency, 'valueScale')
         minValueEv = self.safe_string(rawCurrency, 'minValueEv')
         maxValueEv = self.safe_string(rawCurrency, 'maxValueEv')
         minAmount = None
@@ -1213,7 +1212,7 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
         if self.safe_bool(market, 'spot', False):
-            amount = self.from_ev(amount, market)
+            amount = self.from_ev(self.safe_string(bidask, amountKey), market)
         return [
             self.parse_number(self.from_ep(self.safe_string(bidask, priceKey), market)),
             self.parse_number(amount),
@@ -1302,7 +1301,7 @@ class phemex(Exchange, ImplicitAPI):
             return None
         stringN = self.number_to_string(n)
         precise = Precise(stringN)
-        precise.decimals = self.sum(precise.decimals, scale * -1)
+        precise.decimals = self.sum(precise.decimals, self.parse_to_int(scale * -1))
         precise.reduce()
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
@@ -1310,35 +1309,35 @@ class phemex(Exchange, ImplicitAPI):
     def to_ev(self, amount: object, market: dict | None = None):
         if (amount is None) or (market is None):
             return amount
-        return self.to_en(amount, self.safe_integer(market, 'valueScale'))
+        return self.to_en(amount, self.safe_integer(self.safe_dict(market, 'info'), 'valueScale'))
 
     def to_ep(self, price: object, market: Market = None):
         if (price is None) or (market is None):
             return price
-        return self.to_en(price, self.safe_integer(market, 'priceScale'))
+        return self.to_en(price, self.safe_integer(self.safe_dict(market, 'info'), 'priceScale'))
 
     def from_en(self, en: Str, scale: Int) -> Str:
         if en is None or scale is None:
             return None
         precise = Precise(en)
-        precise.decimals = self.sum(precise.decimals, scale)
+        precise.decimals = self.sum(precise.decimals, self.parse_to_int(scale))
         precise.reduce()
         return str(precise)
 
     def from_ep(self, ep: Str, market: Market = None) -> Str:
         if (ep is None) or (market is None):
             return ep
-        return self.from_en(ep, self.safe_integer(market, 'priceScale'))
+        return self.from_en(ep, self.safe_integer(self.safe_dict(market, 'info'), 'priceScale'))
 
     def from_ev(self, ev: Str, market: Market = None) -> Str:
         if (ev is None) or (market is None):
             return ev
-        return self.from_en(ev, self.safe_integer(market, 'valueScale'))
+        return self.from_en(ev, self.safe_integer(self.safe_dict(market, 'info'), 'valueScale'))
 
     def from_er(self, er: Str, market: Market = None) -> Str:
         if (er is None) or (market is None):
             return er
-        return self.from_en(er, self.safe_integer(market, 'ratioScale'))
+        return self.from_en(er, self.safe_integer(self.safe_dict(market, 'info'), 'ratioScale'))
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1506,12 +1505,13 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), marketResolved)
         quoteVolume = self.from_er(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), marketResolved)
-        baseVolume = self.safe_string(ticker, 'volume')
-        if baseVolume is None:
+        volume = self.safe_string(ticker, 'volume')
+        baseVolume = volume
+        if volume is None:
             baseVolume = self.from_ev(self.safe_string_2(ticker, 'volumeEv', 'volumeRq'), marketResolved)
         open = self.from_ep(self.safe_string(ticker, 'openEp'), marketResolved)
         return self.safe_ticker({
@@ -1881,7 +1881,7 @@ class phemex(Exchange, ImplicitAPI):
         feeCurrencyCode = None
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         orderId = None
         takerOrMaker = None
         if isinstance(trade, list):
@@ -1890,12 +1890,16 @@ class phemex(Exchange, ImplicitAPI):
             if tradeLength > 4:
                 id = self.safe_string(trade, tradeLength - 4)
             side = self.safe_string_lower(trade, tradeLength - 3)
-            priceString = self.safe_string(trade, tradeLength - 2)
-            amountString = self.safe_string(trade, tradeLength - 1)
-            priceAmount = trade[tradeLength - 2]
-            if isinstance(priceAmount, numbers.Real):
-                priceString = self.from_ep(priceString, marketResolved)
-                amountString = self.from_ev(amountString, marketResolved)
+            priceIndex = tradeLength - 2
+            amountIndex = tradeLength - 1
+            priceString = self.safe_string(trade, priceIndex)
+            amountString = self.safe_string(trade, amountIndex)
+            # v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            tradeSettle = self.safe_string(marketResolved, 'settle')
+            isStableSettled = (tradeSettle == 'USDT') or (tradeSettle == 'USDC')
+            if not isStableSettled:
+                priceString = self.from_ep(self.safe_string(trade, priceIndex), marketResolved)
+                amountString = self.from_ev(self.safe_string(trade, amountIndex), marketResolved)
         else:
             timestamp = self.safe_integer_product(trade, 'transactTimeNs', 0.000001)
             if timestamp is None:
@@ -1916,11 +1920,12 @@ class phemex(Exchange, ImplicitAPI):
                 priceString = self.safe_string(trade, 'execPriceRp')
                 amountString = self.safe_string(trade, 'execQtyRq')
                 costString = self.safe_string(trade, 'execValueRv')
-                feeCostString = self.omit_zero(self.safe_string(trade, 'execFeeRv'))
+                execFeeRv = self.omit_zero(self.safe_string(trade, 'execFeeRv'))
                 feeRateString = self.safe_string(trade, 'feeRateRr')
-                if feeCostString is not None:
+                if execFeeRv is not None:
                     currencyId = self.safe_string(trade, 'currency')
                     feeCurrencyCode = self.safe_currency_code(currencyId)
+                    feeCostString = execFeeRv
                 else:
                     ptFeeRv = self.omit_zero(self.safe_string(trade, 'ptFeeRv'))
                     if ptFeeRv is not None:
@@ -1947,9 +1952,10 @@ class phemex(Exchange, ImplicitAPI):
                             settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                             feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
                 else:
-                    feeCostString = self.safe_string(trade, 'ptFeeRv')
-                    if feeCostString is not None:
+                    ptFeeRvString = self.safe_string(trade, 'ptFeeRv')
+                    if ptFeeRvString is not None:
                         feeCurrencyCode = 'PT'
+                        feeCostString = ptFeeRvString
             fee = {
                 'cost': feeCostString,
                 'rate': feeRateString,
@@ -2348,7 +2354,7 @@ class phemex(Exchange, ImplicitAPI):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.from_ep(self.safe_string(order, 'priceEp'), marketResolved)
         amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), marketResolved)
         remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), marketResolved))
@@ -2512,8 +2518,9 @@ class phemex(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.parse_order_side(self.safe_string_lower(order, 'side'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
-        price = self.safe_string(order, 'priceRp')
-        if price is None:
+        priceRp = self.safe_string(order, 'priceRp')
+        price = priceRp
+        if priceRp is None:
             price = self.from_ep(self.safe_string(order, 'priceEp'), marketResolved)
         amount = self.safe_number_2(order, 'orderQty', 'orderQtyRq')
         filled = self.safe_number_2(order, 'cumQty', 'cumQtyRq')
@@ -2652,7 +2659,7 @@ class phemex(Exchange, ImplicitAPI):
                 request['clOrdID'] = brokerId + self.uuid16()
         else:
             request['clOrdID'] = clientOrderId
-        paramsOmitted = self.omit(params, ['clOrdID', 'clientOrderId']) if (clientOrderId is not None) else params
+        paramsOmitted = self.omit(params, ['clOrdID', 'clientOrderId'])
         triggerPrice = self.safe_string_n(paramsOmitted, ['stopPx', 'stopPrice', 'triggerPrice'])
         if triggerPrice is not None:
             if isStableSettled:
@@ -2673,7 +2680,10 @@ class phemex(Exchange, ImplicitAPI):
                 request['trigger'] = 'ByLastPrice'
             request['qtyType'] = qtyType
             if qtyType == 'ByQuote':
-                cost = self.safe_number(orderParams, 'cost')
+                costParam = self.safe_number(orderParams, 'cost')
+                cost = amount
+                if costParam is not None:
+                    cost = self.safe_number(orderParams, 'cost')
                 orderParams = self.omit(orderParams, 'cost')
                 if self.safe_bool(self.options, 'createOrderByQuoteRequiresPrice', False):
                     if price is not None:
@@ -2681,9 +2691,8 @@ class phemex(Exchange, ImplicitAPI):
                         priceString = self.number_to_string(price)
                         quoteAmount = Precise.string_mul(amountString, priceString)
                         cost = self.parse_number(quoteAmount)
-                    elif cost is None:
+                    elif costParam is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
-                cost = amount if (cost is None) else cost
                 costString = self.cost_to_precision(symbol, cost)
                 request['quoteQtyEv'] = self.to_ev(costString, market)
             else:
@@ -2864,7 +2873,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2885,6 +2894,7 @@ class phemex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'symbol': market['id'],
         }
@@ -2898,7 +2908,7 @@ class phemex(Exchange, ImplicitAPI):
             request['orderID'] = id
         if price is not None:
             if isStableSettled:
-                request['priceRp'] = self.price_to_precision(market['symbol'], price)
+                request['priceRp'] = self.price_to_precision(precisionSymbol, price)
             else:
                 request['priceEp'] = self.to_ep(price, market)
         # Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
@@ -2908,7 +2918,7 @@ class phemex(Exchange, ImplicitAPI):
             request['baseQtyEV'] = finalQty
         elif amount is not None:
             if isStableSettled:
-                request['orderQtyRq'] = self.amount_to_precision(market['symbol'], amount)
+                request['orderQtyRq'] = self.amount_to_precision(precisionSymbol, amount)
             else:
                 request['baseQtyEV'] = self.to_ev(amount, market)
         triggerPrice = self.safe_string_n(paramsOmitted2, ['triggerPrice', 'stopPx', 'stopPrice'])
@@ -2929,7 +2939,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             response = await self.privatePutSpotOrders(self.extend(request, paramsOmitted3))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2969,7 +2979,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             response = await self.privateDeleteSpotOrders(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3084,7 +3094,7 @@ class phemex(Exchange, ImplicitAPI):
                 else:
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
             order = self.safe_dict(rows, 0, {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3160,12 +3170,12 @@ class phemex(Exchange, ImplicitAPI):
             if isinstance(e, OrderNotFound):
                 return []
             raise e
-        data = self.safe_value(response, 'data', {})
-        if isinstance(data, list):
-            return self.parse_orders(data, market, since, limit)
-        else:
-            rows = self.safe_list(data, 'rows', [])
-            return self.parse_orders(rows, market, since, limit)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_orders(dataList, market, since, limit)
+        dataDict = self.safe_dict(response, 'data')
+        rows = self.safe_list(dataDict, 'rows', [])
+        return self.parse_orders(rows, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3240,12 +3250,12 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        if isinstance(data, list):
-            return self.parse_orders(data, market, since, limit)
-        else:
-            rows = self.safe_list(data, 'rows', [])
-            return self.parse_orders(rows, market, since, limit)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_orders(dataList, market, since, limit)
+        dataDict = self.safe_dict(response, 'data')
+        rows = self.safe_list(dataDict, 'rows', [])
+        return self.parse_orders(rows, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -3619,11 +3629,10 @@ class phemex(Exchange, ImplicitAPI):
         #
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
-        tag = None
         txid = self.safe_string(transaction, 'txHash')
         currencyId = self.safe_string(transaction, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        code = currencyResolved['code']
+        code = self.safe_string(currencyResolved, 'code')
         networkId = self.safe_string(transaction, 'chainName')
         timestamp = self.safe_integer_n(transaction, ['createdAt', 'submitedAt', 'submittedAt'])
         type = self.safe_string_lower(transaction, 'type')
@@ -3651,8 +3660,8 @@ class phemex(Exchange, ImplicitAPI):
             'address': address,
             'addressTo': address,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': None,
+            'tagTo': None,
             'tagFrom': None,
             'type': type,
             'amount': amount,
@@ -3949,7 +3958,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         collateral = self.safe_string_2(position, 'positionMargin', 'positionMarginRv')
         notionalString = self.safe_string_2(position, 'value', 'valueRv')
         maintenanceMarginPercentageString = self.safe_string_2(position, 'maintMarginReq', 'maintMarginReqRr')
@@ -4321,7 +4330,7 @@ class phemex(Exchange, ImplicitAPI):
         request['leverage'] = leverage
         return await self.privatePutPositionsLeverage(self.extend(request, params))
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 
@@ -4504,12 +4513,12 @@ class phemex(Exchange, ImplicitAPI):
             privateHeaders['x-phemex-request-expiry'] = expiryString
             payload = ''
             if method == 'POST':
+                payload = self.json(params)
                 isOrderPlacement = (path == 'g-orders') or (path == 'spot/orders') or (path == 'orders')
                 if isOrderPlacement:
                     if self.safe_string(params, 'clOrdID') is None:
                         id = self.safe_string(self.options, 'brokerId', 'CCXT123456')
-                        params['clOrdID'] = id + self.uuid16()
-                payload = self.json(params)
+                        payload = self.json(self.extend(params, {'clOrdID': id + self.uuid16()}))
                 requestBody = payload
                 privateHeaders['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
@@ -4865,7 +4874,7 @@ class phemex(Exchange, ImplicitAPI):
         stableCoins = self.safe_list(self.options, 'stableCoins', [])
         if networkId is None:
             if not (self.in_array(code, stableCoins)):
-                networkId = currency['id']
+                networkId = self.safe_string(currency, 'id', currency['id'])
             else:
                 raise ArgumentsRequired(self.id + ' withdraw () requires an extra argument params["network"]')
         request = {
@@ -5400,8 +5409,7 @@ class phemex(Exchange, ImplicitAPI):
         ranks = self.safe_list(data, 'positions', [])
         result = []
         for i in range(0, len(ranks)):
-            rank = ranks[i]
-            result.append(self.parse_adl_rank(rank))
+            result.append(self.parse_adl_rank(self.extend({}, ranks[i])))
         return self.filter_by_array_adl_ranks(result, 'symbol', symbolsNormalized, False)
 
     def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
@@ -5532,7 +5540,7 @@ class phemex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

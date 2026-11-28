@@ -1,5 +1,5 @@
 import wooRest from '../woo.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market, int } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FundingRate, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class woo extends wooRest {
@@ -184,7 +184,7 @@ export default class woo extends wooRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsOrder(order: Dict, market?: Market): Order;
     handleOrderUpdate(client: Client, message: Dict): void;
-    handleOrder(client: Client, message: Dict, topic: Str): void;
+    handleOrder(client: Client, message: Dict, topic: string): void;
     handleMyTrade(client: Client, message: Dict): void;
     /**
      * @method
@@ -222,7 +222,7 @@ export default class woo extends wooRest {
      */
     watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleUnSubscription(client: Client, message: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;

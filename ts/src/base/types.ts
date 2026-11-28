@@ -161,6 +161,7 @@ export interface MarketInterface {
     resolved?: Bool;
     resolvedOutcome?: Str;
     outcomes?: PredictionOutcome[];
+    marketId?: Str; // raw exchange id, set by safeMarket on rows it builds for an unknown market
 }
 
 // Prediction-market structures (ccxt.prediction namespace).

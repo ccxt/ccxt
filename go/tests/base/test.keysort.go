@@ -41,7 +41,7 @@ func TestKeysort() {
 	}
 	var result2 map[string]any = exchange.Keysort(unsortedDict2)
 	AssertDeepEqual(exchange, nil, "testKeysort", ccxt.ObjectKeys(result2), ccxt.ObjectKeys(expectedSorted2))
-	// Test 3: ccxt.Reverse sorted input
+	// Test 3: Reverse sorted input
 	var unsortedDict3 map[string]any = map[string]any{
 		"z": "last",
 		"n": "middle",

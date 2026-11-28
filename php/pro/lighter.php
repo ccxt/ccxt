@@ -133,8 +133,8 @@ class lighter extends \ccxt\async\lighter {
 
     private function do_subscribe_private(string $messageHash, $params = array()) {
         Async\await($this->preLoadLighterLibrary());
-        $params['auth'] = $this->createAuth($params);
-        return Async\await($this->subscribe_public($messageHash, $params));
+        $request = $this->extend($params, array( 'auth' => $this->createAuth($params) ));
+        return Async\await($this->subscribe_public($messageHash, $request));
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
@@ -191,7 +191,7 @@ class lighter extends \ccxt\async\lighter {
         $parts = explode(':', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer($message, 'timestamp');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
@@ -228,7 +228,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request = array(
             'channel' => 'order_book/' . $this->safe_string($market, 'id', ''),
         );
@@ -255,7 +255,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request = array(
             'channel' => 'order_book/' . $this->safe_string($market, 'id', ''),
         );
@@ -324,7 +324,7 @@ class lighter extends \ccxt\async\lighter {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
-                $ticker = $this->parse_ticker($data[$marketId], $market);
+                $ticker = $this->parse_ticker($this->safe_dict($data, $marketId, array()), $market);
                 $this->tickers[$symbol] = $ticker;
                 $client->resolve($ticker, $this->get_message_hash('ticker', $symbol));
                 $client->resolve($ticker, $this->get_message_hash('ticker'));
@@ -357,7 +357,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
         }
@@ -386,7 +386,7 @@ class lighter extends \ccxt\async\lighter {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
         }
@@ -648,7 +648,7 @@ class lighter extends \ccxt\async\lighter {
         $parts = explode(':', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1045,7 +1045,7 @@ class lighter extends \ccxt\async\lighter {
         $parts = explode(':', $channel);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $stored = $this->safe_value($this->liquidations, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
@@ -1055,7 +1055,7 @@ class lighter extends \ccxt\async\lighter {
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $iReversed = $this->parse_to_int($dataLength - 1 - $i);
-            $liquidation = $this->parse_ws_liquidation($data[$iReversed], $market);
+            $liquidation = $this->parse_ws_liquidation($this->safe_dict($data, $iReversed, array()), $market);
             $stored->append($liquidation);
         }
         $messageHash = $this->get_message_hash('liquidations', $symbol);
@@ -1186,7 +1186,7 @@ class lighter extends \ccxt\async\lighter {
             $assetIds = is_array($assets) ? array_keys($assets) : array();
             for ($i = 0; $i < count($assetIds); $i++) {
                 $assetId = $assetIds[$i];
-                $asset = $this->safe_dict($assets, $assetId);
+                $asset = $this->safe_dict($assets, $assetId, array());
                 $codeId = $this->safe_string($asset, 'symbol');
                 $code = $this->safe_currency_code($codeId);
                 $account = $this->account();
@@ -1284,10 +1284,11 @@ class lighter extends \ccxt\async\lighter {
     }
 
     public function request_id(string $url): int {
-        $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 
@@ -1337,7 +1338,7 @@ class lighter extends \ccxt\async\lighter {
             'id' => $requestId,
         );
         $rawMessage = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        return $this->parse_order($this->deep_extend($rawMessage, $order), $market);
+        return $this->parse_order($this->extend(array(), $this->deep_extend($rawMessage, $order)), $market);
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1377,7 +1378,7 @@ class lighter extends \ccxt\async\lighter {
             'id' => $requestId,
         );
         $rawMessage = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        return $this->parse_order($rawMessage, $market);
+        return $this->parse_order($this->extend(array(), $rawMessage), $market);
     }
 
     public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1422,7 +1423,7 @@ class lighter extends \ccxt\async\lighter {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_string($message, 'id', '');
         $client->resolve($message, 'jsonapi/sendtx:' . $id);
     }
 
@@ -1463,9 +1464,9 @@ class lighter extends \ccxt\async\lighter {
             $market = $this->safe_market($marketId);
             $orders = $this->safe_list($data, $marketId, array());
             for ($j = 0; $j < count($orders); $j++) {
-                $order = $this->parse_order($orders[$j], $market);
+                $order = $this->parse_order($this->safe_dict($orders, $j, array()), $market);
                 $stored->append($order);
-                $symbol = $order['symbol'];
+                $symbol = $this->safe_string($order, 'symbol');
                 if ($symbol !== null) {
                     $symbolSpecificMessageHash = $this->get_message_hash('orders', $symbol);
                     $client->resolve($stored, $symbolSpecificMessageHash);
@@ -1678,8 +1679,8 @@ class lighter extends \ccxt\async\lighter {
             for ($i = 0; $i < count($subscriptionHashes); $i++) {
                 $subscriptionHash = $subscriptionHashes[$i];
                 if (str_starts_with($subscriptionHash, 'ticker')) {
-                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
-                    $subscriptionParams = $this->safe_dict($subscription, 'params');
+                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash, array());
+                    $subscriptionParams = $this->safe_dict($subscription, 'params', array());
                     $subscribedChannel = $this->safe_string($subscriptionParams, 'channel');
                     if ($subscribedChannel === 'market_stats/all') {
                         unset($client->subscriptions[$subscriptionHash]);

@@ -679,7 +679,7 @@ class coinsph extends coinsph$1["default"] {
         });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolParam = (this.safeString(params, 'symbol') !== undefined);
         const hasSymbolsParam = ('symbols' in params);
         const limit = this.safeInteger(params, 'limit');
         if (('noSymbol' in config) && !hasSymbolParam) {
@@ -957,7 +957,7 @@ class coinsph extends coinsph$1["default"] {
         else {
             ticker = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1289,13 +1289,12 @@ class coinsph extends coinsph$1["default"] {
         //
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString2(trade, 'id', 'tradeId');
         const orderId = this.safeString(trade, 'orderId');
         const timestamp = this.safeInteger(trade, 'time');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');
-        const type = undefined;
         let fee = {};
         const feeCost = this.safeString(trade, 'commission');
         if (feeCost !== undefined) {
@@ -1325,7 +1324,7 @@ class coinsph extends coinsph$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -1479,7 +1478,7 @@ class coinsph extends coinsph$1["default"] {
         }
         request['newOrderRespType'] = newOrderRespType;
         const paramsRequest = this.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response = {};
+        let response = undefined;
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
         }
@@ -1882,8 +1881,9 @@ class coinsph extends coinsph$1["default"] {
         const result = {};
         const fees = this.toArray(response);
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee(fees[i]);
-            const symbol = fee['symbol'];
+            const feeRow = this.safeDict(fees, i, {});
+            const fee = this.parseTradingFee(feeRow);
+            const symbol = this.safeString(fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -1900,7 +1900,7 @@ class coinsph extends coinsph$1["default"] {
         //
         const marketId = this.safeString(fee, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,
@@ -2125,7 +2125,6 @@ class coinsph extends coinsph$1["default"] {
         const code = this.safeCurrencyCode(currencyId, currency);
         let timestamp = undefined;
         timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
-        const updated = undefined;
         let type = undefined;
         const withdrawOrderId = this.safeString(transaction, 'withdrawOrderId');
         const depositOrderId = this.safeString(transaction, 'depositOrderId');
@@ -2161,7 +2160,7 @@ class coinsph extends coinsph$1["default"] {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'internal': internal,
             'comment': undefined,
             'fee': fee,

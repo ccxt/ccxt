@@ -17,6 +17,18 @@ public partial class BaseExchange
 
     // Declared types spell Dictionary<string, object> out (never the file-local `dict` alias, which
     // stays expression-position only) so the classifier's string-keyed type tables name them verbatim.
+    public Dictionary<string, object> keysort(IDictionary<string, List<object>> parameters)
+    {
+        var keys = new List<string>(parameters.Keys);
+        keys.Sort();
+        var outDict = new dict();
+        foreach (string key in keys)
+        {
+            outDict.Add(key, parameters[key]);
+        }
+        return outDict;
+    }
+
     public Dictionary<string, object> keysort(object parameters2)
     {
         var parameters = (IDictionary<string, object>)parameters2;
@@ -153,6 +165,13 @@ public partial class BaseExchange
             }
         }
 
+        // a live WS cache is a List<object> mutated by the receive loop: hand back its published
+        // snapshot, so this test must precede the List<object> identity branch
+        if (a is ccxt.pro.SlimConcurrentList<object> concurrentList)
+        {
+            return concurrentList.ToArray();
+        }
+
         if (a is List<object>)
         {
             return (List<object>)a;
@@ -160,13 +179,6 @@ public partial class BaseExchange
 
         if (a is IList<object>)
         {
-            // a live WS cache is mutated by the receive thread while callers index the
-            // result; SlimConcurrentList.ToArray snapshots under a single read lock,
-            // whereas Count + CopyTo (what Enumerable.ToList uses) locks them separately
-            if (a is ccxt.pro.SlimConcurrentList<object> concurrentList)
-            {
-                return concurrentList.ToArray();
-            }
             return ((IList<object>)a);
         }
 

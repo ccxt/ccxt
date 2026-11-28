@@ -24,7 +24,7 @@ export default class interactivebrokers extends Exchange {
             'name': 'Interactive Brokers',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100 * 1.2, // the client portal gateway allows ~10 requests per second
+            'rateLimit': 120, // the client portal gateway allows ~10 requests per second
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -642,9 +642,9 @@ export default class interactivebrokers extends Exchange {
         if (this.safeBool(this.options, 'useGateway', false)) {
             return await this.ibkrGatewaySignIn(params);
         }
-        const encryptionPemPath = this.safeString(this.options, 'encryptionPemPath');
-        const dhParamPemPath = this.safeString(this.options, 'dhParamPemPath');
-        if (!encryptionPemPath || !dhParamPemPath) {
+        const encryptionPemPath = this.safeString(this.options, 'encryptionPemPath', '');
+        const dhParamPemPath = this.safeString(this.options, 'dhParamPemPath', '');
+        if ((encryptionPemPath === '') || (dhParamPemPath === '')) {
             throw new ArgumentsRequired(this.id + ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details');
         }
         this.ibkrCheckOauthCredentials();
@@ -669,10 +669,11 @@ export default class interactivebrokers extends Exchange {
         //         "live_session_token_expiration": 1714661586311
         //     }
         //
-        const dhResponse = this.safeString(response, 'diffie_hellman_response');
+        const dhResponse = this.safeString(response, 'diffie_hellman_response', '');
         const sharedSecret = this.modPow(this.convertToBigInt('0x' + dhResponse), dhRandom, dhPrime);
         const liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1, 'base64');
-        const check = this.hmac(this.encode(this.options['consumer_key']), this.base64ToBinary(liveSessionToken), sha1, 'hex');
+        const consumerKey = this.safeString(this.options, 'consumer_key', '');
+        const check = this.hmac(this.encode(consumerKey), this.base64ToBinary(liveSessionToken), sha1, 'hex');
         if (check !== this.safeString(response, 'live_session_token_signature')) {
             throw new AuthenticationError(this.id + ' signIn() live session token validation failed');
         }
@@ -788,7 +789,8 @@ export default class interactivebrokers extends Exchange {
             }
             const regainTimestamp = this.sum(lostTimestamp, regainDelay);
             if (this.milliseconds() < regainTimestamp) {
-                throw new AuthenticationError(this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + this.iso8601(regainTimestamp) + ' (options.autoRegainSession), ' + this.json(response));
+                const regainDatetime = this.iso8601(regainTimestamp);
+                throw new AuthenticationError(this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + regainDatetime + ' (options.autoRegainSession), ' + this.json(response));
             }
             response = await this.ibkrGatewayRegainSession(params);
             authenticated = this.safeBool(response, 'authenticated', false);
@@ -796,7 +798,8 @@ export default class interactivebrokers extends Exchange {
                 // try again options.autoRegainSession seconds later
                 this.options['gatewaySessionLostTimestamp'] = this.milliseconds();
                 this.ibkrGatewayScheduleRegain();
-                throw new AuthenticationError(this.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + this.iso8601(this.sum(this.milliseconds(), regainDelay)) + ' (options.autoRegainSession), ' + this.json(response));
+                const retryDatetime = this.iso8601(this.sum(this.milliseconds(), regainDelay));
+                throw new AuthenticationError(this.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + retryDatetime + ' (options.autoRegainSession), ' + this.json(response));
             }
         }
         this.options['gatewaySessionLostTimestamp'] = undefined;
@@ -854,11 +857,14 @@ export default class interactivebrokers extends Exchange {
      */
     ibkrGatewayOnSessionLost() {
         this.options['gatewayAuthenticatedTimestamp'] = undefined;
-        let lostTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
-        if (lostTimestamp === undefined) {
-            lostTimestamp = this.milliseconds();
+        let lostTimestamp = this.milliseconds();
+        const storedTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
+        if (storedTimestamp === undefined) {
             this.options['gatewaySessionLostTimestamp'] = lostTimestamp;
             this.ibkrGatewayScheduleRegain();
+        }
+        else {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }
@@ -900,7 +906,8 @@ export default class interactivebrokers extends Exchange {
         this.options['gatewayRegainScheduled'] = false;
         const useGateway = this.safeBool(this.options, 'useGateway', false);
         const lostTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
-        if (!useGateway || (lostTimestamp === undefined) || (this.ibkrGatewayRegainDelay() <= 0)) {
+        const regainDelay = this.ibkrGatewayRegainDelay();
+        if (!useGateway || (lostTimestamp === undefined) || (regainDelay <= 0)) {
             return undefined; // already regained, or disabled
         }
         try {
@@ -1029,7 +1036,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {Array} the account id and the params without accountId
      */
     async loadAccountId(params = {}) {
-        const [accountIdFromParams, query] = this.handleOptionAndParams(params, 'loadAccountId', 'accountId');
+        const [accountIdFromParams, query] = this.handleOptionStringAndParams(params, 'loadAccountId', 'accountId');
         let accountId = accountIdFromParams;
         if (accountId === undefined) {
             await this.fetchAccounts();
@@ -1056,8 +1063,9 @@ export default class interactivebrokers extends Exchange {
     async fetchBalance(params = {}) {
         await this.authenticate();
         const [accountId, accountQuery] = await this.loadAccountId(params);
-        const [withPositions, positionsQuery] = this.handleOptionAndParams(accountQuery, 'fetchBalance', 'positions', true);
-        const [withOpenOrders, query] = this.handleOptionAndParams(positionsQuery, 'fetchBalance', 'openOrders', true);
+        const accountParams = this.extend({}, accountQuery);
+        const [withPositions, positionsQuery] = this.handleOptionBoolAndParams(accountParams, 'fetchBalance', 'positions', true);
+        const [withOpenOrders, query] = this.handleOptionBoolAndParams(positionsQuery, 'fetchBalance', 'openOrders', true);
         const request = {
             'accountId': accountId,
         };
@@ -1224,7 +1232,9 @@ export default class interactivebrokers extends Exchange {
         const usedCodes = Object.keys(used);
         for (let i = 0; i < usedCodes.length; i++) {
             const code = usedCodes[i];
-            result[code]['used'] = used[code];
+            const usedAccount = this.extend({}, this.safeDict(result, code, {}));
+            usedAccount['used'] = used[code];
+            result[code] = usedAccount;
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
         if ('orders' in response) {
@@ -1232,7 +1242,9 @@ export default class interactivebrokers extends Exchange {
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
                 if ((code !== 'info') && (this.safeString(result[code], 'used') === undefined)) {
-                    result[code]['used'] = '0';
+                    const zeroAccount = this.extend({}, this.safeDict(result, code, {}));
+                    zeroAccount['used'] = '0';
+                    result[code] = zeroAccount;
                 }
             }
         }
@@ -1325,8 +1337,7 @@ export default class interactivebrokers extends Exchange {
         }
         const results = await Promise.all(promises);
         const markets = this.arraysConcat(results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return this.toArray(this.ibkrDisambiguateContractSymbols(markets));
+        return this.ibkrDisambiguateContractSymbols(markets);
     }
     /**
      * @method
@@ -1346,12 +1357,13 @@ export default class interactivebrokers extends Exchange {
             if ((symbol in seen) && isContract) {
                 const info = this.safeDict(market, 'info', {});
                 const listingExchange = this.safeString2(info, 'listingExchange', 'exchange', 'default');
-                const marketBase = this.safeString(market, 'base');
-                const marketBaseId = this.safeString(market, 'baseId');
+                const marketBase = this.safeString(market, 'base', '');
+                const marketBaseId = this.safeString(market, 'baseId', '');
                 const isFuture = this.safeBool(market, 'future', false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 const symbolParts = symbol.split('/');
-                const quoteAndSettle = '/' + symbolParts[1];
+                const quotePart = this.safeString(symbolParts, 1, '');
+                const quoteAndSettle = '/' + quotePart;
                 let base = marketBase + '.' + listingExchange;
                 if (isFuture && (marketBaseId !== marketBase)) {
                     // the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
@@ -1359,7 +1371,8 @@ export default class interactivebrokers extends Exchange {
                 }
                 let newSymbol = base + quoteAndSettle;
                 if (newSymbol in seen) {
-                    base = marketBase + '.' + this.safeString(market, 'id');
+                    const marketId = this.safeString(market, 'id', '');
+                    base = marketBase + '.' + marketId;
                     newSymbol = base + quoteAndSettle;
                 }
                 market = this.extend(market, {
@@ -1382,15 +1395,18 @@ export default class interactivebrokers extends Exchange {
         }
         const chunkSize = 330; // above this number, response becomes unreliable
         const promises = [];
-        let offset = 0;
-        while (offset < numDetails) {
-            const end = Math.min(this.sum(offset, chunkSize), numDetails);
-            const chunk = this.arraySlice(detailIds, offset, end);
-            const secdefRequest = {
-                'conids': chunk.join(','),
-            };
-            promises.push(this.marketsEndpointCall(secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
-            offset = end;
+        let chunk = [];
+        for (let k = 0; k < numDetails; k++) {
+            const detailId = this.safeString(detailIds, k, '');
+            chunk.push(detailId);
+            const chunkLength = chunk.length;
+            if ((chunkLength === chunkSize) || (k === numDetails - 1)) {
+                const secdefRequest = {
+                    'conids': chunk.join(','),
+                };
+                promises.push(this.marketsEndpointCall(secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
+                chunk = [];
+            }
         }
         const responses = await Promise.all(promises);
         //
@@ -1412,7 +1428,7 @@ export default class interactivebrokers extends Exchange {
             const secdefs = this.safeList(responses[i], 'secdef', []);
             for (let j = 0; j < secdefs.length; j++) {
                 const secdef = secdefs[j];
-                const conid = this.safeString(secdef, 'conid');
+                const conid = this.safeString(secdef, 'conid', '');
                 const entry = this.safeDict(plainEntries, conid);
                 entries.push(this.extend(entry, secdef));
             }
@@ -1477,7 +1493,7 @@ export default class interactivebrokers extends Exchange {
         const results = await Promise.all(promises);
         const neededSecTypes = ['CRYPTO']; // CFD, OPT - they should already be fetched in other calls
         for (let i = 0; i < results.length; i++) {
-            const result = results[i];
+            const result = this.safeList(results, i, []);
             for (let j = 0; j < result.length; j++) {
                 const entry = result[j];
                 const sections = this.safeList(entry, 'sections', []);
@@ -1567,8 +1583,15 @@ export default class interactivebrokers extends Exchange {
         const cmeSymbols = Object.keys(cryptoCmeFutureSymbols);
         const cfeSymbols = Object.keys(cryptoCboeFutureSymbols);
         const targetSymbols = this.arraysConcat([coinbaseDerivSymbols, cmeSymbols, cfeSymbols]);
-        const symbols = this.unique(targetSymbols);
-        const joined = symbols.join(','); // c# fix, todo investigate
+        const symbols = [];
+        const targetSymbolsLength = targetSymbols.length;
+        for (let i = 0; i < targetSymbolsLength; i++) {
+            const targetSymbol = this.safeString(targetSymbols, i, '');
+            if (!this.inArray(targetSymbol, symbols)) {
+                symbols.push(targetSymbol);
+            }
+        }
+        const joined = symbols.join(',');
         const request = {
             'symbols': joined,
         };
@@ -1607,10 +1630,9 @@ export default class interactivebrokers extends Exchange {
         const allowedVenues = ['CME', 'CFE', 'COINDERIV'];
         const detailMarkets = [];
         for (let i = 0; i < details.length; i++) {
-            const detail = details[i];
-            const venue = this.safeString(detail, 'listingExchange');
+            const venue = this.safeString(details[i], 'listingExchange');
             if (this.inArray(venue, allowedVenues)) {
-                detailMarkets.push(detail);
+                detailMarkets.push(this.safeDict(details, i));
             }
         }
         const markets = this.parseMarkets(detailMarkets);
@@ -1645,7 +1667,7 @@ export default class interactivebrokers extends Exchange {
         const promises = [];
         for (let i = 0; i < cfdExchanges.length; i++) {
             const request = {
-                'exchange': cfdExchanges[i],
+                'exchange': this.safeString(cfdExchanges, i, ''),
                 'assetClass': 'CFD',
             };
             promises.push(this.marketsEndpointCall(request, 'webapiGetV1ApiTrsrvAllConids', []));
@@ -1655,7 +1677,7 @@ export default class interactivebrokers extends Exchange {
         }
         const responses = await Promise.all(promises);
         for (let i = 0; i < responses.length; i++) {
-            const cfds = responses[i];
+            const cfds = this.safeList(responses, i, []);
             for (let j = 0; j < cfds.length; j++) {
                 const cfd = cfds[j];
                 const conid = this.safeString(cfd, 'conid');
@@ -1665,11 +1687,13 @@ export default class interactivebrokers extends Exchange {
         const detailMarkets = await this.fetchSecWithDetails(entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         const result = [];
+        const detailMarketsLength = detailMarkets.length;
         for (let i = 0; i < cfdExchanges.length; i++) {
-            for (let j = 0; j < detailMarkets.length; j++) {
-                const detail = detailMarkets[j];
-                if (this.safeString(detail, 'listingExchange') === cfdExchanges[i]) {
-                    result.push(detail);
+            const cfdExchange = this.safeString(cfdExchanges, i, '');
+            for (let j = 0; j < detailMarketsLength; j++) {
+                const listingExchange = this.safeString(detailMarkets[j], 'listingExchange', '');
+                if (listingExchange === cfdExchange) {
+                    result.push(this.safeDict(detailMarkets, j));
                 }
             }
         }
@@ -1694,7 +1718,7 @@ export default class interactivebrokers extends Exchange {
         const searchPromises = [];
         for (let i = 0; i < bondSymbols.length; i++) {
             const searchRequest = {
-                'symbol': bondSymbols[i],
+                'symbol': this.safeString(bondSymbols, i, ''),
                 'secType': 'BOND',
             };
             searchPromises.push(this.marketsEndpointCall(this.extend(searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
@@ -1719,12 +1743,13 @@ export default class interactivebrokers extends Exchange {
         const filterParts = [];
         for (let i = 0; i < filterIds.length; i++) {
             const filterId = filterIds[i];
-            filterParts.push(filterId + ':' + this.safeString(bondFilters, filterId));
+            const filterValue = this.safeString(bondFilters, filterId, '');
+            filterParts.push(filterId + ':' + filterValue);
         }
         const filterPartsLength = filterParts.length;
         const contractPromises = [];
         for (let i = 0; i < searchResults.length; i++) {
-            const searchResult = searchResults[i];
+            const searchResult = this.safeList(searchResults, i, []);
             for (let j = 0; j < searchResult.length; j++) {
                 const issuers = this.safeList(searchResult[j], 'issuers', []);
                 for (let k = 0; k < issuers.length; k++) {
@@ -1994,7 +2019,7 @@ export default class interactivebrokers extends Exchange {
         //  ]
         //
         for (let i = 0; i < contractResults.length; i++) {
-            const contracts = contractResults[i];
+            const contracts = this.safeList(contractResults, i, []);
             for (let j = 0; j < contracts.length; j++) {
                 const contract = contracts[j];
                 const conid = this.safeString(contract, 'conid');
@@ -2010,10 +2035,15 @@ export default class interactivebrokers extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = this.extend({}, markets[i]);
-            let symbol = this.safeString(market, 'symbol');
+            let symbol = this.safeString(market, 'symbol', '');
             if (symbol in seen) {
-                const base = this.safeString(market, 'base') + '-' + this.safeString(market, 'id');
-                symbol = base + '.' + this.safeString(market['info'], 'exchange', 'SMART') + '/' + this.safeString(market, 'quote');
+                const marketBase = this.safeString(market, 'base', '');
+                const marketId = this.safeString(market, 'id', '');
+                const marketQuote = this.safeString(market, 'quote', '');
+                const marketInfo = this.safeDict(market, 'info', {});
+                const listingExchange = this.safeString(marketInfo, 'exchange', 'SMART');
+                const base = marketBase + '-' + marketId;
+                symbol = base + '.' + listingExchange + '/' + marketQuote;
                 market = this.extend(market, {
                     'symbol': symbol,
                     'base': base,
@@ -2030,7 +2060,7 @@ export default class interactivebrokers extends Exchange {
         const exchangesDict = this.safeDict(options, 'exchanges', {});
         const stockExchanges = this.safeList(exchangesDict, 'STK', []);
         for (let j = 0; j < stockExchanges.length; j++) {
-            const exchange = stockExchanges[j];
+            const exchange = this.safeString(stockExchanges, j, '');
             const stockRequest = {
                 'exchange': exchange,
                 'assetClass': 'STK',
@@ -2534,9 +2564,9 @@ export default class interactivebrokers extends Exchange {
         if (isContract) {
             settleId = quoteId;
             settle = quote;
-            symbol = symbol + ':' + settle;
+            symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle;
             if (isFuture) {
-                symbol = symbol + '-' + this.yymmdd(expiry);
+                symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry);
             }
         }
         let marketType = 'spot';
@@ -2617,7 +2647,8 @@ export default class interactivebrokers extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const [fields, query] = this.handleOptionAndParams(params, 'fetchTickers', 'fields');
         const fieldsString = fields.join(',');
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, query);
+        const readyFields = ['31', '84', '86'];
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, query);
         //
         //     [
         //         {
@@ -2646,11 +2677,11 @@ export default class interactivebrokers extends Exchange {
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    async ibkrFetchSnapshot(symbols, fields, params = {}, readyFields = undefined) {
+    async ibkrFetchSnapshot(symbols, fields, readyFields, params = {}) {
         const conids = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
@@ -2675,17 +2706,16 @@ export default class interactivebrokers extends Exchange {
         }
         return response;
     }
-    ibkrSnapshotReady(response, readyFields = undefined) {
+    ibkrSnapshotReady(response, fieldIds) {
         const numItems = response.length;
         if (numItems === 0) {
             return false;
         }
-        const fieldIds = (readyFields === undefined) ? ['31', '84', '86'] : readyFields;
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+        const numFields = fieldIds.length;
+        for (let i = 0; i < numItems; i++) {
             let found = false;
-            for (let j = 0; j < fieldIds.length; j++) {
-                if (this.safeString(item, fieldIds[j]) !== undefined) {
+            for (let j = 0; j < numFields; j++) {
+                if (this.safeString(response[i], fieldIds[j]) !== undefined) {
                     found = true;
                     break;
                 }
@@ -2717,7 +2747,7 @@ export default class interactivebrokers extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const fields = this.safeString(params, 'fields', '84,85,86,88');
         const query = this.omit(params, 'fields');
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, query, ['84', '86']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, ['84', '86'], query);
         //
         //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2741,7 +2771,7 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31', params, ['31']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31', ['31'], params);
         //
         //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2778,7 +2808,7 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '7635', params, ['7635']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '7635', ['7635'], params);
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2809,11 +2839,11 @@ export default class interactivebrokers extends Exchange {
             }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31,7697,7638', params, ['7697', '7638']);
+        const response = await this.ibkrFetchSnapshot(symbolsNormalized, '31,7697,7638', ['7697', '7638'], params);
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return this.parseOpenInterests(response, symbolsNormalized);
+        return this.parseOpenInterests(this.toArray(response), symbolsNormalized);
     }
     parseOpenInterest(interest, market = undefined) {
         const marketId = this.safeString(interest, 'conid');
@@ -2892,11 +2922,7 @@ export default class interactivebrokers extends Exchange {
             multiplier = '1000000000';
         }
         if (multiplier !== undefined) {
-            const scaled = Precise.stringMul(result.slice(0, result.length - 1), multiplier);
-            if (scaled === undefined) {
-                return undefined;
-            }
-            result = scaled;
+            return Precise.stringMul(result.slice(0, result.length - 1), multiplier);
         }
         if (result === '') {
             return undefined;
@@ -2957,8 +2983,15 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = this.safeInteger(this.safeDict(this.options, 'fetchOHLCV', {}), 'limit', 1000);
-        let requestLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        let maxLimit = 1000;
+        const configuredLimit = this.safeInteger(this.safeDict(this.options, 'fetchOHLCV', {}), 'limit');
+        if (configuredLimit !== undefined) {
+            maxLimit = configuredLimit;
+        }
+        let requestLimit = maxLimit;
+        if (limit !== undefined) {
+            requestLimit = Math.min(limit, maxLimit);
+        }
         const duration = this.parseTimeframe(timeframe);
         const request = {
             'conid': market['id'],
@@ -2969,7 +3002,11 @@ export default class interactivebrokers extends Exchange {
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request['startTime'] = this.ibkrFormatTime(since - duration * 1000);
             request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
-            requestLimit = Math.min(requestLimit + 1, maxLimit);
+            if (limit !== undefined) {
+                if (limit < maxLimit) {
+                    requestLimit = limit + 1;
+                }
+            }
         }
         request['period'] = this.ibkrPeriod(duration, requestLimit);
         const response = await this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, params));
@@ -3036,7 +3073,8 @@ export default class interactivebrokers extends Exchange {
     async fetchAccounts(params = {}) {
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         const portfolioAccounts = await this.fetchPortfolioAccounts(params);
-        const accountIds = Object.keys(this.indexBy(portfolioAccounts, 'accountId'));
+        const accountsById = this.indexBy(portfolioAccounts, 'accountId');
+        const accountIds = Object.keys(accountsById);
         const length = accountIds.length;
         if (length === 0) {
             throw new ExchangeError('No tradingaccount IDs found for the user');
@@ -3051,7 +3089,7 @@ export default class interactivebrokers extends Exchange {
         }
         const accounts = [];
         for (let i = 0; i < portfolioAccounts.length; i++) {
-            accounts.push(this.parseAccount(portfolioAccounts[i]));
+            accounts.push(this.parseAccount(this.extend({}, portfolioAccounts[i])));
         }
         return accounts;
     }
@@ -3180,49 +3218,47 @@ export default class interactivebrokers extends Exchange {
     async fetchPortfolioAccounts(params = {}) {
         await this.authenticate();
         const [method, query] = this.handleOptionAndParams(params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
-        let response = undefined;
         if (method === 'privateGetPortfolioSubaccounts') {
-            response = await this.webapiGetV1ApiPortfolioSubaccounts(query);
+            const subaccounts = await this.webapiGetV1ApiPortfolioSubaccounts(query);
+            return subaccounts;
         }
-        else {
-            response = await this.webapiGetV1ApiPortfolioAccounts(query);
-            //
-            //    [
-            //        {
-            //            "id": "U3448646",
-            //            "PrepaidCrypto-Z": false,
-            //            "PrepaidCrypto-P": true,
-            //            "brokerageAccess": true,
-            //            "accountId": "U3448646",
-            //            "accountVan": "U3448646",
-            //            "accountTitle": "Toma Todua",
-            //            "displayName": "Toma Todua",
-            //            "accountAlias": null,
-            //            "accountStatus": 1646607600000,
-            //            "currency": "USD",
-            //            "type": "INDIVIDUAL",
-            //            "tradingType": "STKNOPT",
-            //            "businessType": "INDEPENDENT",
-            //            "category": "",
-            //            "ibEntity": "IBLLC-US",
-            //            "faclient": false,
-            //            "clearingStatus": "O",
-            //            "covestor": false,
-            //            "noClientTrading": false,
-            //            "trackVirtualFXPortfolio": true,
-            //            "acctCustType": "INDIVIDUAL",
-            //            "parent": {
-            //                "mmc": [],
-            //                "accountId": "",
-            //                "isMParent": false,
-            //                "isMChild": false,
-            //                "isMultiplex": false
-            //            },
-            //            "desc": "U3448646"
-            //        }
-            //    ]
-            //
-        }
+        const response = await this.webapiGetV1ApiPortfolioAccounts(query);
+        //
+        //    [
+        //        {
+        //            "id": "U3448646",
+        //            "PrepaidCrypto-Z": false,
+        //            "PrepaidCrypto-P": true,
+        //            "brokerageAccess": true,
+        //            "accountId": "U3448646",
+        //            "accountVan": "U3448646",
+        //            "accountTitle": "Toma Todua",
+        //            "displayName": "Toma Todua",
+        //            "accountAlias": null,
+        //            "accountStatus": 1646607600000,
+        //            "currency": "USD",
+        //            "type": "INDIVIDUAL",
+        //            "tradingType": "STKNOPT",
+        //            "businessType": "INDEPENDENT",
+        //            "category": "",
+        //            "ibEntity": "IBLLC-US",
+        //            "faclient": false,
+        //            "clearingStatus": "O",
+        //            "covestor": false,
+        //            "noClientTrading": false,
+        //            "trackVirtualFXPortfolio": true,
+        //            "acctCustType": "INDIVIDUAL",
+        //            "parent": {
+        //                "mmc": [],
+        //                "accountId": "",
+        //                "isMParent": false,
+        //                "isMChild": false,
+        //                "isMultiplex": false
+        //            },
+        //            "desc": "U3448646"
+        //        }
+        //    ]
+        //
         return response;
     }
     /**
@@ -3407,8 +3443,12 @@ export default class interactivebrokers extends Exchange {
         }
         request['cOID'] = clientOrderId;
         const query = this.omit(params, ['triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty']);
-        const orderTicket = this.extend(request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        const queryKeys = Object.keys(query);
+        for (let i = 0; i < queryKeys.length; i++) {
+            const key = queryKeys[i];
+            request[key] = query[key];
+        }
+        return request;
     }
     /**
      * @method
@@ -3423,6 +3463,7 @@ export default class interactivebrokers extends Exchange {
         const options = this.safeDict(this.options, 'createOrder', {});
         const autoConfirm = this.safeBool(options, 'autoConfirmOrderReplies', true);
         const maxReplies = this.safeInteger(options, 'maxReplies', 10);
+        const errorPrefix = this.id + ' ' + methodName + '() ';
         let current = response;
         for (let i = 0; i <= maxReplies; i++) {
             if (!Array.isArray(current)) {
@@ -3432,7 +3473,7 @@ export default class interactivebrokers extends Exchange {
                 //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 //
                 const text = this.safeString(current, 'text');
-                throw new InvalidOrder(this.id + ' ' + methodName + '() rejected: ' + text);
+                throw new InvalidOrder(errorPrefix + 'rejected: ' + text);
             }
             const first = this.safeDict(current, 0, {});
             const orderId = this.safeString2(first, 'order_id', 'orderId');
@@ -3448,10 +3489,10 @@ export default class interactivebrokers extends Exchange {
             const messages = this.safeList(first, 'message', []);
             const message = messages.join(' ');
             if (replyId === undefined) {
-                throw new InvalidOrder(this.id + ' ' + methodName + '() unexpected response: ' + this.json(current));
+                throw new InvalidOrder(errorPrefix + 'unexpected response: ' + this.json(current));
             }
             if (!autoConfirm) {
-                throw new InvalidOrder(this.id + ' ' + methodName + '() requires confirmation (reply id ' + replyId + '): ' + message);
+                throw new InvalidOrder(errorPrefix + 'requires confirmation (reply id ' + replyId + '): ' + message);
             }
             const replyRequest = {
                 'replyId': replyId,
@@ -3459,7 +3500,7 @@ export default class interactivebrokers extends Exchange {
             };
             current = await this.webapiPostV1ApiIserverReplyReplyId(replyRequest);
         }
-        throw new InvalidOrder(this.id + ' ' + methodName + '() exceeded options.createOrder.maxReplies order reply confirmations');
+        throw new InvalidOrder(errorPrefix + 'exceeded options.createOrder.maxReplies order reply confirmations');
     }
     /**
      * @method
@@ -3527,7 +3568,7 @@ export default class interactivebrokers extends Exchange {
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -3591,7 +3632,7 @@ export default class interactivebrokers extends Exchange {
         if (response === undefined) {
             throw new NullResponse(this.id + ' fetchOrder() returned empty response');
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -3693,10 +3734,9 @@ export default class interactivebrokers extends Exchange {
         const parsed = this.parseOrders(orders, market, undefined, undefined);
         const result = [];
         for (let i = 0; i < parsed.length; i++) {
-            const order = parsed[i];
-            const status = order['status'];
+            const status = this.safeString(parsed[i], 'status');
             if ((status === 'closed') || (status === 'canceled')) {
-                result.push(order);
+                result.push(parsed[i]);
             }
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -3945,8 +3985,10 @@ export default class interactivebrokers extends Exchange {
         }
         const options = this.safeDict(this.options, 'fetchMyTrades', {});
         let defaultMethod = 'privateGetIserverAccountTrades';
-        if (market !== undefined) {
-            const assetClass = this.safeString(market['info'], 'assetClass');
+        if (symbol !== undefined) {
+            const symbolMarket = this.market(symbol);
+            const symbolInfo = this.safeDict(symbolMarket, 'info');
+            const assetClass = this.safeString(symbolInfo, 'assetClass');
             if (assetClass === 'CRYPTO') {
                 defaultMethod = 'privatePostPaTransactions';
             }
@@ -4015,7 +4057,7 @@ export default class interactivebrokers extends Exchange {
         }
         const request = {
             'acctIds': [accountId],
-            'conids': [this.parseToInt(market['id'])], // only one conid at a time is supported
+            'conids': [this.parseToInt(this.safeString(market, 'id'))], // only one conid at a time is supported
             'currency': currency,
             'days': days,
         };
@@ -4083,13 +4125,14 @@ export default class interactivebrokers extends Exchange {
         if (month === undefined) {
             return undefined;
         }
-        const dayPart = parts[2];
+        const dayPart = this.safeString(parts, 2, '');
         const day = dayPart.padStart(2, '0');
         const offset = this.safeString(offsets, parts[4], '+00:00');
         return this.parse8601(parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset);
     }
     parseTrade(trade, market = undefined) {
-        if ('qty' in trade) {
+        const transactionQty = this.safeString(trade, 'qty');
+        if (transactionQty !== undefined) {
             //
             // pa/transactions
             //
@@ -4263,7 +4306,7 @@ export default class interactivebrokers extends Exchange {
         const positions = Array.isArray(response) ? response : [];
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.parsePosition(positions[i], market);
+            const position = this.parsePosition(this.safeDict(positions, i, {}), market);
             if (Precise.stringGt(this.safeString(position, 'contracts', '0'), '0')) {
                 result.push(position);
             }
@@ -4328,9 +4371,11 @@ export default class interactivebrokers extends Exchange {
         const parts = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            parts.push(key + '="' + sorted[key] + '"');
+            const value = this.safeString(sorted, key, '');
+            parts.push(key + '="' + value + '"');
         }
-        return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join(', ');
+        const realm = this.safeString(this.options, 'realm', '');
+        return 'OAuth realm="' + realm + '", ' + parts.join(', ');
     }
     ibkrOauthBase(consumerKey, consumerAccessToken) {
         return {
@@ -4347,20 +4392,42 @@ export default class interactivebrokers extends Exchange {
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
     ibkrImplodePath(path, params) {
+        const segments = path.split('/');
+        const imploded = [];
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            if (segment.startsWith(':')) {
+                const name = segment.slice(1);
+                const value = this.safeString(params, name, segment);
+                imploded.push(value);
+            }
+            else {
+                imploded.push(segment);
+            }
+        }
+        return imploded.join('/');
+    }
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    ibkrPathParams(path) {
         const segments = path.split('/');
         const pathParams = [];
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             if (segment.startsWith(':')) {
-                const name = segment.slice(1);
-                pathParams.push(name);
-                segments[i] = this.safeString(params, name, segment);
+                pathParams.push(segment.slice(1));
             }
         }
-        return [segments.join('/'), pathParams];
+        return pathParams;
     }
     /**
      * @method
@@ -4422,11 +4489,12 @@ export default class interactivebrokers extends Exchange {
         return useGatewayOption || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
-        const [implodedPath, pathParams] = this.ibkrImplodePath(path, params);
+        const implodedPath = this.ibkrImplodePath(path, params);
         const apiBase = api[0];
-        const baseUrl = this.urls['api'][apiBase] + implodedPath;
+        const apiUrl = this.safeString(this.urls['api'], apiBase, '');
+        const baseUrl = apiUrl + implodedPath;
         let url = baseUrl;
-        const query = this.omit(params, pathParams);
+        const query = this.omit(params, this.ibkrPathParams(path));
         const hasQuery = Object.keys(query).length > 0;
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody = undefined;
@@ -4435,7 +4503,7 @@ export default class interactivebrokers extends Exchange {
         if (this.ibkrIsGatewayRequest(path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             const gatewayUrl = this.safeString(this.options, 'gatewayUrl');
-            url = this.ibkrGatewayBaseUrl(this.urls['api'][apiBase], gatewayUrl) + implodedPath;
+            url = this.ibkrGatewayBaseUrl(apiUrl, gatewayUrl) + implodedPath;
             if (isGetOrDelete) {
                 if (hasQuery) {
                     url += '?' + this.urlencode(query);
@@ -4543,7 +4611,7 @@ export default class interactivebrokers extends Exchange {
             catch (e) {
                 const message = this.exceptionMessage(e, false);
                 const mustQueryAccounts = message.indexOf('query /accounts first') >= 0;
-                if (isAccountsPath || !mustQueryAccounts || (i === retries)) {
+                if (isAccountsPath || !mustQueryAccounts || (i >= retries)) {
                     throw e;
                 }
                 this.options['serviceAccountsLoaded'] = false;

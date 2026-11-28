@@ -1,8 +1,9 @@
 import bitstampRest from '../bitstamp.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 export default class bitstamp extends bitstampRest {
     describe(): Dict;
     /**
@@ -39,7 +40,7 @@ export default class bitstamp extends bitstampRest {
     unWatchChannel(channel: string, subHash: string, topic: string, symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
-    handleBidAsks(bookSide: any, bidAsks: any[]): void;
+    handleBidAsks(bookSide: OrderBookSide, bidAsks: any[]): void;
     getCacheIndex(orderbook: NullableDict, deltas: any[]): number;
     /**
      * @method
@@ -136,7 +137,7 @@ export default class bitstamp extends bitstampRest {
      */
     pruneCachedBySymbols(newCache: ArrayCacheBySymbolById, cache: ArrayCache, symbols: string[]): ArrayCache;
     handleSubject(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<void>;
     subscribePrivate(subscription: Dict, messageHash: string, params?: Dict): Promise<any>;

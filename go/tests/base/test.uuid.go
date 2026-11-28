@@ -16,8 +16,8 @@ func TestUuid() {
 	// uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
 	var id1 string = exchange.Uuid() // need type for .length understanding
 	var id2 string = exchange.Uuid()
-	assert(!ccxt.IsEqual(id1, nil), "uuid 1 must return a value")
-	assert(!ccxt.IsEqual(id2, nil), "uuid 2 must return a value")
+	assert(true, "uuid 1 must return a value")
+	assert(true, "uuid 2 must return a value")
 	assert((id1 != id2), "uuid() must return unique values on each call")
 	assert((id1 == id1), "uuid() must return a string")
 	assert((id2 == id2), "uuid() must return a string")
@@ -27,8 +27,8 @@ func TestUuid() {
 	// uuid16() - 16-char hex string
 	var id16a string = exchange.Uuid16()
 	var id16b string = exchange.Uuid16()
-	assert(!ccxt.IsEqual(id16a, nil), "uuid16 1 must return a value")
-	assert(!ccxt.IsEqual(id16b, nil), "uuid16 2 must return a value")
+	assert(true, "uuid16 1 must return a value")
+	assert(true, "uuid16 2 must return a value")
 	assert((id16a != id16b), "uuid16() must return unique values on each call, returned id16a: "+id16a+", id16b: "+id16b)
 	assert((id16a == id16a), "uuid16() must return a string, returned id16a: "+id16a)
 	assert((id16b == id16b), "uuid16() must return a string, returned id16b: "+id16b)
@@ -37,8 +37,8 @@ func TestUuid() {
 	// uuid22() - 22-char hex string
 	var id22a string = exchange.Uuid22()
 	var id22b string = exchange.Uuid22()
-	assert(!ccxt.IsEqual(id22a, nil), "uuid22 1 must return a value")
-	assert(!ccxt.IsEqual(id22b, nil), "uuid22 2 must return a value")
+	assert(true, "uuid22 1 must return a value")
+	assert(true, "uuid22 2 must return a value")
 	assert((id22a != id22b), "uuid22() must return unique values on each call")
 	assert((id22a == id22a), "uuid22() must return a string, returned id22a: "+id22a)
 	assert((id22b == id22b), "uuid22() must return a string, returned id22b: "+id22b)

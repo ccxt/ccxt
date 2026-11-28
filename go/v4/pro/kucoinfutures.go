@@ -90,12 +90,12 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan ccxt.AsyncResult[map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.TransferEntry] {
+func (this *Kucoinfutures) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.TransferEntry] {
 	ch := make(chan ccxt.AsyncResult[ccxt.TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -114,7 +114,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 		"amount":   amountToPrecision,
 	}
 	var toAccountString *string = this.ParseTransferType(toAccount)
-	var response any = nil
+	var response map[string]any = nil
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
@@ -134,7 +134,11 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 	} else {
 		panic(ccxt.BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.TransferEntry]{Value: ccxt.TransferEntryFromMap(this.Extend(ccxt.TransferEntryToMap(this.ParseTransfer(data, currency)), map[string]any{
 		"amount":      this.ParseNumber(amountToPrecision),
@@ -143,7 +147,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 	}))}
 	return nil
 }
-func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
+func (this *Kucoinfutures) ParseTransferType(transferType string) *string {
 	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",

@@ -12,7 +12,10 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\ROUND;
+use const ccxt\DECIMAL_PLACES;
 use const ccxt\TICK_SIZE;
+use const ccxt\PAD_WITH_ZERO;
 
 class zaif extends Exchange {
     public function describe(): array {
@@ -889,8 +892,7 @@ class zaif extends Exchange {
     }
 
     public function custom_nonce(): string {
-        $nonce = $this->milliseconds() / 1000;
-        return sprintf('%.8f', $nonce);
+        return $this->decimal_to_precision($this->milliseconds() / 1000, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
@@ -929,7 +931,7 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

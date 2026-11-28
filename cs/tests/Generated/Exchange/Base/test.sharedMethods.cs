@@ -48,11 +48,11 @@ public partial class testMainClass : BaseTest
             bool same_string = ((entryKeyVal is string)) && ((formatKeyVal is string));
             bool same_numeric = ((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double)) && ((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double));
             bool same_boolean = (((entryKeyVal is true)) || ((entryKeyVal is false))) && (((formatKeyVal is true)) || ((formatKeyVal is false)));
-            bool same_array = ((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            bool same_array = ((entryKeyVal is IList<object>) || (entryKeyVal is not null && entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((formatKeyVal is IList<object>) || (formatKeyVal is not null && formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
             // returns false for an empty {} format marker — accept a dict entry against an empty-array format
             bool formatIsEmptyArray = false;
-            if (((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((formatKeyVal is IList<object>) || (formatKeyVal is not null && formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 int formatLen = getArrayLength(formatKeyVal);
                 formatIsEmptyArray = ((formatLen == 0));
@@ -72,9 +72,9 @@ public partial class testMainClass : BaseTest
             {
                 emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
             }
-            if (((format is IList<object>) || (format.GetType().IsGenericType && format.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((format is IList<object>) || (format is not null && format.GetType().IsGenericType && format.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("entry is not an array" + (logText)));
+                assert(((entry is IList<object>) || (entry is not null && entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("entry is not an array" + (logText)));
                 int realLength = getArrayLength(entry);
                 int expectedLength = getArrayLength(format);
                 assert((realLength == expectedLength), (("entry length is not equal to expected length of " + ((object)expectedLength).ToString()) + (logText)));
@@ -124,7 +124,7 @@ public partial class testMainClass : BaseTest
                         assert((typeAssertion is true), ((("\"" + (stringValue(key))) + "\" key is neither undefined, neither of expected type") + (logText)));
                         if (isTrue(deep))
                         {
-                            if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                            if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                             {
                                 assertStructure(exchange, skippedProperties, method, value, getValue(format, key), emptyAllowedFor, deep);
                             }
@@ -402,7 +402,7 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (((key is int) || (key is long) || (key is Int32) || (key is Int64)))
             {
-                assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("fee container is expected to be an array" + (logText)));
+                assert(((entry is IList<object>) || (entry is not null && entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("fee container is expected to be an array" + (logText)));
                 assert(isLessThan(key, getArrayLength(entry)), ((("fee key " + (keyString)) + " was expected to be present in entry") + (logText)));
             } else
             {
@@ -719,7 +719,7 @@ public partial class testMainClass : BaseTest
             // there, so an empty array response is shape indeterminate and accepted, observed
             // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
             bool isEmptyArrayResponse = false;
-            if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 int responseLength = getArrayLength(response);
                 isEmptyArrayResponse = ((responseLength == 0));
@@ -738,7 +738,7 @@ public partial class testMainClass : BaseTest
             {
                 logText = ((object)(logText == null ? null : logText + " " + (string)(object)(hint)));
             }
-            assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("response is expected to be an array" + (logText)));
+            assert(((entry is IList<object>) || (entry is not null && entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("response is expected to be an array" + (logText)));
             if (!(inOp(skippedProperties, "emptyResponse")))
             {
                 return;

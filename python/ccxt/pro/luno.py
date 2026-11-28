@@ -97,9 +97,9 @@ class luno(ccxt.async_support.luno):
         length = len(rawTrades)
         if length == 0:
             return
-        symbol = subscription['symbol']
+        symbol = self.safe_string(subscription, 'symbol', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbolValue
         stored = self.safe_value(self.trades, symbolValue)
         if stored is None:
@@ -125,11 +125,7 @@ class luno(ccxt.async_support.luno):
         #       "order_id": "BXEEU4S2BWF5WRB"
         #     }
         #
-        symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         return self.safe_trade({
             'info': trade,
             'id': None,
@@ -235,7 +231,7 @@ class luno(ccxt.async_support.luno):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def custom_parse_order_book(self, orderbook: dict, symbol: Str, timestamp: Int = None, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
+    def custom_parse_order_book(self, orderbook: dict, symbol: Str, timestamp: Int = None, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) -> dict:
         bids = self.parse_order_book_bids_asks(self.safe_list(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
         asks = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
@@ -254,7 +250,7 @@ class luno(ccxt.async_support.luno):
             result.append(self.custom_parse_bid_ask(bidasksValue[i], priceKey, amountKey, thirdKey))
         return result
 
-    def custom_parse_bid_ask(self, bidask: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
+    def custom_parse_bid_ask(self, bidask: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) -> list:
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         result = [price, amount]
@@ -416,7 +412,6 @@ class luno(ccxt.async_support.luno):
             # the subscription was dropped after a sequence gap, ignore the
             # frames still arriving until the client resubscribes
             return
-        handlers = [self.handle_order_book, self.handle_trades]
-        for j in range(0, len(handlers)):
-            handler = handlers[j]
-            handler(client, message, subscriptions[0])
+        subscription = self.safe_dict(subscriptions, 0, {})
+        self.handle_order_book(client, message, subscription)
+        self.handle_trades(client, message, subscription)

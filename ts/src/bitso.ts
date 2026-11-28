@@ -6,7 +6,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List, DepositWithdrawFees, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -501,8 +501,10 @@ export default class bitso extends Exchange {
             const parts = (id as string).split ('_');
             const baseId = this.safeString (parts, 0, '');
             const quoteId = this.safeString (parts, 1, '');
-            const base = this.safeCurrencyCode (baseId.toUpperCase ());
-            const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
+            const baseIdUpper = baseId.toUpperCase ();
+            const quoteIdUpper = quoteId.toUpperCase ();
+            const base = this.safeCurrencyCode (baseIdUpper);
+            const quote = this.safeCurrencyCode (quoteIdUpper);
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
@@ -1183,14 +1185,15 @@ export default class bitso extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'book': market['id'],
             'side': side,
             'type': type,
-            'major': this.amountToPrecision (market['symbol'], amount),
+            'major': this.amountToPrecision (precisionSymbol, amount),
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            request['price'] = this.priceToPrecision (precisionSymbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         const payload = this.safeDict (response, 'payload', {});
@@ -1262,11 +1265,11 @@ export default class bitso extends Exchange {
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        const payload: Dict[] = this.safeList (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const orders: Order[] = [];
         for (let i = 0; i < payload.length; i++) {
-            const id = payload[i];
-            orders.push (this.parseOrder (id, market));
+            const id = this.safeString (payload, i);
+            orders.push (this.safeOrder ({ 'info': this.safeString (payload, i), 'id': id, 'symbol': this.safeSymbol (undefined, market, '_') }, market));
         }
         return orders;
     }
@@ -1291,11 +1294,11 @@ export default class bitso extends Exchange {
         //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        const payload: Dict[] = this.safeList (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const canceledOrders: Order[] = [];
         for (let i = 0; i < payload.length; i++) {
-            const order = this.parseOrder (payload[i]);
-            canceledOrders.push (order);
+            const id = this.safeString (payload, i);
+            canceledOrders.push (this.safeOrder ({ 'info': this.safeString (payload, i), 'id': id, 'symbol': this.safeSymbol (undefined, undefined, '_') }));
         }
         return canceledOrders;
     }
@@ -1311,17 +1314,7 @@ export default class bitso extends Exchange {
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
-        //
-        //
-        // canceledOrder
-        // yWTQGxDMZ0VimZgZ
-        //
-        let id: Str = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        } else {
-            id = this.safeString (order, 'oid');
-        }
+        const id = this.safeString (order, 'oid');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'book');
@@ -1418,7 +1411,7 @@ export default class bitso extends Exchange {
         const payload: Dict[] = this.safeList (response, 'payload', []);
         const numOrders = payload.length;
         if (numOrders === 1) {
-            return this.parseOrder (payload[0]);
+            return this.parseOrder (this.safeDict (payload, 0, {}));
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
@@ -1586,7 +1579,7 @@ export default class bitso extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}) {
+    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1811,10 +1804,16 @@ export default class bitso extends Exchange {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
                 const resultValue = this.safeDict (result, code);
                 if (resultValue === undefined) {
-                    result[code] = this.depositWithdrawFee ({});
+                    const newInfo: Dict = {};
+                    newInfo[code] = this.parseNumber (withdrawalResponse[currencyId]);
+                    result[code] = this.extend (this.depositWithdrawFee (newInfo), { 'withdraw': { 'fee': withdrawFee, 'percentage': undefined }});
+                } else {
+                    const infoUpdate: Dict = {};
+                    infoUpdate[code] = this.parseNumber (withdrawalResponse[currencyId]);
+                    const withdraw = this.extend (this.safeDict (resultValue, 'withdraw', {}), { 'fee': withdrawFee });
+                    const info = this.extend (this.safeDict (resultValue, 'info', {}), infoUpdate);
+                    result[code] = this.extend (resultValue, { 'withdraw': withdraw, 'info': info });
                 }
-                result[code]['withdraw']['fee'] = withdrawFee;
-                result[code]['info'][code] = withdrawFee;
             }
         }
         return result;
@@ -1854,8 +1853,19 @@ export default class bitso extends Exchange {
             'address': address,
             'destination_tag': tagWithdrawTag,
         };
-        const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod] (this.extend (request, paramsWithdrawTag));
+        const withdrawRequest = this.extend (request, paramsWithdrawTag);
+        let response = undefined;
+        if (method === 'Bitcoin') {
+            response = await this.privatePostBitcoinWithdrawal (withdrawRequest);
+        } else if (method === 'Ether') {
+            response = await this.privatePostEtherWithdrawal (withdrawRequest);
+        } else if (method === 'Ripple') {
+            response = await this.privatePostRippleWithdrawal (withdrawRequest);
+        } else if (method === 'Bcash') {
+            response = await this.privatePostBcashWithdrawal (withdrawRequest);
+        } else {
+            response = await this.privatePostLitecoinWithdrawal (withdrawRequest);
+        }
         //
         //     {
         //         "success": true,
@@ -2004,11 +2014,11 @@ export default class bitso extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('success' in response) {
+        if (this.safeBool (response, 'success') !== undefined) {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //

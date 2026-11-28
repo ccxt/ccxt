@@ -4,199 +4,10 @@ import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class binance extends binanceRest {
     describe(): Dict;
-    describeData(): {
-        has: {
-            ws: boolean;
-            watchBalance: boolean;
-            watchLiquidations: boolean;
-            watchLiquidationsForSymbols: boolean;
-            watchMyLiquidations: boolean;
-            watchMyLiquidationsForSymbols: boolean;
-            watchBidsAsks: boolean;
-            watchMyTrades: boolean;
-            watchOHLCV: boolean;
-            watchOHLCVForSymbols: boolean;
-            watchOrderBook: boolean;
-            watchOrderBookForSymbols: boolean;
-            watchOrders: boolean;
-            watchOrdersForSymbols: boolean;
-            watchPositions: boolean;
-            watchTicker: boolean;
-            watchTickers: boolean;
-            watchMarkPrices: boolean;
-            watchMarkPrice: boolean;
-            watchTrades: boolean;
-            watchTradesForSymbols: boolean;
-            createOrderWs: boolean;
-            editOrderWs: boolean;
-            cancelOrderWs: boolean;
-            cancelOrdersWs: boolean;
-            cancelAllOrdersWs: boolean;
-            fetchBalanceWs: boolean;
-            fetchDepositsWs: boolean;
-            fetchMarketsWs: boolean;
-            fetchMyTradesWs: boolean;
-            fetchOHLCVWs: boolean;
-            fetchOrderBookWs: boolean;
-            fetchOpenOrdersWs: boolean;
-            fetchOrderWs: boolean;
-            fetchOrdersWs: boolean;
-            fetchPositionWs: boolean;
-            fetchPositionForSymbolWs: boolean;
-            fetchPositionsWs: boolean;
-            fetchTickerWs: boolean;
-            fetchTradesWs: boolean;
-            fetchTradingFeesWs: boolean;
-            fetchWithdrawalsWs: boolean;
-            unWatchTicker: boolean;
-            unWatchTickers: boolean;
-            unWatchOHLCV: boolean;
-            unWatchOHLCVForSymbols: boolean;
-            unWatchOrderBook: boolean;
-            unWatchOrderBookForSymbols: boolean;
-            unWatchTrades: boolean;
-            unWatchTradesForSymbols: boolean;
-            unWatchMyTrades: boolean;
-            unWatchOrders: boolean;
-            unWatchPositions: boolean;
-            unWatchMarkPrices: boolean;
-            unWatchMarkPrice: boolean;
-            unWatchBidsAsks: boolean;
-        };
-        urls: {
-            test: {
-                ws: {
-                    spot: string;
-                    margin: string;
-                    linear: string;
-                    inverse: string;
-                    'ws-api': {
-                        spot: string;
-                        linear: string;
-                        inverse: string;
-                    };
-                };
-            };
-            demo: {
-                ws: {
-                    spot: string;
-                    margin: string;
-                    linear: string;
-                    inverse: string;
-                    'ws-api': {
-                        spot: string;
-                        linear: string;
-                        inverse: string;
-                    };
-                };
-            };
-            api: {
-                ws: {
-                    spot: string;
-                    margin: string;
-                    linear: string;
-                    inverse: string;
-                    stock: string;
-                    option: string;
-                    optionMarket: string;
-                    optionPrivate: string;
-                    'ws-api': {
-                        spot: string;
-                        linear: string;
-                        inverse: string;
-                    };
-                    papi: string;
-                };
-            };
-            doc: string;
-        };
-        streaming: {
-            keepAlive: number;
-        };
-        options: {
-            returnRateLimits: boolean;
-            streamLimits: {
-                spot: number;
-                margin: number;
-                linear: number;
-                inverse: number;
-                stock: number;
-                option: number;
-                optionMarket: number;
-            };
-            subscriptionLimitByStream: {
-                spot: number;
-                margin: number;
-                linear: number;
-                inverse: number;
-                stock: number;
-                option: number;
-                optionMarket: number;
-            };
-            streamBySubscriptionsHash: {};
-            streamIndex: number;
-            watchOrderBookRate: string;
-            liquidationsLimit: number;
-            myLiquidationsLimit: number;
-            tradesLimit: number;
-            ordersLimit: number;
-            OHLCVLimit: number;
-            requestId: {};
-            watchOrderBookLimit: number;
-            watchTrades: {
-                name: string;
-            };
-            watchTicker: {
-                name: string;
-            };
-            watchTickers: {
-                name: string;
-            };
-            watchOHLCV: {
-                name: string;
-            };
-            watchOrderBook: {
-                maxRetries: number;
-                checksum: boolean;
-            };
-            option: {
-                listenKey: undefined;
-                lastAuthenticatedTime: number;
-            };
-            watchBalance: {
-                fetchBalanceSnapshot: boolean;
-                awaitBalanceSnapshot: boolean;
-            };
-            watchLiquidationsForSymbols: {
-                defaultType: string;
-            };
-            watchPositions: {
-                fetchPositionsSnapshot: boolean;
-                awaitPositionsSnapshot: boolean;
-            };
-            wallet: string;
-            listenKeyRefreshRate: number;
-            stockListenKeyRefreshRate: number;
-            ws: {
-                cost: number;
-            };
-            tickerChannelsMap: {
-                price: string;
-                quote: string;
-                '24hrTicker': string;
-                '24hrMiniTicker': string;
-                markPriceUpdate: string;
-                markPrice: string;
-                '1hTicker': string;
-                '4hTicker': string;
-                '1dTicker': string;
-                bookTicker: string;
-            };
-        };
-    };
+    describeData(): Dict;
     requestId(url: string): int;
     isSpotUrl(client: Client): boolean;
-    stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
+    stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): string;
     getWsUrl(type: string, category: string): string;
     getFutureWsCategory(channel: Str): string;
     getPrivateWsUrl(type: Str, listenKey: Str): string;
@@ -376,7 +187,7 @@ export default class binance extends binanceRest {
     handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: Dict): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
     /**
@@ -723,7 +534,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    ensureUserDataStreamWsSubscribeListenToken(marketType?: string, params?: Dict): Promise<void>;
+    ensureUserDataStreamWsSubscribeListenToken(marketType: string, params?: Dict): Promise<void>;
     renewListenToken(params?: Dict): Promise<void>;
     authenticate(params?: Dict): Promise<void>;
     keepAliveListenKey(params?: Dict): Promise<void>;

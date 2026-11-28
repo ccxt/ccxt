@@ -156,13 +156,11 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTicker', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const messageHash = this.getMessageHash ('ticker', this.safeString (market, 'symbol'));
         const uuid = this.uuid ();
@@ -268,7 +266,7 @@ export default class bingx extends bingxRest {
             marketType = 'swap';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         const inverseUrl = this.safeString (this.urls['api']['ws'], 'inverse');
@@ -380,14 +378,12 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        let url: Str = undefined;
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTrades', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const messageHash = 'trade::' + symbolValue;
         const uuid = this.uuid ();
@@ -408,7 +404,8 @@ export default class bingx extends bingxRest {
             limitResolved = trades.getLimit (symbolValue, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
+        const [ ignoreDuplicates ] = this.handleOptionBoolAndParams ({}, 'watchTrades', 'ignoreDuplicates', true);
+        if (ignoreDuplicates) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
@@ -522,7 +519,7 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const dataList = this.safeList (message, 'data', []);
         const rawHash = this.safeString (message, 'dataType', '');
         const hashParts = rawHash.split ('@');
         const marketId = this.safeString (hashParts, 0);
@@ -532,13 +529,13 @@ export default class bingx extends bingxRest {
             marketType = 'swap';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         let trades: Trade[];
-        if (Array.isArray (data)) {
-            trades = this.parseTrades (data, market);
+        if (this.safeDict (message, 'data') === undefined) {
+            trades = this.parseTrades (dataList, market);
         } else {
-            trades = [ this.parseTrade (data, market) ];
+            trades = [ this.parseTrade (this.safeDict (message, 'data', {}), market) ];
         }
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -569,13 +566,11 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOrderBook', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', '100');
@@ -720,7 +715,7 @@ export default class bingx extends bingxRest {
             marketType = 'swap';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
@@ -872,7 +867,7 @@ export default class bingx extends bingxRest {
             const data = this.safeDict (message, 'data', {});
             candles = [ this.safeDict (data, 'K', {}) ];
         }
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         const timeframeParts = dataType.split ('_');
         const rawTimeframe = this.safeString (timeframeParts, 1);
@@ -923,13 +918,11 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchOHLCV', market, paramsMarketType, 'linear');
+        let url = this.safeString (this.urls['api']['ws'], marketType);
         if (marketType === 'swap') {
             url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
@@ -1299,7 +1292,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: Str, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
@@ -1315,7 +1308,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: Str) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string) {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1670,7 +1663,7 @@ export default class bingx extends bingxRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const parsedOrder = this.parseOrder (data);
+        const parsedOrder = this.parseOrder (this.extend ({}, data));
         if (!isSpot) {
             // The envelope T is the order update time; o.T is the trade time.
             const updateTimestamp = this.safeInteger (message, 'T');
@@ -1838,9 +1831,10 @@ export default class bingx extends bingxRest {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601 (timestamp);
+        const typeBalance = this.safeDict (this.balance, type, {});
+        typeBalance['info'] = data;
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
@@ -1850,10 +1844,10 @@ export default class bingx extends bingxRest {
             account['used'] = this.safeString (balance, 'lk');
             account['free'] = this.safeString (balance, 'wb');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance (this.balance[type]);
+        this.balance[type] = this.safeBalance (typeBalance);
         client.resolve (this.balance[type], type + ':balance');
     }
 

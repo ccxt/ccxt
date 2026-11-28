@@ -123,6 +123,8 @@ function safeString (o: safeInputType, k: NullableIndexType, $default?: string):
     return $default;
 }
 
+function safeStringLower (o: safeInputType, k: NullableIndexType, $default: string): string;
+function safeStringLower (o: safeInputType, k: NullableIndexType, $default?: string): Str;
 function safeStringLower (o: safeInputType, k: NullableIndexType, $default?: string): Str {
     const x = prop (o, k);
     if (x === undefined) return $default;
@@ -131,6 +133,8 @@ function safeStringLower (o: safeInputType, k: NullableIndexType, $default?: str
     return $default;
 }
 
+function safeStringUpper (o: safeInputType, k: NullableIndexType, $default: string): string;
+function safeStringUpper (o: safeInputType, k: NullableIndexType, $default?: string): Str;
 function safeStringUpper (o: safeInputType, k: NullableIndexType, $default?: string): Str {
     const x = prop (o, k);
     if (x === undefined) return $default;

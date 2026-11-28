@@ -106,7 +106,7 @@ class okx extends okx$1["default"] {
     }
     getUrl(channel, access = 'public') {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        const isSandbox = this.options['sandboxMode'];
+        const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
         let sandboxSuffix = '';
         if (isSandbox === true) {
             sandboxSuffix = '?brokerId=9999';
@@ -339,7 +339,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(message, 'data', []);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i]);
+            const trade = this.parseTrade(this.safeDict(data, i, {}));
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
                 stored = new Cache.ArrayCache(tradesLimit);
@@ -406,10 +406,10 @@ class okx extends okx$1["default"] {
         const url = this.getUrl(channel, 'public');
         const fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const symbol = this.safeString(fundingRate, 'symbol');
+            const fundingSymbol = this.safeString(fundingRate, 'symbol');
             const result = {};
-            if (symbol !== undefined) {
-                result[symbol] = fundingRate;
+            if (fundingSymbol !== undefined) {
+                result[fundingSymbol] = fundingRate;
             }
             return result;
         }
@@ -439,7 +439,7 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const rawfr = this.safeDict(data, i);
             const fundingRate = this.parseFundingRate(rawfr);
-            const symbol = fundingRate['symbol'];
+            const symbol = this.safeString(fundingRate, 'symbol');
             if (symbol !== undefined) {
                 this.fundingRates[symbol] = fundingRate;
             }
@@ -461,10 +461,9 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTicker', 'channel', 'tickers');
-        paramsChannel['channel'] = channel;
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const ticker = await this.watchTickers([symbolValue], paramsChannel);
+        const ticker = await this.watchTickers([symbolValue], this.extend(paramsChannel, { 'channel': channel }));
         return this.safeValue(ticker, symbolValue);
     }
     /**
@@ -517,10 +516,9 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
-        paramsChannel['channel'] = channel;
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const ticker = await this.watchMarkPrices([symbolValue], paramsChannel);
+        const ticker = await this.watchMarkPrices([symbolValue], this.extend(paramsChannel, { 'channel': channel }));
         return this.safeValue(ticker, symbolValue);
     }
     /**
@@ -667,7 +665,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseTicker(data[i]);
+            const ticker = this.parseTicker(this.safeDict(data, i, {}));
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
         }
@@ -834,7 +832,7 @@ class okx extends okx$1["default"] {
             messageHashes.push(messageHash);
         }
         const market = this.getMarketFromSymbols(symbolsNormalized);
-        const marketType = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params)[0];
+        const [marketType] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
         let type = marketType;
         if (marketType === 'spot') {
@@ -893,8 +891,7 @@ class okx extends okx$1["default"] {
         //
         const rawLiquidations = this.safeList(message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
-            const rawLiquidation = rawLiquidations[i];
-            const liquidation = this.parseWsLiquidation(rawLiquidation);
+            const liquidation = this.parseWsLiquidation(this.safeDict(rawLiquidations, i, {}));
             const symbol = this.safeString(liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -1156,9 +1153,8 @@ class okx extends okx$1["default"] {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
+            const sym = this.safeString(symbolsAndTimeframes[i], 0, '');
+            const tf = this.safeString(symbolsAndTimeframes[i], 1, '');
             const marketId = this.marketId(sym);
             const interval = this.safeString(this.timeframes, tf, tf);
             const channel = 'candle' + interval;
@@ -1202,9 +1198,8 @@ class okx extends okx$1["default"] {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
+            const sym = this.safeString(symbolsAndTimeframes[i], 0, '');
+            const tf = this.safeString(symbolsAndTimeframes[i], 1, '');
             const marketId = this.marketId(sym);
             const interval = this.safeString(this.timeframes, tf, tf);
             const channel = 'candle' + interval;
@@ -1381,10 +1376,9 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        let depth = undefined;
-        let paramsDepth = undefined;
-        [depth, paramsDepth] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books');
-        const limit = this.safeInteger(paramsDepth, 'limit');
+        const limit = this.safeInteger(params, 'limit');
+        const depthOption = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books')[0];
+        let depth = depthOption;
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1586,7 +1580,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const depths = {
             'bbo-tbt': 1,
             'books': 400,
@@ -1624,7 +1618,7 @@ class okx extends okx$1["default"] {
             if (symbol in this.orderbooks) {
                 const updatedBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
-                    const update = data[i];
+                    const update = this.safeDict(data, i, {});
                     this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
@@ -1887,9 +1881,9 @@ class okx extends okx$1["default"] {
         let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             type = this.safeString(market, 'type');
-            messageHash = messageHash + '::' + symbolResolved;
+            messageHash = messageHash + '::' + this.safeString(market, 'symbol', '');
         }
         if (type === 'future') {
             type = 'futures';
@@ -1953,7 +1947,10 @@ class okx extends okx$1["default"] {
             newPositions = await this.subscribeMultiple('private', channel, symbolsNormalized, this.extend(request, params));
         }
         if (this.newUpdates) {
-            return (newPositions === undefined) ? [] : newPositions;
+            if (newPositions === undefined) {
+                return [];
+            }
+            return newPositions;
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
@@ -2027,7 +2024,7 @@ class okx extends okx$1["default"] {
         const arg = this.safeDict(message, 'arg', {});
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId, undefined, '-');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const channel = this.safeString(arg, 'channel', '');
         const data = this.safeList(message, 'data', []);
         if (this.positions === undefined) {
@@ -2041,8 +2038,7 @@ class okx extends okx$1["default"] {
             const contracts = this.safeNumber(position, 'contracts');
             if (contracts === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
-                const shortPosition = this.clone(position);
-                shortPosition['side'] = 'short';
+                const shortPosition = this.extend(this.clone(position), { 'side': 'short' });
                 cache.append(shortPosition);
                 newPositions.push(shortPosition);
             }
@@ -2083,13 +2079,12 @@ class okx extends okx$1["default"] {
         }
         await this.authenticate({ 'access': accessType });
         let market = undefined;
-        let symbolResolved = undefined;
         let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
             type = this.safeString(market, 'type');
         }
+        const symbolResolved = this.safeString(market, 'symbol');
         if (type === 'future') {
             type = 'futures';
         }
@@ -2191,7 +2186,8 @@ class okx extends okx$1["default"] {
                 stored.append(order);
                 const symbol = this.safeString(order, 'symbol', '');
                 const market = this.market(symbol);
-                marketIds.push(market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                marketIds.push(marketId);
             }
             client.resolve(stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
@@ -2375,7 +2371,7 @@ class okx extends okx$1["default"] {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, '');
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
@@ -2558,7 +2554,7 @@ class okx extends okx$1["default"] {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, '');
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         client.resolve(orders, messageHash);
@@ -2603,7 +2599,6 @@ class okx extends okx$1["default"] {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleErrorMessage(client, message) {
         //
@@ -2798,7 +2793,14 @@ class okx extends okx$1["default"] {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        const marketId = this.marketId(symbol);
+        if (marketId !== undefined) {
+            const marketSubHash = channel + ':' + marketId;
+            this.cleanUnsubscription(client, marketSubHash, undefined);
+        }
+        else {
+            this.cleanUnsubscription(client, undefined, undefined);
+        }
         if (timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }

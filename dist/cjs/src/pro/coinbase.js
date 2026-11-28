@@ -115,11 +115,13 @@ class coinbase extends coinbase$1["default"] {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
+        const subscriptionSymbols = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
             watchMessageHash = name + '::' + symbol;
             unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
             productIds = [this.safeString(market, 'id')];
+            subscriptionSymbols.push(market['symbol']);
         }
         const url = this.urls['api']['ws'];
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -133,7 +135,7 @@ class coinbase extends coinbase$1["default"] {
             'subMessageHashes': [watchMessageHash],
             'topic': topic,
             'unsubscribe': true,
-            'symbols': [symbol],
+            'symbols': subscriptionSymbols,
         };
         if (isPrivate) {
             message = this.extend(message, this.createWSAuth(name, productIds));
@@ -439,7 +441,7 @@ class coinbase extends coinbase$1["default"] {
             const tickersObj = this.safeDict(events, i);
             const tickers = this.safeList(tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
-                const ticker = tickers[j];
+                const ticker = this.safeDict(tickers, j, {});
                 const wsMarketId = this.safeString(ticker, 'product_id');
                 if (wsMarketId === undefined) {
                     continue;
@@ -574,7 +576,7 @@ class coinbase extends coinbase$1["default"] {
                     this.safeNumber(candle, 'close'),
                     this.safeNumber(candle, 'volume'),
                 ];
-                this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+                this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
                 let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
                     const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -812,8 +814,7 @@ class coinbase extends coinbase$1["default"] {
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             const tradesLength = currentTrades.length;
             for (let j = 0; j < tradesLength; j++) {
-                const item = currentTrades[tradesLength - j - 1];
-                tradesArray.append(this.parseTrade(item));
+                tradesArray.append(this.parseTrade(this.safeDict(currentTrades, tradesLength - j - 1, {})));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -853,6 +854,7 @@ class coinbase extends coinbase$1["default"] {
             return;
         }
         const marketIds = [];
+        const seenMarketIds = {};
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -869,7 +871,8 @@ class coinbase extends coinbase$1["default"] {
                 const cachedOrders = this.orders;
                 const marketId = this.safeString(responseOrder, 'product_id');
                 if (marketId !== undefined) {
-                    if (!(marketId in marketIds)) {
+                    if (!(marketId in seenMarketIds)) {
+                        seenMarketIds[marketId] = true;
                         marketIds.push(marketId);
                     }
                 }
@@ -1042,16 +1045,18 @@ class coinbase extends coinbase$1["default"] {
         const events = this.safeList(message, 'events', []);
         const firstEvent = this.safeDict(events, 0, {});
         const isUnsub = ('subscriptions' in firstEvent);
-        const subKeys = Object.keys(firstEvent['subscriptions']);
+        const subKeys = Object.keys(this.safeDict(firstEvent, 'subscriptions', {}));
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict(this.options, 'unSubscription', {});
-            const messageHashes = this.safeList(unSubObject, 'messageHashes', []);
+            const messageHashes = this.safeStringList(unSubObject, ['messageHashes']);
             const subMessageHashes = this.safeList(unSubObject, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const subHash = subMessageHashes[i];
-                this.cleanUnsubscription(client, subHash, messageHash);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const messageHash = messageHashes[i];
+                    const subHash = subMessageHashes[i];
+                    this.cleanUnsubscription(client, subHash, messageHash);
+                }
             }
             this.cleanCache(unSubObject);
         }

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.polymarket import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Bool, Currencies, Currency, FundingHistory, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -918,9 +918,9 @@ class polymarket(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
-        paginate = False
         paramsOmitted = params
-        paginate, paramsOmitted = self.handle_option_and_params(paramsOmitted, 'fetchOHLCV', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsOmitted, 'fetchOHLCV', 'paginate', False)
+        paramsOmitted = paramsPaginate
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsOmitted, 1000)
         market = self.market(symbol)
@@ -1065,9 +1065,9 @@ class polymarket(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
-        paginate = False
         paramsOmitted = params
-        paginate, paramsOmitted = self.handle_option_and_params(paramsOmitted, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsOmitted, 'fetchFundingRateHistory', 'paginate', False)
+        paramsOmitted = paramsPaginate
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '1h', paramsOmitted, 100)
         market = self.market(symbol)
@@ -1216,7 +1216,7 @@ class polymarket(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: object, price: object = None, params: dict = {}) -> dict:
+    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: Str, price: object = None, params: dict = {}) -> dict:
         """
  @ignore
         builds one order for the createOrders operation, returning the compact signable row next to the structured body entry
@@ -1539,11 +1539,12 @@ class polymarket(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         if (amount is None) or (price is None):
             raise ArgumentsRequired(self.id + ' editOrder() requires both the amount and the price arguments')
         orderId = self.parse_to_int(id)
-        priceString = self.price_to_precision(market['symbol'], price)
-        quantity = self.amount_to_precision(market['symbol'], amount)
+        priceString = self.price_to_precision(precisionSymbol, price)
+        quantity = self.amount_to_precision(precisionSymbol, amount)
         signable = ['modifyOrders', [[orderId, priceString, quantity]]]
         bodyOp = {
             'type': 'modifyOrders',
@@ -2293,7 +2294,7 @@ class polymarket(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             row = self.safe_dict(response, i, {})
             rowId = self.safe_string(row, 'instrument_id')
-            if rowId == market['id']:
+            if rowId == self.safe_string(market, 'id'):
                 return self.parse_leverage(row, market)
         raise BadSymbol(self.id + ' fetchLeverage() could not find the configuration for ' + symbol)
 
@@ -2392,7 +2393,7 @@ class polymarket(Exchange, ImplicitAPI):
         leverageInt = self.parse_to_int(leverage)
         return await self.set_leverage(leverageInt, symbol, self.extend(request, paramsOmitted))
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, type: str, params: dict = {}) -> MarginModification:
         """
  @ignore
         adds margin to an isolated position or removes some, the amount is a signed decimal in the collateral asset
@@ -2466,14 +2467,14 @@ class polymarket(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> str:
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        sVal = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        sVal = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + sVal.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object) -> str:
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey)
 
     async def create_proxy_credentials(self, params: dict = {}) -> dict:
@@ -2559,7 +2560,7 @@ class polymarket(Exchange, ImplicitAPI):
             margin = self.safe_integer(self.options, 'proxyRefreshMargin', 3600000)
             if expires is None:
                 return credentials
-            refreshAfter = expires - margin
+            refreshAfter = self.parse_to_int(expires - margin)
             if self.milliseconds() < refreshAfter:
                 return credentials
         return await self.create_proxy_credentials(params)
@@ -2596,7 +2597,7 @@ class polymarket(Exchange, ImplicitAPI):
             'ts': ts,
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, message)
-        proxyPrivateKey = self.safe_string(credentials, 'privateKey')
+        proxyPrivateKey = self.safe_string(credentials, 'privateKey', '')
         signature = self.sign_message(encoded, proxyPrivateKey)
         envelope = {
             'op': bodyOp,
@@ -2611,7 +2612,7 @@ class polymarket(Exchange, ImplicitAPI):
             envelope['exp'] = exp
         return envelope
 
-    def compact_signable(self, row: list[object]):
+    def compact_signable(self, row: list[object]) -> list[object]:
         """
  @ignore
         removes None entries from a positional signable array, later entries shift left exactly like the official sdk does before hashing
@@ -2652,9 +2653,13 @@ class polymarket(Exchange, ImplicitAPI):
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config={}):
         if path == 'account/orders':
-            return 1 if ('order_id' in params) else 10
+            if self.safe_string(params, 'order_id') is not None:
+                return 1
+            return 10
         if path == 'account/open-orders':
-            return 1 if ('instrument_id' in params) else 20
+            if self.safe_string(params, 'instrument_id') is not None:
+                return 1
+            return 20
         if (path == 'trade/orders') or (path == 'trade/orders-coid'):
             op = self.safe_dict(params, 'op', {})
             args = self.safe_list(op, 'args', [])
@@ -2687,7 +2692,8 @@ class polymarket(Exchange, ImplicitAPI):
             headersResolved['Content-Type'] = 'application/json'
         else:
             if method == 'GET':
-                keys = list(query.keys())
+                queryCopy = self.extend({}, query)
+                keys = list(queryCopy.keys())
                 keysLength = len(keys)
                 if keysLength > 0:
                     url = baseUrl + '/' + implodedPath + '?' + self.urlencode(query)
@@ -2697,7 +2703,7 @@ class polymarket(Exchange, ImplicitAPI):
                 headersResolved['POLYMARKET-SECRET'] = self.safe_string(credentials, 'secret')
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         #

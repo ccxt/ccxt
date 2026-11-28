@@ -673,7 +673,7 @@ class foxbit extends foxbit$1["default"] {
             const entry = data[i];
             const marketId = this.safeString(entry, 'market_symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             result[symbol] = this.parseTradingFee(entry, market);
         }
         return result;
@@ -1890,7 +1890,7 @@ class foxbit extends foxbit$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    parseTransaction(transaction, currency = undefined, since = undefined, limit = undefined) {
+    parseTransaction(transaction, currency = undefined) {
         const cryptoDetails = this.safeDict(transaction, 'details_crypto');
         const address = this.safeString2(cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString(transaction, 'sn');
@@ -2027,7 +2027,8 @@ class foxbit extends foxbit$1["default"] {
         let query = '';
         let signatureQuery = '';
         if (method === 'GET') {
-            const paramKeys = Object.keys(paramsOmitted);
+            const paramsCopy = this.extend({}, paramsOmitted);
+            const paramKeys = Object.keys(paramsCopy);
             const paramKeysLength = paramKeys.length;
             const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
@@ -2046,12 +2047,11 @@ class foxbit extends foxbit$1["default"] {
             }
         }
         let requestBody = undefined;
-        if (method === 'POST' || method === 'PUT') {
-            requestBody = this.json(paramsOmitted);
-        }
         let bodyToSignature = '';
-        if (requestBody !== undefined) {
-            bodyToSignature = requestBody;
+        if (method === 'POST' || method === 'PUT') {
+            const jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         const headersValue = {
             'Content-Type': 'application/json',

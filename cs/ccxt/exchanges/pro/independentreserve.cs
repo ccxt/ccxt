@@ -65,8 +65,8 @@ public partial class independentreserve : ccxt.independentreserve
         string? quoteId = this.safeString(market, "quote", "");
         string url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
         string messageHash = ("trades:" + symbolValue);
-        object trades = await this.watch(url, messageHash, null, messageHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.watch<ccxt.pro.ArrayCache>(url, messageHash, null, messageHash);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -246,7 +246,7 @@ public partial class independentreserve : ccxt.independentreserve
             orderbook["datetime"] = this.iso8601(timestamp);
         }
         bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
-        if ((checksum) && (receivedSnapshot == true))
+        if (((checksum == true)) && (receivedSnapshot == true))
         {
             ccxt.pro.IAsks storedAsks = orderbook?.asks;
             ccxt.pro.IBids storedBids = orderbook?.bids;
@@ -284,26 +284,25 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual string? valueToChecksum(object value)
+    public virtual string? valueToChecksum(double? value)
     {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = ((string)result).Replace(".", (string)"");
+        string padded = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        string digits = padded.Replace(".", (string)"");
         // remove leading zeros
-        result = this.parseNumber(result);
-        result = this.numberToString(result);
-        return ((string?)((object)(result)));
+        string? result = this.numberToString(this.parseNumber(digits));
+        return result;
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -311,7 +310,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual object handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -322,7 +321,7 @@ public partial class independentreserve : ccxt.independentreserve
         return message;
     }
 
-    public virtual object handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptions(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -334,7 +333,7 @@ public partial class independentreserve : ccxt.independentreserve
         return message;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? eventVar = this.safeString(message, "Event");
         Dictionary<string, object> handlers = new Dictionary<string, object>() {

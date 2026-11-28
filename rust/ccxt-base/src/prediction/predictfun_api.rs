@@ -13,147 +13,147 @@ use crate::exchange::ExchangeRuntime;
 
 impl Predictfun {
     /// Auto-generated wrapper for the `predictfunGetV1AuthMessage` implicit endpoint.
-    pub async fn predictfun_get_v1_auth_message(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_auth_message".into()), optional_args).await
+    pub async fn predictfun_get_v1_auth_message(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_auth_message", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Categories` implicit endpoint.
-    pub async fn predictfun_get_v1_categories(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_categories(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_categories".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1CategoriesSlug` implicit endpoint.
-    pub async fn predictfun_get_v1_categories_slug(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_categories_slug".into()), optional_args).await
+    pub async fn predictfun_get_v1_categories_slug(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_categories_slug", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Tags` implicit endpoint.
-    pub async fn predictfun_get_v1_tags(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_tags(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_tags".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Markets` implicit endpoint.
-    pub async fn predictfun_get_v1_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_markets(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_markets".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsId` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_markets_id".into()), optional_args).await
+    pub async fn predictfun_get_v1_markets_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_markets_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdStats` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id_stats(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_markets_id_stats(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_markets_id_stats".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdLastSale` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id_last_sale(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_markets_id_last_sale(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_markets_id_last_sale".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdOrderbook` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id_orderbook(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_markets_id_orderbook".into()), optional_args).await
+    pub async fn predictfun_get_v1_markets_id_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_markets_id_orderbook", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdTimeseries` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id_timeseries(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_markets_id_timeseries(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_markets_id_timeseries".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdTimeseriesLatest` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id_timeseries_latest(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_markets_id_timeseries_latest(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_markets_id_timeseries_latest".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1OrdersHash` implicit endpoint.
-    pub async fn predictfun_get_v1_orders_hash(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_orders_hash".into()), optional_args).await
+    pub async fn predictfun_get_v1_orders_hash(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_orders_hash", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Orders` implicit endpoint.
-    pub async fn predictfun_get_v1_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_orders".into()), optional_args).await
+    pub async fn predictfun_get_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1OrdersMatches` implicit endpoint.
-    pub async fn predictfun_get_v1_orders_matches(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_orders_matches".into()), optional_args).await
+    pub async fn predictfun_get_v1_orders_matches(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_orders_matches", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Account` implicit endpoint.
-    pub async fn predictfun_get_v1_account(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_account(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_account".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1AccountActivity` implicit endpoint.
-    pub async fn predictfun_get_v1_account_activity(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_get_v1_account_activity(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_account_activity".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Positions` implicit endpoint.
-    pub async fn predictfun_get_v1_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_positions".into()), optional_args).await
+    pub async fn predictfun_get_v1_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1PositionsAddress` implicit endpoint.
-    pub async fn predictfun_get_v1_positions_address(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_positions_address".into()), optional_args).await
+    pub async fn predictfun_get_v1_positions_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_positions_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Search` implicit endpoint.
-    pub async fn predictfun_get_v1_search(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_search".into()), optional_args).await
+    pub async fn predictfun_get_v1_search(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_get_v1_search", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1Auth` implicit endpoint.
-    pub async fn predictfun_post_v1_auth(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_post_v1_auth".into()), optional_args).await
+    pub async fn predictfun_post_v1_auth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_post_v1_auth", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OrdersRemove` implicit endpoint.
-    pub async fn predictfun_post_v1_orders_remove(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_orders_remove(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_orders_remove".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1Orders` implicit endpoint.
-    pub async fn predictfun_post_v1_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_post_v1_orders".into()), optional_args).await
+    pub async fn predictfun_post_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_post_v1_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OrdersRemoveByHash` implicit endpoint.
-    pub async fn predictfun_post_v1_orders_remove_by_hash(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("predictfun_post_v1_orders_remove_by_hash".into()), optional_args).await
+    pub async fn predictfun_post_v1_orders_remove_by_hash(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("predictfun_post_v1_orders_remove_by_hash", optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1AccountReferral` implicit endpoint.
-    pub async fn predictfun_post_v1_account_referral(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_account_referral(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_account_referral".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OauthFinalize` implicit endpoint.
-    pub async fn predictfun_post_v1_oauth_finalize(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_oauth_finalize(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_oauth_finalize".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OauthOrders` implicit endpoint.
-    pub async fn predictfun_post_v1_oauth_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_oauth_orders(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_oauth_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OauthOrdersCreate` implicit endpoint.
-    pub async fn predictfun_post_v1_oauth_orders_create(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_oauth_orders_create(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_oauth_orders_create".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OauthOrdersCancel` implicit endpoint.
-    pub async fn predictfun_post_v1_oauth_orders_cancel(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_oauth_orders_cancel(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_oauth_orders_cancel".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OauthPositions` implicit endpoint.
-    pub async fn predictfun_post_v1_oauth_positions(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn predictfun_post_v1_oauth_positions(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("predictfun_post_v1_oauth_positions".into()), optional_args).await
     }
 

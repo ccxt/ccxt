@@ -289,7 +289,7 @@ class coinspot extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {
-            $rows = $this->to_array($balances);
+            $rows = $this->safe_list_2($response, 'balance', 'balances', array());
             $numRows = count($rows);
             for ($i = 0; $i < $numRows; $i++) {
                 $currencies = $this->safe_dict($rows, $i, array());
@@ -306,7 +306,8 @@ class coinspot extends Exchange {
                 }
             }
         } else {
-            $currencyIdsMap = is_array($balances) ? array_keys($balances) : array();
+            $balancesDict = $this->safe_dict_2($response, 'balance', 'balances', array());
+            $currencyIdsMap = is_array($balancesDict) ? array_keys($balancesDict) : array();
             for ($i = 0; $i < count($currencyIdsMap); $i++) {
                 $currencyId = $currencyIdsMap[$i];
                 $code = $this->safe_currency_code($currencyId);
@@ -456,9 +457,9 @@ class coinspot extends Exchange {
          *
          * @see https://www.coinspot.com.au/api#latestprices
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -488,9 +489,8 @@ class coinspot extends Exchange {
             $id = $ids[$i];
             $market = $this->safe_market($id);
             if ($this->safe_bool($market, 'spot', false)) {
-                $symbol = $market['symbol'];
-                $ticker = $prices[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
+                $symbol = $this->safe_string($market, 'symbol', '');
+                $result[$symbol] = $this->parse_ticker($this->safe_dict($prices, $id, array()), $market);
             }
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
@@ -736,7 +736,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

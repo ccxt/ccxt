@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,7 +16,7 @@ pub fn testParseMarkets() {
         m
     }));
     // we don't check empty base or quote inside parseMarkets
-    let mut markets: Value = Value::from(vec![Value::Map({
+    let markets: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("BTC_USD".into()));
         m.insert("base".to_string(), Value::Str("BTC".into()));
@@ -40,7 +41,7 @@ pub fn testParseMarkets() {
         m.insert("quote".to_string(), Value::Null);
     m
 })]);
-    let mut parsedMarkets: Value = exchange.parse_markets(markets);
-    assert!(ccxt::runtime::is_true(&((Value::Int(parsedMarkets.len() as i64).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(((parsedMarkets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) != Value::Null) && (parsedMarkets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null).as_str() == Some("BTC"))))));
+    let parsedMarkets: Value = Value::Arr(exchange.parse_markets(markets));
+    assert!(crate::test_helpers::is_true(&((Value::Int(parsedMarkets.len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(((parsedMarkets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) != Value::Null) && (parsedMarkets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null).as_str() == Some("BTC"))))));
 }

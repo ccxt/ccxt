@@ -384,7 +384,7 @@ class p2b extends Exchange {
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $limits = $this->safe_dict($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits', array());
         $maxAmount = $this->safe_string($limits, 'max_amount');
         $maxPrice = $this->safe_string($limits, 'max_price');
         return array(
@@ -523,7 +523,7 @@ class p2b extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null) {
+    public function parse_ticker(?array $ticker, ?array $market = null): array {
         //
         // parseTickers
         //
@@ -885,7 +885,7 @@ class p2b extends Exchange {
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $currencyId = $keys[$i];
-            $balance = $this->safe_dict($response, $currencyId);
+            $balance = $this->safe_dict($response, $currencyId, array());
             $code = $this->safe_currency_code($currencyId);
             $used = $this->safe_string($balance, 'freeze');
             $available = $this->safe_string($balance, 'available');
@@ -949,7 +949,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result');
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -998,7 +998,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result');
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1400,7 +1400,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

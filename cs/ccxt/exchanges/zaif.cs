@@ -394,7 +394,7 @@ public partial class zaif : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         IDictionary<string, object> deposit = this.safeDict(balances, "deposit");
@@ -472,7 +472,7 @@ public partial class zaif : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -623,7 +623,7 @@ public partial class zaif : Exchange
         //          }, ...
         //      ]
         //
-        IList<object> trades = this.toArray(response);
+        IList<object> trades = response;
         int numTrades = (trades?.Count ?? 0);
         if ((numTrades == 1))
         {
@@ -707,7 +707,7 @@ public partial class zaif : Exchange
         return this.parseOrder(data);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -890,7 +890,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(returnData, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -941,8 +941,7 @@ public partial class zaif : Exchange
 
     public virtual string? customNonce()
     {
-        double nonce = ((double)this.milliseconds() / 1000);
-        return ((string?)((object)(toFixed(nonce, 8))));
+        return this.decimalToPrecision(((double)this.milliseconds() / 1000), ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
@@ -985,7 +984,7 @@ public partial class zaif : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(bodyEncoded), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(bodyEncoded, this.secret, sha512) },
             };
             return new Dictionary<string, object>() {
                 { "url", url },
@@ -1002,20 +1001,20 @@ public partial class zaif : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {"error": "unsupported currency_pair"}
         //
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -1024,6 +1023,6 @@ public partial class zaif : Exchange
         {
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

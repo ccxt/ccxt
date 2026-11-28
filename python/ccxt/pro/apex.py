@@ -5,10 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-import asyncio
 import hashlib
-import json
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -168,7 +166,7 @@ class apex(ccxt.async_support.apex):
         id = self.safe_string_n(trade, ['i', 'id', 'v'])
         marketId = self.safe_string_2(trade, 's', 'symbol')
         marketResolved = self.safe_market(marketId, market, None)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
         side = self.safe_string_lower_2(trade, 'S', 'side')
         price = self.safe_string_2(trade, 'p', 'price')
@@ -242,7 +240,8 @@ class apex(ccxt.async_support.apex):
         client = self.client(url)
         newTopics = []
         for i in range(0, len(topics)):
-            if not (messageHashes[i] in client.subscriptions):
+            messageHash = self.safe_string(messageHashes, i, '')
+            if not (messageHash in client.subscriptions):
                 newTopics.append(topics[i])
         newTopicsLength = len(newTopics)
         message = None
@@ -419,8 +418,8 @@ class apex(ccxt.async_support.apex):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
-        symbol = None
         parsed = self.parse_ticker(data)
+        symbol = self.safe_string(parsed, 'symbol')
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = self.safe_string(parsed, 'symbol')
@@ -434,6 +433,8 @@ class apex(ccxt.async_support.apex):
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
             parsed = self.parse_ticker(merged)
+        else:
+            symbol = None
         timestamp = self.safe_integer_product(message, 'ts', 0.001)
         parsed['timestamp'] = timestamp
         parsed['datetime'] = self.iso8601(timestamp)
@@ -456,7 +457,8 @@ class apex(ccxt.async_support.apex):
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
-        return result[symbol][timeframe]
+        bySymbol = result[symbol]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -608,11 +610,7 @@ class apex(ccxt.async_support.apex):
         if self.markets is None:
             await self.load_markets()
         messageHash = ''
-        symbolsNormalized2 = None
-        if self.is_empty(symbols):
-            symbolsNormalized2 = symbols
-        else:
-            symbolsNormalized2 = self.market_symbols(symbols)
+        symbolsNormalized2 = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             messageHash = '::' + ','.join((symbolsNormalized2))
         url = self.get_ws_private_url()
@@ -682,9 +680,8 @@ class apex(ccxt.async_support.apex):
         trades = self.myTrades
         symbols = {}
         for i in range(0, len(lists)):
-            rawTrade = self.safe_dict(lists, i, {})
-            parsed = self.parse_ws_trade(rawTrade)
-            symbol = parsed['symbol']
+            parsed = self.parse_ws_trade(self.safe_dict(lists, i, {}))
+            symbol = self.safe_string(parsed, 'symbol')
             symbols[symbol] = True
             trades.append(parsed)
         keys = list(symbols.keys())
@@ -733,7 +730,7 @@ class apex(ccxt.async_support.apex):
         symbols = {}
         for i in range(0, len(lists)):
             parsed = self.parse_order(self.safe_dict(lists, i, {}))
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             symbols[symbol] = True
             orders.append(parsed)
         symbolsArray = list(symbols.keys())
@@ -754,16 +751,11 @@ class apex(ccxt.async_support.apex):
 
     async def load_positions_snapshot(self, client: Client, messageHash: str):
         # as only one ws channel gives positions for all types, for snapshot must load all positions
-        fetchFunctions = [
-            self.fetch_positions(),
-        ]
-        promises = await asyncio.gather(*fetchFunctions)
+        positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        for i in range(0, len(promises)):
-            positions = promises[i]
-            for ii in range(0, len(positions)):
-                cache.append(positions[ii])
+        for i in range(0, len(positions)):
+            cache.append(positions[i])
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
             future = client.futures[messageHash]
@@ -798,8 +790,7 @@ class apex(ccxt.async_support.apex):
         cache = self.positions
         newPositions = []
         for i in range(0, len(lists)):
-            rawPosition = self.safe_dict(lists, i, {})
-            position = self.parse_position(rawPosition)
+            position = self.parse_position(self.safe_dict(lists, i, {}))
             side = self.safe_string(position, 'side')
             # hacky solution to handle closing positions
             # without crashing, we should handle this properly later
@@ -841,7 +832,7 @@ class apex(ccxt.async_support.apex):
             # auth sign
             message = {
                 'op': 'login',
-                'args': [json.dumps({
+                'args': [self.json({
                     'type': 'login',
                     'topics': ['ws_zk_accounts_v3'],
                     'httpMethod': http_method,
@@ -855,7 +846,7 @@ class apex(ccxt.async_support.apex):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #   {
         #       "success": false,

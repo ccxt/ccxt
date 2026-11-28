@@ -889,15 +889,11 @@ class cryptocom extends Exchange {
         $request = array();
         if ($symbols !== null) {
             $symbol = null;
-            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchTickers() symbols argument cannot contain more than 1 symbol');
-                }
-                $symbol = $this->safe_string($symbols, 0);
-            } else {
-                $symbol = $symbols;
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 1) {
+                throw new BadRequest($this->id . ' fetchTickers() symbols argument cannot contain more than 1 symbol');
             }
+            $symbol = $this->safe_string($symbols, 0);
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }
@@ -1352,7 +1348,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $order = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1488,7 +1484,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function create_orders(array $orders, $params = array()): array {
@@ -1716,10 +1712,10 @@ class cryptocom extends Exchange {
         $request = $this->edit_order_request($id, $symbol, $amount, $price, $params);
         $response = $this->v1PrivatePostPrivateAmendOrder($request);
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
-    public function edit_order_request(?string $id, string $symbol, ?float $amount, ?float $price = null, $params = array()): array {
+    public function edit_order_request(?string $id, string $symbol, ?float $amount = null, ?float $price = null, $params = array()): array {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;
@@ -1798,7 +1794,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
@@ -2014,7 +2010,8 @@ class cryptocom extends Exchange {
             $address = $addressParts[0];
             $rawTag = $addressParts[1];
             $splitted = explode('=', $rawTag);
-            return array( $address, $splitted[1] );
+            $tag = $this->safe_string($splitted, 1);
+            return array( $address, $tag );
         }
         return array( $addressString, null );
     }
@@ -2158,7 +2155,8 @@ class cryptocom extends Exchange {
                 return $this->safe_dict($depositAddresses, $network);
             }
         }
-        $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
+        $addressesCopy = $this->extend(array(), $depositAddresses);
+        $keys = is_array($addressesCopy) ? array_keys($addressesCopy) : array();
         return $this->safe_dict($depositAddresses, $this->safe_string($keys, 0));
     }
 
@@ -3080,7 +3078,8 @@ class cryptocom extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($this->safe_dict($settlements, $i, array()), $market);
+            $settlementRow = $this->extend(array(), $settlements[$i]);
+            $result[] = $this->parse_settlement($settlementRow, $market);
         }
         return $result;
     }
@@ -3285,7 +3284,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
-        return $this->parse_position($this->safe_dict($data, 0), $market);
+        return $this->parse_position($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
@@ -3296,7 +3295,7 @@ class cryptocom extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3305,16 +3304,11 @@ class cryptocom extends Exchange {
         $request = array();
         $market = null;
         if ($symbolsNormalized !== null) {
-            $symbol = null;
-            if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
-                $symbolsLength = count($symbolsNormalized);
-                if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                $symbol = $symbolsNormalized[0];
-            } else {
-                $symbol = $symbolsNormalized;
+            $symbolsLength = count($symbolsNormalized);
+            if ($symbolsLength > 1) {
+                throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            $symbol = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }
@@ -3345,10 +3339,10 @@ class cryptocom extends Exchange {
         $positions = $this->safe_list($responseResult, 'data', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $entry = $positions[$i];
-            $marketId = $this->safe_string($entry, 'instrument_name');
+            $marketId = $this->safe_string($positions[$i], 'instrument_name');
             $marketInner = $this->safe_market($marketId, null, null, 'contract');
-            $result[] = $this->parse_position($entry, $marketInner);
+            $position = $this->parse_position($this->safe_dict($positions, $i, array()), $marketInner);
+            $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', null);
     }
@@ -3408,18 +3402,16 @@ class cryptocom extends Exchange {
     public function params_to_string(mixed $object, float $level): string {
         $maxLevel = 3;
         $depth = $this->parse_to_int($level);
-        if ($depth >= $maxLevel) {
+        if (($depth >= $maxLevel) || (gettype($object) === 'string')) {
             return (string) $object;
-        }
-        if (gettype($object) === 'string') {
-            return $object;
         }
         $returnString = '';
         $paramsKeys = null;
         if ((gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object)))) {
             $paramsKeys = $object;
         } else {
-            $objectKeys = is_array($object) ? array_keys($object) : array();
+            $objectDict = $this->extend(array(), $object);
+            $objectKeys = is_array($objectDict) ? array_keys($objectDict) : array();
             $paramsKeys = $this->sort($objectKeys);
         }
         for ($i = 0; $i < count(($paramsKeys)); $i++) {
@@ -3458,6 +3450,7 @@ class cryptocom extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'instrument_name' => $market['id'],
             'type' => 'MARKET',
@@ -3468,7 +3461,7 @@ class cryptocom extends Exchange {
             $request['type'] = $type;
         }
         if ($price !== null) {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['price'] = $this->price_to_precision($precisionSymbol, $price);
         }
         $response = $this->v1PrivatePostPrivateClosePosition($this->extend($request, $params));
         //
@@ -3483,7 +3476,7 @@ class cryptocom extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result');
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): array {
@@ -3637,7 +3630,7 @@ class cryptocom extends Exchange {
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);
-            $requestBody = $this->json(array(
+            $jsonBody = $this->json(array(
                 'id' => $nonce,
                 'method' => $path,
                 'params' => $params,
@@ -3653,8 +3646,9 @@ class cryptocom extends Exchange {
             if ($paramsKeysLength === 0) {
                 $paramsString = '{}';
                 $arrayString = '[]';
-                $requestBody = str_replace($arrayString, $paramsString, $requestBody);
+                $jsonBody = str_replace($arrayString, $paramsString, $jsonBody);
             }
+            $requestBody = $jsonBody;
             $requestHeaders = array(
                 'Content-Type' => 'application/json',
             );
@@ -3662,7 +3656,7 @@ class cryptocom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;

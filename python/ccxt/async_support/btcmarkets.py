@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcmarkets import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -842,9 +842,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, '-')
         feeCurrencyCode = None
         if marketResolved['quote'] == 'AUD':
-            feeCurrencyCode = marketResolved['quote']
+            feeCurrencyCode = self.safe_string(marketResolved, 'quote')
         else:
-            feeCurrencyCode = marketResolved['base']
+            feeCurrencyCode = self.safe_string(marketResolved, 'base')
         side = self.safe_string(trade, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -977,7 +977,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             request['clientOrderId'] = clientOrderId
         paramsTriggerPrice = params
         if triggerPriceIsRequired:
-            paramsTriggerPrice = self.omit(params, 'triggerPrice')
+            paramsTriggerPrice = self.omit(paramsTriggerPrice, 'triggerPrice')
         paramsOmitted = self.omit(paramsTriggerPrice, 'clientOrderId')
         response = await self.privatePostOrders(self.extend(request, paramsOmitted))
         #
@@ -1395,7 +1395,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

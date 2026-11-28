@@ -1,5 +1,5 @@
 import Exchange from './abstract/nado.js';
-import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests, int } from './base/types.js';
 /**
  * @class nado
  * @augments Exchange
@@ -450,15 +450,7 @@ export default class nado extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseTrade(trade: Dict, market?: Market): Trade;
     parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
-    parseFundingHistory(funding: Dict, market?: Market): {
-        info: Dict;
-        symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
-    };
+    parseFundingHistory(funding: Dict, market?: Market): Dict;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;
@@ -475,14 +467,14 @@ export default class nado extends Exchange {
     createSubaccount(walletAddress: Str, subaccount?: Str): string;
     queryContracts(params?: Dict): Promise<Dict>;
     orderVerifyingContract(productId: Int): string;
-    padHex(value: string, length: number, left?: boolean): string;
+    padHex(value: string, length: int, left?: boolean): string;
     signOrder(order: Dict, productId: Int, chainId: Str): string;
     signCancellation(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
     signCancellationProducts(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
     signFetchTriggerOrders(tx: Dict, chainId: Str, endpointAddress: Str): string;
     signHash(hash: string, privateKey: Str): string;
     removeMarketSuffix(marketId: Str): Str;
-    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

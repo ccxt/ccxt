@@ -11,7 +11,6 @@ type Zaif struct {
 
 func newZaif() *Zaif {
 	p := &Zaif{}
-	setDefaults(p)
 	return p
 }
 
@@ -412,15 +411,15 @@ func (this *Zaif) ParseMarket(market any) map[string]any {
 		"info":    market,
 	})
 }
-func (this *Zaif) ParseBalance(response any) map[string]any {
-	var balances map[string]any = SafeMapTyped(response, "return")
-	var deposit map[string]any = SafeMapTyped(balances, "deposit")
+func (this *Zaif) ParseBalance(response map[string]any) map[string]any {
+	var balances, _ = response["return"].(map[string]any)
+	var deposit, _ = balances["deposit"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var funds map[string]any = SafeMapTyped(balances, "funds")
+	var funds, _ = balances["funds"].(map[string]any)
 	var currencyIds []string = nil
 	if funds != nil {
 		currencyIds = make([]string, 0, len(funds))
@@ -430,7 +429,7 @@ func (this *Zaif) ParseBalance(response any) map[string]any {
 	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var balance *string = this.SafeString(funds, currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = balance
@@ -512,9 +511,12 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetDepthPair(this.Extend(request, params))
@@ -523,10 +525,10 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"]))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
-func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Zaif) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "last": 9e-08,
@@ -595,7 +597,7 @@ func (this *Zaif) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -636,12 +638,13 @@ func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var side *string = this.SafeString(trade, "trade_type")
-	side = SafeStringPtr(func() string {
-		if side != nil && *side == "bid" {
-			return "buy"
-		}
-		return "sell"
-	}())
+	var sideStr string
+	if side != nil && *side == "bid" {
+		sideStr = "buy"
+	} else {
+		sideStr = "sell"
+	}
+	side = &sideStr
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")
 	var id *string = this.SafeString2(trade, "id", "tid")
 	var priceString *string = this.SafeString(trade, "price")
@@ -676,12 +679,12 @@ func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Zaif) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Zaif) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -697,7 +700,7 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -722,7 +725,10 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	var trades []any = this.ToArray(response)
 	var numTrades int = len(trades)
 	if numTrades == 1 {
-		var firstTrade map[string]any = SafeMapTyped(trades, 0)
+		var firstTrade map[string]any
+		if 0 < len(trades) {
+			firstTrade, _ = trades[0].(map[string]any)
+		}
 		if len(firstTrade) == 0 {
 			trades = []any{}
 		}
@@ -767,28 +773,27 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if typeVar != "limit" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
+	var ternaryStr57922 string = "ask"
+	if side == "buy" {
+		ternaryStr57922 = "bid"
+	}
 	var request map[string]any = map[string]any{
 		"currency_pair": market["id"],
-		"action": func() string {
-			if side == "buy" {
-				return "bid"
-			}
-			return "ask"
-		}(),
-		"amount": amount,
-		"price":  price,
+		"action":        ternaryStr57922,
+		"amount":        amount,
+		"price":         price,
 	}
 
-	r1 := <-this.PrivatePostTrade(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostTrade(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var data map[string]any = SafeMapTyped(response, "return")
+	var response map[string]any = responseReply.Value
+	var data, _ = response["return"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   this.NumberToString(data["order_id"]),
 	}, market)}
 	return nil
@@ -839,12 +844,16 @@ func (this *Zaif) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
+	var data map[string]any
+	data, _ = response["return"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
 }
-func (this *Zaif) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Zaif) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "currency_pair": "btc_jpy",
@@ -870,12 +879,13 @@ func (this *Zaif) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var side *string = this.SafeString(order, "action")
-	side = SafeStringPtr(func() string {
-		if side != nil && *side == "bid" {
-			return "buy"
-		}
-		return "sell"
-	}())
+	var sideStr string
+	if side != nil && *side == "bid" {
+		sideStr = "buy"
+	} else {
+		sideStr = "sell"
+	}
+	side = &sideStr
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var marketId *string = this.SafeString(order, "currency_pair")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
@@ -953,7 +963,11 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
+	var data map[string]any
+	data, _ = response["return"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.AddKeyInArrayItems(data, "id"), market, since, limit))}
 	return nil
@@ -1011,7 +1025,11 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
+	var data map[string]any
+	data, _ = response["return"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.AddKeyInArrayItems(data, "id"), market, since, limit))}
 	return nil
@@ -1029,12 +1047,12 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Zaif) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Zaif) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1082,12 +1100,16 @@ func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	//         }
 	//     }
 	//
-	var returnData map[string]any = this.SafeDictMap(result, "return", map[string]any{})
+	var returnData map[string]any
+	returnData, _ = result["return"].(map[string]any)
+	if returnData == nil {
+		returnData = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(returnData, currency)}
 	return nil
 }
-func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Zaif) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id": 23634,
@@ -1135,9 +1157,8 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) Transac
 		"info":        transaction,
 	})
 }
-func (this *Zaif) CustomNonce() any {
-	var nonce float64 = float64(this.Milliseconds()) / 1000
-	return ToFixed(nonce, 8)
+func (this *Zaif) CustomNonce() string {
+	return this.DecimalToPrecision(float64(this.Milliseconds())/1000, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO)
 }
 func (this *Zaif) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
@@ -1166,7 +1187,7 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			url += "tapi"
 		}
-		var nonce any = this.CustomNonce()
+		var nonce string = this.CustomNonce()
 		var bodyEncoded string = this.Urlencode(this.Extend(map[string]any{
 			"method": path,
 			"nonce":  nonce,
@@ -1190,7 +1211,7 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Zaif) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Zaif) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

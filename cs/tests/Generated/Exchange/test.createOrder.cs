@@ -138,7 +138,7 @@ public partial class testMainClass : BaseTest
             //
             // ### close the traded position ###
             //
-            object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
+            object amountToClose = exchange.safeNumber(entryorderFetched, "filled");
             Dictionary<string, object> parameters = new Dictionary<string, object>() {};
             // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
             if (isSwapFuture)

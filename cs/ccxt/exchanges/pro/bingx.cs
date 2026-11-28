@@ -164,19 +164,16 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? url = null;
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchTicker", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchTicker", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         if ((marketType == "swap"))
         {
             url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), subType);
-        } else
-        {
-            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         }
         string? messageHash = this.getMessageHash("ticker", this.safeString(market, "symbol"));
         string uuid = this.uuid();
@@ -222,7 +219,7 @@ public partial class bingx : ccxt.bingx
         return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // swap
@@ -287,8 +284,8 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
+        string? symbol = this.safeString(market, "symbol", "");
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         string? inverseUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "inverse");
@@ -367,27 +364,27 @@ public partial class bingx : ccxt.bingx
         }
         if ((marketType == "swap") || (marketType == "future"))
         {
-            return this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100}, limit);
+            return this.findNearestCeiling(new List<Int64>() {5, 10, 20, 50, 100}, limit.Value);
         } else if ((marketType == "spot"))
         {
-            return this.findNearestCeiling(new List<object>() {20, 100}, limit);
+            return this.findNearestCeiling(new List<Int64>() {20, 100}, limit.Value);
         }
         return limit;
     }
 
-    public virtual string? getMessageHash(object unifiedChannel, object symbol = null, object extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, string? symbol = null, string? extra = null)
     {
-        object hash = unifiedChannel;
+        string hash = unifiedChannel;
         if ((symbol != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (symbol)))));
+            hash = (hash == null ? null : hash + (string)(object)(("::" + symbol)));
         } else
         {
-            hash = ((object)(hash == null ? null : hash + "s")); // tickers, orderbooks, ohlcvs, etc ...
+            hash = (hash == null ? null : hash + "s"); // tickers, orderbooks, ohlcvs, etc ...
         }
         if ((extra != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (extra)))));
+            hash = (hash == null ? null : hash + (string)(object)(("::" + extra)));
         }
         return ((string?)((object)(hash)));
     }
@@ -413,20 +410,17 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = null;
+        string? symbolValue = this.safeString(market, "symbol", "");
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchTrades", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchTrades", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         if ((marketType == "swap"))
         {
             url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), subType);
-        } else
-        {
-            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         }
         string messageHash = ("trade::" + symbolValue);
         string uuid = this.uuid();
@@ -446,10 +440,12 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
+        (bool?, IDictionary<string, object>) ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "watchTrades", "ignoreDuplicates", true);
+        bool? ignoreDuplicates = ignoreDuplicatesVariable.Item1;
+        if ((ignoreDuplicates == true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
@@ -568,7 +564,7 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> dataList = this.safeList(message, "data", new List<object>() {});
         string? rawHash = this.safeString(message, "dataType", "");
         List<object> hashParts = rawHash.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(hashParts, 0);
@@ -578,16 +574,16 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trade::" + symbol);
         IList<object> trades = null;
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((this.safeDict(message, "data") == null))
         {
-            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
+            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(dataList, market));
         } else
         {
-            trades = new List<object> {ccxt.BaseExchange.FromTrade(this.parseTrade(data, market))};
+            trades = new List<object> {ccxt.BaseExchange.FromTrade(this.parseTrade(this.safeDict(message, "data", new Dictionary<string, object>() {}), market))};
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -623,19 +619,16 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? url = null;
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrderBook", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchOrderBook", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         if ((marketType == "swap"))
         {
             url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), subType);
-        } else
-        {
-            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         }
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         string? depth = this.safeString(options, "depth", "100");
@@ -683,7 +676,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -700,7 +693,7 @@ public partial class bingx : ccxt.bingx
         return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         double? price = this.safeFloat2(delta, 0, "p");
         double? amount = this.safeFloat2(delta, 1, "a");
@@ -788,8 +781,8 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
@@ -931,7 +924,7 @@ public partial class bingx : ccxt.bingx
         {
             marketType = "swap";
         }
-        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null,marketType);
         List<object> candles = null;
         if (isSwap)
         {
@@ -947,7 +940,7 @@ public partial class bingx : ccxt.bingx
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
         }
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         List<object> timeframeParts = dataType.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? rawTimeframe = this.safeString(timeframeParts, 1);
@@ -962,9 +955,9 @@ public partial class bingx : ccxt.bingx
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             Int64? limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && unifiedTimeframe != null && ohlcvsRow1.TryGetValue(unifiedTimeframe, out var ohlcvsValue1) ? ohlcvsValue1 : null));
         for (int i = 0; i < (candles?.Count ?? 0); i++)
         {
             object candle = candles[i];
@@ -1006,19 +999,16 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? url = null;
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOHLCV", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchOHLCV", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         if ((marketType == "swap"))
         {
             url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), subType);
-        } else
-        {
-            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType);
         }
         if ((url == null))
         {
@@ -1049,7 +1039,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
@@ -1066,7 +1056,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1178,7 +1168,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -1273,7 +1263,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
@@ -1361,9 +1351,9 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscriptionHash, subscription));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, string type, object subType, string subscriptionHash, object parameters)
+    public virtual void setBalanceCache(WebSocketClient client, string type, string? subType, string subscriptionHash, IDictionary<string, object> parameters)
     {
-        if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }
@@ -1383,7 +1373,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type, object subType)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type, string? subType)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, { "subType", subType }, }));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
@@ -1417,7 +1407,7 @@ public partial class bingx : ccxt.bingx
         await this.authenticate();
         IDictionary<string, object> market = null;
         string messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             market = this.getMarketFromSymbols(symbolsNormalized);
@@ -1461,7 +1451,7 @@ public partial class bingx : ccxt.bingx
         if ((fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.positions == null))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future((type + ":fetchPositionsSnapshot")));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
         if (this.newUpdates)
@@ -1471,7 +1461,7 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, string type, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {
@@ -1480,8 +1470,8 @@ public partial class bingx : ccxt.bingx
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
         if ((fetchPositionsSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchPositionsSnapshot")));
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
+            string messageHash = (type + ":fetchPositionsSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -1492,7 +1482,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, object type)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, string type)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, { "subType", "linear" }, }));
         this.positions = new ArrayCacheBySymbolBySide();
@@ -1642,7 +1632,7 @@ public partial class bingx : ccxt.bingx
         client.resolve(newPositions, "swap:positions");
     }
 
-    public virtual bool handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
@@ -1659,7 +1649,7 @@ public partial class bingx : ccxt.bingx
             if ((code != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
             }
         } catch(Exception e)
         {
@@ -1717,7 +1707,7 @@ public partial class bingx : ccxt.bingx
         Int64 time = this.milliseconds();
         Int64? lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
-        if (((listenKeyRefreshRate != null)) && (((time - lastAuthenticatedTime) > listenKeyRefreshRate)))
+        if (((listenKeyRefreshRate != null)) && ((time - lastAuthenticatedTime) > listenKeyRefreshRate.GetValueOrDefault()))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
@@ -1880,12 +1870,12 @@ public partial class bingx : ccxt.bingx
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
+        Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, data)));
         if (!isSpot)
         {
             // The envelope T is the order update time; o.T is the trade time.
             Int64? updateTimestamp = this.safeInteger(message, "T");
-            if (((updateTimestamp != null)) && ((updateTimestamp > 0)))
+            if (((updateTimestamp != null)) && (updateTimestamp > 0))
             {
                 string? orderId = this.safeString(parsedOrder, "id");
                 if ((orderId != null))
@@ -1898,7 +1888,7 @@ public partial class bingx : ccxt.bingx
                         if (((this.safeString(previousOrder, "id") == orderId)) && ((this.safeString(previousOrder, "symbol") == this.safeString(parsedOrder, "symbol"))))
                         {
                             Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
-                            if (((previousTimestamp != null)) && ((updateTimestamp < previousTimestamp)))
+                            if (((previousTimestamp != null)) && (updateTimestamp.Value < previousTimestamp.Value))
                             {
                                 return;
                             }
@@ -1995,7 +1985,7 @@ public partial class bingx : ccxt.bingx
             type = "spot";
         }
         string? marketId = this.safeString(result, "s");
-        Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-",type);
         ccxt.Trade parsed = this.parseTrade(result, market);
         string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
         string spotHash = "spot:mytrades";
@@ -2062,9 +2052,10 @@ public partial class bingx : ccxt.bingx
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
+        IDictionary<string, object> typeBalance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        typeBalance["info"] = data;
+        typeBalance["timestamp"] = timestamp;
+        typeBalance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> balance = ((IDictionary<string, object>)data[i]);
@@ -2076,30 +2067,30 @@ public partial class bingx : ccxt.bingx
             account["free"] = this.safeString(balance, "wb");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+                typeBalance[(string)code] = account;
             }
         }
-        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
     }
 
     // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        if ((message is "Ping"))
+        if ((message == "Ping"))
         {
             this.spawn(this.pong, new object[] { client, message});
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if (!this.handleErrorMessage(client, message))
         {
             return;
         }
         // public subscriptions
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
+        if ((message != null && message.ContainsKey("ping")))
         {
             this.spawn(this.pong, new object[] { client, message});
             return;
@@ -2175,7 +2166,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {

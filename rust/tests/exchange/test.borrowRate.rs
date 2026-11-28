@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testBorrowRate(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut requestedCode: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("currency".to_string(), Value::Str("USDT".into()));
@@ -23,11 +23,11 @@ pub fn testBorrowRate(mut exchange: Value, mut skippedProperties: Value, mut met
             m.insert("period".to_string(), Value::Int(86400000));
         m
     });
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
-    // assert!(ccxt::runtime::is_true(&(borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000))) // Milliseconds in an hour or a day
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("period".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("rate".into()).clone(), Value::Str("0".into()).clone()]);
+    // assert!(crate::test_helpers::is_true(&(borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000))) // Milliseconds in an hour or a day
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("period".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("rate".into()), Value::Str("0".into())]);
 }

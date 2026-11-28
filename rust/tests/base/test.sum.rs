@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,6 +16,6 @@ pub fn testSum() {
         m
     }));
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (), undefined); // todo: bugs in py
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testSum".into()).clone(), exchange.sum(&[Value::Int(2)]).clone(), Value::Int(2).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testSum".into()).clone(), exchange.sum(&[Value::Int(2), Value::Int(30), Value::Int(400)]).clone(), Value::Int(432).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testSum".into()), exchange.sum(&[Value::Int(2)]).clone(), Value::Int(2)]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testSum".into()), exchange.sum(&[Value::Int(2), Value::Int(30), Value::Int(400)]).clone(), Value::Int(432)]);
 }

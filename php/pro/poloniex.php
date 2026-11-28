@@ -182,10 +182,8 @@ class poloniex extends \ccxt\async\poloniex {
                 $name,
             ),
         );
-        $marketIds = array();
-        if ($this->is_empty($symbols)) {
-            $marketIds[] = 'all';
-        } else {
+        $marketIds = array( 'all' );
+        if (!$this->is_empty($symbols)) {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' subscribe() symbols is required');
             }
@@ -282,6 +280,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $uppercaseType = strtoupper($type);
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' createOrderWs() side is required');
@@ -319,7 +318,7 @@ class poloniex extends \ccxt\async\poloniex {
             }
             $request['amount'] = $quoteAmount;
         } else {
-            $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['quantity'] = $this->amount_to_precision($precisionSymbol, $amount);
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -803,8 +802,8 @@ class poloniex extends \ccxt\async\poloniex {
         }
         if (!(is_array($this->balance) && array_key_exists('info' ?? '', $this->balance))) {
             $this->balance['info'] = $response['info'];
-            $this->balance['timestamp'] = $response['timestamp'];
-            $this->balance['datetime'] = $response['datetime'];
+            $this->balance['timestamp'] = $this->safe_integer($response, 'timestamp');
+            $this->balance['datetime'] = $this->safe_string($response, 'datetime');
         }
         $this->balance = $this->safe_balance($this->balance);
         // don't remove the future from the .futures cache
@@ -1109,7 +1108,7 @@ class poloniex extends \ccxt\async\poloniex {
         $orders = $this->orders;
         $marketIds = array();
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->safe_dict($data, $i);
+            $order = $this->safe_dict($data, $i, array());
             $marketId = $this->safe_string($order, 'symbol');
             $eventType = $this->safe_string($order, 'eventType');
             if ($marketId !== null) {
@@ -1135,7 +1134,7 @@ class poloniex extends \ccxt\async\poloniex {
                         $previousOrder['trades'] = array();
                     }
                     $previousOrder['trades'][] = $trade;
-                    $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
+                    $previousOrder['lastTradeTimestamp'] = $this->safe_integer($trade, 'timestamp');
                     $totalCost = '0';
                     $totalAmount = '0';
                     $previousOrderTrades = $this->safe_list($previousOrder, 'trades', array());
@@ -1150,12 +1149,14 @@ class poloniex extends \ccxt\async\poloniex {
                         $previousOrder['average'] = $this->parse_number(Precise::string_div($totalCost, $totalAmount));
                     }
                     $previousOrder['cost'] = $this->parse_number($totalCost);
-                    if ($previousOrder['filled'] !== null) {
+                    $previousOrderFilledRaw = $this->safe_string($previousOrder, 'filled');
+                    if ($previousOrderFilledRaw !== null) {
                         $tradeAmount = $this->number_to_string($trade['amount']);
                         $previousOrderFilled = $this->number_to_string($previousOrder['filled']);
                         $previousOrderFilled = Precise::string_add($previousOrderFilled, $tradeAmount);
                         $previousOrder['filled'] = $previousOrderFilled;
-                        if ($previousOrder['amount'] !== null) {
+                        $previousOrderAmountRaw = $this->safe_string($previousOrder, 'amount');
+                        if ($previousOrderAmountRaw !== null) {
                             $previousOrderAmount = $this->number_to_string($previousOrder['amount']);
                             $previousOrder['remaining'] = $this->parse_number(Precise::string_sub($previousOrderAmount, $previousOrderFilled));
                         }
@@ -1167,8 +1168,8 @@ class poloniex extends \ccxt\async\poloniex {
                             'currency' => $this->safe_string($trade['fee'], 'currency'),
                         );
                     }
-                    if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
-                        $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
+                    if (($this->safe_string($previousOrder['fee'], 'cost') !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
+                        $stringOrderCost = $this->safe_string($previousOrder['fee'], 'cost');
                         $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                         $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
                     }
@@ -1192,7 +1193,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1289,10 +1290,9 @@ class poloniex extends \ccxt\async\poloniex {
         $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
-            $marketId = $this->safe_string($item, 'symbol');
+            $marketId = $this->safe_string($data[$i], 'symbol');
             if ($marketId !== null) {
-                $ticker = $this->parse_ticker($item);
+                $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()));
                 $symbol = $this->safe_string($ticker, 'symbol');
                 if ($symbol !== null) {
                     $this->tickers[$symbol] = $ticker;
@@ -1379,8 +1379,8 @@ class poloniex extends \ccxt\async\poloniex {
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
             $timestamp = $this->safe_integer($item, 'ts');
-            $asks = $this->safe_list($item, 'asks');
-            $bids = $this->safe_list($item, 'bids');
+            $asks = $this->safe_list($item, 'asks', array());
+            $bids = $this->safe_list($item, 'bids', array());
             if ($snapshot || $update) {
                 $orderbook = $this->safe_value($this->orderbooks, $symbol);
                 if ($snapshot && ($orderbook === null)) {
@@ -1573,7 +1573,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',

@@ -157,11 +157,13 @@ class cex extends \ccxt\async\cex {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $currentSymbol = $this->safe_string($this->options['watchTrades'], 'symbol');
-        if ($currentSymbol !== null && $currentSymbol !== $symbol) {
+        $currentSymbol = $this->safe_string($this->options['watchTrades'], 'symbol', '');
+        if ($currentSymbol !== '' && $currentSymbol !== $symbol) {
             throw new ArgumentsRequired($this->id . ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        $this->options['watchTrades']['symbol'] = $symbol;
+        $watchTradesDict = $this->extend(array(), $this->safe_dict($this->options, 'watchTrades', array()));
+        $watchTradesDict['symbol'] = $symbol;
+        $this->options['watchTrades'] = $watchTradesDict;
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -410,7 +412,7 @@ class cex extends \ccxt\async\cex {
         //
         $data = $this->safe_dict($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         if ($symbol === null) {
             return;
         }
@@ -539,7 +541,7 @@ class cex extends \ccxt\async\cex {
         Async\await($this->authenticate($params));
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orders:' . $symbolValue;
         $message = array(
             'e' => 'open-orders',
@@ -809,7 +811,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_dict($message, 'data', array());
         $isTransaction = $this->safe_string($message, 'e') === 'tx';
         $orderId = $this->safe_string_2($data, 'id', 'order');
-        $remains = $this->safe_string($data, 'remains');
+        $remainsPrecision = $this->safe_string($data, 'remains');
         $baseId = $this->safe_string($data, 'symbol');
         $quoteId = $this->safe_string($data, 'symbol2');
         $pair = $this->safe_dict($data, 'pair');
@@ -824,43 +826,45 @@ class cex extends \ccxt\async\cex {
         }
         $symbol = $base . '/' . $quote;
         $market = $this->safe_market($symbol);
-        $remains = $this->currency_from_precision($base, $remains);
+        $remains = $this->currency_from_precision($base, $remainsPrecision);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $storedOrders = $this->orders;
         $ordersBySymbol = $this->safe_dict($storedOrders->hashmap, $symbol, array());
-        $order = $this->safe_value($ordersBySymbol, $orderId);
+        $order = $this->safe_dict($ordersBySymbol, $orderId);
         if ($order === null) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             $order = $this->parse_ws_order_update($data, $market);
         }
-        $order['remaining'] = $remains;
+        $orderUpdate = array();
+        $orderUpdate['remaining'] = $remains;
         $canceled = $this->safe_bool($data, 'cancel', false);
         if ($canceled) {
-            $order['status'] = 'canceled';
+            $orderUpdate['status'] = 'canceled';
         }
         if ($isTransaction) {
-            $order['status'] = 'closed';
+            $orderUpdate['status'] = 'closed';
         }
         $fee = $this->safe_number($data, 'fee');
         if ($fee !== null) {
-            $order['fee'] = array(
+            $orderUpdate['fee'] = array(
                 'cost' => $fee,
                 'currency' => $quote,
                 'rate' => null,
             );
         }
         $timestamp = $this->safe_integer($data, 'time');
-        $order['timestamp'] = $timestamp;
-        $order['datetime'] = $this->iso8601($timestamp);
-        $order = $this->safe_order($order);
-        $storedOrders->append($order);
+        $orderUpdate['timestamp'] = $timestamp;
+        $orderUpdate['datetime'] = $this->iso8601($timestamp);
+        $parsedOrder = $this->safe_order($this->extend($order, $orderUpdate));
+        $storedOrders->append($parsedOrder);
         $messageHash = 'orders:' . $symbol;
         $client->resolve($storedOrders, $messageHash);
     }
 
-    public function parse_ws_order_update(array $order, ?array $market = null) {
+    public function parse_ws_order_update(array $order, ?array $market = null): ?array {
         //
         //      {
         //          "id": "150714937",
@@ -973,17 +977,17 @@ class cex extends \ccxt\async\cex {
         return $this->safe_order($parsedOrder, $marketResolved);
     }
 
-    public function from_precision(mixed $amount, mixed $scale): ?string {
+    public function from_precision(?string $amount, ?int $scale): ?string {
         if ($amount === null) {
             return null;
         }
         $precise = new Precise($amount);
-        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->decimals = $this->sum($precise->decimals, $this->safe_integer(array( $scale ), 0, 0));
         $precise->reduce();
         return (string) $precise;
     }
 
-    public function currency_from_precision(string $currency, mixed $amount): ?string {
+    public function currency_from_precision(string $currency, ?string $amount): ?string {
         $scale = $this->safe_integer($this->currencies[$currency], 'precision', 0);
         return $this->from_precision($amount, $scale);
     }
@@ -1012,9 +1016,8 @@ class cex extends \ccxt\async\cex {
         }
         $myOrders = $this->orders;
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $rawOrder = $rawOrders[$i];
             $market = $this->safe_market($symbol);
-            $order = $this->parse_order($rawOrder, $market);
+            $order = $this->parse_order($this->safe_dict($rawOrders, $i, array()), $market);
             $order['status'] = 'open';
             $myOrders->append($order);
         }
@@ -1114,7 +1117,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function pair_to_symbol(mixed $pair): string {
+    public function pair_to_symbol(?string $pair): string {
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
@@ -1392,7 +1395,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $response = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1474,7 +1477,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $rawOrder = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        return $this->parse_order($rawOrder, $market);
+        return $this->parse_order($this->extend(array(), $rawOrder), $market);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -1522,7 +1525,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $response = Async\await($this->watch($url, $messageHash, $request, $messageHash, $messageHash));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1559,7 +1562,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $response = Async\await($this->watch($url, $messageHash, $request, $messageHash, $messageHash));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1641,7 +1644,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "e": "get-balance",

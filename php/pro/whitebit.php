@@ -88,9 +88,9 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_integer($this->options['timeframes'], $timeframe);
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -130,7 +130,7 @@ class whitebit extends \ccxt\async\whitebit {
             $data = $params[$i];
             $marketId = $this->safe_string($data, 7);
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
             if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
@@ -278,7 +278,7 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $method = 'market_subscribe';
         $messageHash = 'ticker:' . $symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -345,7 +345,7 @@ class whitebit extends \ccxt\async\whitebit {
         $tickers = $this->safe_list($message, 'params', array());
         $marketId = $this->safe_string($tickers, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $rawTicker = $this->safe_dict($tickers, 1, array());
         $messageHash = 'ticker' . ':' . $symbol;
         $ticker = $this->parse_ticker($rawTicker, $market);
@@ -392,7 +392,7 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades' . ':' . $symbolValue;
         $method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -432,7 +432,7 @@ class whitebit extends \ccxt\async\whitebit {
         $params = $this->safe_list($message, 'params', array());
         $marketId = $this->safe_string($params, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -472,7 +472,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'myTrades:' . $symbolValue;
         $method = 'deals_subscribe';
         $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, true, $params));
@@ -547,7 +547,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($feeCurrencyId !== null) {
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             } else {
-                $feeCurrencyCode = $marketResolved['quote'];
+                $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
             }
             $fee = array(
                 'cost' => $feeCost,
@@ -609,7 +609,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orders:' . $symbolValue;
         $method = 'ordersPending_subscribe';
         $trades = Async\await($this->watch_multiple_subscription($messageHash, $method, $symbolValue, false, $params));
@@ -707,7 +707,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $timestamp = $this->safe_timestamp($order, 'ctime');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $rawSide = $this->safe_integer($order, 'side');
         $side = 'buy';
         if ($rawSide === 1) {
@@ -794,12 +794,11 @@ class whitebit extends \ccxt\async\whitebit {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $messageHash = 'wallet:';
-        $method = null;
+        $method = 'balanceMargin_subscribe';
         if ($type === 'spot') {
             $method = 'balanceSpot_subscribe';
             $messageHash .= 'spot';
         } else {
-            $method = 'balanceMargin_subscribe';
             $messageHash .= 'margin';
         }
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -925,11 +924,11 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    public function watch_public(string $messageHash, string $method, array $reqParams, $params = array()) {
         return Async\async(self::do_watch_public(...))($messageHash, $method, $reqParams, $params);
     }
 
-    private function do_watch_public(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    private function do_watch_public(string $messageHash, string $method, array $reqParams, $params = array()) {
         $url = $this->safe_string($this->urls['api'], 'ws');
         $id = $this->incrementing_nonce();
         $request = array(
@@ -957,7 +956,7 @@ class whitebit extends \ccxt\async\whitebit {
         if ($client === null) {
             $subscription = array();
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             if ($marketId !== null) {
                 $subscription[$marketId] = true;
             }
@@ -976,7 +975,7 @@ class whitebit extends \ccxt\async\whitebit {
             $subscription = $this->safe_dict($client->subscriptions, $method, array());
             $hasSymbolSubscription = true;
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
             if (!$isSubscribed) {
                 if ($marketId !== null) {
@@ -1007,11 +1006,11 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function watch_private(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    public function watch_private(string $messageHash, string $method, array $reqParams, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $method, $reqParams, $params);
     }
 
-    private function do_watch_private(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    private function do_watch_private(string $messageHash, string $method, array $reqParams, $params = array()) {
         $this->check_required_credentials();
         Async\await($this->authenticate());
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -1126,7 +1125,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -1171,7 +1170,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $id = $this->safe_integer($message, 'id');
         if ($id !== null) {
-            $this->handle_subscription_status($client, $message, $id);
+            $this->handle_subscription_status($client, $message);
             return;
         }
         $methods = array(
@@ -1192,7 +1191,8 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function handle_subscription_status(Client $client, array $message, ?int $id) {
+    public function handle_subscription_status(Client $client, array $message) {
+        $id = $this->safe_integer($message, 'id');
         // not every method stores its subscription
         // as an object so we can't do indeById here
         $subs = $client->subscriptions;
@@ -1204,7 +1204,7 @@ class whitebit extends \ccxt\async\whitebit {
                 if (($subId !== null) && ($subId === $id)) {
                     $method = $this->safe_value($subscription, 'method');
                     if ($method !== null) {
-                        $method($client, $message);
+                        $this->handle_authenticate($client, $message);
                         return;
                     }
                 }

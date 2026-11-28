@@ -876,7 +876,7 @@ export default class cex extends Exchange {
             if (useKeyAsId) {
                 market = this.safeMarket(key);
             }
-            const parsed = this.parseTradingFee(response[key], market);
+            const parsed = this.parseTradingFee(this.safeDict(response, key, {}), market);
             const parsedSymbol = this.safeString(parsed, 'symbol');
             if (parsedSymbol !== undefined) {
                 result[parsedSymbol] = parsed;
@@ -1218,7 +1218,7 @@ export default class cex extends Exchange {
             marketId = currency1 + '-' + currency2;
         }
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const fee = {};
         const feeAmount = this.safeNumber(order, 'feeAmount');

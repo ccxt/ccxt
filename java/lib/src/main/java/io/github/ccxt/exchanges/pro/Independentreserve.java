@@ -70,27 +70,29 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
-            }
-            String baseId = this.safeString(market, "base", "");
-            String quoteId = this.safeString(market, "quote", "");
-            String url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
-            String messageHash = ("trades:" + symbolValue);
-            List<Object> trades = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+        }
+        String baseId = this.safeString(market, "base", "");
+        String quoteId = this.safeString(market, "quote", "");
+        String url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
+        String messageHash = ("trades:" + symbolValue);
+        List<Object> trades = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
 
     }
 
@@ -116,7 +118,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         Map<String, Object> data = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
+        String symbol = this.safeSymbol(marketId, null, "-", null);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -125,7 +127,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(data, null);
         stored.append(trade);
         this.trades.put(symbol, stored);
         client.resolve(stored, messageHash);
@@ -151,7 +153,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
-            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-", (String) null) );
+            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-", null) );
             put( "side", Independentreserve.this.safeStringLower(trade, "Side") );
             put( "type", null );
             put( "takerOrMaker", null );
@@ -175,32 +177,34 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
-            String limitString = this.numberToString(limitResolved);
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
-            }
-            String baseId = this.safeString(market, "base", "");
-            String quoteId = this.safeString(market, "quote", "");
-            String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + baseId) + "-") + quoteId);
-            String messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "receivedSnapshot", false );
-            }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, subscription)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+        String limitString = this.numberToString(limitResolved);
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+        }
+        String baseId = this.safeString(market, "base", "");
+        String quoteId = this.safeString(market, "quote", "");
+        String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + baseId) + "-") + quoteId);
+        String messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "receivedSnapshot", false );
+        }};
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, subscription)).join();
+        return orderbook.limit();
 
     }
 
@@ -238,8 +242,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String depth = this.safeString(parts, 1, "");
         String baseId = this.safeString(parts, 2);
         String quoteId = this.safeString(parts, 3);
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -248,17 +252,17 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Map<String, Object> orderBook = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = ((("orderbook:" + symbol) + ":") + depth);
         Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
-        Boolean receivedSnapshot = (Boolean) this.safeBool(subscription, "receivedSnapshot", false);
+        Boolean receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume", 2);
+            Map<String, Object> snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume", 2);
             orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
@@ -269,31 +273,31 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         {
             List<Object> asks = this.safeList(orderBook, "Offers", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(orderBook, "Bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
-        Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-        if (Helpers.isTrue((checksum)) && Boolean.TRUE.equals(receivedSnapshot))
+        boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
+        if ((checksum) && Boolean.TRUE.equals(receivedSnapshot))
         {
             io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-            Integer asksLength = ((List<?>)storedAsks).size();
-            Integer bidsLength = ((List<?>)storedBids).size();
+            Integer asksLength = storedAsks.size();
+            Integer bidsLength = storedBids.size();
             String payload = "";
             for (var i = 0; i < 10; i++)
             {
                 if ((bidsLength != null && i < bidsLength))
                 {
-                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0, (Object) null))) + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1, (Object) null)));
+                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= storedBids.size() ? null : storedBids.get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= storedBids.size() ? null : storedBids.get(i)), 1, null)));
                 }
             }
             for (var i = 0; i < 10; i++)
             {
                 if ((asksLength != null && i < asksLength))
                 {
-                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0, (Object) null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1, (Object) null)));
+                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= storedAsks.size() ? null : storedAsks.get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= storedAsks.size() ? null : storedAsks.get(i)), 1, null)));
                 }
             }
             Long calculatedChecksum = this.crc32(payload, false);
@@ -302,7 +306,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 client.subscriptions.remove(messageHash);
-                ((Map<String,Object>)this.orderbooks).remove(symbol);
+                this.orderbooks.remove(symbol);
                 client.reject(error, messageHash);
                 return;
             }
@@ -313,30 +317,29 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         }
     }
 
-    public Object valueToChecksum(Object value)
+    public String valueToChecksum(Object value)
     {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        Object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = Helpers.replace(((String)result), ".", "");
+        String padded = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        String digits = (padded == null ? null : ((String)padded).replaceFirst(java.util.regex.Pattern.quote("."), ""));
         // remove leading zeros
-        result = this.parseNumber(result);
-        result = this.numberToString(result);
+        String result = this.numberToString(this.parseNumber(digits));
         return result;
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "Price", "Volume", 2);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 

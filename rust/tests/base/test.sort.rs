@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,16 +16,14 @@ pub fn testSort() {
         m
     }));
     // empty array
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![]), &[]).clone(), Value::from(vec![]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("sort".into()), exchange.sort(Value::from(vec![]), &[]).clone(), Value::from(vec![])]);
     // single element
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("a".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("sort".into()), exchange.sort(Value::from(vec![Value::Str("a".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into())])]);
     // already sorted (idempotent)
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("sort".into()), exchange.sort(Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())])]);
     // duplicates
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()),
-        Value::Str("b".into()), Value::Str("c".into())]).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into()), Value::Str("d".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()),
-        Value::Str("c".into()), Value::Str("d".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("sort".into()), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("b".into()), Value::Str("c".into())])]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("sort".into()), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into()), Value::Str("d".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("d".into())])]);
     // todo 1: atm, `sort` is only meant for strings. we should update to support numerics
     // todo 2: add test for above 10, eg: 1, 2, 10, 20, 21
     // // integers (single-digit, safe for cross-language lexicographic/numeric consistency)
@@ -35,7 +34,7 @@ pub fn testSort() {
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 1.5, 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]);
     // immutability - original array should not be modified
-    let mut original: Value = Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]);
+    let original: Value = Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]);
     exchange.sort(original.clone(), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), original.clone(), Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("sort".into()), original, Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())])]);
 }

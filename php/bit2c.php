@@ -938,7 +938,10 @@ class bit2c extends Exchange {
             $tradeMarket = $this->safe_market($reference_parts[0], $marketByPair);
             $isMaker = $this->safe_bool($trade, 'isMaker', false);
             $makerOrTaker = $isMaker ? 'maker' : 'taker';
-            $orderId = $isMaker ? $reference_parts[2] : $reference_parts[1];
+            $orderId = $this->safe_string($reference_parts, 1);
+            if ($isMaker) {
+                $orderId = $this->safe_string($reference_parts, 2);
+            }
             $action = $this->safe_integer($trade, 'action');
             if ($action === 0) {
                 $side = 'buy';
@@ -1076,7 +1079,7 @@ class bit2c extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

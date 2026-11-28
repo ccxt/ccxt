@@ -73,7 +73,7 @@ public partial class coincheck : ccxt.coincheck
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IList<object> message)
     {
         //
         //     [
@@ -135,12 +135,12 @@ public partial class coincheck : ccxt.coincheck
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IList<object> message)
     {
         //
         //     [
@@ -165,7 +165,7 @@ public partial class coincheck : ccxt.coincheck
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (message?.Count ?? 0); i++)
         {
             object data = this.safeValue(message, i);
             ccxt.Trade trade = this.parseWsTrade(data);
@@ -211,10 +211,10 @@ public partial class coincheck : ccxt.coincheck
         }, market);
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         List<object> data = this.safeList(message, 0);
-        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             this.handleOrderBook(client, message);
         } else

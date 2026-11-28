@@ -1,10 +1,10 @@
 import paradexRest from '../paradex.js';
-import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): Dict;
     getWsUrl(): string;
-    getOrderBookChannel(marketId: Str, deltas?: boolean): string;
+    getOrderBookChannel(marketId: string, deltas?: boolean): string;
     requestId(): int;
     /**
      * @ignore
@@ -89,7 +89,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    unsubscribeChannelsFrom(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: number, params?: Dict): Promise<any>;
+    unsubscribeChannelsFrom(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: int, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -104,7 +104,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    unsubscribeChannelAt(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: number, params?: Dict): Promise<any>;
+    unsubscribeChannelAt(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: int, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -132,7 +132,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name paradex#watchTradesForSymbols
@@ -416,7 +416,7 @@ export default class paradex extends paradexRest {
     watchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     handleFundingRate(client: Client, message: Dict): void;
     parseFundingRateWs(contract: Dict, market?: Market): FundingRate;
-    parseSbeMessage(client: Client, message: any): any;
+    parseSbeMessage(client: Client, message: any): Dict;
     sbeReadUint(frameHex: string, offset: number, length: number): int;
     sbeReadInt64(frameHex: string, offset: number): Str;
     sbeReadDecimal(frameHex: string, offset: number): Str;
@@ -435,7 +435,7 @@ export default class paradex extends paradexRest {
     parseSbeFill(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbePosition(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbeAccount(frameHex: string, blockLength: number, frameLength: number): NullableDict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleBinaryMessage(client: Client, message: unknown): void;
     handleMessage(client: Client, message: Dict): void;
     handleStreamMessage(client: Client, message: Dict): void;

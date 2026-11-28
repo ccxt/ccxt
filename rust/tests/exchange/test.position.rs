@@ -36,10 +36,10 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             m
         }), &[skippedProperties.clone()]);
     }
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("symbol".to_string(), Value::Str("XYZ/USDT".into()));
@@ -65,53 +65,53 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             m.insert("percentage".to_string(), exchange.parse_number(Value::Str("1.234".into()), &[]));
         m
     });
-    let mut emptyotAllowedFor: Value = Value::from(vec![Value::Str("positionMargin".into()), Value::Str("liquidationPrice".into()), Value::Str("initialMargin".into()), Value::Str("initialMarginPercentage".into()), Value::Str("maintenanceMargin".into()), Value::Str("maintenanceMarginPercentage".into()), Value::Str("marginRatio".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyotAllowedFor.clone()]);
-    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("long".into()), Value::Str("short".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".into()).clone(), Value::from(vec![Value::Str("cross".into()), Value::Str("isolated".into())]).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()).clone(), Value::Str("200".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMargin".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMarginPercentage".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMargin".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMarginPercentage".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("entryPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("notional".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginRatio".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("markPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("collateral".into()).clone(), Value::Str("0".into()).clone()]);
+    let emptyotAllowedFor: Value = Value::from(vec![Value::Str("positionMargin".into()), Value::Str("liquidationPrice".into()), Value::Str("initialMargin".into()), Value::Str("initialMarginPercentage".into()), Value::Str("maintenanceMargin".into()), Value::Str("maintenanceMarginPercentage".into()), Value::Str("marginRatio".into())]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyotAllowedFor]);
+    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol.clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()), Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".into()), Value::from(vec![Value::Str("cross".into()), Value::Str("isolated".into())])]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()), Value::Str("200".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMargin".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMarginPercentage".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMargin".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMarginPercentage".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("entryPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("notional".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginRatio".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("markPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("collateral".into()), Value::Str("0".into())]);
     // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
-    let mut marginMode: Option<String> = exchange.safe_string_opt(&entry, Value::Str("marginMode".into()), &[]);
+    let marginMode: Option<String> = exchange.safe_string_opt(&entry, Value::Str("marginMode".into()), &[]);
     if (marginMode.as_deref() == Some("isolated")) {
-        let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
-        let mut side: Option<String> = exchange.safe_string_opt(&entry, Value::Str("side".into()), &[]);
-        let mut entryPriceString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("entryPrice".into()), &[]);
-        let mut liquidationPriceString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("liquidationPrice".into()), &[]);
-        let mut contractsString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("contracts".into()), &[]);
-        let mut contractSizeString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("contractSize".into()), &[]);
-        let mut maintenanceMarginString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("maintenanceMargin".into()), &[]);
-        let mut collateralString: Value = exchange.safe_string(&entry, Value::Str("collateral".into()), &[]);
-        let mut initialMarginString: Value = exchange.safe_string(&entry, Value::Str("initialMargin".into()), &[]);
-        let mut unrealizedPnlString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("unrealizedPnl".into()), &[]);
+        let logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
+        let side: Option<String> = exchange.safe_string_opt(&entry, Value::Str("side".into()), &[]);
+        let entryPriceString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("entryPrice".into()), &[]);
+        let liquidationPriceString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("liquidationPrice".into()), &[]);
+        let contractsString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("contracts".into()), &[]);
+        let contractSizeString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("contractSize".into()), &[]);
+        let maintenanceMarginString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("maintenanceMargin".into()), &[]);
+        let collateralString: Value = exchange.safe_string(&entry, Value::Str("collateral".into()), &[]);
+        let initialMarginString: Value = exchange.safe_string(&entry, Value::Str("initialMargin".into()), &[]);
+        let unrealizedPnlString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("unrealizedPnl".into()), &[]);
         if (entryPriceString.is_some()) && (liquidationPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into()))) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into()))) {
             if (side.as_deref() == Some("long")) {
-                crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
+                crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()), Value::from(entryPriceString.as_deref()).clone()]);
             }  else if (side.as_deref() == Some("short")) {
-                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
+                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), Value::Str("liquidationPrice".into()), Value::from(entryPriceString.as_deref()).clone()]);
             }
         }
-        let mut marginString: Value = exchange.safe_string(&entry, Value::Str("positionMargin".into()), &[]);
+        let marginString: Value = exchange.safe_string(&entry, Value::Str("positionMargin".into()), &[]);
         if (marginString != Value::Null) && (collateralString != Value::Null) && (unrealizedPnlString.is_some()) {
             // collateral is margin + unrealizedPnl
-            let mut expectedCollateral: Option<String> = ccxt::precise::Precise::stringAdd(&marginString, &unrealizedPnlString).as_str().map(str::to_owned);
-            let mut collateralDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&collateralString, &expectedCollateral)).as_str().map(str::to_owned);
-            let mut collateralTolerance: Option<String> = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAbs(&marginString), &Value::Str("0.05".into())).as_str().map(str::to_owned);
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&collateralDiff, &collateralTolerance))));
+            let expectedCollateral: Option<String> = ccxt::precise::Precise::stringAdd(&marginString, &unrealizedPnlString).as_str().map(str::to_owned);
+            let collateralDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&collateralString, &expectedCollateral)).as_str().map(str::to_owned);
+            let collateralTolerance: Option<String> = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAbs(&marginString), &Value::Str("0.05".into())).as_str().map(str::to_owned);
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringLe(&collateralDiff, &collateralTolerance))));
         }
         let mut entryMarginString: Value = marginString;
         if (entryMarginString == Value::Null) && (collateralString != Value::Null) {
@@ -123,33 +123,33 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
         }  else if (entryMarginString == Value::Null) && (initialMarginString != Value::Null) {
             entryMarginString = initialMarginString;
         }
-        let mut hasEntryMargin: bool = (entryMarginString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&entryMarginString, &Value::Str("0".into())));
-        let mut hasEntryPrice: bool = (entryPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())));
-        let mut hasLiqPrice: bool = (liquidationPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())));
-        let mut hasContracts: bool = (contractsString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())));
-        let mut hasContractSize: bool = (contractSizeString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
-        let mut hasMm: bool = (maintenanceMarginString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
+        let hasEntryMargin: bool = (entryMarginString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&entryMarginString, &Value::Str("0".into())));
+        let hasEntryPrice: bool = (entryPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())));
+        let hasLiqPrice: bool = (liquidationPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())));
+        let hasContracts: bool = (contractsString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())));
+        let hasContractSize: bool = (contractSizeString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
+        let hasMm: bool = (maintenanceMarginString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
         if hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm {
-            let mut symbolForMarket: Value = (if (symbol != Value::Null) { symbol.clone() } else { exchange.safe_string(&entry, Value::Str("symbol".into()), &[]) });
+            let symbolForMarket: Value = (if (symbol != Value::Null) { symbol } else { exchange.safe_string(&entry, Value::Str("symbol".into()), &[]) });
             let mut market: Value = Value::Null;
             if (symbolForMarket != Value::Null) && (get_value(&exchange, &Value::Str("markets".into())) != Value::Null) && is_true(&(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket))) {
                 market = exchange.market(symbolForMarket);
             }
-            let mut isInverse: bool = (market != Value::Null) && is_true(&exchange.safe_bool(&market, Value::Str("inverse".into()), &[Value::Bool(false)]));
+            let isInverse: bool = (market != Value::Null) && is_true(&exchange.safe_bool(&market, Value::Str("inverse".into()), &[Value::Bool(false)]));
             let mut priceDiff: Option<String> = None;
             if isInverse {
-                let mut invEntry: Option<String> = ccxt::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString).as_str().map(str::to_owned);
-                let mut invLiq: Option<String> = ccxt::precise::Precise::stringDiv(&Value::Str("1".into()), &liquidationPriceString).as_str().map(str::to_owned);
+                let invEntry: Option<String> = ccxt::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString).as_str().map(str::to_owned);
+                let invLiq: Option<String> = ccxt::precise::Precise::stringDiv(&Value::Str("1".into()), &liquidationPriceString).as_str().map(str::to_owned);
                 priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&invEntry, &invLiq)).as_str().map(str::to_owned);
             }  else {
                 priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString)).as_str().map(str::to_owned);
             }
-            let mut lossFromEntry: Option<String> = ccxt::precise::Precise::stringMul(&priceDiff, &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
-            let mut calculatedMm: Value = ccxt::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
-            let mut mmDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString)).as_str().map(str::to_owned);
-            let mut maxTolerance: Option<String> = ccxt::precise::Precise::stringMul(&entryMarginString, &Value::Str("0.05".into())).as_str().map(str::to_owned);
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&mmDiff, &maxTolerance))));
+            let lossFromEntry: Option<String> = ccxt::precise::Precise::stringMul(&priceDiff, &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
+            let calculatedMm: Value = ccxt::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
+            let mmDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString)).as_str().map(str::to_owned);
+            let maxTolerance: Option<String> = ccxt::precise::Precise::stringMul(&entryMarginString, &Value::Str("0.05".into())).as_str().map(str::to_owned);
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringLe(&mmDiff, &maxTolerance))));
         }
     }
 }

@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dictionary, Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type { Dictionary, Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -999,9 +999,8 @@ export default class luno extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
+            const symbol: string = this.safeString (market, 'symbol', '');
+            result[symbol] = this.parseTicker (this.safeDict (tickers, id, {}), market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
@@ -1342,6 +1341,7 @@ export default class luno extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'pair': market['id'],
         };
@@ -1351,14 +1351,14 @@ export default class luno extends Exchange {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = this.amountToPrecision (market['symbol'], amount);
+                request['counter_volume'] = this.amountToPrecision (precisionSymbol, amount);
             } else {
-                request['base_volume'] = this.amountToPrecision (market['symbol'], amount);
+                request['base_volume'] = this.amountToPrecision (precisionSymbol, amount);
             }
             response = await this.privatePostMarketorder (this.extend (request, params));
         } else {
-            request['volume'] = this.amountToPrecision (market['symbol'], amount);
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            request['volume'] = this.amountToPrecision (precisionSymbol, amount);
+            request['price'] = this.priceToPrecision (precisionSymbol, price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
             response = await this.privatePostPostorder (this.extend (request, params));
         }
@@ -1731,7 +1731,7 @@ export default class luno extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

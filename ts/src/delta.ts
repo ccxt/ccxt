@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, OpenInterest, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL, Status, Endpoint, List, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -357,7 +357,10 @@ export default class delta extends Exchange {
         }
         const optionType = this.safeString (optionParts, hasSlash ? 3 : 0, '');
         const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3, '');
-        const expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
+        const expiryYear: string = rawExpiry.slice (4);
+        const expiryMonth: string = rawExpiry.slice (2, 4);
+        const expiryDay: string = rawExpiry.slice (0, 2);
+        const expiry: string = expiryYear + expiryMonth + expiryDay;
         const settle = quote;
         const strike = this.safeString (optionParts, 2, '');
         const datetime = this.convertExpireDate (expiry);
@@ -414,7 +417,7 @@ export default class delta extends Exchange {
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if ((marketId !== undefined) && isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -898,9 +901,11 @@ export default class delta extends Exchange {
             let optionType: Str = undefined;
             let symbol: string = base + '/' + quote;
             if (swap || future || option) {
-                symbol = symbol + ':' + settle;
+                const settleCode: string = this.safeCurrencyCode (settleId) as string;
+                symbol = symbol + ':' + settleCode;
                 if (future || option) {
-                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    const expiryCode: string = this.yymmdd (expiry);
+                    symbol = symbol + '-' + expiryCode;
                     if (option) {
                         type = 'option';
                         let letter = 'C';
@@ -912,7 +917,8 @@ export default class delta extends Exchange {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + '-' + strike + '-' + letter;
+                        const strikeString: string = this.safeString (market, 'strike_price', '');
+                        symbol = symbol + '-' + strikeString + '-' + letter;
                     } else {
                         type = 'future';
                     }
@@ -921,7 +927,7 @@ export default class delta extends Exchange {
                 }
             }
             const state = this.safeString (market, 'state');
-            result.push (this.safeMarketStructure ({
+            const marketStructure: Dict = {
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -939,11 +945,11 @@ export default class delta extends Exchange {
                 'option': option,
                 'active': (state === 'live'),
                 'contract': !spot,
-                'linear': spot ? undefined : linear,
-                'inverse': spot ? undefined : !linear,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber (market, 'taker_commission_rate'),
                 'maker': this.safeNumber (market, 'maker_commission_rate'),
-                'contractSize': spot ? undefined : contractSize,
+                'contractSize': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry), // do not use raw expiry string
                 'strike': this.parseNumber (strike),
@@ -972,7 +978,13 @@ export default class delta extends Exchange {
                 },
                 'created': this.parse8601 (this.safeString (market, 'launch_time')),
                 'info': market,
-            }));
+            };
+            if (!spot) {
+                marketStructure['linear'] = linear;
+                marketStructure['inverse'] = !linear;
+                marketStructure['contractSize'] = contractSize;
+            }
+            result.push (this.safeMarketStructure (marketStructure));
         }
         return result;
     }
@@ -1096,7 +1108,7 @@ export default class delta extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const last = this.safeString (ticker, 'close');
         const quotes = this.safeDict (ticker, 'quotes', {});
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -1421,14 +1433,13 @@ export default class delta extends Exchange {
         const tickers: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            const rawTicker = tickers[i];
-            const contractType = this.safeString (rawTicker, 'contract_type');
+            const contractType = this.safeString (tickers[i], 'contract_type');
             if ((contractType === 'options_combos') || (contractType === 'binary_call_options') || (contractType === 'binary_put_options')) {
                 // these instruments are excluded from the unified markets, see fetchMarkets
                 continue;
             }
-            const ticker = this.parseTicker (rawTicker);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker (this.safeDict (tickers, i, {}));
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1710,11 +1721,16 @@ export default class delta extends Exchange {
             const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'asset_id');
             const currency = this.safeDict (currenciesByNumericId, currencyId);
-            const code = (currency === undefined) ? currencyId : currency['code'];
+            let code: Str = currencyId;
+            if (currency !== undefined) {
+                code = this.safeString (currency, 'code');
+            }
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = this.safeString (balance, 'available_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1851,7 +1867,7 @@ export default class delta extends Exchange {
         //
         const marketId = this.safeString (position, 'product_symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
         const sizeString = this.safeString (position, 'size');
         let side: Str = undefined;
@@ -2045,10 +2061,11 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const orderType = type + '_order';
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'product_id': market['numericId'],
             // 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size': this.amountToPrecision (market['symbol'], amount),
+            'size': this.amountToPrecision (precisionSymbol, amount),
             'side': side,
             'order_type': orderType,
             // 'client_order_id': 'string',
@@ -2057,7 +2074,7 @@ export default class delta extends Exchange {
             // 'reduce_only': 'false', // 'true',
         };
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision (market['symbol'], price);
+            request['limit_price'] = this.priceToPrecision (precisionSymbol, price);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
@@ -2574,10 +2591,8 @@ export default class delta extends Exchange {
         //
         const id = this.safeString (item, 'uuid');
         let direction: Str = undefined;
-        const account = undefined;
         const metaData = this.safeDict (item, 'meta_data', {});
         const referenceId = this.safeString (metaData, 'transaction_id');
-        const referenceAccount = undefined;
         let type = this.safeString (item, 'transaction_type');
         if ((type === 'deposit') || (type === 'commission_rebate') || (type === 'referral_bonus') || (type === 'pnl') || (type === 'withdrawal_cancellation') || (type === 'promo_credit')) {
             direction = 'in';
@@ -2598,9 +2613,9 @@ export default class delta extends Exchange {
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': undefined,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber (amount),
@@ -3361,10 +3376,11 @@ export default class delta extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any[], market: Market): Dict[] {
+    parseSettlements (settlements: Dict[], market: Market): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (settlements[i], market));
+            const settlementRow: Dict = this.extend ({}, settlements[i]);
+            result.push (this.parseSettlement (settlementRow, market));
         }
         return result;
     }
@@ -3539,7 +3555,8 @@ export default class delta extends Exchange {
         //
         // {"result":{},"success":true}
         //
-        const position = this.parsePosition (this.safeDict (response, 'result', {}));
+        const positionRow = this.safeDict (response, 'result', {});
+        const position = this.parsePosition (positionRow);
         return [ position ];
     }
 
@@ -4216,7 +4233,7 @@ export default class delta extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

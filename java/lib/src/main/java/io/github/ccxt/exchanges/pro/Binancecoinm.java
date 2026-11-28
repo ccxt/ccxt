@@ -27,8 +27,8 @@ public class Binancecoinm extends io.github.ccxt.exchanges.Binancecoinm
     {
         // eslint-disable-next-line new-cap
         var restInstance = new io.github.ccxt.exchanges.Binancecoinm();
-        Object restDescribe = restInstance.describe();
-        Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
+        Map<String, Object> restDescribe = restInstance.describe();
+        Map<String, Object> parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
         Map<String,Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "binancecoinm" );

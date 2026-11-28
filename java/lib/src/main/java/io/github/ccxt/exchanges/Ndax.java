@@ -641,26 +641,28 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchStatusCore(parameters)).thenApply(Status::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchStatusCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetPing(parameters)).join();
-            //
-            //     {
-            //         "msg":"PONG"
-            //     }
-            //
-            String message = this.safeString(response, "msg");
-            {
-                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-                h2kMap0.put("status", (((java.util.Objects.equals(message, "PONG")))) ? "ok" : "error");
-                h2kMap0.put("updated", null);
-                h2kMap0.put("eta", null);
-                h2kMap0.put("url", null);
-                h2kMap0.put("info", response);
-                return h2kMap0;
-            }
-        }).thenApply(Status::new);
+        Map<String, Object> response = (this.publicGetPing(parameters)).join();
+        //
+        //     {
+        //         "msg":"PONG"
+        //     }
+        //
+        String message = this.safeString(response, "msg");
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("status", (((java.util.Objects.equals(message, "PONG")))) ? "ok" : "error");
+            h2kMap0.put("updated", null);
+            h2kMap0.put("eta", null);
+            h2kMap0.put("url", null);
+            h2kMap0.put("info", response);
+            return h2kMap0;
+        }
 
     }
 
@@ -672,60 +674,62 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    public CompletableFuture<Object> signIn(Object parameters)
+    public CompletableFuture<Object> signIn(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.signInCore(parameters));
+    }
+
+    private Object signInCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(this.login, null) || java.util.Objects.equals(this.password, null))
+        this.checkRequiredCredentials(true);
+        if (java.util.Objects.equals(this.login, null) || java.util.Objects.equals(this.password, null))
+        {
+            throw new AuthenticationError((this.id + " signIn() requires exchange.login, exchange.password")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "grant_type", "client_credentials" );
+        }};
+        Map<String, Object> response = (this.publicGetAuthenticate(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "Authenticated":true,
+        //         "Requires2FA":true,
+        //         "AuthType":"Google",
+        //         "AddtlInfo":"",
+        //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        //     }
+        //
+        String sessionToken = this.safeString(response, "SessionToken");
+        if (!java.util.Objects.equals(sessionToken, null))
+        {
+            this.options.put("sessionToken", sessionToken);
+            return response;
+        }
+        String pending2faToken = this.safeString(response, "Pending2FaToken");
+        if (!java.util.Objects.equals(pending2faToken, null))
+        {
+            if (java.util.Objects.equals(this.twofa, null))
             {
-                throw new AuthenticationError((this.id + " signIn() requires exchange.login, exchange.password")) ;
+                throw new AuthenticationError((this.id + " signIn() requires exchange.twofa credentials")) ;
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "grant_type", "client_credentials" );
+            this.options.put("pending2faToken", pending2faToken);
+            request = new HashMap<String, Object>() {{
+                put( "Code", totp(Ndax.this.twofa) );
             }};
-            Map<String, Object> response = (this.publicGetAuthenticate(this.extend(request, parameters))).join();
+            Map<String, Object> responseInner = (this.publicGetAuthenticate2FA(this.extend(request, parameters))).join();
             //
             //     {
-            //         "Authenticated":true,
-            //         "Requires2FA":true,
-            //         "AuthType":"Google",
-            //         "AddtlInfo":"",
-            //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+            //         "Authenticated": true,
+            //         "UserId":57764,
+            //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            String sessionToken = this.safeString(response, "SessionToken");
-            if (!java.util.Objects.equals(sessionToken, null))
-            {
-                this.options.put("sessionToken", sessionToken);
-                return response;
-            }
-            String pending2faToken = this.safeString(response, "Pending2FaToken");
-            if (!java.util.Objects.equals(pending2faToken, null))
-            {
-                if (java.util.Objects.equals(this.twofa, null))
-                {
-                    throw new AuthenticationError((this.id + " signIn() requires exchange.twofa credentials")) ;
-                }
-                this.options.put("pending2faToken", pending2faToken);
-                request = new HashMap<String, Object>() {{
-                    put( "Code", totp(Ndax.this.twofa) );
-                }};
-                Map<String, Object> responseInner = (this.publicGetAuthenticate2FA(this.extend(request, parameters))).join();
-                //
-                //     {
-                //         "Authenticated": true,
-                //         "UserId":57764,
-                //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
-                //     }
-                //
-                sessionToken = this.safeString(responseInner, "SessionToken");
-                this.options.put("sessionToken", sessionToken);
-                return responseInner;
-            }
-            return response;
-        });
+            sessionToken = this.safeString(responseInner, "SessionToken");
+            this.options.put("sessionToken", sessionToken);
+            return responseInner;
+        }
+        return response;
 
     }
 
@@ -737,44 +741,46 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
+
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-            }};
-            List<Object> response = (this.publicGetGetProducts(this.extend(request, parameters))).join();
-            //
-            //    [
-            //        {
-            //            "OMSId": "1",
-            //            "ProductId": "1",
-            //            "Product": "BTC",
-            //            "ProductFullName": "Bitcoin",
-            //            "MasterDataUniqueProductSymbol": "",
-            //            "ProductType": "CryptoCurrency",
-            //            "DecimalPlaces": "8",
-            //            "TickSize": "0.0000000100000000000000000000",
-            //            "DepositEnabled": true,
-            //            "WithdrawEnabled": true,
-            //            "NoFees": false,
-            //            "IsDisabled": false,
-            //            "MarginEnabled": false
-            //        },
-            //        ...
-            //
-            return this.parseCurrencies(response);
-        });
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+        }};
+        List<Object> response = (this.publicGetGetProducts(this.extend(request, parameters))).join();
+        //
+        //    [
+        //        {
+        //            "OMSId": "1",
+        //            "ProductId": "1",
+        //            "Product": "BTC",
+        //            "ProductFullName": "Bitcoin",
+        //            "MasterDataUniqueProductSymbol": "",
+        //            "ProductType": "CryptoCurrency",
+        //            "DecimalPlaces": "8",
+        //            "TickSize": "0.0000000100000000000000000000",
+        //            "DepositEnabled": true,
+        //            "WithdrawEnabled": true,
+        //            "NoFees": false,
+        //            "IsDisabled": false,
+        //            "MarginEnabled": false
+        //        },
+        //        ...
+        //
+        return this.parseCurrencies(response);
 
     }
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "ProductId");
-        String code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"), (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"), null);
         String ProductType = this.safeString(rawCurrency, "ProductType");
         String type = "crypto";
         if (java.util.Objects.equals(ProductType, "NationalCurrency"))
@@ -791,11 +797,11 @@ public class Ndax extends NdaxApi
         mapLiteral1.put("name", this.safeString(rawCurrency, "ProductFullName"));
         mapLiteral1.put("code", code);
         mapLiteral1.put("type", type);
-        mapLiteral1.put("precision", this.safeNumber(rawCurrency, "TickSize", (Object) null));
+        mapLiteral1.put("precision", this.safeNumber(rawCurrency, "TickSize", null));
         mapLiteral1.put("info", rawCurrency);
         mapLiteral1.put("active", (!Boolean.TRUE.equals(this.safeBool(rawCurrency, "IsDisabled", false))));
-        mapLiteral1.put("deposit", this.safeBool(rawCurrency, "DepositEnabled", (Object) null));
-        mapLiteral1.put("withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", (Object) null));
+        mapLiteral1.put("deposit", this.safeBool(rawCurrency, "DepositEnabled", null));
+        mapLiteral1.put("withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", null));
         mapLiteral1.put("fee", null);
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
@@ -808,7 +814,7 @@ public class Ndax extends NdaxApi
                 }} );
             }});
         mapLiteral1.put("networks", new HashMap<String, Object>() {{}});
-        mapLiteral1.put("margin", this.safeBool(rawCurrency, "MarginEnabled", (Object) null));
+        mapLiteral1.put("margin", this.safeBool(rawCurrency, "MarginEnabled", null));
         return this.safeCurrencyStructure(mapLiteral1);
     }
 
@@ -820,64 +826,66 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-            }};
-            List<Object> response = (this.publicGetGetInstruments(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         {
-            //             "OMSId":1,
-            //             "InstrumentId":3,
-            //             "Symbol":"LTCBTC",
-            //             "Product1":3,
-            //             "Product1Symbol":"LTC",
-            //             "Product2":1,
-            //             "Product2Symbol":"BTC",
-            //             "InstrumentType":"Standard",
-            //             "VenueInstrumentId":3,
-            //             "VenueId":1,
-            //             "SortIndex":0,
-            //             "SessionStatus":"Running",
-            //             "PreviousSessionStatus":"Stopped",
-            //             "SessionStatusDateTime":"2020-11-25T19:42:15.245Z",
-            //             "SelfTradePrevention":true,
-            //             "QuantityIncrement":0.0000000100000000000000000000,
-            //             "PriceIncrement":0.0000000100000000000000000000,
-            //             "MinimumQuantity":0.0100000000000000000000000000,
-            //             "MinimumPrice":0.0000010000000000000000000000,
-            //             "VenueSymbol":"LTCBTC",
-            //             "IsDisable":false,
-            //             "MasterDataId":0,
-            //             "PriceCollarThreshold":0.0000000000000000000000000000,
-            //             "PriceCollarPercent":0.0000000000000000000000000000,
-            //             "PriceCollarEnabled":false,
-            //             "PriceFloorLimit":0.0000000000000000000000000000,
-            //             "PriceFloorLimitEnabled":false,
-            //             "PriceCeilingLimit":0.0000000000000000000000000000,
-            //             "PriceCeilingLimitEnabled":false,
-            //             "CreateWithMarketRunning":true,
-            //             "AllowOnlyMarketMakerCounterParty":false,
-            //             "PriceCollarIndexDifference":0.0000000000000000000000000000,
-            //             "PriceCollarConvertToOtcEnabled":false,
-            //             "PriceCollarConvertToOtcClientUserId":0,
-            //             "PriceCollarConvertToOtcAccountId":0,
-            //             "PriceCollarConvertToOtcThreshold":0.0000000000000000000000000000,
-            //             "OtcConvertSizeThreshold":0.0000000000000000000000000000,
-            //             "OtcConvertSizeEnabled":false,
-            //             "OtcTradesPublic":true,
-            //             "PriceTier":0
-            //         },
-            //     ]
-            //
-            return this.parseMarkets(response);
-        });
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+        }};
+        List<Object> response = (this.publicGetGetInstruments(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         {
+        //             "OMSId":1,
+        //             "InstrumentId":3,
+        //             "Symbol":"LTCBTC",
+        //             "Product1":3,
+        //             "Product1Symbol":"LTC",
+        //             "Product2":1,
+        //             "Product2Symbol":"BTC",
+        //             "InstrumentType":"Standard",
+        //             "VenueInstrumentId":3,
+        //             "VenueId":1,
+        //             "SortIndex":0,
+        //             "SessionStatus":"Running",
+        //             "PreviousSessionStatus":"Stopped",
+        //             "SessionStatusDateTime":"2020-11-25T19:42:15.245Z",
+        //             "SelfTradePrevention":true,
+        //             "QuantityIncrement":0.0000000100000000000000000000,
+        //             "PriceIncrement":0.0000000100000000000000000000,
+        //             "MinimumQuantity":0.0100000000000000000000000000,
+        //             "MinimumPrice":0.0000010000000000000000000000,
+        //             "VenueSymbol":"LTCBTC",
+        //             "IsDisable":false,
+        //             "MasterDataId":0,
+        //             "PriceCollarThreshold":0.0000000000000000000000000000,
+        //             "PriceCollarPercent":0.0000000000000000000000000000,
+        //             "PriceCollarEnabled":false,
+        //             "PriceFloorLimit":0.0000000000000000000000000000,
+        //             "PriceFloorLimitEnabled":false,
+        //             "PriceCeilingLimit":0.0000000000000000000000000000,
+        //             "PriceCeilingLimitEnabled":false,
+        //             "CreateWithMarketRunning":true,
+        //             "AllowOnlyMarketMakerCounterParty":false,
+        //             "PriceCollarIndexDifference":0.0000000000000000000000000000,
+        //             "PriceCollarConvertToOtcEnabled":false,
+        //             "PriceCollarConvertToOtcClientUserId":0,
+        //             "PriceCollarConvertToOtcAccountId":0,
+        //             "PriceCollarConvertToOtcThreshold":0.0000000000000000000000000000,
+        //             "OtcConvertSizeThreshold":0.0000000000000000000000000000,
+        //             "OtcConvertSizeEnabled":false,
+        //             "OtcTradesPublic":true,
+        //             "PriceTier":0
+        //         },
+        //     ]
+        //
+        return this.parseMarkets(response);
 
     }
 
@@ -887,14 +895,14 @@ public class Ndax extends NdaxApi
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         String baseId = this.safeString(market, "Product1");
         String quoteId = this.safeString(market, "Product2");
-        String base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"), null);
+        String quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"), null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
         String sessionStatus = this.safeString(market, "SessionStatus");
-        Boolean isDisable = (Boolean) this.safeBool(market, "IsDisable", false);
+        Boolean isDisable = this.safeBool(market, "IsDisable", false);
         Boolean sessionRunning = (java.util.Objects.equals(sessionStatus, "Running"));
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
@@ -921,8 +929,8 @@ public class Ndax extends NdaxApi
         mapLiteral2.put("strike", null);
         mapLiteral2.put("optionType", null);
         mapLiteral2.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Ndax.this.safeNumber(market, "QuantityIncrement", (Object) null) );
-                put( "price", Ndax.this.safeNumber(market, "PriceIncrement", (Object) null) );
+                put( "amount", Ndax.this.safeNumber(market, "QuantityIncrement", null) );
+                put( "price", Ndax.this.safeNumber(market, "PriceIncrement", null) );
             }});
         mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -930,11 +938,11 @@ public class Ndax extends NdaxApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Ndax.this.safeNumber(market, "MinimumQuantity", (Object) null) );
+                    put( "min", Ndax.this.safeNumber(market, "MinimumQuantity", null) );
                     put( "max", null );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
-                    put( "min", Ndax.this.safeNumber(market, "MinimumPrice", (Object) null) );
+                    put( "min", Ndax.this.safeNumber(market, "MinimumPrice", null) );
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
@@ -978,10 +986,10 @@ public class Ndax extends NdaxApi
             Long levelSide = this.safeInteger(level, 9);
             if (!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0))
             {
-                ((List<Object>)asks).add(bidask);
+                asks.add(bidask);
             } else
             {
-                ((List<Object>)bids).add(bidask);
+                bids.add(bidask);
             }
         }
         result.put("bids", this.sortBy(bids, 0, true));
@@ -1002,52 +1010,54 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "InstrumentId", market.get("id") );
-                put( "Depth", limitValue );
-            }};
-            List<Object> response = (this.publicGetGetL2Snapshot(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         [
-            //             0,   // 0 MDUpdateId
-            //             1,   // 1 Number of Unique Accounts
-            //             123, // 2 ActionDateTime in Posix format X 1000
-            //             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
-            //             0.0, // 4 LastTradePrice
-            //             0,   // 5 Number of Orders
-            //             0.0, // 6 Price
-            //             0,   // 7 ProductPairCode
-            //             0.0, // 8 Quantity
-            //             0,   // 9 Side
-            //         ],
-            //         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
-            //         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
-            //         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
-            //         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
-            //         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
-            //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
-            //     ]
-            //
-            return this.parseOrderBook(response, symbol, (Long) null, "bids", "asks", 6, 8, 2);
-        }).thenApply(OrderBook::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "InstrumentId", market.get("id") );
+            put( "Depth", limitValue );
+        }};
+        List<Object> response = (this.publicGetGetL2Snapshot(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         [
+        //             0,   // 0 MDUpdateId
+        //             1,   // 1 Number of Unique Accounts
+        //             123, // 2 ActionDateTime in Posix format X 1000
+        //             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+        //             0.0, // 4 LastTradePrice
+        //             0,   // 5 Number of Orders
+        //             0.0, // 6 Price
+        //             0,   // 7 ProductPairCode
+        //             0.0, // 8 Quantity
+        //             0,   // 9 Side
+        //         ],
+        //         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
+        //         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
+        //         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
+        //         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
+        //         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
+        //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
+        //     ]
+        //
+        return this.parseOrderBook(response, symbol, null, "bids", "asks", 6, 8, 2);
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -1101,8 +1111,8 @@ public class Ndax extends NdaxApi
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", null);
+        String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         String last = this.safeString2(ticker, "LastTradedPx", "last_price");
         String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         String change = this.safeString(ticker, "Rolling24HrPxChange");
@@ -1144,32 +1154,34 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<Object> response = (this.publicGetSummary(parameters)).join();
-            //
-            //     [
-            //         {
-            //             "trading_pairs":"BTC_CAD",
-            //             "last_price":75925.37,
-            //             "lowest_ask":75926.63,
-            //             "highest_bid":66.435340000000000000000000000,
-            //             "base_volume":75774.93,
-            //             "quote_volume":5112197.7830825000000000000000,
-            //             "price_change_percent_24h":-5.3894893561980828521107542600,
-            //             "highest_price_24h":79813.51,
-            //             "lowest_price_24h":73700.01
-            //         }
-            //     ]
-            //
-            return this.filterByArrayTickers(this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}}), "symbol", symbolsNormalized);
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        List<Object> response = (this.publicGetSummary(parameters)).join();
+        //
+        //     [
+        //         {
+        //             "trading_pairs":"BTC_CAD",
+        //             "last_price":75925.37,
+        //             "lowest_ask":75926.63,
+        //             "highest_bid":66.435340000000000000000000000,
+        //             "base_volume":75774.93,
+        //             "quote_volume":5112197.7830825000000000000000,
+        //             "price_change_percent_24h":-5.3894893561980828521107542600,
+        //             "highest_price_24h":79813.51,
+        //             "lowest_price_24h":73700.01
+        //         }
+        //     ]
+        //
+        return this.filterByArrayTickers(this.parseTickers(response, null, new HashMap<String, Object>() {{}}), "symbol", symbolsNormalized);
 
     }
 
@@ -1184,56 +1196,58 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "InstrumentId", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetGetLevel1(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "OMSId":1,
-            //         "InstrumentId":8,
-            //         "BestBid":19069.31,
-            //         "BestOffer":19069.32,
-            //         "LastTradedPx":19069.32,
-            //         "LastTradedQty":0.0001,
-            //         "LastTradeTime":1607040406424,
-            //         "SessionOpen":19069.32,
-            //         "SessionHigh":19069.32,
-            //         "SessionLow":19069.32,
-            //         "SessionClose":19069.32,
-            //         "Volume":0.0001,
-            //         "CurrentDayVolume":0.0001,
-            //         "CurrentDayNotional":1.906932,
-            //         "CurrentDayNumTrades":1,
-            //         "CurrentDayPxChange":0.00,
-            //         "Rolling24HrVolume":0.000000000000000000000000000,
-            //         "Rolling24HrNotional":0.00000000000000000000000,
-            //         "Rolling24NumTrades":0,
-            //         "Rolling24HrPxChange":0,
-            //         "TimeStamp":"1607040406425",
-            //         "BidQty":0,
-            //         "AskQty":0,
-            //         "BidOrderCt":0,
-            //         "AskOrderCt":0,
-            //         "Rolling24HrPxChangePercent":0,
-            //     }
-            //
-            return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "InstrumentId", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetGetLevel1(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "OMSId":1,
+        //         "InstrumentId":8,
+        //         "BestBid":19069.31,
+        //         "BestOffer":19069.32,
+        //         "LastTradedPx":19069.32,
+        //         "LastTradedQty":0.0001,
+        //         "LastTradeTime":1607040406424,
+        //         "SessionOpen":19069.32,
+        //         "SessionHigh":19069.32,
+        //         "SessionLow":19069.32,
+        //         "SessionClose":19069.32,
+        //         "Volume":0.0001,
+        //         "CurrentDayVolume":0.0001,
+        //         "CurrentDayNotional":1.906932,
+        //         "CurrentDayNumTrades":1,
+        //         "CurrentDayPxChange":0.00,
+        //         "Rolling24HrVolume":0.000000000000000000000000000,
+        //         "Rolling24HrNotional":0.00000000000000000000000,
+        //         "Rolling24NumTrades":0,
+        //         "Rolling24HrPxChange":0,
+        //         "TimeStamp":"1607040406425",
+        //         "BidQty":0,
+        //         "AskQty":0,
+        //         "BidOrderCt":0,
+        //         "AskOrderCt":0,
+        //         "Rolling24HrPxChangePercent":0,
+        //     }
+        //
+        return this.parseTicker(response, market);
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -1248,7 +1262,7 @@ public class Ndax extends NdaxApi
         //         1              // 8 InstrumentId
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 4, null), this.safeNumber(ohlcv, 5, null)));
     }
 
     /**
@@ -1265,55 +1279,52 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "InstrumentId", market.get("id") );
+            put( "Interval", Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+        }};
+        int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Long now = this.milliseconds();
+        if (java.util.Objects.equals(since, null))
+        {
+            if (!java.util.Objects.equals(limit, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                request.put("FromDate", this.ymdhms((now - ((((long) duration) * limit) * 1000L))));
+                request.put("ToDate", this.ymdhms(now));
             }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "InstrumentId", market.get("id") );
-                put( "Interval", Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-            }};
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long now = this.milliseconds();
-            if (java.util.Objects.equals(since, null))
+        } else
+        {
+            request.put("FromDate", this.ymdhms(since));
+            if (java.util.Objects.equals(limit, null))
             {
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("FromDate", this.ymdhms((now - ((((long) duration) * limit) * 1000L))));
-                    request.put("ToDate", this.ymdhms(now));
-                }
+                request.put("ToDate", this.ymdhms(now));
             } else
             {
-                request.put("FromDate", this.ymdhms(since));
-                if (java.util.Objects.equals(limit, null))
-                {
-                    request.put("ToDate", this.ymdhms(now));
-                } else
-                {
-                    request.put("ToDate", this.ymdhms(this.sum(since, ((((long) duration) * limit) * 1000L))));
-                }
+                request.put("ToDate", this.ymdhms(this.sum(since, ((((long) duration) * limit) * 1000L))));
             }
-            List<Object> response = (this.publicGetGetTickerHistory(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
-            //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
-            //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
-            //     ]
-            //
-            List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
-            {
-                candles = response;
-            }
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }
+        List<Object> response = (this.publicGetGetTickerHistory(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
+        //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
+        //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
+        //     ]
+        //
+        return this.parseOHLCVs(response, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -1470,7 +1481,7 @@ public class Ndax extends NdaxApi
             if (!java.util.Objects.equals(feeCostString, null))
             {
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
-                String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+                String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
                 {
                     HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                     hx4NewMap0.put("cost", feeCostString);
@@ -1479,7 +1490,7 @@ public class Ndax extends NdaxApi
                 }
             }
         }
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
         mapLiteral3.put("id", id);
@@ -1509,33 +1520,35 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "InstrumentId", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("Count", limit);
-            }
-            List<Object> response = (this.publicGetGetLastTrades(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
-            //         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
-            //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
-            //     ]
-            //
-            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "InstrumentId", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("Count", limit);
+        }
+        List<Object> response = (this.publicGetGetLastTrades(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
+        //         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
+        //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1549,37 +1562,39 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
 
-            if ((java.util.Objects.equals(this.login, null)) || (java.util.Objects.equals(this.login, "")))
-            {
-                throw new AuthenticationError((this.id + " fetchAccounts() requires exchange.login email credential")) ;
-            }
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            this.checkRequiredCredentials(true);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "UserId", Ndax.this.uid );
-                put( "UserName", Ndax.this.login );
-            }};
-            List<Object> response = (this.privateGetGetUserAccounts(this.extend(request, parameters))).join();
-            //
-            //     [ 449 ] // comma-separated list of account ids
-            //
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < response.size(); i++)
-            {
-                String accountId = this.safeString(response, i);
-                ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", accountId );
-                    put( "type", null );
-                    put( "currency", null );
-                    put( "info", accountId );
-                }});
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        if ((java.util.Objects.equals(this.login, null)) || (java.util.Objects.equals(this.login, "")))
+        {
+            throw new AuthenticationError((this.id + " fetchAccounts() requires exchange.login email credential")) ;
+        }
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        this.checkRequiredCredentials(true);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "UserId", Ndax.this.uid );
+            put( "UserName", Ndax.this.login );
+        }};
+        List<Object> response = (this.privateGetGetUserAccounts(this.extend(request, parameters))).join();
+        //
+        //     [ 449 ] // comma-separated list of account ids
+        //
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < response.size(); i++)
+        {
+            String accountId = this.safeString(response, i);
+            result.add(new HashMap<String, Object>() {{
+                put( "id", accountId );
+                put( "type", null );
+                put( "currency", null );
+                put( "info", accountId );
+            }});
+        }
+        return result;
 
     }
 
@@ -1596,7 +1611,7 @@ public class Ndax extends NdaxApi
             String currencyId = this.safeString(balance, "ProductId");
             if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)))
             {
-                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balance, "Amount"));
                 account.put("used", this.safeString(balance, "Hold"));
@@ -1619,56 +1634,58 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            List<Object> response = (this.privateGetGetAccountPositions(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "OMSId":1,
-            //             "AccountId":449,
-            //             "ProductSymbol":"BTC",
-            //             "ProductId":1,
-            //             "Amount":10.000000000000000000000000000,
-            //             "Hold":0,
-            //             "PendingDeposits":0.0000000000000000000000000000,
-            //             "PendingWithdraws":0.0000000000000000000000000000,
-            //             "TotalDayDeposits":10.000000000000000000000000000,
-            //             "TotalMonthDeposits":10.000000000000000000000000000,
-            //             "TotalYearDeposits":10.000000000000000000000000000,
-            //             "TotalDayDepositNotional":10.000000000000000000000000000,
-            //             "TotalMonthDepositNotional":10.000000000000000000000000000,
-            //             "TotalYearDepositNotional":10.000000000000000000000000000,
-            //             "TotalDayWithdraws":0,
-            //             "TotalMonthWithdraws":0,
-            //             "TotalYearWithdraws":0,
-            //             "TotalDayWithdrawNotional":0,
-            //             "TotalMonthWithdrawNotional":0,
-            //             "TotalYearWithdrawNotional":0,
-            //             "NotionalProductId":8,
-            //             "NotionalProductSymbol":"USDT",
-            //             "NotionalValue":10.000000000000000000000000000,
-            //             "NotionalHoldAmount":0,
-            //             "NotionalRate":1
-            //         },
-            //     ]
-            //
-            return this.parseBalanceList(response);
-        }).thenApply(Balances::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        List<Object> response = (this.privateGetGetAccountPositions(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "OMSId":1,
+        //             "AccountId":449,
+        //             "ProductSymbol":"BTC",
+        //             "ProductId":1,
+        //             "Amount":10.000000000000000000000000000,
+        //             "Hold":0,
+        //             "PendingDeposits":0.0000000000000000000000000000,
+        //             "PendingWithdraws":0.0000000000000000000000000000,
+        //             "TotalDayDeposits":10.000000000000000000000000000,
+        //             "TotalMonthDeposits":10.000000000000000000000000000,
+        //             "TotalYearDeposits":10.000000000000000000000000000,
+        //             "TotalDayDepositNotional":10.000000000000000000000000000,
+        //             "TotalMonthDepositNotional":10.000000000000000000000000000,
+        //             "TotalYearDepositNotional":10.000000000000000000000000000,
+        //             "TotalDayWithdraws":0,
+        //             "TotalMonthWithdraws":0,
+        //             "TotalYearWithdraws":0,
+        //             "TotalDayWithdrawNotional":0,
+        //             "TotalMonthWithdrawNotional":0,
+        //             "TotalYearWithdrawNotional":0,
+        //             "NotionalProductId":8,
+        //             "NotionalProductSymbol":"USDT",
+        //             "NotionalValue":10.000000000000000000000000000,
+        //             "NotionalHoldAmount":0,
+        //             "NotionalRate":1
+        //         },
+        //     ]
+        //
+        return this.parseBalanceList(response);
 
     }
 
@@ -1692,7 +1709,7 @@ public class Ndax extends NdaxApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //     {
@@ -1767,52 +1784,54 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLedgerCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLedgerCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("Depth", limit);
-            }
-            List<Object> response = (this.privateGetGetAccountTransactions(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "TransactionId":2663709493,
-            //             "ReferenceId":68,
-            //             "OMSId":1,
-            //             "AccountId":449,
-            //             "CR":10.000000000000000000000000000,
-            //             "DR":0.0000000000000000000000000000,
-            //             "Counterparty":3,
-            //             "TransactionType":"Other",
-            //             "ReferenceType":"Deposit",
-            //             "ProductId":1,
-            //             "Balance":10.000000000000000000000000000,
-            //             "TimeStamp":1607532331591
-            //         },
-            //     ]
-            //
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("Depth", limit);
+        }
+        List<Object> response = (this.privateGetGetAccountTransactions(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "TransactionId":2663709493,
+        //             "ReferenceId":68,
+        //             "OMSId":1,
+        //             "AccountId":449,
+        //             "CR":10.000000000000000000000000000,
+        //             "DR":0.0000000000000000000000000000,
+        //             "Counterparty":3,
+        //             "TransactionType":"Other",
+        //             "ReferenceType":"Deposit",
+        //             "ProductId":1,
+        //             "Balance":10.000000000000000000000000000,
+        //             "TimeStamp":1607532331591
+        //         },
+        //     ]
+        //
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1833,7 +1852,7 @@ public class Ndax extends NdaxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder
@@ -1912,7 +1931,7 @@ public class Ndax extends NdaxApi
             put( "datetime", Ndax.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", Ndax.this.safeInteger(order, "LastUpdatedTime") );
             put( "status", Ndax.this.parseOrderStatus(Ndax.this.safeString(order, "OrderState")) );
-            put( "symbol", Ndax.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Ndax.this.safeSymbol(marketId, market, null, null) );
             put( "type", Ndax.this.safeStringLower(order, "OrderType") );
             put( "timeInForce", null );
             put( "postOnly", null );
@@ -1944,67 +1963,69 @@ public class Ndax extends NdaxApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
+        Long orderType = this.safeInteger(this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{}}), this.capitalize(type));
+        String triggerPrice = this.safeString(parameters, "triggerPrice");
+        if (!java.util.Objects.equals(triggerPrice, null))
+        {
+            if (java.util.Objects.equals(type, "market"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-            Long orderType = this.safeInteger(this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{}}), this.capitalize(type));
-            String triggerPrice = this.safeString(parameters, "triggerPrice");
-            if (!java.util.Objects.equals(triggerPrice, null))
+                orderType = 3L;
+            } else if (java.util.Objects.equals(type, "limit"))
             {
-                if (java.util.Objects.equals(type, "market"))
-                {
-                    orderType = 3L;
-                } else if (java.util.Objects.equals(type, "limit"))
-                {
-                    orderType = 4L;
-                }
+                orderType = 4L;
             }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
-            Map<String, Object> market = this.market(symbol);
-            Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
-            String amountString = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("InstrumentId", this.parseToInt(market.get("id")));
-            request.put("omsId", omsId);
-            request.put("AccountId", accountId);
-            request.put("TimeInForce", 1);
-            request.put("Side", orderSide);
-            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(amountString));
-            request.put("OrderType", orderType);
-            // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-            if (!java.util.Objects.equals(price, null))
-            {
-                request.put("LimitPrice", this.parseNumber(this.priceToPrecision(symbol, price)));
-            }
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("ClientOrderId", clientOrderId);
-            }
-            if (!java.util.Objects.equals(triggerPrice, null))
-            {
-                request.put("StopPrice", triggerPrice);
-            }
-            Map<String, Object> response = (this.privatePostSendOrder(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "status":"Accepted",
-            //         "errormsg":"",
-            //         "OrderId": 2543565231
-            //     }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
+        Map<String, Object> market = this.market(symbol);
+        Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
+        String amountString = this.amountToPrecision(symbol, amount);
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("InstrumentId", this.parseToInt(market.get("id")));
+        request.put("omsId", omsId);
+        request.put("AccountId", accountId);
+        request.put("TimeInForce", 1);
+        request.put("Side", orderSide);
+        request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(amountString));
+        request.put("OrderType", orderType);
+        // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
+        if (!java.util.Objects.equals(price, null))
+        {
+            request.put("LimitPrice", this.parseNumber(this.priceToPrecision(symbol, price)));
+        }
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("ClientOrderId", clientOrderId);
+        }
+        if (!java.util.Objects.equals(triggerPrice, null))
+        {
+            request.put("StopPrice", triggerPrice);
+        }
+        Map<String, Object> response = (this.privatePostSendOrder(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "status":"Accepted",
+        //         "errormsg":"",
+        //         "OrderId": 2543565231
+        //     }
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -2022,53 +2043,55 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
-            Map<String, Object> market = this.market(symbol);
-            Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
-            String amountString = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("OrderIdToReplace", this.parseToInt(id));
-            request.put("InstrumentId", this.parseToInt(market.get("id")));
-            request.put("omsId", omsId);
-            request.put("AccountId", accountId);
-            request.put("TimeInForce", 1);
-            request.put("Side", orderSide);
-            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(amountString));
-            request.put("OrderType", this.safeInteger(this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{}}), this.capitalize(type)));
-            // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-            if (!java.util.Objects.equals(price, null))
-            {
-                request.put("LimitPrice", this.parseNumber(this.priceToPrecision(symbol, price)));
-            }
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("ClientOrderId", clientOrderId);
-            }
-            Map<String, Object> response = (this.privatePostCancelReplaceOrder(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "replacementOrderId": 1234,
-            //         "replacementClOrdId": 1561,
-            //         "origOrderId": 5678,
-            //         "origClOrdId": 91011,
-            //     }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
+        Map<String, Object> market = this.market(symbol);
+        Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
+        String amountString = this.amountToPrecision(symbol, amount);
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("OrderIdToReplace", this.parseToInt(id));
+        request.put("InstrumentId", this.parseToInt(market.get("id")));
+        request.put("omsId", omsId);
+        request.put("AccountId", accountId);
+        request.put("TimeInForce", 1);
+        request.put("Side", orderSide);
+        request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(amountString));
+        request.put("OrderType", this.safeInteger(this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{}}), this.capitalize(type)));
+        // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
+        if (!java.util.Objects.equals(price, null))
+        {
+            request.put("LimitPrice", this.parseNumber(this.priceToPrecision(symbol, price)));
+        }
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("ClientOrderId", clientOrderId);
+        }
+        Map<String, Object> response = (this.privatePostCancelReplaceOrder(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "replacementOrderId": 1234,
+        //         "replacementClOrdId": 1561,
+        //         "origOrderId": 5678,
+        //         "origClOrdId": 91011,
+        //     }
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -2085,82 +2108,84 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("InstrumentId", market.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("StartTimeStamp", this.parseToInt((((double) since) / ((double) 1000))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("Depth", limit);
-            }
-            List<Object> response = (this.privateGetGetTradesHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "OMSId":1,
-            //             "ExecutionId":16916567,
-            //             "TradeId":14476351,
-            //             "OrderId":2543565231,
-            //             "AccountId":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "SubAccountId":0,
-            //             "ClientOrderId":0,
-            //             "InstrumentId":8,
-            //             "Side":"Sell",
-            //             "OrderType":"Market",
-            //             "Quantity":0.1230000000000000000000000000,
-            //             "RemainingQuantity":0.0000000000000000000000000000,
-            //             "Price":19069.310000000000000000000000,
-            //             "Value":2345.5251300000000000000000000,
-            //             "CounterParty":"7",
-            //             "OrderTradeRevision":1,
-            //             "Direction":"NoChange",
-            //             "IsBlockTrade":false,
-            //             "Fee":1.1727625650000000000000000000,
-            //             "FeeProductId":8,
-            //             "OrderOriginator":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "TradeTimeMS":1607565031569,
-            //             "MakerTaker":"Taker",
-            //             "AdapterTradeId":0,
-            //             "InsideBid":19069.310000000000000000000000,
-            //             "InsideBidSize":0.2400950000000000000000000000,
-            //             "InsideAsk":19069.320000000000000000000000,
-            //             "InsideAskSize":0.0997360000000000000000000000,
-            //             "IsQuote":false,
-            //             "CounterPartyClientUserId":1,
-            //             "NotionalProductId":2,
-            //             "NotionalRate":1.0000000000000000000000000000,
-            //             "NotionalValue":2345.5251300000000000000000000,
-            //             "NotionalHoldAmount":0,
-            //             "TradeTime":637431618315686826
-            //         }
-            //     ]
-            //
-            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("InstrumentId", market.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("StartTimeStamp", this.parseToInt((((double) since) / ((double) 1000))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("Depth", limit);
+        }
+        List<Object> response = (this.privateGetGetTradesHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "OMSId":1,
+        //             "ExecutionId":16916567,
+        //             "TradeId":14476351,
+        //             "OrderId":2543565231,
+        //             "AccountId":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "SubAccountId":0,
+        //             "ClientOrderId":0,
+        //             "InstrumentId":8,
+        //             "Side":"Sell",
+        //             "OrderType":"Market",
+        //             "Quantity":0.1230000000000000000000000000,
+        //             "RemainingQuantity":0.0000000000000000000000000000,
+        //             "Price":19069.310000000000000000000000,
+        //             "Value":2345.5251300000000000000000000,
+        //             "CounterParty":"7",
+        //             "OrderTradeRevision":1,
+        //             "Direction":"NoChange",
+        //             "IsBlockTrade":false,
+        //             "Fee":1.1727625650000000000000000000,
+        //             "FeeProductId":8,
+        //             "OrderOriginator":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "TradeTimeMS":1607565031569,
+        //             "MakerTaker":"Taker",
+        //             "AdapterTradeId":0,
+        //             "InsideBid":19069.310000000000000000000000,
+        //             "InsideBidSize":0.2400950000000000000000000000,
+        //             "InsideAsk":19069.320000000000000000000000,
+        //             "InsideAskSize":0.0997360000000000000000000000,
+        //             "IsQuote":false,
+        //             "CounterPartyClientUserId":1,
+        //             "NotionalProductId":2,
+        //             "NotionalRate":1.0000000000000000000000000000,
+        //             "NotionalValue":2345.5251300000000000000000000,
+        //             "NotionalHoldAmount":0,
+        //             "TradeTime":637431618315686826
+        //         }
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2175,40 +2200,42 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                request.put("IntrumentId", market.get("id"));
-            }
-            Map<String, Object> response = (this.privatePostCancelAllOrders(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "result":true,
-            //         "errormsg":null,
-            //         "errorcode":0,
-            //         "detail":null
-            //     }
-            //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", response );
-    }}, (Map<String, Object>) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            request.put("IntrumentId", market.get("id"));
+        }
+        Map<String, Object> response = (this.privatePostCancelAllOrders(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "result":true,
+        //         "errormsg":null,
+        //         "errorcode":0,
+        //         "detail":null
+        //     }
+        //
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+    put( "info", response );
+}}, null)));
 
     }
 
@@ -2225,42 +2252,44 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
-            // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-            // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-            }};
-            Long clientOrderId = (Long) this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("ClOrderId", clientOrderId);
-            } else
-            {
-                request.put("OrderId", this.parseToInt(id));
-            }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
-            Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("id", id);
-            mapLiteral5.put("clientOrderId", clientOrderId);
-            return this.extend(order, mapLiteral5);
-        }).thenApply(Order::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
+        // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        // params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+        }};
+        Long clientOrderId = (Long) this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("ClOrderId", clientOrderId);
+        } else
+        {
+            request.put("OrderId", this.parseToInt(id));
+        }
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
+        Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, paramsOmitted))).join();
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", clientOrderId);
+        return this.extend(order, mapLiteral5);
 
     }
 
@@ -2277,80 +2306,82 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            List<Object> response = (this.privateGetGetOpenOrders(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "Side":"Buy",
-            //             "OrderId":2543565233,
-            //             "Price":19010,
-            //             "Quantity":0.345,
-            //             "DisplayQuantity":0.345,
-            //             "Instrument":8,
-            //             "Account":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "OrderType":"Limit",
-            //             "ClientOrderId":0,
-            //             "OrderState":"Working",
-            //             "ReceiveTime":1607579326003,
-            //             "ReceiveTimeTicks":637431761260028981,
-            //             "LastUpdatedTime":1607579326005,
-            //             "LastUpdatedTimeTicks":637431761260054714,
-            //             "OrigQuantity":0.345,
-            //             "QuantityExecuted":0,
-            //             "GrossValueExecuted":0,
-            //             "ExecutableValue":0,
-            //             "AvgPrice":0,
-            //             "CounterPartyId":0,
-            //             "ChangeReason":"NewInputAccepted",
-            //             "OrigOrderId":2543565233,
-            //             "OrigClOrdId":0,
-            //             "EnteredBy":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "IsQuote":false,
-            //             "InsideAsk":19069.32,
-            //             "InsideAskSize":0.099736,
-            //             "InsideBid":19068.25,
-            //             "InsideBidSize":1.330001,
-            //             "LastTradePrice":19068.25,
-            //             "RejectReason":"",
-            //             "IsLockedIn":false,
-            //             "CancelReason":"",
-            //             "OrderFlag":"AddedToBook",
-            //             "UseMargin":false,
-            //             "StopPrice":0,
-            //             "PegPriceType":"Unknown",
-            //             "PegOffset":0,
-            //             "PegLimitOffset":0,
-            //             "IpAddress":null,
-            //             "ClientOrderIdUuid":null,
-            //             "OMSId":1
-            //         }
-            //     ]
-            //
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        List<Object> response = (this.privateGetGetOpenOrders(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "Side":"Buy",
+        //             "OrderId":2543565233,
+        //             "Price":19010,
+        //             "Quantity":0.345,
+        //             "DisplayQuantity":0.345,
+        //             "Instrument":8,
+        //             "Account":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "OrderType":"Limit",
+        //             "ClientOrderId":0,
+        //             "OrderState":"Working",
+        //             "ReceiveTime":1607579326003,
+        //             "ReceiveTimeTicks":637431761260028981,
+        //             "LastUpdatedTime":1607579326005,
+        //             "LastUpdatedTimeTicks":637431761260054714,
+        //             "OrigQuantity":0.345,
+        //             "QuantityExecuted":0,
+        //             "GrossValueExecuted":0,
+        //             "ExecutableValue":0,
+        //             "AvgPrice":0,
+        //             "CounterPartyId":0,
+        //             "ChangeReason":"NewInputAccepted",
+        //             "OrigOrderId":2543565233,
+        //             "OrigClOrdId":0,
+        //             "EnteredBy":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "IsQuote":false,
+        //             "InsideAsk":19069.32,
+        //             "InsideAskSize":0.099736,
+        //             "InsideBid":19068.25,
+        //             "InsideBidSize":1.330001,
+        //             "LastTradePrice":19068.25,
+        //             "RejectReason":"",
+        //             "IsLockedIn":false,
+        //             "CancelReason":"",
+        //             "OrderFlag":"AddedToBook",
+        //             "UseMargin":false,
+        //             "StopPrice":0,
+        //             "PegPriceType":"Unknown",
+        //             "PegOffset":0,
+        //             "PegLimitOffset":0,
+        //             "IpAddress":null,
+        //             "ClientOrderIdUuid":null,
+        //             "OMSId":1
+        //         }
+        //     ]
+        //
+        return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2367,89 +2398,91 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("InstrumentId", market.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("StartTimeStamp", this.parseToInt((((double) since) / ((double) 1000))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("Depth", limit);
-            }
-            List<Object> response = (this.privateGetGetOrdersHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "Side":"Buy",
-            //             "OrderId":2543565233,
-            //             "Price":19010.000000000000000000000000,
-            //             "Quantity":0.0000000000000000000000000000,
-            //             "DisplayQuantity":0.3450000000000000000000000000,
-            //             "Instrument":8,
-            //             "Account":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "OrderType":"Limit",
-            //             "ClientOrderId":0,
-            //             "OrderState":"Canceled",
-            //             "ReceiveTime":1607579326003,
-            //             "ReceiveTimeTicks":637431761260028981,
-            //             "LastUpdatedTime":1607580965346,
-            //             "LastUpdatedTimeTicks":637431777653463754,
-            //             "OrigQuantity":0.3450000000000000000000000000,
-            //             "QuantityExecuted":0.0000000000000000000000000000,
-            //             "GrossValueExecuted":0.0000000000000000000000000000,
-            //             "ExecutableValue":0.0000000000000000000000000000,
-            //             "AvgPrice":0.0000000000000000000000000000,
-            //             "CounterPartyId":0,
-            //             "ChangeReason":"UserModified",
-            //             "OrigOrderId":2543565233,
-            //             "OrigClOrdId":0,
-            //             "EnteredBy":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "IsQuote":false,
-            //             "InsideAsk":19069.320000000000000000000000,
-            //             "InsideAskSize":0.0997360000000000000000000000,
-            //             "InsideBid":19068.250000000000000000000000,
-            //             "InsideBidSize":1.3300010000000000000000000000,
-            //             "LastTradePrice":19068.250000000000000000000000,
-            //             "RejectReason":"",
-            //             "IsLockedIn":false,
-            //             "CancelReason":"UserModified",
-            //             "OrderFlag":"AddedToBook, RemovedFromBook",
-            //             "UseMargin":false,
-            //             "StopPrice":0.0000000000000000000000000000,
-            //             "PegPriceType":"Unknown",
-            //             "PegOffset":0.0000000000000000000000000000,
-            //             "PegLimitOffset":0.0000000000000000000000000000,
-            //             "IpAddress":"x.x.x.x",
-            //             "ClientOrderIdUuid":null,
-            //             "OMSId":1
-            //         },
-            //     ]
-            //
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("InstrumentId", market.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("StartTimeStamp", this.parseToInt((((double) since) / ((double) 1000))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("Depth", limit);
+        }
+        List<Object> response = (this.privateGetGetOrdersHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "Side":"Buy",
+        //             "OrderId":2543565233,
+        //             "Price":19010.000000000000000000000000,
+        //             "Quantity":0.0000000000000000000000000000,
+        //             "DisplayQuantity":0.3450000000000000000000000000,
+        //             "Instrument":8,
+        //             "Account":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "OrderType":"Limit",
+        //             "ClientOrderId":0,
+        //             "OrderState":"Canceled",
+        //             "ReceiveTime":1607579326003,
+        //             "ReceiveTimeTicks":637431761260028981,
+        //             "LastUpdatedTime":1607580965346,
+        //             "LastUpdatedTimeTicks":637431777653463754,
+        //             "OrigQuantity":0.3450000000000000000000000000,
+        //             "QuantityExecuted":0.0000000000000000000000000000,
+        //             "GrossValueExecuted":0.0000000000000000000000000000,
+        //             "ExecutableValue":0.0000000000000000000000000000,
+        //             "AvgPrice":0.0000000000000000000000000000,
+        //             "CounterPartyId":0,
+        //             "ChangeReason":"UserModified",
+        //             "OrigOrderId":2543565233,
+        //             "OrigClOrdId":0,
+        //             "EnteredBy":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "IsQuote":false,
+        //             "InsideAsk":19069.320000000000000000000000,
+        //             "InsideAskSize":0.0997360000000000000000000000,
+        //             "InsideBid":19068.250000000000000000000000,
+        //             "InsideBidSize":1.3300010000000000000000000000,
+        //             "LastTradePrice":19068.250000000000000000000000,
+        //             "RejectReason":"",
+        //             "IsLockedIn":false,
+        //             "CancelReason":"UserModified",
+        //             "OrderFlag":"AddedToBook, RemovedFromBook",
+        //             "UseMargin":false,
+        //             "StopPrice":0.0000000000000000000000000000,
+        //             "PegPriceType":"Unknown",
+        //             "PegOffset":0.0000000000000000000000000000,
+        //             "PegLimitOffset":0.0000000000000000000000000000,
+        //             "IpAddress":"x.x.x.x",
+        //             "ClientOrderIdUuid":null,
+        //             "OMSId":1
+        //         },
+        //     ]
+        //
+        return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2463,81 +2496,83 @@ public class Ndax extends NdaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
+
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-                put( "OrderId", Ndax.this.parseToInt(id) );
-            }};
-            Map<String, Object> response = (this.privateGetGetOrderStatus(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "Side":"Sell",
-            //         "OrderId":2543565232,
-            //         "Price":0.0000000000000000000000000000,
-            //         "Quantity":0.0000000000000000000000000000,
-            //         "DisplayQuantity":0.0000000000000000000000000000,
-            //         "Instrument":8,
-            //         "Account":449,
-            //         "AccountName":"igor@ccxt.trade",
-            //         "OrderType":"Market",
-            //         "ClientOrderId":0,
-            //         "OrderState":"FullyExecuted",
-            //         "ReceiveTime":1607569475591,
-            //         "ReceiveTimeTicks":637431662755912377,
-            //         "LastUpdatedTime":1607569475596,
-            //         "LastUpdatedTimeTicks":637431662755960902,
-            //         "OrigQuantity":1.0000000000000000000000000000,
-            //         "QuantityExecuted":1.0000000000000000000000000000,
-            //         "GrossValueExecuted":19068.270478610000000000000000,
-            //         "ExecutableValue":0.0000000000000000000000000000,
-            //         "AvgPrice":19068.270478610000000000000000,
-            //         "CounterPartyId":0,
-            //         "ChangeReason":"Trade",
-            //         "OrigOrderId":2543565232,
-            //         "OrigClOrdId":0,
-            //         "EnteredBy":446,
-            //         "UserName":"igor@ccxt.trade",
-            //         "IsQuote":false,
-            //         "InsideAsk":19069.320000000000000000000000,
-            //         "InsideAskSize":0.0997360000000000000000000000,
-            //         "InsideBid":19069.310000000000000000000000,
-            //         "InsideBidSize":0.2400950000000000000000000000,
-            //         "LastTradePrice":19069.310000000000000000000000,
-            //         "RejectReason":"",
-            //         "IsLockedIn":false,
-            //         "CancelReason":"",
-            //         "OrderFlag":"0",
-            //         "UseMargin":false,
-            //         "StopPrice":0.0000000000000000000000000000,
-            //         "PegPriceType":"Unknown",
-            //         "PegOffset":0.0000000000000000000000000000,
-            //         "PegLimitOffset":0.0000000000000000000000000000,
-            //         "IpAddress":"x.x.x.x",
-            //         "ClientOrderIdUuid":null,
-            //         "OMSId":1
-            //     }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+            put( "OrderId", Ndax.this.parseToInt(id) );
+        }};
+        Map<String, Object> response = (this.privateGetGetOrderStatus(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "Side":"Sell",
+        //         "OrderId":2543565232,
+        //         "Price":0.0000000000000000000000000000,
+        //         "Quantity":0.0000000000000000000000000000,
+        //         "DisplayQuantity":0.0000000000000000000000000000,
+        //         "Instrument":8,
+        //         "Account":449,
+        //         "AccountName":"igor@ccxt.trade",
+        //         "OrderType":"Market",
+        //         "ClientOrderId":0,
+        //         "OrderState":"FullyExecuted",
+        //         "ReceiveTime":1607569475591,
+        //         "ReceiveTimeTicks":637431662755912377,
+        //         "LastUpdatedTime":1607569475596,
+        //         "LastUpdatedTimeTicks":637431662755960902,
+        //         "OrigQuantity":1.0000000000000000000000000000,
+        //         "QuantityExecuted":1.0000000000000000000000000000,
+        //         "GrossValueExecuted":19068.270478610000000000000000,
+        //         "ExecutableValue":0.0000000000000000000000000000,
+        //         "AvgPrice":19068.270478610000000000000000,
+        //         "CounterPartyId":0,
+        //         "ChangeReason":"Trade",
+        //         "OrigOrderId":2543565232,
+        //         "OrigClOrdId":0,
+        //         "EnteredBy":446,
+        //         "UserName":"igor@ccxt.trade",
+        //         "IsQuote":false,
+        //         "InsideAsk":19069.320000000000000000000000,
+        //         "InsideAskSize":0.0997360000000000000000000000,
+        //         "InsideBid":19069.310000000000000000000000,
+        //         "InsideBidSize":0.2400950000000000000000000000,
+        //         "LastTradePrice":19069.310000000000000000000000,
+        //         "RejectReason":"",
+        //         "IsLockedIn":false,
+        //         "CancelReason":"",
+        //         "OrderFlag":"0",
+        //         "UseMargin":false,
+        //         "StopPrice":0.0000000000000000000000000000,
+        //         "PegPriceType":"Unknown",
+        //         "PegOffset":0.0000000000000000000000000000,
+        //         "PegLimitOffset":0.0000000000000000000000000000,
+        //         "IpAddress":"x.x.x.x",
+        //         "ClientOrderIdUuid":null,
+        //         "OMSId":1
+        //     }
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -2555,82 +2590,84 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderTradesCore(id, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderTradesCore(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
-            // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-            // params = this.omit (params, [ 'accountId', 'AccountId' ]);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "OMSId", Ndax.this.parseToInt(omsId) );
-                put( "OrderId", Ndax.this.parseToInt(id) );
-            }};
-            List<Object> response = (this.privatePostGetOrderHistoryByOrderId(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         {
-            //             "Side":"Sell",
-            //             "OrderId":2543565235,
-            //             "Price":18600.000000000000000000000000,
-            //             "Quantity":0.0000000000000000000000000000,
-            //             "DisplayQuantity":0.0000000000000000000000000000,
-            //             "Instrument":8,
-            //             "Account":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "OrderType":"Limit",
-            //             "ClientOrderId":0,
-            //             "OrderState":"FullyExecuted",
-            //             "ReceiveTime":1607585844956,
-            //             "ReceiveTimeTicks":637431826449564182,
-            //             "LastUpdatedTime":1607585844959,
-            //             "LastUpdatedTimeTicks":637431826449593893,
-            //             "OrigQuantity":0.1230000000000000000000000000,
-            //             "QuantityExecuted":0.1230000000000000000000000000,
-            //             "GrossValueExecuted":2345.3947500000000000000000000,
-            //             "ExecutableValue":0.0000000000000000000000000000,
-            //             "AvgPrice":19068.250000000000000000000000,
-            //             "CounterPartyId":0,
-            //             "ChangeReason":"Trade",
-            //             "OrigOrderId":2543565235,
-            //             "OrigClOrdId":0,
-            //             "EnteredBy":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "IsQuote":false,
-            //             "InsideAsk":19069.320000000000000000000000,
-            //             "InsideAskSize":0.0997360000000000000000000000,
-            //             "InsideBid":19068.250000000000000000000000,
-            //             "InsideBidSize":1.3300010000000000000000000000,
-            //             "LastTradePrice":19068.250000000000000000000000,
-            //             "RejectReason":"",
-            //             "IsLockedIn":false,
-            //             "CancelReason":"",
-            //             "OrderFlag":"0",
-            //             "UseMargin":false,
-            //             "StopPrice":0.0000000000000000000000000000,
-            //             "PegPriceType":"Unknown",
-            //             "PegOffset":0.0000000000000000000000000000,
-            //             "PegLimitOffset":0.0000000000000000000000000000,
-            //             "IpAddress":"x.x.x.x",
-            //             "ClientOrderIdUuid":null,
-            //             "OMSId":1
-            //         },
-            //     ]
-            //
-            Map<String,Object> grouped = this.groupBy(response, "ChangeReason");
-            List<Object> trades = this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
+        // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        // params = this.omit (params, [ 'accountId', 'AccountId' ]);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "OMSId", Ndax.this.parseToInt(omsId) );
+            put( "OrderId", Ndax.this.parseToInt(id) );
+        }};
+        List<Object> response = (this.privatePostGetOrderHistoryByOrderId(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         {
+        //             "Side":"Sell",
+        //             "OrderId":2543565235,
+        //             "Price":18600.000000000000000000000000,
+        //             "Quantity":0.0000000000000000000000000000,
+        //             "DisplayQuantity":0.0000000000000000000000000000,
+        //             "Instrument":8,
+        //             "Account":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "OrderType":"Limit",
+        //             "ClientOrderId":0,
+        //             "OrderState":"FullyExecuted",
+        //             "ReceiveTime":1607585844956,
+        //             "ReceiveTimeTicks":637431826449564182,
+        //             "LastUpdatedTime":1607585844959,
+        //             "LastUpdatedTimeTicks":637431826449593893,
+        //             "OrigQuantity":0.1230000000000000000000000000,
+        //             "QuantityExecuted":0.1230000000000000000000000000,
+        //             "GrossValueExecuted":2345.3947500000000000000000000,
+        //             "ExecutableValue":0.0000000000000000000000000000,
+        //             "AvgPrice":19068.250000000000000000000000,
+        //             "CounterPartyId":0,
+        //             "ChangeReason":"Trade",
+        //             "OrigOrderId":2543565235,
+        //             "OrigClOrdId":0,
+        //             "EnteredBy":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "IsQuote":false,
+        //             "InsideAsk":19069.320000000000000000000000,
+        //             "InsideAskSize":0.0997360000000000000000000000,
+        //             "InsideBid":19068.250000000000000000000000,
+        //             "InsideBidSize":1.3300010000000000000000000000,
+        //             "LastTradePrice":19068.250000000000000000000000,
+        //             "RejectReason":"",
+        //             "IsLockedIn":false,
+        //             "CancelReason":"",
+        //             "OrderFlag":"0",
+        //             "UseMargin":false,
+        //             "StopPrice":0.0000000000000000000000000000,
+        //             "PegPriceType":"Unknown",
+        //             "PegOffset":0.0000000000000000000000000000,
+        //             "PegLimitOffset":0.0000000000000000000000000000,
+        //             "IpAddress":"x.x.x.x",
+        //             "ClientOrderIdUuid":null,
+        //             "OMSId":1
+        //         },
+        //     ]
+        //
+        Map<String,Object> grouped = this.groupBy(response, "ChangeReason");
+        List<Object> trades = this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2644,44 +2681,46 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-                put( "ProductId", currency.get("id") );
-                put( "GenerateNewKey", false );
-            }};
-            Map<String, Object> response = (this.privateGetGetDepositInfo(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "result":true,
-            //         "errormsg":null,
-            //         "statuscode":0,
-            //         "AssetManagerId":1,
-            //         "AccountId":57922,
-            //         "AssetId":16,
-            //         "ProviderId":23,
-            //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
-            //     }
-            //
-            return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+            put( "ProductId", currency.get("id") );
+            put( "GenerateNewKey", false );
+        }};
+        Map<String, Object> response = (this.privateGetGetDepositInfo(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "result":true,
+        //         "errormsg":null,
+        //         "statuscode":0,
+        //         "AssetManagerId":1,
+        //         "AccountId":57922,
+        //         "AssetId":16,
+        //         "ProviderId":23,
+        //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
 
     }
 
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         // fetchDepositAddress, createDepositAddress
@@ -2709,7 +2748,7 @@ public class Ndax extends NdaxApi
         {
             code = this.safeString(currency, "code");
         }
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", depositAddress);
@@ -2731,14 +2770,16 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "GenerateNewKey", true );
-            }};
-            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
-        }).thenApply(DepositAddress::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "GenerateNewKey", true );
+        }};
+        return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
 
     }
 
@@ -2755,62 +2796,64 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            Object response = (this.privateGetGetDeposits(this.extend(request, paramsOmitted))).join();
-            //
-            //    "[
-            //        {
-            //            "OMSId": 1,
-            //            "DepositId": 44,
-            //            "AccountId": 449,
-            //            "SubAccountId": 0,
-            //            "ProductId": 4,
-            //            "Amount": 200.00000000000000000000000000,
-            //            "LastUpdateTimeStamp": 637431291261187806,
-            //            "ProductType": "CryptoCurrency",
-            //            "TicketStatus": "FullyProcessed",
-            //            "DepositInfo": "{
-            //                "AccountProviderId":42,
-            //                "AccountProviderName":"USDT_BSC",
-            //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
-            //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
-            //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
-            //            },",
-            //            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-            //            "TicketNumber": 71,
-            //            "NotionalProductId": 13,
-            //            "NotionalValue": 200.00000000000000000000000000,
-            //            "FeeAmount": 0.0000000000000000000000000000,
-            //        },
-            //        ...
-            //    ]"
-            //
-            if ((response instanceof String))
-            {
-                return this.parseTransactions(Helpers.parseJson(response), currency, since, limit, new HashMap<String, Object>() {{}});
-            }
-            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        Object response = (this.privateGetGetDeposits(this.extend(request, paramsOmitted))).join();
+        //
+        //    "[
+        //        {
+        //            "OMSId": 1,
+        //            "DepositId": 44,
+        //            "AccountId": 449,
+        //            "SubAccountId": 0,
+        //            "ProductId": 4,
+        //            "Amount": 200.00000000000000000000000000,
+        //            "LastUpdateTimeStamp": 637431291261187806,
+        //            "ProductType": "CryptoCurrency",
+        //            "TicketStatus": "FullyProcessed",
+        //            "DepositInfo": "{
+        //                "AccountProviderId":42,
+        //                "AccountProviderName":"USDT_BSC",
+        //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //            },",
+        //            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //            "TicketNumber": 71,
+        //            "NotionalProductId": 13,
+        //            "NotionalValue": 200.00000000000000000000000000,
+        //            "FeeAmount": 0.0000000000000000000000000000,
+        //        },
+        //        ...
+        //    ]"
+        //
+        if ((response instanceof String))
+        {
+            return this.parseTransactions(this.toArray(Helpers.parseJson(response)), currency, since, limit, new HashMap<String, Object>() {{}});
+        }
+        return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2827,54 +2870,56 @@ public class Ndax extends NdaxApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-            }};
-            List<Object> response = (this.privateGetGetWithdraws(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "Amount": 0.0,
-            //             "FeeAmount": 0.0,
-            //             "NotionalValue": 0.0,
-            //             "WithdrawId": 0,
-            //             "AssetManagerId": 0,
-            //             "AccountId": 0,
-            //             "AssetId": 0,
-            //             "TemplateForm": "{\"TemplateType\": \"TetherRPCWithdraw\",\"Comment\": \"TestWithdraw\",\"ExternalAddress\": \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\"}",
-            //             "TemplateFormType": "TetherRPCWithdraw",
-            //             "omsId": 0,
-            //             "TicketStatus": 0,
-            //             "TicketNumber": 0,
-            //             "WithdrawTransactionDetails": "",
-            //             "WithdrawType": "",
-            //             "WithdrawCode": "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
-            //             "AssetType": 0,
-            //             "Reaccepted": true,
-            //             "NotionalProductId": 0
-            //         },
-            //     ]
-            //
-            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+        }};
+        List<Object> response = (this.privateGetGetWithdraws(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "Amount": 0.0,
+        //             "FeeAmount": 0.0,
+        //             "NotionalValue": 0.0,
+        //             "WithdrawId": 0,
+        //             "AssetManagerId": 0,
+        //             "AccountId": 0,
+        //             "AssetId": 0,
+        //             "TemplateForm": "{\"TemplateType\": \"TetherRPCWithdraw\",\"Comment\": \"TestWithdraw\",\"ExternalAddress\": \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\"}",
+        //             "TemplateFormType": "TetherRPCWithdraw",
+        //             "omsId": 0,
+        //             "TicketStatus": 0,
+        //             "TicketNumber": 0,
+        //             "WithdrawTransactionDetails": "",
+        //             "WithdrawType": "",
+        //             "WithdrawCode": "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
+        //             "AssetType": 0,
+        //             "Reaccepted": true,
+        //             "NotionalProductId": 0
+        //         },
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2932,7 +2977,7 @@ public class Ndax extends NdaxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -3007,7 +3052,7 @@ public class Ndax extends NdaxApi
         }
         String address = this.safeString2(templateForm, "ExternalAddress", "ToAddress");
         Long timestamp = this.safeInteger(templateForm, "TimeSubmitted");
-        Double feeCost = this.safeNumber(transaction, "FeeAmount", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "FeeAmount", null);
         String transactionStatus = this.safeString(transaction, "TicketStatus");
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(feeCost, null))
@@ -3033,7 +3078,7 @@ public class Ndax extends NdaxApi
             h2kMap2.put("tagTo", null);
             h2kMap2.put("tagFrom", null);
             h2kMap2.put("type", type);
-            h2kMap2.put("amount", this.safeNumber(transaction, "Amount", (Object) null));
+            h2kMap2.put("amount", this.safeNumber(transaction, "Amount", null));
             h2kMap2.put("currency", code);
             h2kMap2.put("status", this.parseTransactionStatusByType(transactionStatus, type));
             h2kMap2.put("updated", updated);
@@ -3056,103 +3101,105 @@ public class Ndax extends NdaxApi
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
+
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            String tagWithdrawTag = this.safeString(parameters, "tag");
-            Map<String, Object> paramsWithdrawTag = this.omit(parameters, "tag");
-            // this method required login, password and twofa key
-            String sessionToken = this.safeString(this.options, "sessionToken");
-            if (java.util.Objects.equals(sessionToken, null))
+        String tagWithdrawTag = this.safeString(parameters, "tag");
+        Map<String, Object> paramsWithdrawTag = this.omit(parameters, "tag");
+        // this method required login, password and twofa key
+        String sessionToken = this.safeString(this.options, "sessionToken");
+        if (java.util.Objects.equals(sessionToken, null))
+        {
+            throw new AuthenticationError((this.id + " call signIn() method to obtain a session token")) ;
+        }
+        if (java.util.Objects.equals(this.twofa, null))
+        {
+            throw new AuthenticationError((this.id + " withdraw() requires exchange.twofa credentials")) ;
+        }
+        this.checkAddress(address, code, tagWithdrawTag);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
+        Long accountId = (Long) this.safeInteger2(paramsWithdrawTag, "accountId", "AccountId", defaultAccountId);
+        Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> withdrawTemplateTypesRequest = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+            put( "ProductId", currency.get("id") );
+        }};
+        Map<String, Object> withdrawTemplateTypesResponse = (this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).join();
+        //
+        //     {
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "TemplateTypes": [
+        //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
+        //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
+        //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
+        //         ]
+        //     }
+        //
+        List<Object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> firstTemplateType = this.safeDict(templateTypes, 0, null);
+        if (java.util.Objects.equals(firstTemplateType, null))
+        {
+            throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + currency.get("code"))) ;
+        }
+        String templateName = this.safeString(firstTemplateType, "TemplateName");
+        Map<String, Object> withdrawTemplateRequest = new HashMap<String, Object>();
+        withdrawTemplateRequest.put("omsId", omsId);
+        withdrawTemplateRequest.put("AccountId", accountId);
+        withdrawTemplateRequest.put("ProductId", currency.get("id"));
+        withdrawTemplateRequest.put("TemplateType", templateName);
+        withdrawTemplateRequest.put("AccountProviderId", firstTemplateType.get("AccountProviderId"));
+        Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
+        //
+        //     {
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        //     }
+        //
+        String template = this.safeString(withdrawTemplateResponse, "Template");
+        if (java.util.Objects.equals(template, null))
+        {
+            throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template for ") + currency.get("code"))) ;
+        }
+        Map<String, Object> withdrawTemplate = this.extend(new HashMap<String, Object>() {{}}, Helpers.parseJson(template));
+        withdrawTemplate.put("ExternalAddress", address);
+        if (!java.util.Objects.equals(tagWithdrawTag, null))
+        {
+            if (withdrawTemplate.containsKey("Memo"))
             {
-                throw new AuthenticationError((this.id + " call signIn() method to obtain a session token")) ;
+                withdrawTemplate.put("Memo", tagWithdrawTag);
             }
-            if (java.util.Objects.equals(this.twofa, null))
-            {
-                throw new AuthenticationError((this.id + " withdraw() requires exchange.twofa credentials")) ;
-            }
-            this.checkAddress(address, code, tagWithdrawTag);
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
-            Long accountId = (Long) this.safeInteger2(paramsWithdrawTag, "accountId", "AccountId", defaultAccountId);
-            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> withdrawTemplateTypesRequest = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-                put( "ProductId", currency.get("id") );
-            }};
-            Map<String, Object> withdrawTemplateTypesResponse = (this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).join();
-            //
-            //     {
-            //         "result": true,
-            //         "errormsg": null,
-            //         "statuscode": "0",
-            //         "TemplateTypes": [
-            //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
-            //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
-            //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
-            //         ]
-            //     }
-            //
-            List<Object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> firstTemplateType = this.safeDict(templateTypes, 0, null);
-            if (java.util.Objects.equals(firstTemplateType, null))
-            {
-                throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + currency.get("code"))) ;
-            }
-            String templateName = this.safeString(firstTemplateType, "TemplateName");
-            Map<String, Object> withdrawTemplateRequest = new HashMap<String, Object>();
-            withdrawTemplateRequest.put("omsId", omsId);
-            withdrawTemplateRequest.put("AccountId", accountId);
-            withdrawTemplateRequest.put("ProductId", currency.get("id"));
-            withdrawTemplateRequest.put("TemplateType", templateName);
-            withdrawTemplateRequest.put("AccountProviderId", firstTemplateType.get("AccountProviderId"));
-            Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
-            //
-            //     {
-            //         "result": true,
-            //         "errormsg": null,
-            //         "statuscode": "0",
-            //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
-            //     }
-            //
-            String template = this.safeString(withdrawTemplateResponse, "Template");
-            if (java.util.Objects.equals(template, null))
-            {
-                throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template for ") + currency.get("code"))) ;
-            }
-            Object withdrawTemplate = Helpers.parseJson(template);
-            Helpers.addElementToObject(withdrawTemplate, "ExternalAddress", address);
-            if (!java.util.Objects.equals(tagWithdrawTag, null))
-            {
-                if ((switch ((Object)(withdrawTemplate)) { case List<?> j39v8 -> j39v8.contains("Memo"); case Map<?, ?> j39v7 -> j39v7.containsKey("Memo"); case null, default -> false; }))
-                {
-                    Helpers.addElementToObject(withdrawTemplate, "Memo", tagWithdrawTag);
-                }
-            }
-            Map<String, Object> withdrawPayload = new HashMap<String, Object>() {{
-                put( "omsId", omsId );
-                put( "AccountId", accountId );
-                put( "ProductId", currency.get("id") );
-                put( "TemplateForm", Ndax.this.json(withdrawTemplate) );
-                put( "TemplateType", templateName );
-            }};
-            Map<String, Object> withdrawRequest = new HashMap<String, Object>() {{
-                put( "TfaType", "Google" );
-                put( "TFaCode", totp(Ndax.this.twofa) );
-                put( "Payload", Ndax.this.json(withdrawPayload) );
-            }};
-            Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted))).join();
-            return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }
+        Map<String, Object> withdrawPayload = new HashMap<String, Object>() {{
+            put( "omsId", omsId );
+            put( "AccountId", accountId );
+            put( "ProductId", currency.get("id") );
+            put( "TemplateForm", Ndax.this.json(withdrawTemplate) );
+            put( "TemplateType", templateName );
+        }};
+        Map<String, Object> withdrawRequest = new HashMap<String, Object>() {{
+            put( "TfaType", "Google" );
+            put( "TFaCode", totp(Ndax.this.twofa) );
+            put( "Payload", Ndax.this.json(withdrawPayload) );
+        }};
+        Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, paramsOmitted))).join();
+        return this.parseTransaction(response, currency);
 
     }
 
@@ -3161,7 +3208,7 @@ public class Ndax extends NdaxApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
@@ -3208,7 +3255,7 @@ public class Ndax extends NdaxApi
             {
                 String nonce = String.valueOf(this.nonce());
                 String auth = ((nonce + this.uid) + this.apiKey);
-                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 if (Boolean.TRUE.equals(isPost))
                 {
                     {
@@ -3270,9 +3317,9 @@ public class Ndax extends NdaxApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if ((code != null && ((Number) code).doubleValue() == 404))
+        if ((code != null && code == 404))
         {
             throw new AuthenticationError(((this.id + " ") + body)) ;
         }
@@ -3289,7 +3336,7 @@ public class Ndax extends NdaxApi
         {
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

@@ -233,16 +233,15 @@ class onetrading extends onetrading$1["default"] {
             const ticker = tickers[i];
             const marketId = this.safeString(ticker, 'instrument');
             const symbol = this.safeSymbol(marketId);
-            const parsedTicker = this.parseWSTicker(ticker);
             const timestamp = this.parse8601(datetime);
-            parsedTicker['timestamp'] = timestamp;
-            parsedTicker['datetime'] = this.iso8601(timestamp);
+            const isoDatetime = this.iso8601(timestamp);
+            const parsedTicker = this.parseWSTicker(ticker, undefined, timestamp, isoDatetime);
             this.tickers[symbol] = parsedTicker;
             client.resolve(parsedTicker, 'ticker.' + symbol);
         }
         client.resolve(this.tickers, 'tickers');
     }
-    parseWSTicker(ticker, market = undefined) {
+    parseWSTicker(ticker, market, timestamp, datetime) {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -257,8 +256,8 @@ class onetrading extends onetrading$1["default"] {
         const marketId = this.safeString(ticker, 'instrument');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,
@@ -315,17 +314,17 @@ class onetrading extends onetrading$1["default"] {
             ],
         };
         const request = this.deepExtend(subscribe, params);
-        let trades = await this.watch(url, messageHash, request, subscribeHash, request);
+        const trades = await this.watch(url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
-        const numTrades = trades.length;
+        const filtered = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
+        const numTrades = filtered.length;
         if (numTrades === 0) {
             return await this.watchMyTrades(symbolResolved, since, limitResolved, params);
         }
-        return trades;
+        return filtered;
     }
     /**
      * @method
@@ -484,17 +483,17 @@ class onetrading extends onetrading$1["default"] {
             ],
         };
         const request = this.deepExtend(subscribe, params);
-        let orders = await this.watch(url, messageHash, request, subscribeHash, request);
+        const orders = await this.watch(url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
-        const numOrders = orders.length;
+        const filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
+        const numOrders = filtered.length;
         if (numOrders === 0) {
             return await this.watchOrders(symbolResolved, since, limitResolved, params);
         }
-        return orders;
+        return filtered;
     }
     handleTrading(client, message) {
         //
@@ -747,13 +746,13 @@ class onetrading extends onetrading$1["default"] {
         }
         const orders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder(rawOrders[i]);
+            const order = this.parseOrder(this.safeDict(rawOrders, i, {}));
             let symbol = this.safeString(order, 'symbol', '');
             orders.append(order);
             client.resolve(this.orders, 'orders:' + symbol);
             const rawTrades = this.safeList(rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
-                const trade = this.parseTrade(rawTrades[ii]);
+                const trade = this.parseTrade(this.safeDict(rawTrades, ii, {}));
                 symbol = this.safeString(trade, 'symbol', symbol);
                 this.myTrades.append(trade);
                 client.resolve(this.myTrades, 'myTrades:' + symbol);
@@ -1113,15 +1112,9 @@ class onetrading extends onetrading$1["default"] {
                 subscription = {};
             }
         }
-        const subscriptionMarketId = this.safeDict(subscription, marketId);
-        if (subscriptionMarketId === undefined) {
-            if (marketId !== undefined) {
-                subscription[marketId] = {};
-            }
-        }
-        if ((marketId !== undefined) && (timeframe !== undefined)) {
-            subscription[marketId][timeframe] = true;
-        }
+        const marketTimeframes = this.safeDict(subscription, marketId, {});
+        marketTimeframes[timeframe] = true;
+        subscription[marketId] = marketTimeframes;
         const properties = [];
         const marketIds = Object.keys(subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1219,11 +1212,14 @@ class onetrading extends onetrading$1["default"] {
         if (timeframesResolved === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' findTimeframe() timeframes is required');
         }
+        const unit = this.safeString(timeframe, 'unit');
+        const period = this.safeString(timeframe, 'period');
         const keys = Object.keys(timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const timeframeResolved = this.safeDict(timeframesResolved, key, {});
-            if (timeframeResolved['unit'] === timeframe['unit'] && timeframeResolved['period'] === timeframe['period']) {
+            const rowUnit = this.safeString(timeframesResolved[key], 'unit');
+            const rowPeriod = this.safeString(timeframesResolved[key], 'period');
+            if (rowUnit === unit && rowPeriod === period) {
                 return key;
             }
         }
@@ -1376,7 +1372,9 @@ class onetrading extends onetrading$1["default"] {
             subscription[marketId] = true;
         }
         request['type'] = type;
-        request['channels'][0]['instrument_codes'] = Object.keys(subscription);
+        const instrumentCodes = Object.keys(subscription);
+        const channel = this.extend(this.safeDict(this.safeList(request, 'channels', []), 0, {}), { 'instrument_codes': instrumentCodes });
+        request['channels'] = [channel];
         return await this.watch(url, messageHash, this.deepExtend(request, params), subscriptionHash, subscription);
     }
     async authenticate(params = {}) {

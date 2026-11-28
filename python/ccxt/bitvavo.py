@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -735,7 +735,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "timestamp":1590381666900
         #     }
         #
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(self.extend({}, response), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -2008,7 +2008,7 @@ class bitvavo(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'created')
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
@@ -2414,7 +2414,6 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         #     }
         #
-        id = None
         timestamp = self.safe_integer(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'symbol')
         code = self.safe_currency_code(currencyId, currency)
@@ -2430,14 +2429,14 @@ class bitvavo(Exchange, ImplicitAPI):
                 'currency': code,
             }
         type = None
-        if ('success' in transaction) or ('address' in transaction):
+        if (self.safe_bool(transaction, 'success') is not None) or (self.safe_string(transaction, 'address') is not None):
             type = 'withdrawal'
         else:
             type = 'deposit'
         tag = self.safe_string(transaction, 'paymentId')
         return {
             'info': transaction,
-            'id': id,
+            'id': None,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2494,11 +2493,13 @@ class bitvavo(Exchange, ImplicitAPI):
         if networkId == 'Mainnet':
             networkId = currencyCode
         networkCode = self.network_id_to_code(networkId, currencyCode)
+        networkFees = {}
         if networkCode is not None:
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             }
+        result['networks'] = networkFees
         return result
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -2570,7 +2571,7 @@ class bitvavo(Exchange, ImplicitAPI):
         fullUrl = apiUrl + url
         return {'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #
@@ -2587,7 +2588,8 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
-        if ('noMarket' in config) and not ('market' in params):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
+        marketId = self.safe_string(params, 'market')
+        if ('noMarket' in config) and (marketId is None):
             return config['noMarket']
         return self.safe_integer(config, 'cost', 1)

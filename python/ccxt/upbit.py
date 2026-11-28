@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -915,7 +915,6 @@ class upbit(Exchange, ImplicitAPI):
         #         }
         #
         id = self.safe_string_2(trade, 'sequential_id', 'uuid')
-        orderId = None
         timestamp = self.safe_integer(trade, 'timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
@@ -940,7 +939,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.safe_trade({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
@@ -1267,8 +1266,9 @@ class upbit(Exchange, ImplicitAPI):
                 request['volume'] = self.amount_to_precision(symbol, amount)
         else:
             raise InvalidOrder(self.id + ' createOrder() supports only limit or market types in the type argument.')
-        paramsOrdType = self.omit(params, ['ordType', 'ord_type']) if (customType == 'best') else params
+        paramsOrdType = params
         if customType == 'best':
+            paramsOrdType = self.omit(paramsOrdType, ['ordType', 'ord_type'])
             request['ord_type'] = 'best'
             if side == 'buy':
                 orderPrice = self.calc_order_price(symbol, amount, price, paramsOrdType)
@@ -2315,7 +2315,7 @@ class upbit(Exchange, ImplicitAPI):
             headers['Authorization'] = 'Bearer ' + token
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headers if (apiName == 'private') else None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

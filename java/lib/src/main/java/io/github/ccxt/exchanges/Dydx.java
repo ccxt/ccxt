@@ -609,18 +609,20 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTimeCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Long fetchTimeCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.indexerGetTime(parameters)).join();
-            //
-            // {
-            //     "iso": "2025-07-20T15:12:13.466Z",
-            //     "epoch": 1753024333.466
-            // }
-            //
-            return this.safeInteger(response, "epoch");
-        });
+        Map<String, Object> response = (this.indexerGetTime(parameters)).join();
+        //
+        // {
+        //     "iso": "2025-07-20T15:12:13.466Z",
+        //     "epoch": 1753024333.466
+        // }
+        //
+        return this.safeInteger(response, "epoch");
 
     }
 
@@ -661,14 +663,14 @@ public class Dydx extends DydxApi
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
         String settleId = "USDC";
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId, null);
         if (java.util.Objects.equals(settle, null))
         {
             return null;
@@ -746,47 +748,49 @@ public class Dydx extends DydxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = (this.indexerGetPerpetualMarkets(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "markets": {
-            //         "BTC-USD": {
-            //             "clobPairId": "0",
-            //             "ticker": "BTC-USD",
-            //             "status": "ACTIVE",
-            //             "oraclePrice": "118976.5376",
-            //             "priceChange24H": "659.9736",
-            //             "volume24H": "1292729.3605",
-            //             "trades24H": 9387,
-            //             "nextFundingRate": "0",
-            //             "initialMarginFraction": "0.02",
-            //             "maintenanceMarginFraction": "0.012",
-            //             "openInterest": "52.0691",
-            //             "atomicResolution": -10,
-            //             "quantumConversionExponent": -9,
-            //             "tickSize": "1",
-            //             "stepSize": "0.0001",
-            //             "stepBaseQuantums": 1000000,
-            //             "subticksPerTick": 100000,
-            //             "marketType": "CROSS",
-            //             "openInterestLowerCap": "0",
-            //             "openInterestUpperCap": "0",
-            //             "baseOpenInterest": "50.3776",
-            //             "defaultFundingRate1H": "0"
-            //         }
-            //     }
-            // }
-            //
-            Map<String, Object> data = this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
-            List<Object> markets = new ArrayList<Object>(data.values());
-            return this.parseMarkets(markets);
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = (this.indexerGetPerpetualMarkets(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "markets": {
+        //         "BTC-USD": {
+        //             "clobPairId": "0",
+        //             "ticker": "BTC-USD",
+        //             "status": "ACTIVE",
+        //             "oraclePrice": "118976.5376",
+        //             "priceChange24H": "659.9736",
+        //             "volume24H": "1292729.3605",
+        //             "trades24H": 9387,
+        //             "nextFundingRate": "0",
+        //             "initialMarginFraction": "0.02",
+        //             "maintenanceMarginFraction": "0.012",
+        //             "openInterest": "52.0691",
+        //             "atomicResolution": -10,
+        //             "quantumConversionExponent": -9,
+        //             "tickSize": "1",
+        //             "stepSize": "0.0001",
+        //             "stepBaseQuantums": 1000000,
+        //             "subticksPerTick": 100000,
+        //             "marketType": "CROSS",
+        //             "openInterestLowerCap": "0",
+        //             "openInterestUpperCap": "0",
+        //             "baseOpenInterest": "50.3776",
+        //             "defaultFundingRate1H": "0"
+        //         }
+        //     }
+        // }
+        //
+        Map<String, Object> data = this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
+        List<Object> markets = new ArrayList<Object>(data.values());
+        return this.parseMarkets(markets);
 
     }
 
@@ -839,44 +843,46 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            Map<String, Object> response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "trades": [
-            //         {
-            //             "id": "02ac5b1f0000000200000002",
-            //             "side": "BUY",
-            //             "size": "0.0501",
-            //             "price": "115732",
-            //             "type": "LIMIT",
-            //             "createdAt": "2025-07-25T05:11:09.800Z",
-            //             "createdAtHeight": "44849951"
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> rows = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        Map<String, Object> response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "trades": [
+        //         {
+        //             "id": "02ac5b1f0000000200000002",
+        //             "side": "BUY",
+        //             "size": "0.0501",
+        //             "price": "115732",
+        //             "type": "LIMIT",
+        //             "createdAt": "2025-07-25T05:11:09.800Z",
+        //             "createdAtHeight": "44849951"
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> rows = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // {
@@ -895,7 +901,7 @@ public class Dydx extends DydxApi
         //     "orderbookMidPriceClose": "115845.5"
         // }
         //
-        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "startedAt")), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "baseTokenVolume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "startedAt")), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "baseTokenVolume", null)));
     }
 
     /**
@@ -913,63 +919,65 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", market.get("id") );
-                put( "resolution", Dydx.this.safeString(Dydx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("fromISO", this.iso8601(since));
-            }
-            Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("toISO", this.iso8601(until));
-            } else if (!java.util.Objects.equals(since, null))
-            {
-                // the indexer returns the newest candles in the range, so the range ends where the limit does
-                Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                Long count = (((!java.util.Objects.equals(limit, null)))) ? Math.min(limit, 1000) : 1000L;
-                request.put("toISO", this.iso8601(this.sum(since, (duration * count))));
-            }
-            Map<String, Object> response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted))).join();
-            //
-            // {
-            //     "candles": [
-            //         {
-            //             "startedAt": "2025-07-25T09:47:00.000Z",
-            //             "ticker": "BTC-USD",
-            //             "resolution": "1MIN",
-            //             "low": "116099",
-            //             "high": "116099",
-            //             "open": "116099",
-            //             "close": "116099",
-            //             "baseTokenVolume": "0",
-            //             "usdVolume": "0",
-            //             "trades": 0,
-            //             "startingOpenInterest": "54.0594",
-            //             "orderbookMidPriceOpen": "115845.5",
-            //             "orderbookMidPriceClose": "115845.5"
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> rows = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", market.get("id") );
+            put( "resolution", Dydx.this.safeString(Dydx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("fromISO", this.iso8601(since));
+        }
+        Long until = this.safeInteger(parameters, "until");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "until");
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("toISO", this.iso8601(until));
+        } else if (!java.util.Objects.equals(since, null))
+        {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+            Long count = (((!java.util.Objects.equals(limit, null)))) ? Math.min(limit, 1000) : 1000L;
+            request.put("toISO", this.iso8601(this.sum(since, (duration * count))));
+        }
+        Map<String, Object> response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted))).join();
+        //
+        // {
+        //     "candles": [
+        //         {
+        //             "startedAt": "2025-07-25T09:47:00.000Z",
+        //             "ticker": "BTC-USD",
+        //             "resolution": "1MIN",
+        //             "low": "116099",
+        //             "high": "116099",
+        //             "open": "116099",
+        //             "close": "116099",
+        //             "baseTokenVolume": "0",
+        //             "usdVolume": "0",
+        //             "trades": 0,
+        //             "startingOpenInterest": "54.0594",
+        //             "orderbookMidPriceOpen": "115845.5",
+        //             "orderbookMidPriceClose": "115845.5"
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> rows = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -987,85 +995,87 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("effectiveBeforeOrAt", this.iso8601(until));
-            }
-            Map<String, Object> response = (this.indexerGetHistoricalFundingMarket(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "historicalFunding": [
-            //         {
-            //             "ticker": "BTC-USD",
-            //             "rate": "0",
-            //             "price": "116302.62419",
-            //             "effectiveAtHeight": "44865196",
-            //             "effectiveAt": "2025-07-25T11:00:00.013Z"
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            List<Object> rows = this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < rows.size(); i++)
-            {
-                Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                Long timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
-                String marketId = this.safeString(entry, "ticker");
-                ((List<Object>)rates).add(new HashMap<String, Object>() {{
-                    put( "info", entry );
-                    put( "symbol", Dydx.this.safeSymbol(marketId, market, (String) null, (String) null) );
-                    put( "fundingRate", Dydx.this.safeNumber(entry, "rate", (Object) null) );
-                    put( "timestamp", timestamp );
-                    put( "datetime", Dydx.this.iso8601(timestamp) );
-                }});
-            }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Long until = this.safeInteger(parameters, "until");
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("effectiveBeforeOrAt", this.iso8601(until));
+        }
+        Map<String, Object> response = (this.indexerGetHistoricalFundingMarket(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "historicalFunding": [
+        //         {
+        //             "ticker": "BTC-USD",
+        //             "rate": "0",
+        //             "price": "116302.62419",
+        //             "effectiveAtHeight": "44865196",
+        //             "effectiveAt": "2025-07-25T11:00:00.013Z"
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> rates = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < rows.size(); i++)
+        {
+            Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+            Long timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
+            String marketId = this.safeString(entry, "ticker");
+            rates.add(new HashMap<String, Object>() {{
+                put( "info", entry );
+                put( "symbol", Dydx.this.safeSymbol(marketId, market, null, null) );
+                put( "fundingRate", Dydx.this.safeNumber(entry, "rate", null) );
+                put( "timestamp", timestamp );
+                put( "datetime", Dydx.this.iso8601(timestamp) );
+            }});
+        }
+        List<Object> sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
 
     }
 
-    public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
+    public Pair<String, Map<String, Object>> handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
-        Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "user", (String) null);
+        Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, methodName, "user", null);
         String userAux = userAuxparamsUserVariable.first();
         Map<String, Object> paramsUser = userAuxparamsUserVariable.second();
-        Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUser), (String) (methodName), "address", userAux);
+        Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         String user = userparamsAddressVariable.first();
         Map<String, Object> paramsAddress = userparamsAddressVariable.second();
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
         {
-            return new ArrayList<Object>(Arrays.asList(user, paramsAddress));
+            return new Pair<>(user, paramsAddress);
         }
         if ((!java.util.Objects.equals(this.walletAddress, null)) && (!java.util.Objects.equals(this.walletAddress, "")))
         {
-            return new ArrayList<Object>(Arrays.asList(this.walletAddress, paramsAddress));
+            return new Pair<>(this.walletAddress, paramsAddress);
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // {
@@ -1094,7 +1104,7 @@ public class Dydx extends DydxApi
         //
         String status = this.parseOrderStatus(this.safeStringUpper(order, "status"));
         String marketId = this.safeString(order, "ticker");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String filled = this.safeString(order, "totalFilled");
         Long timestamp = this.parse8601(this.safeString(order, "updatedAt"));
         String price = this.safeString(order, "price");
@@ -1113,8 +1123,8 @@ public class Dydx extends DydxApi
             put( "symbol", symbol );
             put( "type", type );
             put( "timeInForce", timeInForce );
-            put( "postOnly", Dydx.this.safeBool(order, "postOnly", (Object) null) );
-            put( "reduceOnly", Dydx.this.safeBool(order, "reduceOnly", (Object) null) );
+            put( "postOnly", Dydx.this.safeBool(order, "postOnly", null) );
+            put( "reduceOnly", Dydx.this.safeBool(order, "reduceOnly", null) );
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", null );
@@ -1165,21 +1175,23 @@ public class Dydx extends DydxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
+
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", id );
-            }};
-            Map<String, Object> order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
-            return this.parseOrder(order, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "orderId", id );
+        }};
+        Map<String, Object> order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
+        return this.parseOrder(order, null);
 
     }
 
@@ -1198,63 +1210,65 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchOrders", "subAccountNumber", "0");
-            String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
-            Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", userAddress );
-                put( "subaccountNumber", subAccountNumber );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("ticker", market.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            List<Object> response = (this.indexerGetOrders(this.extend(request, paramsSubAccountNumber))).join();
-            //
-            // [
-            //     {
-            //         "id": "dad46410-3444-5566-a129-19a619300fb7",
-            //         "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
-            //         "clientId": "716238006",
-            //         "clobPairId": "0",
-            //         "side": "BUY",
-            //         "size": "0.001",
-            //         "totalFilled": "0.001",
-            //         "price": "400000",
-            //         "type": "LIMIT",
-            //         "status": "FILLED",
-            //         "timeInForce": "GTT",
-            //         "reduceOnly": false,
-            //         "orderFlags": "64",
-            //         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
-            //         "createdAtHeight": "45058325",
-            //         "clientMetadata": "2",
-            //         "updatedAt": "2025-07-28T12:06:35.330Z",
-            //         "updatedAtHeight": "45058326",
-            //         "postOnly": false,
-            //         "ticker": "BTC-USD",
-            //         "subaccountNumber": 0
-            //     }
-            // ]
-            //
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchOrders", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
+        String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
+        Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", userAddress );
+            put( "subaccountNumber", subAccountNumber );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("ticker", market.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> response = (this.indexerGetOrders(this.extend(request, paramsSubAccountNumber))).join();
+        //
+        // [
+        //     {
+        //         "id": "dad46410-3444-5566-a129-19a619300fb7",
+        //         "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+        //         "clientId": "716238006",
+        //         "clobPairId": "0",
+        //         "side": "BUY",
+        //         "size": "0.001",
+        //         "totalFilled": "0.001",
+        //         "price": "400000",
+        //         "type": "LIMIT",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTT",
+        //         "reduceOnly": false,
+        //         "orderFlags": "64",
+        //         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
+        //         "createdAtHeight": "45058325",
+        //         "clientMetadata": "2",
+        //         "updatedAt": "2025-07-28T12:06:35.330Z",
+        //         "updatedAtHeight": "45058326",
+        //         "postOnly": false,
+        //         "ticker": "BTC-USD",
+        //         "subaccountNumber": 0
+        //     }
+        // ]
+        //
+        return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1273,14 +1287,16 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "OPEN" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "OPEN" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1299,18 +1315,20 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "FILLED" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "FILLED" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // {
@@ -1333,7 +1351,7 @@ public class Dydx extends DydxApi
         // }
         //
         String marketId = this.safeString(position, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         if (!java.util.Objects.equals(side, "long"))
@@ -1345,11 +1363,11 @@ public class Dydx extends DydxApi
         mapLiteral2.put("info", position);
         mapLiteral2.put("id", null);
         mapLiteral2.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral2.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        mapLiteral2.put("entryPrice", this.safeNumber(position, "entryPrice", null));
         mapLiteral2.put("markPrice", null);
         mapLiteral2.put("notional", null);
         mapLiteral2.put("collateral", null);
-        mapLiteral2.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
+        mapLiteral2.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", null));
         mapLiteral2.put("side", side);
         mapLiteral2.put("contracts", this.parseNumber(quantity));
         mapLiteral2.put("contractSize", null);
@@ -1379,14 +1397,16 @@ public class Dydx extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Position> fetchPosition(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionCore(symbol, parameters)).thenApply(Position::new);
+    }
+
+    private Object fetchPositionCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
-            return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
+        List<Position> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+        return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1403,52 +1423,54 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchPositions", "subAccountNumber", "0");
-            String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
-            Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", userAddress );
-                put( "subaccountNumber", subAccountNumber );
-                put( "status", "OPEN" );
-            }};
-            Map<String, Object> response = (this.indexerGetPerpetualPositions(this.extend(request, paramsSubAccountNumber))).join();
-            //
-            // {
-            //     "positions": [
-            //         {
-            //             "market": "BTC-USD",
-            //             "status": "OPEN",
-            //             "side": "SHORT",
-            //             "size": "-0.407",
-            //             "maxSize": "-0.009",
-            //             "entryPrice": "118692.04840909090909090909",
-            //             "exitPrice": "119526.565625",
-            //             "realizedPnl": "476.42665909090909090909088",
-            //             "unrealizedPnl": "-57.26681734000000000000037",
-            //             "createdAt": "2025-07-14T07:53:55.631Z",
-            //             "createdAtHeight": "44140908",
-            //             "closedAt": null,
-            //             "sumOpen": "0.44",
-            //             "sumClose": "0.032",
-            //             "netFunding": "503.13121",
-            //             "subaccountNumber": 0
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> rows = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(rows, symbols, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchPositions", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
+        String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
+        Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", userAddress );
+            put( "subaccountNumber", subAccountNumber );
+            put( "status", "OPEN" );
+        }};
+        Map<String, Object> response = (this.indexerGetPerpetualPositions(this.extend(request, paramsSubAccountNumber))).join();
+        //
+        // {
+        //     "positions": [
+        //         {
+        //             "market": "BTC-USD",
+        //             "status": "OPEN",
+        //             "side": "SHORT",
+        //             "size": "-0.407",
+        //             "maxSize": "-0.009",
+        //             "entryPrice": "118692.04840909090909090909",
+        //             "exitPrice": "119526.565625",
+        //             "realizedPnl": "476.42665909090909090909088",
+        //             "unrealizedPnl": "-57.26681734000000000000037",
+        //             "createdAt": "2025-07-14T07:53:55.631Z",
+        //             "createdAtHeight": "44140908",
+        //             "closedAt": null,
+        //             "sumOpen": "0.44",
+        //             "sumClose": "0.032",
+        //             "netFunding": "503.13121",
+        //             "subaccountNumber": 0
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> rows = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+        return this.parsePositions(rows, symbols, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1457,9 +1479,9 @@ public class Dydx extends DydxApi
         return this.hash(message, keccak(), "hex");
     }
 
-    public Map<String, Object> signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(String hash, String privateKey)
     {
-        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         String r = this.safeString(signature, "r", "");
         String s = this.safeString(signature, "s", "");
         return new HashMap<String, Object>() {{
@@ -1469,9 +1491,9 @@ public class Dydx extends DydxApi
         }};
     }
 
-    public Map<String, Object> signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public Map<String, Object> signOnboardingAction()
@@ -1495,27 +1517,27 @@ public class Dydx extends DydxApi
         {
             throw new ArgumentsRequired((this.id + " signOnboardingAction() requires a privateKey to be set.")) ;
         }
-        Map<String, Object> signature = this.signMessage(msg, this.privateKey);
+        Map<String, Object> signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
 
-    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
+    public String signDydxTx(String privateKey, Map<String, Object> message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
         var signDoc = ((List<Object>) encodedTxsignDocVariable).get(1);
-        Map<String, Object> signature = this.signHash(encodedTx, privateKey);
+        Map<String, Object> signature = this.signHash((String) (encodedTx), privateKey);
         String signatureR = this.safeString(signature, "r", "");
         String signatureS = this.safeString(signature, "s", "");
         return this.encodeDydxTxRaw((Map<String, Object>) (signDoc), (signatureR + signatureS));
     }
 
-    public Object retrieveCredentials()
+    public Map<String, Object> retrieveCredentials()
     {
         Object credentials = this.safeDict(this.options, "dydxCredentials", null);
         if (!java.util.Objects.equals(credentials, null))
         {
-            return credentials;
+            return this.safeDict(this.options, "dydxCredentials", new HashMap<String, Object>() {{}});
         }
         String privateKeyOption = this.safeString(this.options, "privateKey");
         if (!java.util.Objects.equals(privateKeyOption, null))
@@ -1533,54 +1555,56 @@ public class Dydx extends DydxApi
             credentials = hx4NewMap0;
         }
         this.options.put("dydxCredentials", credentials);
-        return credentials;
+        return this.safeDict(this.options, "dydxCredentials", new HashMap<String, Object>() {{}});
     }
 
     public CompletableFuture<Map<String, Object>> fetchDydxAccount()
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDydxAccountCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> fetchDydxAccountCore()
+    {
 
-            // required in js
-            (this.loadDydxProtos()).join();
-            Map<String, Object> dydxAccount = this.safeDict(this.options, "dydxAccount", null);
-            if (!java.util.Objects.equals(dydxAccount, null))
-            {
-                return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
-            }
-            if (java.util.Objects.equals(this.walletAddress, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")) ;
-            }
-            if (!((String)this.walletAddress).startsWith("dydx"))
-            {
-                throw new ArgumentsRequired((this.id + " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "dydxAddress", Dydx.this.walletAddress );
-            }};
-            //
-            // {
-            //     "info": {
-            //         "address": "string",
-            //         "pub_key": {
-            //             "type_url": "string",
-            //             "key": "string"
-            //         },
-            //         "account_number": "string",
-            //         "sequence": "string"
-            //     }
-            // }
-            //
-            Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
-            Map<String, Object> account = this.safeDict(response, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> pubKey = this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}});
-            account.put("pub_key", new HashMap<String, Object>() {{
-        put( "key", pubKey.get("key") );
-    }});
-            this.options.put("dydxAccount", account);
+        // required in js
+        (this.loadDydxProtos()).join();
+        Map<String, Object> dydxAccount = this.safeDict(this.options, "dydxAccount", null);
+        if (!java.util.Objects.equals(dydxAccount, null))
+        {
             return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
-        }).thenApply(res -> (Map<String, Object>) res);
+        }
+        if (java.util.Objects.equals(this.walletAddress, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")) ;
+        }
+        if (!((String)this.walletAddress).startsWith("dydx"))
+        {
+            throw new ArgumentsRequired((this.id + " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "dydxAddress", Dydx.this.walletAddress );
+        }};
+        //
+        // {
+        //     "info": {
+        //         "address": "string",
+        //         "pub_key": {
+        //             "type_url": "string",
+        //             "key": "string"
+        //         },
+        //         "account_number": "string",
+        //         "sequence": "string"
+        //     }
+        // }
+        //
+        Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
+        Map<String, Object> account = this.safeDict(response, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> pubKey = this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}});
+        account.put("pub_key", new HashMap<String, Object>() {{
+    put( "key", pubKey.get("key") );
+}});
+        this.options.put("dydxAccount", account);
+        return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
 
     }
 
@@ -1596,7 +1620,7 @@ public class Dydx extends DydxApi
         return r;
     }
 
-    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1606,14 +1630,14 @@ public class Dydx extends DydxApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        String orderType = ((String)type).toUpperCase();
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        String orderType = type.toUpperCase();
         Map<String, Object> market = this.market(symbol);
         if (java.util.Objects.equals(side, null))
         {
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
         }
-        String orderSide = ((String)side).toUpperCase();
+        String orderSide = side.toUpperCase();
         Long subaccountId = 0L;
         List<Object> subaccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         Long subaccountIdOption = (Long) ((List<Object>) subaccountIdOptionparamsSubAccountIdVariable).get(0);
@@ -1624,7 +1648,7 @@ public class Dydx extends DydxApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null);
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringUpper(paramsSubAccountId, "timeInForce", "GTT");
-        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsSubAccountId);
+        Boolean postOnly = this.isPostOnly(isMarket, false, paramsSubAccountId);
         String amountStr = this.amountToPrecision(symbol, amount);
         String priceStr = this.priceToPrecision(symbol, price);
         Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
@@ -1637,8 +1661,9 @@ public class Dydx extends DydxApi
         Integer clientMetadata = 0;
         Integer conditionalType = 0;
         String conditionalOrderTriggerSubticks = "0";
-        Object orderFlag = null;
-        Object timeInForceNumber = null;
+        Integer orderFlag = null;
+        Boolean isShortTerm = false;
+        Integer timeInForceNumber = null;
         if (java.util.Objects.equals(timeInForce, "FOK"))
         {
             throw new InvalidOrder((this.id + " timeInForce fok has been deprecated")) ;
@@ -1647,6 +1672,7 @@ public class Dydx extends DydxApi
         {
             // short-term
             orderFlag = 0;
+            isShortTerm = true;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (!java.util.Objects.equals(timeInForce, null))
             {
@@ -1659,6 +1685,7 @@ public class Dydx extends DydxApi
             {
                 // long-term
                 orderFlag = 64;
+                isShortTerm = false;
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     timeInForceNumber = 2;
@@ -1669,6 +1696,7 @@ public class Dydx extends DydxApi
             } else
             {
                 orderFlag = 0;
+                isShortTerm = true;
                 if (java.util.Objects.equals(timeInForce, "IOC"))
                 {
                     timeInForceNumber = 1;
@@ -1682,6 +1710,7 @@ public class Dydx extends DydxApi
         {
             // conditional
             orderFlag = 32;
+            isShortTerm = false;
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
                 conditionalType = 1;
@@ -1701,7 +1730,7 @@ public class Dydx extends DydxApi
         List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
         Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1);
-        if (java.util.Objects.equals(orderFlag, 0))
+        if (Boolean.TRUE.equals(isShortTerm))
         {
             if (java.util.Objects.equals(goodTillBlock, null))
             {
@@ -1753,9 +1782,17 @@ public class Dydx extends DydxApi
         Map<String, Object> paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId")));
         String walletAddress = this.getWalletAddress();
         Long clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
-        Object subaccountIdValue = (((java.util.Objects.equals(subaccountIdOption, null)))) ? 0 : subaccountIdOption;
+        Object subaccountIdValue = 0;
+        if (!java.util.Objects.equals(subaccountIdOption, null))
+        {
+            subaccountIdValue = subaccountIdOption;
+        }
         Long clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
-        Object orderFlagValue = (((java.util.Objects.equals(orderFlag, null)))) ? 0 : orderFlag;
+        Integer orderFlagValue = 0;
+        if (!java.util.Objects.equals(orderFlag, null))
+        {
+            orderFlagValue = orderFlag;
+        }
         Long clobPairIdValue = (((java.util.Objects.equals(clobPairId, null)))) ? 0 : clobPairId;
         String orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new ArrayList<Object>(Arrays.asList(orderId, this.extend(signingPayload, paramsOmitted)));
@@ -1772,33 +1809,35 @@ public class Dydx extends DydxApi
 
     public CompletableFuture<Long> fetchLatestBlockHeight(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLatestBlockHeightCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Long fetchLatestBlockHeightCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.nodeRpcGetAbciInfo(parameters)).join();
-            //
-            // {
-            //     "jsonrpc": "2.0",
-            //     "id": -1,
-            //     "result": {
-            //         "response": {
-            //             "data": "dydxprotocol",
-            //             "version": "9.1.0-rc0",
-            //             "last_block_height": "49157714",
-            //             "last_block_app_hash": "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
-            //         }
-            //     }
-            // }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", null);
-            Map<String, Object> info = this.safeDict(result, "response", null);
-            Long height = this.safeInteger(info, "last_block_height");
-            if (java.util.Objects.equals(height, null))
-            {
-                throw new ExchangeError((this.id + " fetchLatestBlockHeight() could not parse last_block_height")) ;
-            }
-            return height;
-        });
+        Map<String, Object> response = (this.nodeRpcGetAbciInfo(parameters)).join();
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "response": {
+        //             "data": "dydxprotocol",
+        //             "version": "9.1.0-rc0",
+        //             "last_block_height": "49157714",
+        //             "last_block_app_hash": "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
+        //         }
+        //     }
+        // }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", null);
+        Map<String, Object> info = this.safeDict(result, "response", null);
+        Long height = this.safeInteger(info, "last_block_height");
+        if (java.util.Objects.equals(height, null))
+        {
+            throw new ExchangeError((this.id + " fetchLatestBlockHeight() could not parse last_block_height")) ;
+        }
+        return height;
 
     }
 
@@ -1824,55 +1863,58 @@ public class Dydx extends DydxApi
      * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Object credentials = this.retrieveCredentials();
-            Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Long lastBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
-            // params['latestBlockHeight'] = lastBlockHeight;
-            Map<String, Object> newParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "latestBlockHeight", lastBlockHeight );
-            }});
-            List<Object> orderRequestRes = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, newParams);
-            Object orderId = ((List<Object>)orderRequestRes).get(0);
-            Object orderRequest = ((List<Object>)orderRequestRes).get(1);
-            String chainName = this.safeString(this.options, "chainName");
-            Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), orderRequest, "", chainName, account, null, (Object) null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "tx", signedTx );
-            }};
-            // nodeRpcGetBroadcastTxAsync
-            Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
-            //
-            // {
-            //     "jsonrpc": "2.0",
-            //     "id": -1,
-            //     "result": {
-            //         "code": 0,
-            //         "data": "",
-            //         "log": "[]",
-            //         "codespace": "",
-            //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", null);
-            Map<String, Object> requestValue = this.safeDict(orderRequest, "value", new HashMap<String, Object>() {{}});
-            Map<String, Object> requestOrder = this.safeDict(requestValue, "order", new HashMap<String, Object>() {{}});
-            Map<String, Object> requestOrderId = this.safeDict(requestOrder, "orderId", new HashMap<String, Object>() {{}});
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", result );
-                put( "id", orderId );
-                put( "clientOrderId", Dydx.this.safeString(requestOrderId, "clientId") );
-            }}, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> credentials = this.retrieveCredentials();
+        Map<String, Object> account = (this.fetchDydxAccount()).join();
+        Long lastBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
+        // params['latestBlockHeight'] = lastBlockHeight;
+        Map<String, Object> newParams = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "latestBlockHeight", lastBlockHeight );
+        }});
+        List<Object> orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
+        Object orderId = ((List<Object>)orderRequestRes).get(0);
+        Object orderRequest = ((List<Object>)orderRequestRes).get(1);
+        String chainName = this.safeString(this.options, "chainName");
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, (Map<String, Object>) (orderRequest), "", chainName, account, null, null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "tx", signedTx );
+        }};
+        // nodeRpcGetBroadcastTxAsync
+        Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", null);
+        Map<String, Object> requestValue = this.safeDict(orderRequest, "value", new HashMap<String, Object>() {{}});
+        Map<String, Object> requestOrder = this.safeDict(requestValue, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> requestOrderId = this.safeDict(requestOrder, "orderId", new HashMap<String, Object>() {{}});
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", result );
+            put( "id", orderId );
+            put( "clientOrderId", Dydx.this.safeString(requestOrderId, "clientId") );
+        }}, null);
 
     }
 
@@ -1894,110 +1936,112 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if ((!Boolean.TRUE.equals(isTrigger)) && (java.util.Objects.equals(symbol, null)))
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+        if ((!Boolean.TRUE.equals(isTrigger)) && (java.util.Objects.equals(symbol, null)))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientId", id);
+        if (java.util.Objects.equals(clientOrderId, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
+        }
+        String idString = this.numberToString(id);
+        if (((String)idString).indexOf("-") > -1)
+        {
+            throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
+        }
+        Long goodTillBlockOption = this.safeInteger(paramsOmitted, "goodTillBlock");
+        Long goodTillBlock = goodTillBlockOption;
+        Long goodTillBlockTimeInSeconds = 2592000L;
+        // default is 30 days
+        List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
+        Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1);
+        Object goodTillBlockTime = null;
+        Integer defaultOrderFlags = ((Boolean.TRUE.equals(isTrigger))) ? 32 : 64;
+        Long orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
+        List<Object> subAccountIdOptionVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", 0L);
+        Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionVariable).get(0);
+        if ((orderFlags == null || orderFlags != 0) && (orderFlags == null || orderFlags != 64) && (orderFlags == null || orderFlags != 32))
+        {
+            throw new InvalidOrder((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
+        }
+        if ((orderFlags != null && orderFlags > 0))
+        {
+            if (java.util.Objects.equals(goodTillBlockTimeInSecondsOption, null))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (!java.util.Objects.equals(goodTillBlockOption, null) && (goodTillBlockOption != null && goodTillBlockOption > 0))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new InvalidOrder((this.id + " goodTillBlock should be 0 for long term or conditional order.")) ;
             }
-            Map<String, Object> market = this.market(symbol);
-            String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientId", id);
-            if (java.util.Objects.equals(clientOrderId, null))
+            goodTillBlockTime = (this.seconds() + goodTillBlockTimeInSecondsOption);
+        } else
+        {
+            if (java.util.Objects.equals(goodTillBlock, null))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
+                Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
+                goodTillBlock = (Long) (latestBlockHeight + 20L);
             }
-            String idString = this.numberToString(id);
-            if (((String)idString).indexOf("-") > -1)
-            {
-                throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
-            }
-            Long goodTillBlockOption = this.safeInteger(paramsOmitted, "goodTillBlock");
-            Object goodTillBlock = goodTillBlockOption;
-            Long goodTillBlockTimeInSeconds = 2592000L;
-            // default is 30 days
-            List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
-            Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
-            Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1);
-            Object goodTillBlockTime = null;
-            Integer defaultOrderFlags = ((Boolean.TRUE.equals(isTrigger))) ? 32 : 64;
-            Long orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
-            Long subAccountId = 0L;
-            List<Object> subAccountIdOptionVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId);
-            Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionVariable).get(0);
-            if ((orderFlags == null || orderFlags != 0) && (orderFlags == null || orderFlags != 64) && (orderFlags == null || orderFlags != 32))
-            {
-                throw new InvalidOrder((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
-            }
-            if ((orderFlags != null && orderFlags > 0))
-            {
-                if (java.util.Objects.equals(goodTillBlockTimeInSecondsOption, null))
-                {
-                    throw new ArgumentsRequired((this.id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")) ;
-                }
-                if (!java.util.Objects.equals(goodTillBlockOption, null) && (goodTillBlockOption != null && goodTillBlockOption > 0))
-                {
-                    throw new InvalidOrder((this.id + " goodTillBlock should be 0 for long term or conditional order.")) ;
-                }
-                goodTillBlockTime = (this.seconds() + goodTillBlockTimeInSecondsOption);
-            } else
-            {
-                if (java.util.Objects.equals(goodTillBlock, null))
-                {
-                    Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
-                    goodTillBlock = (latestBlockHeight + 20L);
-                }
-            }
-            Object credentials = this.retrieveCredentials();
-            Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> cancelPayload = new HashMap<String, Object>();
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("subaccountId", new HashMap<String, Object>() {{
-                        put( "owner", Dydx.this.getWalletAddress() );
-                        put( "number", subAccountIdOption );
-                    }});
-            mapLiteral6.put("clientId", clientOrderId);
-            mapLiteral6.put("orderFlags", orderFlags);
-            mapLiteral6.put("clobPairId", marketInfo.get("clobPairId"));
-            cancelPayload.put("orderId", mapLiteral6);
-            cancelPayload.put("goodTilBlock", goodTillBlock);
-            cancelPayload.put("goodTilBlockTime", goodTillBlockTime);
-            Map<String, Object> signingPayload = new HashMap<String, Object>() {{
-                put( "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" );
-                put( "value", cancelPayload );
-            }};
-            String chainName = this.safeString(this.options, "chainName");
-            Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, (Object) null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "tx", signedTx );
-            }};
-            // nodeRpcGetBroadcastTxAsync
-            Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
-            //
-            // {
-            //     "jsonrpc": "2.0",
-            //     "id": -1,
-            //     "result": {
-            //         "code": 0,
-            //         "data": "",
-            //         "log": "[]",
-            //         "codespace": "",
-            //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", null);
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", result );
-            }}, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        }
+        Map<String, Object> credentials = this.retrieveCredentials();
+        Map<String, Object> account = (this.fetchDydxAccount()).join();
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> cancelPayload = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("subaccountId", new HashMap<String, Object>() {{
+                    put( "owner", Dydx.this.getWalletAddress() );
+                    put( "number", subAccountIdOption );
+                }});
+        mapLiteral6.put("clientId", clientOrderId);
+        mapLiteral6.put("orderFlags", orderFlags);
+        mapLiteral6.put("clobPairId", marketInfo.get("clobPairId"));
+        cancelPayload.put("orderId", mapLiteral6);
+        cancelPayload.put("goodTilBlock", goodTillBlock);
+        cancelPayload.put("goodTilBlockTime", goodTillBlockTime);
+        Map<String, Object> signingPayload = new HashMap<String, Object>() {{
+            put( "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" );
+            put( "value", cancelPayload );
+        }};
+        String chainName = this.safeString(this.options, "chainName");
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, "", chainName, account, null, null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "tx", signedTx );
+        }};
+        // nodeRpcGetBroadcastTxAsync
+        Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", null);
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", result );
+        }}, null);
 
     }
 
@@ -2012,73 +2056,75 @@ public class Dydx extends DydxApi
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", null);
-            if (java.util.Objects.equals(clientOrderIds, null))
-            {
-                throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
-            }
-            Long subAccountId = 0L;
-            List<Object> subAccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
-            Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(0);
-            Map<String, Object> paramsSubAccountId = (Map<String, Object>) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(1);
-            Object goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
-            if (java.util.Objects.equals(goodTillBlock, null))
-            {
-                Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
-                goodTillBlock = (latestBlockHeight + 20L);
-            }
-            Object credentials = this.retrieveCredentials();
-            Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> cancelOrders = new HashMap<String, Object>();
-            cancelOrders.put("clientIds", clientOrderIds);
-            cancelOrders.put("clobPairId", marketInfo.get("clobPairId"));
-            Map<String, Object> cancelPayload = new HashMap<String, Object>();
-            cancelPayload.put("subaccountId", new HashMap<String, Object>() {{
-                    put( "owner", Dydx.this.getWalletAddress() );
-                    put( "number", subAccountIdOption );
-                }});
-            cancelPayload.put("shortTermCancels", new ArrayList<Object>(Arrays.asList(cancelOrders)));
-            cancelPayload.put("goodTilBlock", goodTillBlock);
-            Map<String, Object> signingPayload = new HashMap<String, Object>() {{
-                put( "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" );
-                put( "value", cancelPayload );
-            }};
-            String chainName = this.safeString(this.options, "chainName");
-            Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, (Object) null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "tx", signedTx );
-            }};
-            // nodeRpcGetBroadcastTxAsync
-            Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
-            //
-            // {
-            //     "jsonrpc": "2.0",
-            //     "id": -1,
-            //     "result": {
-            //         "code": 0,
-            //         "data": "",
-            //         "log": "[]",
-            //         "codespace": "",
-            //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", null);
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", result );
-    }}, (Map<String, Object>) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", null);
+        if (java.util.Objects.equals(clientOrderIds, null))
+        {
+            throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
+        }
+        List<Object> subAccountIdOptionparamsSubAccountIdVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", 0L);
+        Long subAccountIdOption = (Long) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(0);
+        Map<String, Object> paramsSubAccountId = (Map<String, Object>) ((List<Object>) subAccountIdOptionparamsSubAccountIdVariable).get(1);
+        Long goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
+        if (java.util.Objects.equals(goodTillBlock, null))
+        {
+            Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
+            goodTillBlock = (Long) (latestBlockHeight + 20L);
+        }
+        Map<String, Object> credentials = this.retrieveCredentials();
+        Map<String, Object> account = (this.fetchDydxAccount()).join();
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> cancelOrders = new HashMap<String, Object>();
+        cancelOrders.put("clientIds", clientOrderIds);
+        cancelOrders.put("clobPairId", marketInfo.get("clobPairId"));
+        Map<String, Object> cancelPayload = new HashMap<String, Object>();
+        cancelPayload.put("subaccountId", new HashMap<String, Object>() {{
+                put( "owner", Dydx.this.getWalletAddress() );
+                put( "number", subAccountIdOption );
+            }});
+        cancelPayload.put("shortTermCancels", new ArrayList<Object>(Arrays.asList(cancelOrders)));
+        cancelPayload.put("goodTilBlock", goodTillBlock);
+        Map<String, Object> signingPayload = new HashMap<String, Object>() {{
+            put( "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" );
+            put( "value", cancelPayload );
+        }};
+        String chainName = this.safeString(this.options, "chainName");
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, "", chainName, account, null, null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "tx", signedTx );
+        }};
+        // nodeRpcGetBroadcastTxAsync
+        Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", null);
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+    put( "info", result );
+}}, null)));
 
     }
 
@@ -2092,42 +2138,44 @@ public class Dydx extends DydxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", market.get("id") );
-            }};
-            Map<String, Object> response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "bids": [
-            //         {
-            //             "price": "118267",
-            //             "size": "0.3182"
-            //         }
-            //     ],
-            //     "asks": [
-            //         {
-            //             "price": "118485",
-            //             "size": "0.0001"
-            //         }
-            //     ]
-            // }
-            //
-            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", market.get("id") );
+        }};
+        Map<String, Object> response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "bids": [
+        //         {
+        //             "price": "118267",
+        //             "size": "0.3182"
+        //         }
+        //     ],
+        //     "asks": [
+        //         {
+        //             "price": "118485",
+        //             "size": "0.0001"
+        //         }
+        //     ]
+        // }
+        //
+        return this.parseOrderBook(response, market.get("symbol"), null, "bids", "asks", "price", "size", 2);
 
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
+    public Map<String, Object> parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         // {
@@ -2212,84 +2260,98 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLedgerCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLedgerCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Object response = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"))).join();
-            return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
+        rows = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"))).join();
+        return this.parseLedger(rows, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
     public CompletableFuture<Map<String, Object>> estimateTxFee(Map<String, Object> message, String memo, Map<String, Object> account)
     {
+        return BaseExchange.supplyAsync(() -> this.estimateTxFeeCore(message, memo, account));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> estimateTxFeeCore(Map<String, Object> message, String memo, Map<String, Object> account)
+    {
 
-            String txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, "sequence"), this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}}));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "txBytes", txBytes );
-            }};
-            Map<String, Object> response = (this.nodeRestPostCosmosTxV1beta1Simulate(request)).join();
-            //
-            // {
-            //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
-            //     result: {
-            //         ...
-            //     }
-            // }
-            //
-            Map<String, Object> gasInfo = this.safeDict(response, "gas_info", null);
-            if (java.util.Objects.equals(gasInfo, null))
+        String txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, "sequence"), this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}}));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "txBytes", txBytes );
+        }};
+        Map<String, Object> response = (this.nodeRestPostCosmosTxV1beta1Simulate(request)).join();
+        //
+        // {
+        //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
+        //     result: {
+        //         ...
+        //     }
+        // }
+        //
+        Map<String, Object> gasInfo = this.safeDict(response, "gas_info", null);
+        if (java.util.Objects.equals(gasInfo, null))
+        {
+            throw new ExchangeError((this.id + " failed to simulate transaction.")) ;
+        }
+        String gasUsed = this.safeString(gasInfo, "gas_used");
+        if (java.util.Objects.equals(gasUsed, null))
+        {
+            throw new ExchangeError((this.id + " failed to simulate transaction.")) ;
+        }
+        String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
+        String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
+        Map<String, Object> feeDenom = this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
+        String gasPrice = null;
+        String denom = null;
+        if (java.util.Objects.equals(defaultFeeDenom, "uusdc"))
+        {
+            gasPrice = this.safeString(feeDenom, "USDC_GAS_PRICE");
+            denom = this.safeString(feeDenom, "USDC_DENOM");
+        } else
+        {
+            gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
+            denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
+        }
+        Double gasLimitNum = this.parseNumber(Precise.stringMul(gasUsed, defaultFeeMultiplier));
+        if (java.util.Objects.equals(gasLimitNum, null))
+        {
+            throw new ExchangeError((this.id + " estimateTxFee() missing gasLimit")) ;
+        }
+        Double gasLimit = Math.ceil(Double.parseDouble(String.valueOf(gasLimitNum)));
+        String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
+        if (java.util.Objects.equals(feeAmount, null))
+        {
+            throw new ExchangeError((this.id + " estimateTxFee() missing feeAmount")) ;
+        }
+        if (((String)feeAmount).indexOf(".") >= 0)
+        {
+            Double feeAmountNum = this.parseNumber(feeAmount);
+            if (!java.util.Objects.equals(feeAmountNum, null))
             {
-                throw new ExchangeError((this.id + " failed to simulate transaction.")) ;
+                feeAmount = this.numberToString(Math.ceil(Double.parseDouble(String.valueOf(feeAmountNum))));
             }
-            String gasUsed = this.safeString(gasInfo, "gas_used");
-            if (java.util.Objects.equals(gasUsed, null))
-            {
-                throw new ExchangeError((this.id + " failed to simulate transaction.")) ;
-            }
-            String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
-            String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-            Map<String, Object> feeDenom = this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
-            String gasPrice = null;
-            String denom = null;
-            if (java.util.Objects.equals(defaultFeeDenom, "uusdc"))
-            {
-                gasPrice = this.safeString(feeDenom, "USDC_GAS_PRICE");
-                denom = this.safeString(feeDenom, "USDC_DENOM");
-            } else
-            {
-                gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
-                denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
-            }
-            Double gasLimit = Math.ceil(Double.parseDouble(java.util.Objects.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)), null)));
-            String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
-            if (java.util.Objects.equals(feeAmount, null))
-            {
-                throw new ExchangeError((this.id + " estimateTxFee() missing feeAmount")) ;
-            }
-            if (((String)feeAmount).indexOf(".") >= 0)
-            {
-                feeAmount = this.numberToString(Math.ceil(Double.parseDouble(java.util.Objects.toString(this.parseToNumeric(feeAmount), null))));
-            }
-            Map<String, Object> feeObj = new HashMap<String, Object>();
-            feeObj.put("amount", feeAmount);
-            feeObj.put("denom", denom);
-            return new HashMap<String, Object>() {{
-                put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
-                put( "gasLimit", gasLimit );
-            }};
-        });
+        }
+        Map<String, Object> feeObj = new HashMap<String, Object>();
+        feeObj.put("amount", feeAmount);
+        feeObj.put("denom", denom);
+        return new HashMap<String, Object>() {{
+            put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
+            put( "gasLimit", gasLimit );
+        }};
 
     }
 
@@ -2305,114 +2367,117 @@ public class Dydx extends DydxApi
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
+    }
+
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (!java.util.Objects.equals(code, "USDC"))
+        if (!java.util.Objects.equals(code, "USDC"))
+        {
+            throw new NotSupported((this.id + " transfer() only support USDC")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
+        Long toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
+        if (!java.util.Objects.equals(fromAccount, "main"))
+        {
+            // throw error if from subaccount id is undefined
+            if (java.util.Objects.equals(fromAccount, null))
             {
-                throw new NotSupported((this.id + " transfer() only support USDC")) ;
+                throw new NotSupported((this.id + " transfer only support main > subaccount and subaccount <> subaccount.")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (java.util.Objects.equals(fromSubaccountId, null) || java.util.Objects.equals(toSubaccountId, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new ArgumentsRequired((this.id + " transfer requires fromSubaccountId and toSubaccountId.")) ;
             }
-            Long fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
-            Long toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
-            if (!java.util.Objects.equals(fromAccount, "main"))
+        }
+        Map<String, Object> credentials = this.retrieveCredentials();
+        Map<String, Object> account = (this.fetchDydxAccount()).join();
+        Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+        Map<String, Object> payload = null;
+        Map<String, Object> signingPayload = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(fromAccount, "main"))
+        {
+            // deposit to subaccount
+            if (java.util.Objects.equals(toSubaccountId, null))
             {
-                // throw error if from subaccount id is undefined
-                if (java.util.Objects.equals(fromAccount, null))
-                {
-                    throw new NotSupported((this.id + " transfer only support main > subaccount and subaccount <> subaccount.")) ;
-                }
-                if (java.util.Objects.equals(fromSubaccountId, null) || java.util.Objects.equals(toSubaccountId, null))
-                {
-                    throw new ArgumentsRequired((this.id + " transfer requires fromSubaccountId and toSubaccountId.")) ;
-                }
+                throw new ArgumentsRequired((this.id + " transfer() requeire toSubaccoutnId.")) ;
             }
-            Object credentials = this.retrieveCredentials();
-            Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-            Map<String, Object> payload = null;
-            Map<String, Object> signingPayload = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(fromAccount, "main"))
             {
-                // deposit to subaccount
-                if (java.util.Objects.equals(toSubaccountId, null))
-                {
-                    throw new ArgumentsRequired((this.id + " transfer() requeire toSubaccoutnId.")) ;
-                }
-                {
-                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                    hx4NewMap1.put("sender", this.getWalletAddress());
-                    HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-                    mapLiteral8.put("owner", this.getWalletAddress());
-                    mapLiteral8.put("number", toSubaccountId);
-                    hx4NewMap1.put("recipient", mapLiteral8);
-                    hx4NewMap1.put("assetId", 0);
-                    hx4NewMap1.put("quantums", usd);
-                    payload = hx4NewMap1;
-                }
-                {
-                    HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
-                    hx4NewMap2.put("typeUrl", "/dydxprotocol.sending.MsgDepositToSubaccount");
-                    hx4NewMap2.put("value", payload);
-                    signingPayload = hx4NewMap2;
-                }
-            } else
-            {
-                {
-                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
-                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                    mapLiteral10.put("owner", fromAccount);
-                    mapLiteral10.put("number", fromSubaccountId);
-                    mapLiteral9.put("sender", mapLiteral10);
-                    HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-                    mapLiteral11.put("owner", toAccount);
-                    mapLiteral11.put("number", toSubaccountId);
-                    mapLiteral9.put("recipient", mapLiteral11);
-                    mapLiteral9.put("assetId", 0);
-                    mapLiteral9.put("amount", usd);
-                    hx4NewMap3.put("transfer", mapLiteral9);
-                    payload = hx4NewMap3;
-                }
-                {
-                    HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
-                    hx4NewMap4.put("typeUrl", "/dydxprotocol.sending.MsgCreateTransfer");
-                    hx4NewMap4.put("value", payload);
-                    signingPayload = hx4NewMap4;
-                }
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("sender", this.getWalletAddress());
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("owner", this.getWalletAddress());
+                mapLiteral8.put("number", toSubaccountId);
+                hx4NewMap1.put("recipient", mapLiteral8);
+                hx4NewMap1.put("assetId", 0);
+                hx4NewMap1.put("quantums", usd);
+                payload = hx4NewMap1;
             }
-            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
-            String chainName = this.safeString(this.options, "chainName");
-            Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "tx", signedTx );
-            }};
-            // nodeRpcGetBroadcastTxAsync
-            Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
-            //
-            // {
-            //     "jsonrpc": "2.0",
-            //     "id": -1,
-            //     "result": {
-            //         "code": 0,
-            //         "data": "",
-            //         "log": "[]",
-            //         "codespace": "",
-            //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            return this.parseTransfer(response, (Map<String, Object>) null);
-        }).thenApply(TransferEntry::new);
+            {
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("typeUrl", "/dydxprotocol.sending.MsgDepositToSubaccount");
+                hx4NewMap2.put("value", payload);
+                signingPayload = hx4NewMap2;
+            }
+        } else
+        {
+            {
+                HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                mapLiteral10.put("owner", fromAccount);
+                mapLiteral10.put("number", fromSubaccountId);
+                mapLiteral9.put("sender", mapLiteral10);
+                HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                mapLiteral11.put("owner", toAccount);
+                mapLiteral11.put("number", toSubaccountId);
+                mapLiteral9.put("recipient", mapLiteral11);
+                mapLiteral9.put("assetId", 0);
+                mapLiteral9.put("amount", usd);
+                hx4NewMap3.put("transfer", mapLiteral9);
+                payload = hx4NewMap3;
+            }
+            {
+                HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
+                hx4NewMap4.put("typeUrl", "/dydxprotocol.sending.MsgCreateTransfer");
+                hx4NewMap4.put("value", payload);
+                signingPayload = hx4NewMap4;
+            }
+        }
+        Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
+        String chainName = this.safeString(this.options, "chainName");
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, "", chainName, account, null, txFee);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "tx", signedTx );
+        }};
+        // nodeRpcGetBroadcastTxAsync
+        Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        return this.parseTransfer(response, null);
 
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // {
@@ -2436,7 +2501,7 @@ public class Dydx extends DydxApi
         String id = this.safeString(transfer, "id");
         String currencyId = this.safeString(transfer, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Double amount = this.safeNumber(transfer, "size", (Object) null);
+        Double amount = this.safeNumber(transfer, "size", null);
         Map<String, Object> sender = this.safeDict(transfer, "sender", null);
         Map<String, Object> recipient = this.safeDict(transfer, "recipient", null);
         String fromAccount = this.safeString(sender, "address");
@@ -2470,28 +2535,30 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTransfersCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTransfersCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Object response = (this.fetchTransactionsHelper("fetchTransfers", code, since, limit, this.omit(parameters, "methodName"))).join();
-            List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
-            List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
-            List<Object> rows = (List<Object>) this.arrayConcat(transferIn, transferOut);
-            return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        List<Object> response = (this.fetchTransactionsHelper("fetchTransfers", code, since, limit, this.omit(parameters, "methodName"))).join();
+        List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
+        List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
+        List<Object> rows = this.arrayConcat(transferIn, transferOut);
+        return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // {
@@ -2521,7 +2588,7 @@ public class Dydx extends DydxApi
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
-        Double amount = this.safeNumber(transaction, "size", (Object) null);
+        Double amount = this.safeNumber(transaction, "size", null);
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -2557,68 +2624,70 @@ public class Dydx extends DydxApi
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
+
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
-            if (!java.util.Objects.equals(code, "USDC"))
-            {
-                throw new NotSupported((this.id + " withdraw() only support USDC")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            this.checkAddress(address, (String) null, (String) null);
-            Long subaccountId = this.safeInteger(paramsWithdrawTag, "subaccountId");
-            if (java.util.Objects.equals(subaccountId, null))
-            {
-                throw new ArgumentsRequired((this.id + " withdraw requires subaccountId.")) ;
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Object credentials = this.retrieveCredentials();
-            Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-            Map<String, Object> payload = new HashMap<String, Object>();
-            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-            mapLiteral12.put("owner", this.getWalletAddress());
-            mapLiteral12.put("number", subaccountId);
-            payload.put("sender", mapLiteral12);
-            payload.put("recipient", address);
-            payload.put("assetId", 0);
-            payload.put("quantums", usd);
-            Map<String, Object> signingPayload = new HashMap<String, Object>() {{
-                put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
-                put( "value", payload );
-            }};
-            Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
-            String chainName = this.safeString(this.options, "chainName");
-            Object signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "tx", signedTx );
-            }};
-            // nodeRpcGetBroadcastTxAsync
-            Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
-            //
-            // {
-            //     "jsonrpc": "2.0",
-            //     "id": -1,
-            //     "result": {
-            //         "code": 0,
-            //         "data": "",
-            //         "log": "[]",
-            //         "codespace": "",
-            //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
-            //     }
-            // }
-            //
-            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(data, currency);
-        }).thenApply(Transaction::new);
+        String tag = this.safeString(parameters, "tag");
+        Map<String, Object> paramsWithdrawTag = this.omit(parameters, "tag");
+        if (!java.util.Objects.equals(code, "USDC"))
+        {
+            throw new NotSupported((this.id + " withdraw() only support USDC")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        this.checkAddress(address, null, null);
+        Long subaccountId = this.safeInteger(paramsWithdrawTag, "subaccountId");
+        if (java.util.Objects.equals(subaccountId, null))
+        {
+            throw new ArgumentsRequired((this.id + " withdraw requires subaccountId.")) ;
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> credentials = this.retrieveCredentials();
+        Map<String, Object> account = (this.fetchDydxAccount()).join();
+        Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+        Map<String, Object> payload = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("owner", this.getWalletAddress());
+        mapLiteral12.put("number", subaccountId);
+        payload.put("sender", mapLiteral12);
+        payload.put("recipient", address);
+        payload.put("assetId", 0);
+        payload.put("quantums", usd);
+        Map<String, Object> signingPayload = new HashMap<String, Object>() {{
+            put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
+            put( "value", payload );
+        }};
+        Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
+        String chainName = this.safeString(this.options, "chainName");
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, tag, chainName, account, null, txFee);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "tx", signedTx );
+        }};
+        // nodeRpcGetBroadcastTxAsync
+        Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseTransaction(data, currency);
 
     }
 
@@ -2637,22 +2706,24 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Object response = (this.fetchTransactionsHelper("fetchWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
-            List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
-            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        List<Object> response = (this.fetchTransactionsHelper("fetchWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
+        List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
+        return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2671,22 +2742,24 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Object response = (this.fetchTransactionsHelper("fetchDeposits", code, since, limit, this.omit(parameters, "methodName"))).join();
-            List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
-            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        List<Object> response = (this.fetchTransactionsHelper("fetchDeposits", code, since, limit, this.omit(parameters, "methodName"))).join();
+        List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
+        return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2705,69 +2778,73 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Object response = (this.fetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
-            List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
-            List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
-            List<Object> rows = (List<Object>) this.arrayConcat(withdrawals, deposits);
-            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        List<Object> response = (this.fetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
+        List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
+        List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
+        List<Object> rows = this.arrayConcat(withdrawals, deposits);
+        return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchTransactionsHelper(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchTransactionsHelperCore(methodName, code, since, limit, parameters));
+    }
+
+    private List<Object> fetchTransactionsHelperCore(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress((String) (methodName), (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), (String) (methodName), "subAccountNumber", "0");
-            String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
-            Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", userAddress );
-                put( "subaccountNumber", subAccountNumber );
-            }};
-            Map<String, Object> response = (this.indexerGetTransfers(this.extend(request, paramsSubAccountNumber))).join();
-            //
-            // {
-            //     "transfers": [
-            //         {
-            //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-            //             "sender": {
-            //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-            //                 "subaccountNumber": 0
-            //             },
-            //             "recipient": {
-            //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-            //                 "subaccountNumber": 1
-            //             },
-            //             "size": "0.000001",
-            //             "createdAt": "2025-07-29T09:43:02.105Z",
-            //             "createdAtHeight": "45116125",
-            //             "symbol": "USDC",
-            //             "type": "TRANSFER_OUT",
-            //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> transfers = this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
-            return transfers;
-        });
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress(methodName, parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
+        String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
+        Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", userAddress );
+            put( "subaccountNumber", subAccountNumber );
+        }};
+        Map<String, Object> response = (this.indexerGetTransfers(this.extend(request, paramsSubAccountNumber))).join();
+        //
+        // {
+        //     "transfers": [
+        //         {
+        //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //             "sender": {
+        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "recipient": {
+        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "subaccountNumber": 1
+        //             },
+        //             "size": "0.000001",
+        //             "createdAt": "2025-07-29T09:43:02.105Z",
+        //             "createdAtHeight": "45116125",
+        //             "symbol": "USDC",
+        //             "type": "TRANSFER_OUT",
+        //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> transfers = this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
+        return transfers;
 
     }
 
@@ -2782,76 +2859,78 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
 
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchAccounts", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", userAddress );
-            }};
-            Map<String, Object> response = (this.indexerGetAddressesAddress(this.extend(request, paramsPublicAddress))).join();
-            //
-            // {
-            //     "subaccounts": [
-            //         {
-            //             "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-            //             "subaccountNumber": 0,
-            //             "equity": "25346.73993597",
-            //             "freeCollateral": "24207.8530595294",
-            //             "openPerpetualPositions": {
-            //                 "BTC-USD": {
-            //                     "market": "BTC-USD",
-            //                     "status": "OPEN",
-            //                     "side": "SHORT",
-            //                     "size": "-0.491",
-            //                     "maxSize": "-0.009",
-            //                     "entryPrice": "118703.60811320754716981132",
-            //                     "exitPrice": "119655.95",
-            //                     "realizedPnl": "3075.17994830188679245283016",
-            //                     "unrealizedPnl": "1339.12776155490566037735812",
-            //                     "createdAt": "2025-07-14T07:53:55.631Z",
-            //                     "createdAtHeight": "44140908",
-            //                     "closedAt": null,
-            //                     "sumOpen": "0.53",
-            //                     "sumClose": "0.038",
-            //                     "netFunding": "3111.36894",
-            //                     "subaccountNumber": 0
-            //                 }
-            //             },
-            //             "assetPositions": {
-            //                 "USDC": {
-            //                     "size": "82291.083758",
-            //                     "symbol": "USDC",
-            //                     "side": "LONG",
-            //                     "assetId": "0",
-            //                     "subaccountNumber": 0
-            //                 }
-            //             },
-            //             "marginEnabled": true,
-            //             "updatedAtHeight": "45234659",
-            //             "latestProcessedBlockHeight": "45293477"
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> rows = this.safeList(response, "subaccounts", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < rows.size(); i++)
-            {
-                Object account = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                String accountId = this.safeString(account, "subaccountNumber");
-                ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", accountId );
-                    put( "type", null );
-                    put( "currency", null );
-                    put( "info", account );
-                    put( "code", null );
-                }});
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchAccounts", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", userAddress );
+        }};
+        Map<String, Object> response = (this.indexerGetAddressesAddress(this.extend(request, paramsPublicAddress))).join();
+        //
+        // {
+        //     "subaccounts": [
+        //         {
+        //             "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //             "subaccountNumber": 0,
+        //             "equity": "25346.73993597",
+        //             "freeCollateral": "24207.8530595294",
+        //             "openPerpetualPositions": {
+        //                 "BTC-USD": {
+        //                     "market": "BTC-USD",
+        //                     "status": "OPEN",
+        //                     "side": "SHORT",
+        //                     "size": "-0.491",
+        //                     "maxSize": "-0.009",
+        //                     "entryPrice": "118703.60811320754716981132",
+        //                     "exitPrice": "119655.95",
+        //                     "realizedPnl": "3075.17994830188679245283016",
+        //                     "unrealizedPnl": "1339.12776155490566037735812",
+        //                     "createdAt": "2025-07-14T07:53:55.631Z",
+        //                     "createdAtHeight": "44140908",
+        //                     "closedAt": null,
+        //                     "sumOpen": "0.53",
+        //                     "sumClose": "0.038",
+        //                     "netFunding": "3111.36894",
+        //                     "subaccountNumber": 0
+        //                 }
+        //             },
+        //             "assetPositions": {
+        //                 "USDC": {
+        //                     "size": "82291.083758",
+        //                     "symbol": "USDC",
+        //                     "side": "LONG",
+        //                     "assetId": "0",
+        //                     "subaccountNumber": 0
+        //                 }
+        //             },
+        //             "marginEnabled": true,
+        //             "updatedAtHeight": "45234659",
+        //             "latestProcessedBlockHeight": "45293477"
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> rows = this.safeList(response, "subaccounts", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < rows.size(); i++)
+        {
+            Object account = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+            String accountId = this.safeString(account, "subaccountNumber");
+            result.add(new HashMap<String, Object>() {{
+                put( "id", accountId );
+                put( "type", null );
+                put( "currency", null );
+                put( "info", account );
+                put( "code", null );
+            }});
+        }
+        return result;
 
     }
 
@@ -2865,87 +2944,89 @@ public class Dydx extends DydxApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-            Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            List<Object> subaccountNumberparamsSubaccountNumberVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0L);
-            Long subaccountNumber = (Long) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(0);
-            Map<String, Object> paramsSubaccountNumber = (Map<String, Object>) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", userAddress );
-                put( "subaccountNumber", subaccountNumber );
-            }};
-            Map<String, Object> response = (this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, paramsSubaccountNumber))).join();
-            //
-            // {
-            //     "subaccount": {
-            //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-            //         "subaccountNumber": 0,
-            //         "equity": "161451.040416029",
-            //         "freeCollateral": "152508.28819133578",
-            //         "openPerpetualPositions": {
-            //             "ETH-USD": {
-            //                 "market": "ETH-USD",
-            //                 "status": "OPEN",
-            //                 "side": "LONG",
-            //                 "size": "0.001",
-            //                 "maxSize": "0.002",
-            //                 "entryPrice": "3894.7",
-            //                 "exitPrice": "3864.5",
-            //                 "realizedPnl": "-0.034847",
-            //                 "unrealizedPnl": "-0.044675155",
-            //                 "createdAt": "2025-10-22T08:34:05.883Z",
-            //                 "createdAtHeight": "52228825",
-            //                 "closedAt": null,
-            //                 "sumOpen": "0.002",
-            //                 "sumClose": "0.001",
-            //                 "netFunding": "-0.004647",
-            //                 "subaccountNumber": 0
-            //             },
-            //             "BTC-USD": {
-            //                 "market": "BTC-USD",
-            //                 "status": "OPEN",
-            //                 "side": "SHORT",
-            //                 "size": "-4.1368",
-            //                 "maxSize": "-0.009",
-            //                 "entryPrice": "112196.87848803433219017636",
-            //                 "exitPrice": "113885.21872652924977050823",
-            //                 "realizedPnl": "-15180.426770788459736511679821",
-            //                 "unrealizedPnl": "17002.285719484425404321566048",
-            //                 "createdAt": "2025-07-14T07:53:55.631Z",
-            //                 "createdAtHeight": "44140908",
-            //                 "closedAt": null,
-            //                 "sumOpen": "5.3361",
-            //                 "sumClose": "1.1983",
-            //                 "netFunding": "-13157.288663",
-            //                 "subaccountNumber": 0
-            //             }
-            //         },
-            //         "assetPositions": {
-            //             "USDC": {
-            //                 "size": "608580.951601",
-            //                 "symbol": "USDC",
-            //                 "side": "LONG",
-            //                 "assetId": "0",
-            //                 "subaccountNumber": 0
-            //             }
-            //         },
-            //         "marginEnabled": true,
-            //         "updatedAtHeight": "52228833",
-            //         "latestProcessedBlockHeight": "52246761"
-            //     }
-            // }
-            //
-            Map<String, Object> data = this.safeDict(response, "subaccount", new HashMap<String, Object>() {{}});
-            return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchBalance", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        List<Object> subaccountNumberparamsSubaccountNumberVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0L);
+        Long subaccountNumber = (Long) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(0);
+        Map<String, Object> paramsSubaccountNumber = (Map<String, Object>) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", userAddress );
+            put( "subaccountNumber", subaccountNumber );
+        }};
+        Map<String, Object> response = (this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, paramsSubaccountNumber))).join();
+        //
+        // {
+        //     "subaccount": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0,
+        //         "equity": "161451.040416029",
+        //         "freeCollateral": "152508.28819133578",
+        //         "openPerpetualPositions": {
+        //             "ETH-USD": {
+        //                 "market": "ETH-USD",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.001",
+        //                 "maxSize": "0.002",
+        //                 "entryPrice": "3894.7",
+        //                 "exitPrice": "3864.5",
+        //                 "realizedPnl": "-0.034847",
+        //                 "unrealizedPnl": "-0.044675155",
+        //                 "createdAt": "2025-10-22T08:34:05.883Z",
+        //                 "createdAtHeight": "52228825",
+        //                 "closedAt": null,
+        //                 "sumOpen": "0.002",
+        //                 "sumClose": "0.001",
+        //                 "netFunding": "-0.004647",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "BTC-USD": {
+        //                 "market": "BTC-USD",
+        //                 "status": "OPEN",
+        //                 "side": "SHORT",
+        //                 "size": "-4.1368",
+        //                 "maxSize": "-0.009",
+        //                 "entryPrice": "112196.87848803433219017636",
+        //                 "exitPrice": "113885.21872652924977050823",
+        //                 "realizedPnl": "-15180.426770788459736511679821",
+        //                 "unrealizedPnl": "17002.285719484425404321566048",
+        //                 "createdAt": "2025-07-14T07:53:55.631Z",
+        //                 "createdAtHeight": "44140908",
+        //                 "closedAt": null,
+        //                 "sumOpen": "5.3361",
+        //                 "sumClose": "1.1983",
+        //                 "netFunding": "-13157.288663",
+        //                 "subaccountNumber": 0
+        //             }
+        //         },
+        //         "assetPositions": {
+        //             "USDC": {
+        //                 "size": "608580.951601",
+        //                 "symbol": "USDC",
+        //                 "side": "LONG",
+        //                 "assetId": "0",
+        //                 "subaccountNumber": 0
+        //             }
+        //         },
+        //         "marginEnabled": true,
+        //         "updatedAtHeight": "52228833",
+        //         "latestProcessedBlockHeight": "52246761"
+        //     }
+        // }
+        //
+        Map<String, Object> data = this.safeDict(response, "subaccount", new HashMap<String, Object>() {{}});
+        return this.parseBalance(data);
 
     }
 
@@ -2967,7 +3048,7 @@ public class Dydx extends DydxApi
         {
             throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
         }
-        return (this.milliseconds() - timeDifference);
+        return (long) ((this.milliseconds() - timeDifference));
     }
 
     public String getWalletAddress()
@@ -2989,7 +3070,7 @@ public class Dydx extends DydxApi
         throw new ArgumentsRequired((this.id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")) ;
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> section, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -3027,7 +3108,7 @@ public class Dydx extends DydxApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -3053,7 +3134,7 @@ public class Dydx extends DydxApi
             {
                 String feedback = ((this.id + " ") + this.json(response));
                 this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }
@@ -3066,6 +3147,8 @@ public class Dydx extends DydxApi
         // rewrite testnet parameters
         this.options.put("chainName", "dydx-testnet-4");
         this.options.put("chainId", 11155111);
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("feeDenom")), "CHAINTOKEN_DENOM", "adv4tnt");
+        Map<String, Object> feeDenomDict = this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
+        feeDenomDict.put("CHAINTOKEN_DENOM", "adv4tnt");
+        this.options.put("feeDenom", feeDenomDict);
     }
 }

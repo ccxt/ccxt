@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -23,28 +24,28 @@ public class TestBalance extends BaseTest {
             put( "total", new HashMap<String, Object>() {{}} );
             put( "info", new HashMap<String, Object>() {{}} );
         }};
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format);
-        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
+        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         //
-        List<Object> codesTotal = Helpers.objectKeys(((Map<String, Object>)entry).get("total"));
-        List<Object> codesFree = Helpers.objectKeys(((Map<String, Object>)entry).get("free"));
-        List<Object> codesUsed = Helpers.objectKeys(((Map<String, Object>)entry).get("used"));
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, (String) (method), codesTotal, "total");
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, (String) (method), codesFree, "free");
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, (String) (method), codesUsed, "used");
+        List<Object> codesTotal = TestHelpers.objectKeys(((Map<String, Object>)entry).get("total"));
+        List<Object> codesFree = TestHelpers.objectKeys(((Map<String, Object>)entry).get("free"));
+        List<Object> codesUsed = TestHelpers.objectKeys(((Map<String, Object>)entry).get("used"));
+        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
+        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
+        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
         Object allCodes = exchange.arrayConcat(codesTotal, codesFree);
         allCodes = exchange.arrayConcat(allCodes, codesUsed);
-        Object codesLength = codesTotal.size();
-        Object freeLength = codesFree.size();
-        Object usedLength = codesUsed.size();
+        Integer codesLength = codesTotal.size();
+        Integer freeLength = codesFree.size();
+        Integer usedLength = codesUsed.size();
         Assert((java.util.Objects.equals(codesLength, freeLength)) || (java.util.Objects.equals(codesLength, usedLength)), ("free and total and used codes have different lengths" + logText));
         for (var i = 0; i < ((List<?>)allCodes).size(); i++)
         {
             Object code = (allCodes == null || i < 0 || i >= ((List<?>)allCodes).size() ? null : ((List<?>)allCodes).get(i));
             // TestSharedMethods.AssertCurrencyCode (exchange, skippedProperties, method, entry, code);
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("total"), code), ((("code " + code) + " not in total") + logText));
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("free"), code), ((("code " + code) + " not in free") + logText));
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("used"), code), ((("code " + code) + " not in used") + logText));
+            Assert(TestHelpers.inOp(((Map<String, Object>)entry).get("total"), code), ((TestHelpers.add("code ", code) + " not in total") + logText));
+            Assert(TestHelpers.inOp(((Map<String, Object>)entry).get("free"), code), ((TestHelpers.add("code ", code) + " not in free") + logText));
+            Assert(TestHelpers.inOp(((Map<String, Object>)entry).get("used"), code), ((TestHelpers.add("code ", code) + " not in used") + logText));
             String total = exchange.safeString(((Map<String, Object>)entry).get("total"), code);
             String free = exchange.safeString(((Map<String, Object>)entry).get("free"), code);
             String used = exchange.safeString(((Map<String, Object>)entry).get("used"), code);

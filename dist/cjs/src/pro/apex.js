@@ -166,7 +166,7 @@ class apex extends apex$1["default"] {
         const id = this.safeStringN(trade, ['i', 'id', 'v']);
         const marketId = this.safeString2(trade, 's', 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerN(trade, ['t', 'T', 'createdAt']);
         const side = this.safeStringLower2(trade, 'S', 'side');
         const price = this.safeString2(trade, 'p', 'price');
@@ -243,7 +243,8 @@ class apex extends apex$1["default"] {
         const client = this.client(url);
         const newTopics = [];
         for (let i = 0; i < topics.length; i++) {
-            if (!(messageHashes[i] in client.subscriptions)) {
+            const messageHash = this.safeString(messageHashes, i, '');
+            if (!(messageHash in client.subscriptions)) {
                 newTopics.push(topics[i]);
             }
         }
@@ -434,8 +435,8 @@ class apex extends apex$1["default"] {
         const topic = this.safeString(message, 'topic', '');
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeDict(message, 'data', {});
-        let symbol = undefined;
         let parsed = this.parseTicker(data);
+        let symbol = this.safeString(parsed, 'symbol');
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker(data);
             symbol = this.safeString(parsed, 'symbol');
@@ -450,6 +451,9 @@ class apex extends apex$1["default"] {
             const rawTicker = this.safeDict(ticker, 'info', {});
             const merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
+        }
+        else {
+            symbol = undefined;
         }
         const timestamp = this.safeIntegerProduct(message, 'ts', 0.001);
         parsed['timestamp'] = timestamp;
@@ -473,7 +477,8 @@ class apex extends apex$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -635,13 +640,7 @@ class apex extends apex$1["default"] {
             await this.loadMarkets();
         }
         let messageHash = '';
-        let symbolsNormalized2 = undefined;
-        if (this.isEmpty(symbols)) {
-            symbolsNormalized2 = symbols;
-        }
-        else {
-            symbolsNormalized2 = this.marketSymbols(symbols);
-        }
+        const symbolsNormalized2 = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
             messageHash = '::' + symbolsNormalized2.join(',');
         }
@@ -718,9 +717,8 @@ class apex extends apex$1["default"] {
         const trades = this.myTrades;
         const symbols = {};
         for (let i = 0; i < lists.length; i++) {
-            const rawTrade = this.safeDict(lists, i, {});
-            const parsed = this.parseWsTrade(rawTrade);
-            const symbol = parsed['symbol'];
+            const parsed = this.parseWsTrade(this.safeDict(lists, i, {}));
+            const symbol = this.safeString(parsed, 'symbol');
             symbols[symbol] = true;
             trades.append(parsed);
         }
@@ -772,7 +770,7 @@ class apex extends apex$1["default"] {
         const symbols = {};
         for (let i = 0; i < lists.length; i++) {
             const parsed = this.parseOrder(this.safeDict(lists, i, {}));
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             symbols[symbol] = true;
             orders.append(parsed);
         }
@@ -797,17 +795,11 @@ class apex extends apex$1["default"] {
     }
     async loadPositionsSnapshot(client, messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        const fetchFunctions = [
-            this.fetchPositions(),
-        ];
-        const promises = await Promise.all(fetchFunctions);
+        const positions = await this.fetchPositions();
         this.positions = new Cache.ArrayCacheBySymbolBySide();
         const cache = this.positions;
-        for (let i = 0; i < promises.length; i++) {
-            const positions = promises[i];
-            for (let ii = 0; ii < positions.length; ii++) {
-                cache.append(positions[ii]);
-            }
+        for (let i = 0; i < positions.length; i++) {
+            cache.append(positions[i]);
         }
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
@@ -845,8 +837,7 @@ class apex extends apex$1["default"] {
         const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < lists.length; i++) {
-            const rawPosition = this.safeDict(lists, i, {});
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(this.safeDict(lists, i, {}));
             const side = this.safeString(position, 'side');
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -893,7 +884,7 @@ class apex extends apex$1["default"] {
             // auth sign
             const message = {
                 'op': 'login',
-                'args': [JSON.stringify({
+                'args': [this.json({
                         'type': 'login',
                         'topics': ['ws_zk_accounts_v3'],
                         'httpMethod': http_method,

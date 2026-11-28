@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dictionary, Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Endpoint, Order } from './base/types.js';
+import type { Dictionary, Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Endpoint, Order, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -295,7 +295,7 @@ export default class coinspot extends Exchange {
         const result: Dict = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
-            const rows: Dict[] = this.toArray (balances);
+            const rows: Dict[] = this.safeList2 (response, 'balance', 'balances', []);
             const numRows = rows.length;
             for (let i = 0; i < numRows; i++) {
                 const currencies: Dict = this.safeDict (rows, i, {});
@@ -312,7 +312,8 @@ export default class coinspot extends Exchange {
                 }
             }
         } else {
-            const currencyIdsMap = Object.keys (balances);
+            const balancesDict = this.safeDict2 (response, 'balance', 'balances', {});
+            const currencyIdsMap = Object.keys (balancesDict);
             for (let i = 0; i < currencyIdsMap.length; i++) {
                 const currencyId = currencyIdsMap[i];
                 const code = this.safeCurrencyCode (currencyId);
@@ -494,9 +495,8 @@ export default class coinspot extends Exchange {
             const id = ids[i];
             const market = this.safeMarket (id);
             if (this.safeBool (market, 'spot', false)) {
-                const symbol = market['symbol'];
-                const ticker = prices[id];
-                result[symbol] = this.parseTicker (ticker, market);
+                const symbol = this.safeString (market, 'symbol', '');
+                result[symbol] = this.parseTicker (this.safeDict (prices, id, {}), market);
             }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
@@ -744,7 +744,7 @@ export default class coinspot extends Exchange {
         });
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

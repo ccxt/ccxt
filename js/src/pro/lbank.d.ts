@@ -160,7 +160,7 @@ export default class lbank extends lbankRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handlePing(client: Client, message: Dict): Promise<void>;
     handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<Str>;

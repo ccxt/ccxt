@@ -322,22 +322,21 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
         string? state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit", "state"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit", "state"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawMarkets = new List<object>() {};
         for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            string? q = ((string)(queries != null && i < queries.Count ? queries[i] : null));
+            string? q = ((string)queries[i]);
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "state", state },
                 { "limit", limit },
             }, rest));
-            bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object found = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            for (int j = 0; j < getArrayLength(found); j++)
+            List<object> found = this.safeList(response, "data", new List<object>() {});
+            for (int j = 0; j < found.Count; j++)
             {
-                object raw = getValue(found, j);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                 string networkId = this.safeString(raw, "networkId", "");
                 string? marketId = this.safeString(raw, "id", "");
                 string key = ((networkId + ":") + marketId);
@@ -371,12 +370,12 @@ public partial class myriad : PredictionExchange
         string? state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
         // include both AMM and order-book markets so order-book trading methods can resolve their markets
         string? tradingModel = this.safeString2(parameters, "tradingModel", "trading_model", this.safeString(this.options, "defaultTradingModel", "all"));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
         List<object> allRawMarkets = new List<object>() {};
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
         int collected = 0;
-        object page = 1;
+        Int64 page = 1;
         while (true)
         {
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
@@ -385,23 +384,22 @@ public partial class myriad : PredictionExchange
                 { "page", page },
                 { "trading_model", tradingModel },
             }, rest));
-            bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object rawMarkets = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            int rawMarketsLength = getArrayLength(rawMarkets);
+            List<object> rawMarkets = this.safeList(response, "data", new List<object>() {});
+            int rawMarketsLength = rawMarkets.Count;
             if ((rawMarketsLength == 0))
             {
                 break;
             }
             for (int i = 0; i < rawMarketsLength; i++)
             {
-                if ((collected < maxMarkets))
+                if (collected < maxMarkets)
                 {
-                    allRawMarkets.Add(getValue(rawMarkets, i));
+                    allRawMarkets.Add((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
                     collected = (allRawMarkets?.Count ?? 0);
                 }
             }
             page = this.sum(page, 1);
-            if ((rawMarketsLength < limit) || (maxMarkets == null || collected >= maxMarkets))
+            if (rawMarketsLength < limit.GetValueOrDefault() || (maxMarkets == null || collected >= maxMarkets))
             {
                 break;
             }
@@ -424,7 +422,7 @@ public partial class myriad : PredictionExchange
         if (id.IndexOf(":", StringComparison.Ordinal) < 0)
         {
             Dictionary<string, object> rawQuestion = await this.FetchRawQuestionById(id, parameters);
-            Dictionary<string, object> orderBookEvent = this.parseEvent(rawQuestion);
+            Dictionary<string, object> orderBookEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, rawQuestion));
             this.indexEventOutcomes(orderBookEvent);
             return ccxt.BaseExchange.ToPredictionEvent(orderBookEvent);
         }
@@ -525,21 +523,20 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawQuestions = new List<object>() {};
         for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            string? q = ((string)(queries != null && i < queries.Count ? queries[i] : null));
+            string? q = ((string)queries[i]);
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "limit", limit },
             }, rest));
-            bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object found = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            for (int j = 0; j < getArrayLength(found); j++)
+            List<object> found = this.safeList(response, "data", new List<object>() {});
+            for (int j = 0; j < found.Count; j++)
             {
-                object raw = getValue(found, j);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                 string? questionId = this.safeString(raw, "id");
                 if (((questionId != null)) && !(((questionId != null) && seen.ContainsKey(questionId))))
                 {
@@ -566,11 +563,11 @@ public partial class myriad : PredictionExchange
         Int64? limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
         Int64? maxQuestions = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchEventsLimit", 1000));
         string? state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
         List<object> allRawQuestions = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         int collected = 0;
-        object page = 1;
+        Int64 page = 1;
         while (true)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -582,16 +579,15 @@ public partial class myriad : PredictionExchange
                 request["state"] = state;
             }
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object rawQuestions = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            int rawQuestionsLength = getArrayLength(rawQuestions);
+            List<object> rawQuestions = this.safeList(response, "data", new List<object>() {});
+            int rawQuestionsLength = rawQuestions.Count;
             if ((rawQuestionsLength == 0))
             {
                 break;
             }
             for (int i = 0; i < rawQuestionsLength; i++)
             {
-                object rawQuestion = getValue(rawQuestions, i);
+                IDictionary<string, object> rawQuestion = ((IDictionary<string, object>)(rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null));
                 string? questionId = this.safeString(rawQuestion, "id");
                 if (((questionId != null)) && (((questionId != null) && seen.ContainsKey(questionId))))
                 {
@@ -601,14 +597,14 @@ public partial class myriad : PredictionExchange
                 {
                     seen[(string)questionId] = true;
                 }
-                if ((collected < maxQuestions))
+                if (collected < maxQuestions)
                 {
                     allRawQuestions.Add(rawQuestion);
                     collected = (allRawQuestions?.Count ?? 0);
                 }
             }
             page = this.sum(page, 1);
-            if (((rawQuestionsLength < limit)) || ((maxQuestions == null || collected >= maxQuestions)))
+            if ((rawQuestionsLength < limit.GetValueOrDefault()) || ((maxQuestions == null || collected >= maxQuestions)))
             {
                 break;
             }
@@ -687,7 +683,7 @@ public partial class myriad : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> position = this.parsePredictionPosition(data[i]);
+            Dictionary<string, object> position = this.parsePredictionPosition(this.safeDict(data, i, new Dictionary<string, object>() {}));
             if (((outcomes == null)) || this.inArray((position != null && position.ContainsKey("outcome") ? position["outcome"] : null), outcomes))
             {
                 result.Add(position);
@@ -705,7 +701,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] not used by myriad
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketSlug = this.safeString(position, "marketSlug", "");
         string? outcomeTitle = this.safeString(position, "outcomeTitle", "");
@@ -752,7 +748,7 @@ public partial class myriad : PredictionExchange
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string? side, double amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(string outcome, string side, double? amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -776,7 +772,7 @@ public partial class myriad : PredictionExchange
         {
             request["shares"] = amount;
         }
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"slippage"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"slippage"});
         Dictionary<string, object> response = await this.myriadPublicPostMarketsQuote(this.extend(request, rest));
         //
         //     {
@@ -844,7 +840,7 @@ public partial class myriad : PredictionExchange
         };
     }
 
-    public override string? signEvmTransaction(IDictionary<string, object> tx, object privateKey)
+    public override string? signEvmTransaction(IDictionary<string, object> tx, string? privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -854,26 +850,18 @@ public partial class myriad : PredictionExchange
         string payload = ("02" + this.rlpEncodeList(fields));
         string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
-        string? rHex = this.safeString(signature, "r");
-        string? sHex = this.safeString(signature, "s");
-        if ((rHex == null))
+        string? rHexRaw = this.safeString(signature, "r", "");
+        if (rHexRaw == "")
         {
             throw new ExchangeError ((this.id + " signEvmTransaction() missing rHex")) ;
         }
-        int rHexLength = rHex.Length;
-        if (((Int64)rHexLength % 2L != 0))
-        {
-            rHex = ("0" + rHex);
-        }
-        if ((sHex == null))
+        string? sHexRaw = this.safeString(signature, "s", "");
+        if (sHexRaw == "")
         {
             throw new ExchangeError ((this.id + " signEvmTransaction() missing sHex")) ;
         }
-        int sHexLength = sHex.Length;
-        if (((Int64)sHexLength % 2L != 0))
-        {
-            sHex = ("0" + sHex);
-        }
+        string? rHex = this.padHexToEven(rHexRaw);
+        string? sHex = this.padHexToEven(sHexRaw);
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = new List<object>() {};
         for (int i = 0; i < (fields?.Count ?? 0); i++)
@@ -925,7 +913,7 @@ public partial class myriad : PredictionExchange
         // approve(spender, maxUint256)
         string maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
         string approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + maxUint);
-        object approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
+        string? approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
         await this.waitForTransactionReceipt(rpcUrl, approveHash);
         return ((Dictionary<string, object>)((object)(null)));
     }
@@ -1203,7 +1191,7 @@ public partial class myriad : PredictionExchange
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
@@ -1255,8 +1243,11 @@ public partial class myriad : PredictionExchange
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         bool? skipWaitForReceipt = this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
-        object txHash = txHashParam;
-        if ((txHash == null))
+        string? txHash = null;
+        if ((txHashParam != null))
+        {
+            txHash = txHashParam;
+        } else
         {
             txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit);
         }
@@ -1316,8 +1307,8 @@ public partial class myriad : PredictionExchange
         byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
         string digest = ((string)this.hash(encoded, keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, null);
-        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? rRaw = this.safeString(signature, "r", "");
+        string? sRaw = this.safeString(signature, "s", "");
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object v = this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null));
@@ -1428,7 +1419,7 @@ public partial class myriad : PredictionExchange
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    public virtual object getOrderResponseFromParams(string? id, object parameters = null)
+    public virtual object getOrderResponseFromParams(string? id, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> orderResponse = this.safeDict(parameters, "orderResponse");
@@ -1495,7 +1486,7 @@ public partial class myriad : PredictionExchange
         }
         if (dotIndex > -1)
         {
-            return ((string?)((object)(((scaled == null) ? null : scaled.Substring(0, Math.Max(Math.Min((dotIndex < 0 ? scaled.Length + (dotIndex) : dotIndex), scaled.Length), 0))))));
+            return ((scaled == null) ? null : scaled.Substring(0, Math.Max(Math.Min((dotIndex < 0 ? scaled.Length + (dotIndex) : dotIndex), scaled.Length), 0)));
         }
         return scaled;
     }
@@ -1514,7 +1505,7 @@ public partial class myriad : PredictionExchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> inner = this.safeDict(order, "order", new Dictionary<string, object>() {});
         string? orderHash = this.safeString2(order, "orderHash", "hash");
@@ -1544,7 +1535,7 @@ public partial class myriad : PredictionExchange
         {
             outcome = this.safeString(market, "outcome");
         }
-        object outcomeObj = market;
+        IDictionary<string, object> outcomeObj = market;
         if ((outcome == null))
         {
             // the REST order has no top-level networkId; order book lives on the default network
@@ -1676,8 +1667,7 @@ public partial class myriad : PredictionExchange
         {
             return ccxt.BaseExchange.ToPredictionOrderList(new List<object>() {});
         }
-        string? traderParam = this.safeString2(parameters, "trader", "address");
-        string? trader = ((traderParam != null)) ? traderParam : this.walletAddressOrUndefined();
+        string? trader = this.safeString2(parameters, "trader", "address", this.walletAddressOrUndefined());
         if ((trader == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
@@ -1705,7 +1695,7 @@ public partial class myriad : PredictionExchange
         {
             request["limit"] = limit;
         }
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"trader", "address", "status"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"trader", "address", "status"});
         Dictionary<string, object> response = await this.myriadPublicGetUsersAddressEvents(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1910,7 +1900,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrders() requires a privateKey to sign the cancellations")) ;
         }
-        object paramsForLookup = parameters;
+        IDictionary<string, object> paramsForLookup = parameters;
         string? networkIdParam = this.safeString2(parameters, "networkId", "network_id");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"});
         int idsLength = ids?.Count ?? 0;
@@ -2206,7 +2196,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true));
     }
 
-    public virtual object orderToTrade(IDictionary<string, object> order)
+    public virtual Dictionary<string, object> orderToTrade(IDictionary<string, object> order)
     {
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? orderType = this.safeString(order, "type");
@@ -2311,7 +2301,7 @@ public partial class myriad : PredictionExchange
         return result;
     }
 
-    public virtual string? fromWeiWithDecimals(object hexValue, object decimals)
+    public virtual string? fromWeiWithDecimals(object hexValue, Int64? decimals)
     {
         string? decimalString = this.hexToDecimalString(hexValue);
         if ((decimalString == null))
@@ -2324,14 +2314,14 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((this.id + " fromWeiWithDecimals() missing decimals")) ;
         }
         Int64? decimalsCount = this.parseToInt(decimals);
-        for (int i = 0; (i < decimalsCount); i++)
+        for (int i = 0; i < decimalsCount; i++)
         {
             scale = (scale + "0");
         }
         return ((string?)((object)(Precise.stringDiv(decimalString, scale))));
     }
 
-    public virtual object parseTradeTx(object txHash, object quote, IDictionary<string, object> market, string side)
+    public virtual object parseTradeTx(string? txHash, object quote, IDictionary<string, object> market, string side)
     {
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", txHash },
@@ -2368,9 +2358,9 @@ public partial class myriad : PredictionExchange
         string? state = this.safeString(raw, "state", "open");
         string? endDate = this.safeString(raw, "expiresAt");
         return new Dictionary<string, object>() {
-            { "id", (market != null && market.ContainsKey("id") ? market["id"] : null) },
+            { "id", this.safeString(market, "id", "") },
             { "slug", slug },
-            { "event", (market != null && market.ContainsKey("market") ? market["market"] : null) },
+            { "event", this.safeString(market, "market", "") },
             { "title", this.safeString2(raw, "title", "shortName") },
             { "description", this.safeString(raw, "description") },
             { "markets", new List<object>() {market} },
@@ -2496,15 +2486,17 @@ public partial class myriad : PredictionExchange
         int outcomesLength = (outcomes?.Count ?? 0);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         string? marketResolvedOutcome = resolvedOutcome;
+        string compositeId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
+        string compositeBaseId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
-            { "id", (networkId == null ? null : networkId + ":" + marketId) },
+            { "id", compositeId },
             { "market", marketSymbol },
             { "marketType", (outcomesLength > 2) ? "categorical" : "binary" },
             { "executionModel", marketExecutionModel },
             { "base", slug },
             { "quote", quoteCurrency },
             { "settle", null },
-            { "baseId", (networkId == null ? null : networkId + ":" + marketId) },
+            { "baseId", compositeBaseId },
             { "quoteId", quoteCurrency },
             { "settleId", null },
             { "type", "prediction" },
@@ -2521,7 +2513,7 @@ public partial class myriad : PredictionExchange
             { "linear", null },
             { "inverse", null },
             { "contractSize", null },
-            { "expiry", ((endDate != null) && endDate != "") ? this.parse8601(endDate) : null },
+            { "expiry", this.parse8601(endDate) },
             { "expiryDatetime", endDate },
             { "strike", null },
             { "optionType", null },
@@ -2702,7 +2694,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2777,7 +2769,7 @@ public partial class myriad : PredictionExchange
         //         "externalSources": []
         //     }
         //
-        string? outcomeId = ((market != null) && (market != null)) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
+        string? outcomeId = this.safeString(this.safeDict(market, "info"), "outcomeId");
         List<object> outcomes = this.safeList(raw, "outcomes", new List<object>() {});
         double? price = null;
         double? change = null;
@@ -2787,7 +2779,8 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < outcomes.Count; i++)
         {
             IDictionary<string, object> o = this.safeDict(outcomes, i);
-            if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
+            string? entryOutcomeId = this.safeString(o, "outcomeId", this.safeString(o, "id"));
+            if ((entryOutcomeId == outcomeId))
             {
                 double? priceValue = this.safeNumber(o, "price");
                 double? changeValue = this.safeNumber(o, "priceChange24h");
@@ -2795,11 +2788,11 @@ public partial class myriad : PredictionExchange
                 change = changeValue;
                 if (((priceValue != null)) && ((changeValue != null)))
                 {
-                    object previousCloseValue = (priceValue - changeValue);
+                    double? previousCloseValue = (priceValue - changeValue);
                     previousClose = previousCloseValue;
-                    if (!isEqual(previousCloseValue, 0))
+                    if ((priceValue != changeValue))
                     {
-                        percentage = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(divide(changeValue, previousCloseValue), 100);
+                        percentage = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((changeValue / previousCloseValue), 100);
                     }
                 }
                 break;
@@ -2951,16 +2944,17 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < outcomes.Count; i++)
         {
             IDictionary<string, object> o = this.safeDict(outcomes, i);
-            if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
+            string? entryOutcomeId = this.safeString(o, "outcomeId", this.safeString(o, "id"));
+            if ((entryOutcomeId == outcomeId))
             {
                 double? price = this.safeNumber(o, "price");
                 if ((price != null))
                 {
-                    if ((price > 0.001))
+                    if (price > 0.001)
                     {
                         bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
                     }
-                    if (((price == null || 0.999 > price)))
+                    if (0.999 > price.Value)
                     {
                         ask = this.parseNumber(Precise.stringAdd(this.numberToString(price), "0.001"));
                     }
@@ -3000,7 +2994,7 @@ public partial class myriad : PredictionExchange
      * @param {string} outcome the unified outcome of the order book
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public virtual object parseWeiOrderBook(IDictionary<string, object> response, object outcome)
+    public virtual object parseWeiOrderBook(IDictionary<string, object> response, string? outcome)
     {
         IList<object> rawBids = (IList<object>)(this.safeList(response, "bids", new List<object>() {}));
         IList<object> rawAsks = (IList<object>)(this.safeList(response, "asks", new List<object>() {}));
@@ -3097,6 +3091,7 @@ public partial class myriad : PredictionExchange
         //
         List<object> outcomes = this.safeList(response, "outcomes", new List<object>() {});
         object selectedOutcome = null;
+        bool outcomeSelected = false;
         for (int i = 0; i < outcomes.Count; i++)
         {
             object oc = outcomes[i];
@@ -3107,9 +3102,10 @@ public partial class myriad : PredictionExchange
                 selectedOutcome = oc;
                 break;
             }
-            if (((selectedOutcome == null)) && ((outcomeTitle != null)) && ((currentTitle == outcomeTitle)))
+            if ((!outcomeSelected) && ((outcomeTitle != null)) && ((currentTitle == outcomeTitle)))
             {
                 selectedOutcome = oc;
+                outcomeSelected = true;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
@@ -3143,7 +3139,7 @@ public partial class myriad : PredictionExchange
         List<object> usablePoints = new List<object>() {};
         for (int i = 0; i < (points?.Count ?? 0); i++)
         {
-            object point = points[i];
+            IDictionary<string, object> point = ((IDictionary<string, object>)points[i]);
             double? pointOpen = this.safeNumber(point, "open");
             double? pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value"));
             Int64? pointTs = this.safeInteger(point, "timestamp");
@@ -3164,7 +3160,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3203,7 +3199,7 @@ public partial class myriad : PredictionExchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // resolve the uncached outcomes first, then group by parent market to fetch each market only once
-        await this.loadOutcomes(this.toArray(outcomes));
+        await this.loadOutcomes(outcomes);
         Dictionary<string, object> outcomesByMarket = new Dictionary<string, object>() {};
         List<object> marketKeys = new List<object>() {};
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
@@ -3239,12 +3235,12 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
             string? key = ((string)marketKeys[i]);
-            object response = (responses != null && i < responses.Count ? responses[i] : null);
+            IDictionary<string, object> response = this.safeDict(responses, i, new Dictionary<string, object>() {});
             IList<object> grouped = (IList<object>)((key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null));
             for (int j = 0; j < (grouped?.Count ?? 0); j++)
             {
                 object outcomeObj = grouped[j];
-                Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
+                Dictionary<string, object> ticker = this.parsePredictionTicker(response,((IDictionary<string, object>)outcomeObj));
                 string? symbolKey = this.safeString(ticker, "outcome");
                 if ((symbolKey != null))
                 {
@@ -3305,10 +3301,9 @@ public partial class myriad : PredictionExchange
         //         ]
         //     }
         //
-        bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object rows = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
         List<object> trades = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < rows.Count; i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i);
             string? action = this.safeString(row, "action");
@@ -3335,7 +3330,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeTimestamp(trade, "timestamp");
         string? amountStr = this.safeString(trade, "shares");
@@ -3403,10 +3398,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154867_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154867_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154867_0, hxauTask154867_1);
-            List<object> responses = new List<object> { hxauTask154867_0.Result, hxauTask154867_1.Result };
+            var hxauTask154811_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154811_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154811_0, hxauTask154811_1);
+            List<object> responses = new List<object> { hxauTask154811_0.Result, hxauTask154811_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3427,10 +3422,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155845_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155845_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155845_0, hxauTask155845_1);
-                List<object> listResponses = new List<object> { hxauTask155845_0.Result, hxauTask155845_1.Result };
+                var hxauTask155789_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155789_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155789_0, hxauTask155789_1);
+                List<object> listResponses = new List<object> { hxauTask155789_0.Result, hxauTask155789_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3439,15 +3434,15 @@ public partial class myriad : PredictionExchange
                 for (int i = 0; i < requestedTagsLength; i++)
                 {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    string? tagSlug = ((string)(requestedTags != null && i < requestedTags.Count ? requestedTags[i] : null));
+                    string? tagSlug = this.safeString(requestedTags, i, "");
                     tagQueries.Add(tagSlug.Replace("-", (string)" "));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156628_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156628_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156628_0, hxauTask156628_1);
-                List<object> responses = new List<object> { hxauTask156628_0.Result, hxauTask156628_1.Result };
+                var hxauTask156602_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156602_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156602_0, hxauTask156602_1);
+                List<object> responses = new List<object> { hxauTask156602_0.Result, hxauTask156602_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
@@ -3461,8 +3456,7 @@ public partial class myriad : PredictionExchange
         int rawQuestionsLength = (rawQuestions?.Count ?? 0);
         for (int i = 0; i < rawQuestionsLength; i++)
         {
-            object rawQuestion = (rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null);
-            Dictionary<string, object> ev = this.parseEvent(rawQuestion);
+            Dictionary<string, object> ev = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null)));
             List<object> evMarkets = this.safeList(ev, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
             List<object> filteredMarkets = new List<object>() {};
@@ -3526,14 +3520,14 @@ public partial class myriad : PredictionExchange
      * @param {object} rawEvent the raw myriad question object
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object rawEvent)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> rawEvent)
     {
         string? questionSlug = this.safeString(rawEvent, "slug", this.safeString(rawEvent, "id"));
         List<object> rawMarkets = this.safeList(rawEvent, "markets", new List<object>() {});
         List<object> marketsList = new List<object>() {};
         for (int i = 0; i < rawMarkets.Count; i++)
         {
-            object rawMarket = rawMarkets[i];
+            IDictionary<string, object> rawMarket = ((IDictionary<string, object>)rawMarkets[i]);
             marketsList.Add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         string? endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));
@@ -3562,19 +3556,20 @@ public partial class myriad : PredictionExchange
         })))));
     }
 
-    public virtual Int64 requestId(object url)
+    public virtual Int64 requestId(string? url)
     {
         object existing = this.safeValue(this.options, "requestId");
         if ((existing == null))
         {
             this.options["requestId"] = this.createSafeDictionary();
         }
-        object options = (this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         if ((url != null))
         {
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+            options[(string)url] = newValue;
+            this.options["requestId"] = options;
         }
         return newValue;
     }
@@ -3583,19 +3578,19 @@ public partial class myriad : PredictionExchange
     {
         if ((wei == null))
         {
-            return ((double?)((object)(null)));
+            return null;
         }
         return ((double?)((object)(this.parseNumber(Precise.stringDiv(wei, "1000000000000000000")))));
     }
 
-    public virtual string? marketOutcomeToSymbol(object networkId, string? marketId, string? outcomeId)
+    public virtual string? marketOutcomeToSymbol(string? networkId, string? marketId, string? outcomeId)
     {
         // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
         if (((networkId == null)) || ((marketId == null)) || ((outcomeId == null)))
         {
             return null;
         }
-        string? ocId = ((string)(add(add(add(add(networkId, ":"), marketId), "/"), outcomeId)));
+        string ocId = ((((networkId + ":") + marketId) + "/") + outcomeId);
         IDictionary<string, object> outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
         return this.safeString(outcomeObj, "outcome");
     }
@@ -3635,7 +3630,7 @@ public partial class myriad : PredictionExchange
         await client.send("{}");
     }
 
-    public async virtual Task<object> subscribeMyriadChannel(string? messageHash, string? channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribeMyriadChannel<T>(string? messageHash, string? channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -3648,17 +3643,17 @@ public partial class myriad : PredictionExchange
             } },
             { "id", requestId },
         };
-        return await this.watch(url, messageHash, subscribeMsg, channel);
+        return await this.watch<T>(url, messageHash, subscribeMsg, channel);
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        List<object> lines = ((string)message).Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
+        List<object> lines = message.Split(new [] {"\n"}, StringSplitOptions.None).ToList<object>();
         int linesLength = lines.Count;
         for (int i = 0; i < linesLength; i++)
         {
             string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
-            if (line.Length > 0)
+            if (line != "")
             {
                 object parsed = JsonHelper.Deserialize(line);
                 this.handleCentrifugoFrame(client, parsed);
@@ -3666,7 +3661,7 @@ public partial class myriad : PredictionExchange
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
@@ -3679,7 +3674,7 @@ public partial class myriad : PredictionExchange
         int keysLength = keys.Count;
         if ((keysLength == 0))
         {
-            this.spawn(this.pong, new object[] { client, msg});
+            this.spawn(this.pong, new object[] { client});
             return;
         }
         IDictionary<string, object> connectReply = this.safeDict(msg, "connect");
@@ -3773,7 +3768,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task seedOrderBook(string? outcome, string? sym, Int64? limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
-        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome,ccxt.BaseExchange.ToInt64Arg(limit)));
+        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome, limit));
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;
@@ -3840,8 +3835,8 @@ public partial class myriad : PredictionExchange
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = ("trades::" + sym);
-        object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     /**
@@ -3867,11 +3862,11 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? networkId = this.safeString(info, "networkId", "");
         string? marketId = this.safeString(info, "marketId", "");
-        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeString(outcomeObj, "outcome");
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = "myTrades";
-        object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(this.toArray(trades), "outcome", sym, since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true));
     }
 
     public virtual string? walletAddressOrUndefined()
@@ -3953,7 +3948,7 @@ public partial class myriad : PredictionExchange
             int makersLength = makers.Count;
             for (int i = 0; i < makersLength; i++)
             {
-                object maker = (makers != null && i < makers.Count ? makers[i] : null);
+                IDictionary<string, object> maker = ((IDictionary<string, object>)(makers != null && i < makers.Count ? makers[i] : null));
                 string? makerTrader = this.safeStringLower(maker, "trader");
                 if ((makerTrader == myWallet))
                 {
@@ -4022,7 +4017,7 @@ public partial class myriad : PredictionExchange
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string channel = ((("prices:" + networkId) + ":") + marketId);
         string messageHash = ("ticker::" + sym);
-        return ccxt.BaseExchange.ToTicker(await this.subscribeMyriadChannel(messageHash, channel, parameters));
+        return ccxt.BaseExchange.ToTicker(await this.subscribeMyriadChannel<object>(messageHash, channel, parameters));
     }
 
     /**
@@ -4034,28 +4029,28 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes == null))
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        int symbolsLength = getArrayLength(outcomes);
+        int symbolsLength = outcomes?.Count ?? 0;
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
-        await this.loadOutcomes(this.toArray(outcomes));
+        await this.loadOutcomes(outcomes);
         var client = this.client(url);
         Dictionary<string, object> seenChannels = new Dictionary<string, object>() {};
         List<object> resolvedSymbols = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome(this.safeString(outcomes, i, ""));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? networkId = this.safeString(info, "networkId", "");
             string? marketId = this.safeString(info, "marketId", "");
             string channel = ((("prices:" + networkId) + ":") + marketId);
-            resolvedSymbols.Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
+            resolvedSymbols.Add(this.safeOutcomeSymbol(this.safeString(outcomes, i, ""), outcomeObj));
             if (!(seenChannels.ContainsKey(channel)))
             {
                 seenChannels[(string)channel] = true;
@@ -4092,13 +4087,13 @@ public partial class myriad : PredictionExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(outcome, since, limit, parameters));
-        List<object> ohlcvc = this.buildOHLCVC(this.toArray(((object)trades)),timeframeVar, 0, 2147483647);
+        List<object> ohlcvc = this.buildOHLCVC(this.toArray(((object)trades)),timeframeVar, 0L, 2147483647L);
         List<object> result = new List<object>() {};
         int ohlcvcLength = (ohlcvc?.Count ?? 0);
         for (int i = 0; i < ohlcvcLength; i++)
         {
-            object candle = (ohlcvc != null && i < ohlcvc.Count ? ohlcvc[i] : null);
-            result.Add(new List<object>() {getValue(candle, 0), getValue(candle, 1), getValue(candle, 2), getValue(candle, 3), getValue(candle, 4), getValue(candle, 5)});
+            IList<object> candle = ((ohlcvc != null && i < ohlcvc.Count ? ohlcvc[i] : null) as IList<object>);
+            result.Add(new List<object>() {(candle != null && 0 < candle.Count ? candle[0] : null), (candle != null && 1 < candle.Count ? candle[1] : null), (candle != null && 2 < candle.Count ? candle[2] : null), (candle != null && 3 < candle.Count ? candle[3] : null), (candle != null && 4 < candle.Count ? candle[4] : null), (candle != null && 5 < candle.Count ? candle[5] : null)});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(result, since, limit, 0, true));
     }
@@ -4113,7 +4108,7 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
         for (int i = 0; i < outcomesLength; i++)
         {
-            object oc = (outcomes != null && i < outcomes.Count ? outcomes[i] : null);
+            IDictionary<string, object> oc = ((IDictionary<string, object>)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             string? outcomeId = this.safeString(oc, "outcome");
             string? sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
             if ((sym == null))
@@ -4177,12 +4172,12 @@ public partial class myriad : PredictionExchange
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             networkId = this.safeString(info, "networkId", networkId);
-            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString(outcomeObj, "outcome");
         }
         string channel = ((("orders:" + networkId) + ":") + trader);
         string messageHash = "orders";
-        object orders = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(this.toArray(orders), "outcome", outcomeResolved, since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache orders = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
+        return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limit, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> data)
@@ -4252,7 +4247,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if ((outcomes != null))
         {
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
         }
         string trader = this.walletAddressFromKeys();
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
@@ -4275,12 +4270,12 @@ public partial class myriad : PredictionExchange
             } },
             { "id", requestId },
         };
-        object positions = await this.watch(url, messageHash, subscribeMsg, channel);
+        ccxt.pro.ArrayCache positions = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, subscribeMsg, channel));
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(this.toArray(positions), this.toArray(outcomes), since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true));
     }
 
     public async virtual Task seedPositionBalances(string? trader)
@@ -4375,20 +4370,20 @@ public partial class myriad : PredictionExchange
         return this.ethGetAddressFromPrivateKey(this.privateKey).ToLower();
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? error = this.safeString(response, "error");
         if (((error == null)) || (error == ""))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
-        string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        string feedback = ((this.id + " ") + body);
+        this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
         throw new ExchangeError (feedback) ;
     }
@@ -4410,8 +4405,8 @@ public partial class myriad : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string? baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "myriad"));
+        IDictionary<string, object> baseUrls = this.urlsApi;
+        string? baseUrl = this.safeString(baseUrls, apiGroup, (baseUrls != null && baseUrls.ContainsKey("myriad") ? baseUrls["myriad"] : null));
         object url = (baseUrl == null ? null : baseUrl + "/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method == "GET"))

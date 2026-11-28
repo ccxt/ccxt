@@ -460,6 +460,8 @@ class Transpiler {
             [ /this\[([a-zA-Z0-9_]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+            // a skipped destructure slot (`const [ , x ] = ..`) binds `_` in Python
+            [ /(?:let|const|var)\s\[[^\]\n]*\]/g, (m: string) => m.replace (/\[\s*,/, '[ _,').replace (/,\s*(?=,)/g, ', _') ],
             // single-slot tuple destructure `const [ x ] = self.f (...)` / `[ x ] = await this.f (...)`: the generic
             // rule below drops the brackets and binds the whole tuple to x, so pick slot 0 explicitly.
             // only declarations or a bare statement-start `[ x ] =` (never `obj[k] = v`) and only method-call right sides
@@ -496,6 +498,8 @@ class Transpiler {
             [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
             [ /\}\s*else\s*\{/g, 'else:' ],
             [ /else\s*[\n]/g, "else:\n" ],
+            // `<=` is inclusive and range() stops before its end: print `end + 1`
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+\<=\s*(\w+(?:\.(?!length\b)\w+)*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3 + 1):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
@@ -1624,7 +1628,7 @@ class Transpiler {
         return phpBody
     }
 
-    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
+    transpileJavaScriptToPHP ({ js, variables, arrayVariables }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1636,7 +1640,8 @@ class Transpiler {
             if (localVariablesMatches[1]) {
                 // this is a destructuring assignment like
                 // let [ a, b, c ] = 'a-b-c'.split ('-')
-                let matches = localVariablesMatches[1].trim ().split (', ') // split the destructuring assignment by comma
+                // a skipped slot (`[ , x ]`) is empty and names no variable
+                let matches = localVariablesMatches[1].split (',').map ((x: string) => x.trim ()).filter ((x: string) => x !== '')
                 matches.forEach (x => allVariables.push (x.trim ())) // trim each variable name
             } else {
                 // this is a single variable assignment
@@ -1662,6 +1667,12 @@ class Transpiler {
         }
 
         allVariables = allVariables.map ((error:any) => this.regexAll (error, this.getCommonRegexes ()))
+
+        // `.length` on a name declared as an array (`x: T[]` param or local) is count(), never strlen()
+        const arrayNames = (arrayVariables || []).concat ([ ... js.matchAll (/(?:let|const|var)\s+(\w+)\s*:\s*[\w<>]+\[\]\s*=/g) ].map ((m: any) => m[1]))
+        for (const name of arrayNames) {
+            js = js.replace (new RegExp ('(?<![\\w$.])' + name + '\\.length\\b', 'g'), 'count(' + name + ')')
+        }
 
         // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
         // some exchange/base methods use a parameter named like a php language construct
@@ -2292,7 +2303,7 @@ class Transpiler {
             }
             // strip TypeScript overload signature lines (body-less declarations ending with ';')
             // they carry no runtime code and the implementation signature below handles all cases
-            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+            while (lines.length > 1 && /^\s*(?:override\s+)?(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
                 lines.shift ()
             }
             // re-strip any blanks/comments left between overloads and the implementation
@@ -2351,6 +2362,7 @@ class Transpiler {
 
             // get names of all method arguments for later substitutions
             let variables = argsArray.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
+            const arrayVariables = argsArray.filter (arg => /^[\w?]+\s*:\s*[\w<>]+\[\]\s*(=|$)/.test (arg)).map (arg => arg.split (':')[0].trim ().replace (/\?$/, ''))
 
             let phpArgs = ''
             let syncPhpSignature = ''
@@ -2386,8 +2398,14 @@ class Transpiler {
                 'NullableDict': 'dict',
                 'List': 'list',
                 'NullableList': 'list',
+                // an exchange instance parameter prints untyped, as `any` did
+                'BaseExchange': 'object',
                 // the ws order book class alias prints untyped, as `any` did
-                'WsOrderBook': 'object'
+                'WsOrderBook': 'object',
+                'FeeString': 'dict',
+                // the ws order book side class prints untyped, as `any` did
+                'OrderBookSide': 'object',
+                'void': 'None',
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2430,6 +2448,11 @@ class Transpiler {
                     'NullableList': '?array',
                     // the ws order book class alias prints untyped, as `any` did
                     'WsOrderBook': 'mixed',
+                    // an exchange instance parameter prints untyped, as `any` did
+                    'BaseExchange': 'mixed',
+                    'FeeString': '?array',
+                    // the ws order book side class prints untyped, as `any` did
+                    'OrderBookSide': 'mixed',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|OrderBookL3|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|DepositWithdrawFeeNetworkEntry|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
@@ -2457,7 +2480,9 @@ class Transpiler {
                         // overrides as `params: Dict = {}`, which would emit `array` here, so keep
                         // any `params` argument that defaults to `{}` untyped to match the base.
                         const isUntypedParamsBag = (variable === 'params') && (secondPart.length === 2) && (secondPart[1].trim () === '{}')
-                        if (isUntypedParamsBag) {
+                        // an override cannot narrow the base's untyped `params` box either (PHP contravariance)
+                        const isNarrowedOverrideParams = (variable === 'params') && (secondPart.length === 1) && /^\s*override\s/.test (lines[0])
+                        if (isUntypedParamsBag || isNarrowedOverrideParams) {
                             return '$' + variable + endpart
                         }
                         // Normalise union parameter types so we never emit invalid PHP like
@@ -2550,7 +2575,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, arrayVariables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature

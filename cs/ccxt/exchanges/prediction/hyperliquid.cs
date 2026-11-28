@@ -161,7 +161,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} side outcome side, 0 = YES, 1 = NO
      * @returns {int} the outcome side encoding
      */
-    public virtual object outcomeEncoding(object outcomeId, object side)
+    public virtual object outcomeEncoding(object outcomeId, Int64 side)
     {
         Int64? outcomeIdInt = this.parseToInt(outcomeId);
         return this.sum((10 * outcomeIdInt), side);
@@ -190,7 +190,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string? outcomeCoin(object encoding)
     {
-        return ("#" + encoding.ToString());
+        return ("#" + ((object)this.parseToInt(encoding)).ToString());
     }
 
     /**
@@ -203,7 +203,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string? outcomeToken(object encoding)
     {
-        return ("+" + encoding.ToString());
+        return ("+" + ((object)this.parseToInt(encoding)).ToString());
     }
 
     /**
@@ -246,7 +246,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} outcomeId integer outcome id
      * @returns {string} the outcome
      */
-    public virtual string? buildOutcomeSymbol(IDictionary<string, object> desc, string? side, object outcomeId)
+    public virtual string? buildOutcomeSymbol(IDictionary<string, object> desc, Int64? side, object outcomeId)
     {
         string? underlying = this.safeString(desc, "underlying", ("OUTCOME" + outcomeId.ToString()));
         string? targetPrice = this.safeString(desc, "targetPrice", "");
@@ -259,7 +259,7 @@ public partial class hyperliquid : PredictionExchange
             expiryDate = ((string)(expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null));
         }
         string label = "NO";
-        if (isEqual(side, 0))
+        if ((side == 0))
         {
             label = "YES";
         }
@@ -281,12 +281,12 @@ public partial class hyperliquid : PredictionExchange
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    public virtual string? buildOutcomeParentSymbol(IDictionary<string, object> desc, object outcomeId, object name = null, IDictionary<string, object>? question = null)
+    public virtual string? buildOutcomeParentSymbol(IDictionary<string, object> desc, string outcomeId, object name = null, IDictionary<string, object>? question = null)
     {
         name ??= "";
         question ??= new Dictionary<string, object>();
@@ -357,15 +357,16 @@ public partial class hyperliquid : PredictionExchange
                         if ((index == null || index <= 0))
                         {
                             bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));
-                        } else if ((index >= thresholdsLength))
+                        } else if (index >= thresholdsLength)
                         {
                             int lastIdx = (thresholdsLength - 1);
                             bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
                         } else
                         {
-                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
+                            bucketLabel = ((("BETWEEN_" + ((thresholds != null && (index - 1) != null && (index - 1) < thresholds.Count ? thresholds[(int)(index - 1)] : null))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
-                        return (((questionUnderlying.ToUpper() + "_") + bucketLabel) + questionExpiryPart);
+                        string upperUnderlying = questionUnderlying.ToUpper();
+                        return (((upperUnderlying + "_") + bucketLabel) + questionExpiryPart);
                     }
                 }
                 bool isFallbackLike = (rawDescription == "other") || (nameLower.IndexOf("fallback", StringComparison.Ordinal) >= 0) || (nameLower.IndexOf("other", StringComparison.Ordinal) >= 0);
@@ -399,17 +400,17 @@ public partial class hyperliquid : PredictionExchange
                 }
                 if (((outcomeSlug != null)) && (outcomeSlug != ""))
                 {
-                    return ((((questionSlug + "_") + outcomeSlug) + "_") + outcomeId.ToString());
+                    return ((string?)((object)(((((questionSlug + "_") + outcomeSlug) + "_") + outcomeId))));
                 }
-                return ((questionSlug + "_") + outcomeId.ToString());
+                return ((string?)((object)(((questionSlug + "_") + outcomeId))));
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (((name != null)) && (!(name is "")))
+        if (!(name is ""))
         {
-            return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId.ToString()))));
+            return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId))));
         }
-        return ("OUTCOME_" + outcomeId.ToString());
+        return ("OUTCOME_" + outcomeId);
     }
 
     /**
@@ -493,7 +494,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
             Int64? outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
             IDictionary<string, object> linkedQuestion = this.safeDict(outcomesToQuestions, ((object)outcomeId).ToString(), new Dictionary<string, object>() {});
-            Dictionary<string, object> market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            Dictionary<string, object> market = this.parseOutcomeMarket(outcomeInfo, ((object)outcomeId).ToString(), outcomeId, linkedQuestion);
             markets.Add(market);
             // Build outcomes dictionary from market outcomes
             List<object> marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
@@ -521,18 +522,19 @@ public partial class hyperliquid : PredictionExchange
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, IDictionary<string, object>? question = null)
+    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, string outcomeKey, Int64? outcomeId, IDictionary<string, object>? question = null)
     {
         question ??= new Dictionary<string, object>();
         string? description = this.safeString(outcomeInfo, "description", "");
         string? name = this.safeString(outcomeInfo, "name", "");
         List<object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new List<object>() {});
         Dictionary<string, object> desc = this.parseOutcomeDescription(description);
-        string parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        string parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         object noEncoding = this.outcomeEncoding(outcomeId, 1);
         string yesOutcomeSymbol = (parentSymbol + ":YES");
@@ -546,9 +548,9 @@ public partial class hyperliquid : PredictionExchange
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             List<object> expParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             int expPartsLength = expParts.Count;
-            if (expPartsLength >= 1 && (((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null)).Length == 8))
+            string? ymd = ((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null));
+            if (expPartsLength >= 1 && (ymd.Length == 8))
             {
-                string? ymd = ((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null));
                 string? hm = "0000";
                 if (expPartsLength >= 2)
                 {
@@ -566,7 +568,7 @@ public partial class hyperliquid : PredictionExchange
         int szDecimals = 4; // outcomes use 4 decimal places
         bool active = true;
         Dictionary<string, object> outcomePrecision = new Dictionary<string, object>() {
-            { "amount", this.parseNumber(this.parsePrecision(szDecimals.ToString())) },
+            { "amount", this.parseNumber(this.parsePrecision(this.numberToString(szDecimals))) },
             { "price", 0.0001 },
         };
         List<object> outcomes = new List<object>() {new Dictionary<string, object>() {
@@ -609,12 +611,12 @@ public partial class hyperliquid : PredictionExchange
     } },
 }};
         Dictionary<string, object> marketRow = this.safeMarketStructure(new Dictionary<string, object>() {
-            { "id", outcomeId.ToString() },
+            { "id", outcomeKey },
             { "market", parentSymbol },
-            { "base", getValue(parentSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
+            { "base", this.safeString(parentSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
             { "quote", quoteCurrency },
             { "settle", null },
-            { "baseId", outcomeId.ToString() },
+            { "baseId", outcomeKey },
             { "quoteId", quoteCurrency },
             { "settleId", null },
             { "type", "prediction" },
@@ -682,9 +684,9 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} szDecimals the number of size decimals
      * @returns {float} the price tick size
      */
-    public virtual object calculatePricePrecision(object midPx, object szDecimals)
+    public virtual object calculatePricePrecision(double midPx, object szDecimals)
     {
-        if (isLessThanOrEqual(midPx, 0))
+        if ((!(midPx > 0)))
         {
             return 0.0001;
         }
@@ -693,7 +695,7 @@ public partial class hyperliquid : PredictionExchange
         string? intPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         int intPartLength = intPart.Length;
         Int64? szDecimalsInt = this.parseToInt(szDecimals);
-        Int64? maxDecimals = (8 - szDecimalsInt);
+        Int64? maxDecimals = this.parseToInt((8 - szDecimalsInt));
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         int digitsLeft = 0;
         if (intPartLength <= 5)
@@ -703,7 +705,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? cappedDecimals = (((maxDecimals == null || maxDecimals < digitsLeft))) ? maxDecimals : digitsLeft;
         // appends max (1, cappedDecimals) - 1 zeros
         string zeros = "";
-        for (int zi = 1; (zi < cappedDecimals); zi++)
+        for (int zi = 1; zi < cappedDecimals; zi++)
         {
             zeros = (zeros + "0");
         }
@@ -765,7 +767,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -778,17 +780,13 @@ public partial class hyperliquid : PredictionExchange
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        object response = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
+        object allMidsResponse = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
             { "type", "allMids" },
         }, parameters));
+        object allMids = this.infoDict(allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        object allMids = new Dictionary<string, object>() {};
-        if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            allMids = response;
-        }
         IDictionary<string, object> mids = this.safeDict(allMids, "mids", allMids);
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         Dictionary<string, object> outcomesMap = ((Dictionary<string, object>)(((this.outcomes != null)) ? this.outcomes : new Dictionary<string, object>() {}));
@@ -812,7 +810,7 @@ public partial class hyperliquid : PredictionExchange
             Dictionary<string, object> ticker = this.parsePredictionTicker(new Dictionary<string, object>() {
                 { "levels", new List<object>() {new List<object>() {}, new List<object>() {}} },
                 { "mid", mid },
-            }, ((object)outcomeObj));
+            }, outcomeObj);
             tickers[(string)outcomeHandle] = ticker;
         }
         return ccxt.BaseExchange.ToPredictionTickers(tickers);
@@ -827,7 +825,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override Dictionary<string, object> parsePredictionTicker(object raw, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(IDictionary<string, object> raw, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -856,7 +854,7 @@ public partial class hyperliquid : PredictionExchange
         object mid = this.safeNumber(raw, "mid");
         if ((mid == null) && (bid != null) && (ask != null))
         {
-            mid = divide(this.sum(bid, ask), 2);
+            mid = ((bid.Value + ask.Value) / 2);
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         string? parentSymbol = this.safeString(mkt, "market");
@@ -999,7 +997,8 @@ public partial class hyperliquid : PredictionExchange
             } },
         };
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -1016,11 +1015,6 @@ public partial class hyperliquid : PredictionExchange
         //         }
         //     ]
         //
-        object candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
@@ -1033,7 +1027,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1120,7 +1114,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -1150,11 +1144,7 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> response = this.safeDict(results, 0);
         object midsResponse = (results != null && 1 < results.Count ? results[1] : null);
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
-        object allMids = new Dictionary<string, object>() {};
-        if ((!(midsResponse is string)) && !((midsResponse is IList<object>) || (midsResponse.GetType().IsGenericType && midsResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            allMids = midsResponse;
-        }
+        object allMids = this.infoDict(midsResponse);
         IDictionary<string, object> mids = this.safeDict(allMids, "mids", allMids);
         List<object> positions = new List<object>() {};
         for (int i = 0; i < balances.Count; i++)
@@ -1199,7 +1189,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
@@ -1259,9 +1249,9 @@ public partial class hyperliquid : PredictionExchange
     public virtual IDictionary<string, object> findOutcomeInMarket(IDictionary<string, object> market, string? sideHint = null)
     {
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-        string? normalizedHint = ((sideHint != null) && (sideHint != "")) ? sideHint.ToUpper() : null;
-        if ((normalizedHint != null))
+        if ((sideHint != null) && (sideHint != ""))
         {
+            string normalizedHint = sideHint.ToUpper();
             for (int i = 0; i < outcomesList.Count; i++)
             {
                 IDictionary<string, object> oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
@@ -1287,7 +1277,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual string? parseOutcomeInputSideHint(string? outcomeInput)
     {
-        if (((outcomeInput == null)) || ((outcomeInput == "")))
+        if ((outcomeInput == ""))
         {
             return null;
         }
@@ -1350,16 +1340,16 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; i < (candidates?.Count ?? 0); i++)
         {
             string? key = ((string)candidates[i]);
-            if (inOp(this.outcomes, key))
+            if ((this.outcomes != null && key != null && this.outcomes.ContainsKey(key)))
             {
                 return this.safeDict(this.outcomes, key, new Dictionary<string, object>() {});
             }
-            if (inOp(this.outcomes_by_id, key))
+            if ((this.outcomes_by_id != null && key != null && this.outcomes_by_id.ContainsKey(key)))
             {
                 return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
         }
-        if ((((this.markets != null)) && ((this.markets != null && outcomeInput != null && this.markets.ContainsKey(outcomeInput)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && outcomeInput != null && this.markets_by_id.ContainsKey(outcomeInput)))))
+        if ((((this.markets != null)) && ((this.markets != null && outcomeInput != null && this.markets.ContainsKey(outcomeInput)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(outcomeInput)))))
         {
             Dictionary<string, object> market = this.safeMarket(outcomeInput);
             string? sideHintOrDefault = "YES";
@@ -1567,22 +1557,21 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
         Int64? nonce = this.incrementingNonce();
-        object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
+        List<object> clientOrderIds = this.safeStringList(parameters, new List<object>() {"clientOrderId", "client_id"});
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         List<object> cancelReq = new List<object>() {};
         Dictionary<string, object> cancelAction = new Dictionary<string, object>() {
             { "type", "cancel" },
             { "cancels", new List<object>() {} },
         };
-        if ((clientOrderId != null))
+        if ((clientOrderIds != null))
         {
-            object cloids = ((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? clientOrderId : new List<object>() {clientOrderId};
             cancelAction["type"] = "cancelByCloid";
-            for (int i = 0; i < getArrayLength(cloids); i++)
+            for (int i = 0; i < (clientOrderIds?.Count ?? 0); i++)
             {
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", assetId },
-                    { "cloid", getValue(cloids, i) },
+                    { "cloid", clientOrderIds[i] },
                 });
             }
         } else
@@ -1614,27 +1603,21 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> data = this.safeDict(innerResponse, "data");
         List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
-        object requestIds = ids;
-        if ((clientOrderId != null))
+        IList<object> requestIds = ids;
+        if ((clientOrderIds != null))
         {
-            if (((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-            {
-                requestIds = clientOrderId;
-            } else
-            {
-                requestIds = new List<object>() {clientOrderId};
-            }
+            requestIds = clientOrderIds;
         }
         List<object> orders = new List<object>() {};
         for (int i = 0; i < statuses.Count; i++)
         {
-            object status = statuses[i];
+            object status = (statuses != null && i < statuses.Count ? statuses[i] : null);
             string? error = this.safeString(status, "error");
             if ((error != null))
             {
                 throw new OrderNotFound (((((this.id + " cancelOrders() failed for ") + this.safeString(requestIds, i, this.safeString(requestIds, 0))) + ": ") + error)) ;
             }
-            bool success = ((status is "success")) || ((this.safeString(status, "status") == "success"));
+            bool success = ((this.safeString(statuses, i) == "success")) || ((this.safeString(status, "status") == "success"));
             if (!success)
             {
                 throw new ExchangeError (((this.id + " cancelOrders() received an unexpected status: ") + this.json(status))) ;
@@ -1642,7 +1625,7 @@ public partial class hyperliquid : PredictionExchange
             string? requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             Dictionary<string, object> order = new Dictionary<string, object>() {
                 { "id", requestId },
-                { "clientOrderId", ((clientOrderId != null)) ? requestId : null },
+                { "clientOrderId", ((clientOrderIds != null)) ? requestId : null },
                 { "info", status },
                 { "status", "canceled" },
                 { "outcome", outcomeSymbol },
@@ -1683,13 +1666,9 @@ public partial class hyperliquid : PredictionExchange
             { "type", method },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        object rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        List<object> rawOrders = this.infoList(rawOrdersResponse);
         List<object> ordersWithStatus = new List<object>() {};
-        List<object> rawOrders = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            rawOrders = ((List<object>)response);
-        }
         for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)rawOrders[i]);
@@ -1730,14 +1709,10 @@ public partial class hyperliquid : PredictionExchange
             { "type", "historicalOrders" },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        object historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        List<object> historicalOrders = this.infoList(historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         Dictionary<string, object> deduped = new Dictionary<string, object>() {};
-        List<object> historicalOrders = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            historicalOrders = ((List<object>)response);
-        }
         for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
             object raw = historicalOrders[i];
@@ -1808,14 +1783,10 @@ public partial class hyperliquid : PredictionExchange
             bool isCloid = id.Length >= 34;
             request["oid"] = isCloid ? id : this.parseToNumeric(id);
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsValue));
-        object orderStatus = new Dictionary<string, object>() {};
-        if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            orderStatus = response;
-        }
+        object orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
+        object orderStatus = this.infoDict(orderStatusResponse);
         IDictionary<string, object> orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
-        Dictionary<string, object> parsed = this.parsePredictionOrder(orderWrapper, null);
+        Dictionary<string, object> parsed = this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, orderWrapper), null);
         if ((outcome != null))
         {
             await this.loadOutcome(outcome);
@@ -1838,7 +1809,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // from frontendOpenOrders:
@@ -1864,7 +1835,7 @@ public partial class hyperliquid : PredictionExchange
         string? coin = this.safeString(entry, "coin");
         IDictionary<string, object> outcomeObj = this.safeOutcome(coin, market);
         string? marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = market;
+        IDictionary<string, object> resolvedMarket = market;
         if ((marketSymbol != null) && marketSymbol != "")
         {
             resolvedMarket = this.safeMarket(marketSymbol, market);
@@ -1960,7 +1931,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        string? tifLower = ((timeInForce != null) && !(timeInForce == "")) ? timeInForce.ToLower() : null;
+        string? tifLower = ((timeInForce != null) && (timeInForce != "")) ? timeInForce.ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -1987,15 +1958,8 @@ public partial class hyperliquid : PredictionExchange
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         object response = await this.publicPostInfo(this.extend(request, parameters));
-        object trades = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            trades = response;
-        } else if (!(response is string))
-        {
-            trades = this.toArray(response);
-        }
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(this.toArray(trades), outcomeObj, since, limit));
+        List<object> trades = this.infoList(response);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
     }
 
     /**
@@ -2046,17 +2010,10 @@ public partial class hyperliquid : PredictionExchange
             request["endTime"] = until;
         }
         object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
-        object fills = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            fills = response;
-        } else if (!(response is string))
-        {
-            fills = this.toArray(response);
-        }
+        List<object> fills = this.infoList(response);
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        IList<object> parsedTrades = this.parsePredictionTrades(this.toArray(fills), null);
+        IList<object> parsedTrades = this.parsePredictionTrades(fills, null);
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit));
     }
 
@@ -2069,7 +2026,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -2096,7 +2053,7 @@ public partial class hyperliquid : PredictionExchange
         string? coin = this.safeString(trade, "coin");
         IDictionary<string, object> outcomeObj = this.safeOutcome(coin, market);
         string? marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = market;
+        IDictionary<string, object> resolvedMarket = market;
         if ((marketSymbol != null) && marketSymbol != "")
         {
             resolvedMarket = this.safeMarket(marketSymbol, market);
@@ -2168,7 +2125,7 @@ public partial class hyperliquid : PredictionExchange
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
         // disagree with a previously warmed cache within the same session)
         IDictionary<string, object> marketsDict = await this.loadMarkets();
-        IList<object> marketValues = this.toArray(marketsDict);
+        IList<object> marketValues = (marketsDict == null ? null : new List<object>(marketsDict.Values));
         // Group markets by parentSymbol
         Dictionary<string, object> groupMap = new Dictionary<string, object>() {};
         if ((queries == null))
@@ -2184,7 +2141,7 @@ public partial class hyperliquid : PredictionExchange
         int lowerQueriesLength = (lowerQueries?.Count ?? 0);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
-            object mkt = marketValues[i];
+            IDictionary<string, object> mkt = ((IDictionary<string, object>)marketValues[i]);
             if (!(this.safeBool(mkt, "prediction", false) == true))
             {
                 continue;
@@ -2291,9 +2248,9 @@ public partial class hyperliquid : PredictionExchange
         {
             List<object> parts = expiryRaw.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             int partsLength = parts.Count;
-            if (partsLength >= 1 && (((string)(parts != null && 0 < parts.Count ? parts[0] : null)).Length == 8))
+            string? ymd = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+            if (partsLength >= 1 && (ymd.Length == 8))
             {
-                string? ymd = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
                 string? hm = "0000";
                 if (partsLength >= 2)
                 {
@@ -2340,7 +2297,7 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public override string? amountToPrecision(object outcome, object amount)
+    public override string? amountToPrecision(string outcome, object amount)
     {
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
@@ -2357,7 +2314,7 @@ public partial class hyperliquid : PredictionExchange
         return this.decimalToPrecision(amount, 1, decimals, 2, this.paddingMode);
     }
 
-    public override string? priceToPrecision(object outcome, object price)
+    public override string? priceToPrecision(string outcome, object price)
     {
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
@@ -2378,13 +2335,13 @@ public partial class hyperliquid : PredictionExchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual Dictionary<string, object> signHash(object hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(string? hash, string? privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? rRaw = this.safeString(signature, "r", "");
+        string? sRaw = this.safeString(signature, "s", "");
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
@@ -2394,9 +2351,9 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public virtual Dictionary<string, object> signMessage(object message, object privateKey)
+    public virtual Dictionary<string, object> signMessage(object message, string privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))));
     }
 
     public virtual Dictionary<string, object> constructPhantomAgent(object hash, bool? isTestnet = null)
@@ -2413,24 +2370,25 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public virtual object actionHash(object action, object vaultAddress, object nonce)
+    public virtual object actionHash(IDictionary<string, object> action, object vaultAddress, object nonce)
     {
         byte[] dataBinary = this.packb(action);
         string dataHex = this.binaryToBase16(dataBinary);
-        string? data = dataHex;
-        data = (data == null ? null : data + ("00000" + this.intToBase16(nonce)));
+        string data = dataHex;
+        data = data + ("00000" + this.intToBase16(nonce));
         if ((vaultAddress == null))
         {
-            data = (data == null ? null : data + "00");
+            data = data + "00";
         } else
         {
-            data = (data == null ? null : data + "01");
-            data = (data == null ? null : data + (string)(object)(vaultAddress));
+            string vaultHex = ((string)vaultAddress).ToLower();
+            data = data + "01";
+            data = data + vaultHex;
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
 
-    public virtual Dictionary<string, object> signL1Action(object action, object nonce, object vaultAddress = null)
+    public virtual Dictionary<string, object> signL1Action(IDictionary<string, object> action, Int64? nonce, object vaultAddress = null)
     {
         this.checkRequiredCredentials();
         object hash = this.actionHash(action, vaultAddress, nonce);
@@ -2456,7 +2414,7 @@ public partial class hyperliquid : PredictionExchange
         return this.signMessage(msg, this.privateKey);
     }
 
-    public virtual Dictionary<string, object> signUserSignedAction(object messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(IDictionary<string, object> messageTypes, IDictionary<string, object> message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614;
@@ -2471,7 +2429,7 @@ public partial class hyperliquid : PredictionExchange
         return signature;
     }
 
-    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(object message)
+    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
@@ -2558,7 +2516,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public virtual List<object> handlePublicAddress(string? methodName, object parameters)
+    public virtual List<object> handlePublicAddress(string? methodName, IDictionary<string, object> parameters)
     {
         (string?, IDictionary<string, object>) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = userAuxparamsUserVariable.Item1;
@@ -2583,12 +2541,11 @@ public partial class hyperliquid : PredictionExchange
         {
             return null;
         }
-        string? normalized = address;
-        if (normalized.StartsWith("0x") || normalized.StartsWith("0X"))
+        if (address.StartsWith("0x") || address.StartsWith("0X"))
         {
-            normalized = ((normalized == null) ? null : normalized.Substring(Math.Min(2, normalized.Length)));
+            return ((string)((address == null) ? null : address.Substring(Math.Min(2, address.Length)))).ToLower();
         }
-        return normalized.ToLower();
+        return address.ToLower();
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
@@ -2626,18 +2583,18 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? status = this.safeString(response, "status", "");
         if (status == "err")
         {
             string? message = this.safeString(response, "response", body);
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -2650,27 +2607,63 @@ public partial class hyperliquid : PredictionExchange
             string? message = this.safeString(statuses[i], "error");
             if ((message != null))
             {
-                string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                string feedback = ((this.id + " ") + body);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
+        if (config.ContainsKey("byType"))
         {
-            object type = getValue(parameters, "type");
-            object byType = ((IDictionary<string,object>)config)["byType"];
-            if (inOp(byType, type))
+            string? type = this.safeString(parameters, "type");
+            IDictionary<string, object> byType = this.safeDict(config, "byType", new Dictionary<string, object>() {});
+            if ((type != null))
             {
-                return getValue(byType, type);
+                if (((type != null) && byType.ContainsKey(type)))
+                {
+                    return this.safeInteger(byType, type);
+                }
             }
         }
         return this.safeValue(config, "cost", 1);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    public virtual List<object> infoList(object response)
+    {
+        object result = new List<object>() {};
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            result = response;
+        }
+        return ((List<object>)((object)(result)));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    public virtual object infoDict(object response)
+    {
+        if ((!(response is string)) && !((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            return response;
+        }
+        return new Dictionary<string, object>() {};
     }
 }

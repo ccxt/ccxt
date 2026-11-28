@@ -250,8 +250,8 @@ public partial class bitopro : Exchange
                     { "maker", this.parseNumber("0.001") },
                     { "taker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.00194")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("550000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("1300000000"), this.parseNumber("0.0011")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.00097")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("550000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("1300000000"), this.parseNumber("0.0003")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {3000000.0, 0.00194}, new List<object> {5000000.0, 0.0015}, new List<object> {30000000.0, 0.0014}, new List<object> {300000000.0, 0.0013}, new List<object> {550000000.0, 0.0012}, new List<object> {1300000000.0, 0.0011}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.001}, new List<object> {3000000.0, 0.00097}, new List<object> {5000000.0, 0.0007}, new List<object> {30000000.0, 0.0006}, new List<object> {300000000.0, 0.0005}, new List<object> {550000000.0, 0.0004}, new List<object> {1300000000.0, 0.0003}} },
                     } },
                 } },
             } },
@@ -535,7 +535,7 @@ public partial class bitopro : Exchange
         });
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -646,7 +646,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -933,7 +933,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
@@ -967,7 +967,11 @@ public partial class bitopro : Exchange
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        Int64? limitResolved = this.parseToInt(((limit == null)) ? 500 : Math.Min(limit.Value, 75000));
+        Int64? limitResolved = 500;
+        if ((limit != null))
+        {
+            limitResolved = this.parseToInt(Math.Min(limit.Value, 75000));
+        }
         int timeframeInSeconds = this.parseTimeframe(timeframeVar);
         Int64? alignedSince = null;
         if ((since == null))
@@ -1003,11 +1007,11 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, (timeframeInSeconds * 1000L), alignedSince, limitResolved));
     }
 
-    public virtual object insertMissingCandles(IList<object> candles, object distanceInMs, object since, object limit)
+    public virtual object insertMissingCandles(IList<object> candles, object distanceInMs, Int64? since, Int64? limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        int length = candles?.Count ?? 0;
+        int length = (candles?.Count ?? 0);
         if ((length == 0))
         {
             return candles;
@@ -1023,16 +1027,15 @@ public partial class bitopro : Exchange
         {
             timestamp = since;
         }
-        object i = 0;
-        int candleLength = candles?.Count ?? 0;
-        object resultLength = 0;
-        while ((isLessThan(resultLength, limit)) && (isLessThan(i, candleLength)))
+        Int64 i = 0;
+        int candleLength = (candles?.Count ?? 0);
+        Int64 resultLength = 0;
+        while ((resultLength < limit) && (i < candleLength))
         {
-            List<object> candle = this.safeList(candles, i, new List<object>() {});
-            if (isEqual((candle != null && 0 < candle.Count ? candle[0] : null), timestamp))
+            if (isEqual(this.safeInteger(this.safeList(candles, i, new List<object>() {}), 0), timestamp))
             {
-                result.Add(candle);
-                i = this.sum(i, 1);
+                result.Add(this.safeList(candles, i, new List<object>() {}));
+                i = (i + 1);
             } else
             {
                 // set open, high, low to close
@@ -1041,7 +1044,7 @@ public partial class bitopro : Exchange
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = (result?.Count ?? 0);
-            copyFrom = this.safeList(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
+            copyFrom = this.safeList(result, (resultLength - 1));
         }
         return result;
     }
@@ -1060,7 +1063,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rows, i);
@@ -1124,10 +1127,14 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return ((string?)((object)(((status == null)) ? null : this.safeString(statuses, status))));
+        if ((status == null))
+        {
+            return null;
+        }
+        return this.safeString(statuses, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1278,7 +1285,7 @@ public partial class bitopro : Exchange
             }
         }
         IDictionary<string, object> paramsOmitted = (orderType == "STOP_LIMIT") ? this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"}) : parameters;
-        bool postOnly = this.isPostOnly(orderType == "MARKET", null, paramsOmitted);
+        bool postOnly = this.isPostOnly(orderType == "MARKET", false, paramsOmitted);
         if (postOnly)
         {
             request["timeInForce"] = "POST_ONLY";
@@ -1678,7 +1685,7 @@ public partial class bitopro : Exchange
         return this.safeString(states, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -1993,7 +2000,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(result, currency));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //    {
         //        "currency":"eth",
@@ -2082,7 +2089,7 @@ public partial class bitopro : Exchange
             if ((method == "POST") || (method == "PUT"))
             {
                 string payload = this.stringToBase64(signedBody);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(payload, this.secret, sha384);
                 requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
                 requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
                 requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
@@ -2098,7 +2105,7 @@ public partial class bitopro : Exchange
                 };
                 string data = this.json(rawData);
                 string payload = this.stringToBase64(data);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(payload, this.secret, sha384);
                 requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
                 requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
                 requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
@@ -2124,20 +2131,20 @@ public partial class bitopro : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to the default error handler
+            return ((bool?)((object)(null)));  // fallback to the default error handler
         }
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 200) && ((statusCode == null || statusCode < 300)))
+        if (statusCode >= 200 && ((statusCode == null || statusCode < 300)))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
         throw new ExchangeError (feedback) ;
     }

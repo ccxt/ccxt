@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -631,8 +631,8 @@ class coinbase(Exchange, ImplicitAPI):
         cursor = self.safe_string(pagination, 'next_starting_after')
         accounts = self.safe_list(response, 'data', [])
         length = len(accounts)
-        lastIndex = length - 1
-        if (cursor is not None) and (cursor != ''):
+        if (length > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = length - 1
             accounts[lastIndex] = self.extend(self.safe_dict(accounts, lastIndex, {}), {'next_starting_after': cursor})
         return self.parse_accounts(data, paramsPaginate)
 
@@ -1534,17 +1534,17 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(spot, 'products', [])
         result = []
         for i in range(0, len(data)):
-            spotMarket = self.parse_spot_market(data[i], feeTier)
+            spotMarket = self.parse_spot_market(self.safe_dict(data, i, {}), feeTier)
             if spotMarket is not None:
                 result.append(spotMarket)
         futureData = self.safe_list(expiringFutures, 'products', [])
         for i in range(0, len(futureData)):
-            futureMarket = self.parse_contract_market(futureData[i])
+            futureMarket = self.parse_contract_market(self.safe_dict(futureData, i, {}))
             if futureMarket is not None:
                 result.append(futureMarket)
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
-            perpetualMarket = self.parse_contract_market(perpetualData[i])
+            perpetualMarket = self.parse_contract_market(self.safe_dict(perpetualData, i, {}))
             if perpetualMarket is not None:
                 result.append(perpetualMarket)
         newMarkets = []
@@ -1968,9 +1968,13 @@ class coinbase(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             if code is not None:
-                self.options['networks'][code] = name.lower()
+                networksDict1 = self.safe_dict(self.options, 'networks', {})
+                networksDict1[code] = name.lower()
+                self.options['networks'] = networksDict1
             if code is not None:
-                self.options['networksById'][code] = name.lower()
+                networksByIdDict2 = self.safe_dict(self.options, 'networksById', {})
+                networksByIdDict2[code] = name.lower()
+                self.options['networksById'] = networksByIdDict2
             type = 'fiat'
             if assetId is not None:
                 type = 'crypto'
@@ -2069,7 +2073,7 @@ class coinbase(Exchange, ImplicitAPI):
             marketId = baseId + delimiter + quoteId
             market = self.safe_market(marketId, None, delimiter)
             symbol = self.safe_string(market, 'symbol', '')
-            result[symbol] = self.parse_ticker(rates[baseId], market)
+            result[symbol] = self.parse_ticker(self.safe_dict(rates, baseId, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_tickers_v3(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -2128,11 +2132,10 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'products', [])
         result = {}
         for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'product_id')
+            marketId = self.safe_string(data[i], 'product_id')
             market = self.safe_market(marketId, None, '-')
             symbol = self.safe_string(market, 'symbol', '')
-            result[symbol] = self.parse_ticker(entry, market)
+            result[symbol] = self.parse_ticker(self.safe_dict(data, i, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -2316,8 +2319,8 @@ class coinbase(Exchange, ImplicitAPI):
         ask = self.safe_number(ticker, 'ask')
         bidVolume = None
         askVolume = None
-        if ('bids' in ticker):
-            bids = self.safe_list(ticker, 'bids', [])
+        bids = self.safe_list(ticker, 'bids')
+        if bids is not None:
             asks = self.safe_list(ticker, 'asks', [])
             firstBid = self.safe_dict(bids, 0, {})
             firstAsk = self.safe_dict(asks, 0, {})
@@ -2571,7 +2574,9 @@ class coinbase(Exchange, ImplicitAPI):
             pagination = self.safe_dict(response, 'pagination', {})
             cursor = self.safe_string(pagination, 'next_starting_after')
             if (cursor is not None) and (cursor != ''):
-                last['info']['next_starting_after'] = cursor
+                lastInfo = self.safe_dict(last, 'info', {})
+                lastInfo['next_starting_after'] = cursor
+                last['info'] = lastInfo
                 ledger[lastIndex] = last
         return self.to_array(ledger)
 
@@ -3277,7 +3282,11 @@ class coinbase(Exchange, ImplicitAPI):
             amount = self.safe_string(target, 'base_size')
             postOnly = self.safe_bool(target, 'post_only')
         elif isStop:
-            stopTarget = stopLimitGTC if (stopLimitGTC is not None) else stopLimitGTD
+            stopTarget = None
+            if stopLimitGTC is not None:
+                stopTarget = stopLimitGTC
+            else:
+                stopTarget = stopLimitGTD
             price = self.safe_string(stopTarget, 'limit_price')
             amount = self.safe_string(stopTarget, 'base_size')
             postOnly = self.safe_bool(stopTarget, 'post_only')
@@ -3444,7 +3453,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -3585,9 +3594,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
+        ordersLength = len(orders)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
-            orders[0] = self.extend(self.safe_dict(orders, 0, {}), {'cursor': cursor})
+        if (ordersLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = ordersLength - 1
+            orders[lastIndex] = self.extend(self.safe_dict(orders, lastIndex, {}), {'cursor': cursor})
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -3653,9 +3664,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
+        ordersLength = len(orders)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
-            orders[0] = self.extend(self.safe_dict(orders, 0, {}), {'cursor': cursor})
+        if (ordersLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = ordersLength - 1
+            orders[lastIndex] = self.extend(self.safe_dict(orders, lastIndex, {}), {'cursor': cursor})
         return self.parse_orders(orders, market, since, limitResolved)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -3922,9 +3935,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         trades = self.safe_list(response, 'fills', [])
+        tradesLength = len(trades)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
-            trades[0] = self.extend(self.safe_dict(trades, 0, {}), {'cursor': cursor})
+        if (tradesLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = tradesLength - 1
+            trades[lastIndex] = self.extend(self.safe_dict(trades, lastIndex, {}), {'cursor': cursor})
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -4935,13 +4950,15 @@ class coinbase(Exchange, ImplicitAPI):
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         uri = None
-        if url != '':
-            uri = method + ' ' + url.replace('https://', '')
-            quesPos = uri.find('?')
+        if (url != '') and (method is not None):
+            fullUri = method + ' ' + url.replace('https://', '')
+            quesPos = fullUri.find('?')
             # Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             # Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0:
-                uri = uri[0:quesPos]
+                uri = fullUri[0:quesPos]
+            else:
+                uri = fullUri
         # eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         nonce = self.random_bytes(16)
         aud = 'retail_rest_api_proxy'
@@ -5070,7 +5087,7 @@ class coinbase(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         feedback = self.id + ' ' + body

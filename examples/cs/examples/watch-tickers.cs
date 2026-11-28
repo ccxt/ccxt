@@ -9,7 +9,7 @@ partial class Examples
 async public Task watchTickers()
 {
     var binance = new ccxt.pro.binance(new Dictionary<string, object>() {});
-    var symbols = new List<string>() {"BTC/USDT", "ETH/USDT", "DOGE/USDT"};
+    var symbols = new List<object>() {"BTC/USDT", "ETH/USDT", "DOGE/USDT"};
     while (true)
     {
         var tickers = await binance.WatchTickers(symbols);

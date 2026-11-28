@@ -43,28 +43,6 @@ fn both_ints(a: &Value, b: &Value) -> bool {
     matches!(a, Value::Int(_)) && matches!(b, Value::Int(_))
 }
 
-pub fn add(a: &Value, b: &Value) -> Value {
-    // String concatenation if either side is a string (JS-style)
-    if let (Value::Str(sa), Value::Str(sb)) = (a, b) {
-        return Value::Str(format!("{sa}{sb}").into());
-    }
-    if let Value::Str(_) = a { if let Some(_) = as_f64(b) {} return string_concat(a, b); }
-    if let Value::Str(_) = b { return string_concat(a, b); }
-    if both_ints(a, b) {
-        return Value::Int(as_i64(a).unwrap() + as_i64(b).unwrap());
-    }
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => Value::Float(x + y),
-        _ => Value::Null,
-    }
-}
-
-fn string_concat(a: &Value, b: &Value) -> Value {
-    let sa = stringify_simple(a);
-    let sb = stringify_simple(b);
-    Value::Str(format!("{sa}{sb}").into())
-}
-
 pub fn stringify_param(v: &Value) -> String { stringify_simple(v) }
 
 fn stringify_simple(v: &Value) -> String {
@@ -75,8 +53,8 @@ fn stringify_simple(v: &Value) -> String {
         Value::Bool(b)  => b.to_string(),
         Value::Null     => "null".to_string(),
         // Precise sentinel — { integer, decimals, __precise: true }.
-        // Reconstruct the decimal representation so `to_string_val` in
-        // transpiled code returns the expected number string (phemex
+        // Reconstruct the decimal representation so the text is the
+        // expected number string (phemex
         // `toEn` shifts decimals by `valueScale`, then reduce/stringify).
         Value::Dict(m) if m.contains_key("__precise") => precise_to_string(m),
         _ => format!("{v}"),
@@ -109,57 +87,6 @@ fn precise_to_string(m: &indexmap::IndexMap<String, Value>) -> String {
     }
 }
 
-pub fn subtract(a: &Value, b: &Value) -> Value {
-    if both_ints(a, b) { return Value::Int(as_i64(a).unwrap() - as_i64(b).unwrap()); }
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => Value::Float(x - y),
-        _ => Value::Null,
-    }
-}
-
-pub fn multiply(a: &Value, b: &Value) -> Value {
-    if both_ints(a, b) { return Value::Int(as_i64(a).unwrap() * as_i64(b).unwrap()); }
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => Value::Float(x * y),
-        _ => Value::Null,
-    }
-}
-
-// Printed by the rust `/` wrapper table; keep at 0 call sites.
-pub fn divide(a: &Value, b: &Value) -> Value {
-    match (as_f64(a), as_f64(b)) {
-        (Some(_), Some(y)) if y == 0.0 => Value::Null,
-        (Some(x), Some(y)) => Value::Float(x / y),
-        _ => Value::Null,
-    }
-}
-
-// Printed by the rust `%` / `%=` wrapper table; keep at 0 call sites.
-pub fn mod_val(a: &Value, b: &Value) -> Value {
-    if both_ints(a, b) {
-        let yi = as_i64(b).unwrap();
-        if yi == 0 { return Value::Null; }
-        return Value::Int(as_i64(a).unwrap() % yi);
-    }
-    match (as_f64(a), as_f64(b)) {
-        (Some(_), Some(y)) if y == 0.0 => Value::Null,
-        (Some(x), Some(y)) => Value::Float(x % y),
-        _ => Value::Null,
-    }
-}
-
-// Printed by printPrefixUnaryExpression when native negation declines; keep.
-pub fn negate(v: &Value) -> Value {
-    match v {
-        Value::Int(n)   => Value::Int(-n),
-        Value::Float(f) => Value::Float(-f),
-        _ => match as_f64(v) {
-            Some(x) => Value::Float(-x),
-            None    => Value::Null,
-        },
-    }
-}
-
 // ── comparisons ─────────────────────────────────────────────────────────────
 
 pub fn is_equal(a: &Value, b: &Value) -> bool {
@@ -176,47 +103,16 @@ pub fn is_equal(a: &Value, b: &Value) -> bool {
     }
 }
 
-pub fn is_greater_than(a: &Value, b: &Value) -> bool {
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => x > y,
-        _ => match (a, b) { (Value::Str(x), Value::Str(y)) => x > y, _ => false },
-    }
+/// The dict / list a map holds under `key`, read by reference: the shared container for a dict / list
+/// value, an empty one for a missing key or any other value (what `.get(k).cloned().unwrap_or_default().into_dict()` answers).
+pub trait KeyDictRead {
+    fn key_dict(&self, key: &str) -> crate::value::Dict;
+    fn key_list(&self, key: &str) -> crate::value::List;
 }
-
-pub fn is_less_than(a: &Value, b: &Value) -> bool {
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => x < y,
-        _ => match (a, b) { (Value::Str(x), Value::Str(y)) => x < y, _ => false },
-    }
+impl KeyDictRead for HashMap<String, Value> {
+    fn key_dict(&self, key: &str) -> crate::value::Dict { if let Some(Value::Dict(m)) = self.get(key) { Arc::clone(m) } else { Arc::default() } }
+    fn key_list(&self, key: &str) -> crate::value::List { if let Some(Value::Arr(a)) = self.get(key) { Arc::clone(a) } else { Arc::default() } }
 }
-
-pub fn is_greater_than_or_equal(a: &Value, b: &Value) -> bool {
-    is_greater_than(a, b) || is_equal(a, b)
-}
-
-pub fn is_less_than_or_equal(a: &Value, b: &Value) -> bool {
-    is_less_than(a, b) || is_equal(a, b)
-}
-
-// ── type checks ─────────────────────────────────────────────────────────────
-
-/// `is_true(x)` — polymorphic truthy check. The transpiler emits
-/// `is_true(&X)` where `X` may be a `Value`, a `bool`, or the result of
-/// any other predicate (`is_equal`, `in_op`, …). This trait lets all of
-/// them work without manual conversion at the call site.
-pub trait IsTruthy { fn truthy(&self) -> bool; }
-impl IsTruthy for Value     { fn truthy(&self) -> bool { self.is_truthy() } }
-impl IsTruthy for bool      { fn truthy(&self) -> bool { *self } }
-impl IsTruthy for &Value    { fn truthy(&self) -> bool { (*self).is_truthy() } }
-impl IsTruthy for &bool     { fn truthy(&self) -> bool { **self } }
-
-pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
-
-pub fn is_array(v: &Value)    -> bool { matches!(v, Value::Arr(_)) }
-pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Dict(_)) }
-pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float(_)) }
-pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
-pub fn is_function(_v: &Value)-> bool { false }
 
 /// Convert a `catch_unwind` panic payload into the `Value::Str` shape
 /// that transpiled `catch (e)` blocks expect. The transpiled code uses
@@ -251,24 +147,6 @@ pub fn panic_msg_to_error(msg: &str) -> crate::ExchangeError {
 /// the TS `throw new <Kind>(message)` pattern); the typed-wrapper layer
 /// wraps every delegate call in this helper so its public surface is
 /// idiomatic Rust (`Result<T, ExchangeError>`) rather than panicking.
-/// Synchronous sibling of [`call_typed`]: runs a closure that may signal an
-/// error the transpiled way (`panic!("[Kind] message")`) and converts that into
-/// a typed `Result`. Used by the typed wrappers' non-async accessors.
-pub fn catch_typed<F, T>(f: F) -> crate::Result<T>
-where
-    F: FnOnce() -> T,
-{
-    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
-        Ok(v) => Ok(v),
-        Err(payload) => {
-            let msg = payload.downcast_ref::<String>().cloned()
-                .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
-                .unwrap_or_else(|| "panic".to_string());
-            Err(panic_msg_to_error(&msg))
-        }
-    }
-}
-
 pub async fn call_typed<F, T>(fut: F) -> crate::Result<T>
 where
     F: std::future::Future<Output = T>,
@@ -399,8 +277,8 @@ pub fn get_value(obj: &Value, key: impl crate::value::ValueKey) -> Value {
 /// `invalid_reference_casting` lint can be allowed in one place. Mirrors
 /// `coerce_to_mut_unsafe` in `exchange_stubs.rs`.
 #[allow(clippy::mut_from_ref, invalid_reference_casting)]
-pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
-    let ptr = v as *const Value as *mut Value;
+pub unsafe fn coerce_value_to_mut<T>(v: &T) -> &mut T {
+    let ptr = v as *const T as *mut T;
     &mut *ptr
 }
 
@@ -496,41 +374,6 @@ pub fn add_element_to_object(obj: &mut impl AddTarget, key: impl crate::value::V
     key.with_key(|k| obj.add_element(k, val));
 }
 
-pub fn remove(obj: &mut Value, key: &Value) {
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
-            crate::value::try_ws_subs_remove(m, k);
-            Arc::make_mut(m).shift_remove(k.as_ref());
-        }
-        (Value::Arr(a), Value::Int(i)) => {
-            let idx = *i as usize;
-            let a = Arc::make_mut(a);
-            if idx < a.len() { a.remove(idx); }
-        }
-        _ => {}
-    }
-}
-
-/// `Array.prototype.shift()` — removes and returns the first element.
-/// Called as a free function from transpiled WS code (`shift(stored)`).
-/// Returns `Value::Null` if the array is empty or the target isn't an
-/// array.
-pub fn shift(mut arr: Value) -> Value {
-    if let Value::Arr(a) = &mut arr {
-        let inner = Arc::make_mut(a);
-        if !inner.is_empty() { return inner.remove(0); }
-    }
-    Value::Null
-}
-
-pub fn in_op(obj: &Value, key: &Value) -> bool {
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => m.contains_key(k.as_ref()),
-        (Value::Arr(a), v) => a.iter().any(|x| is_equal(x, v)),
-        _ => false,
-    }
-}
-
 /// Synthetic key that tags a live-subscriptions snapshot with its client URL
 /// (see `try_ws_subs_write`). It must never surface to transpiled code that
 /// enumerates `client.subscriptions` (upbit builds its subscribe frame from
@@ -544,15 +387,6 @@ pub fn object_keys(v: &Value) -> Value {
         Value::Dict(m) => Value::Array(
             m.keys().filter(|k| !is_ws_internal_tag(k))
                 .map(|k| Value::Str(k.clone().into())).collect()),
-        _ => Value::Array(vec![]),
-    }
-}
-
-pub fn object_values(v: &Value) -> Value {
-    match v {
-        Value::Dict(m) => Value::Array(
-            m.iter().filter(|(k, _)| !is_ws_internal_tag(k))
-                .map(|(_, val)| val.clone()).collect()),
         _ => Value::Array(vec![]),
     }
 }
@@ -642,35 +476,20 @@ pub fn json_stringify(v: impl JsonOperand) -> Value {
     Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default().into())
 }
 
-// ── math ────────────────────────────────────────────────────────────────────
-
-pub fn math_floor(v: &Value) -> Value {
-    match as_f64(v) { Some(x) => Value::Float(x.floor()), None => Value::Null }
-}
-pub fn math_round(v: &Value) -> Value {
-    match as_f64(v) { Some(x) => Value::Float(x.round()), None => Value::Null }
-}
-pub fn math_ceil(v: &Value) -> Value {
-    match as_f64(v) { Some(x) => Value::Float(x.ceil()), None => Value::Null }
-}
-
 // ── misc ────────────────────────────────────────────────────────────────────
 
-pub fn println_val(v: &Value) {
-    println!("{v}");
-}
-
 /// Async equivalent of Promise.all — awaits all futures and collects results.
-/// Currently a stub: takes a Value::Array and returns it unchanged.
-pub async fn promise_all(v: &Value) -> Value {
-    v.clone()
+/// Currently a stub: takes the already-awaited `Value::Arr` and answers its list (empty for a non-list).
+pub async fn promise_all(v: &Value) -> crate::value::List {
+    if let Value::Arr(a) = v { Arc::clone(a) } else { Arc::default() }
 }
 
 // ── variadic / array helpers ─────────────────────────────────────────────────
 
 /// `get_arg(args, index, default)` — used by transpiled methods that accept
 /// `params = []` variadic optional arguments.
-pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
+/// Takes owned (`&[Value]`) or lent (`&[&Value]`) slots.
+pub fn get_arg<T: std::borrow::Borrow<Value>>(args: &[T], idx: usize, default: Value) -> Value {
     // JS default parameters trigger on `undefined`, so `f(a, b)` and
     // `f(a, b, undefined, undefined)` both apply the declared defaults. The port
     // collapses `undefined`/`null` into `Value::Null`, and a caller may pass
@@ -681,39 +500,23 @@ pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
     // when the slot is `Null` *and* a non-`Null` default is declared, honour the
     // default — matching JS. A `Null` default is unchanged (explicit `Null`
     // stays `Null`).
-    match args.get(idx) {
+    match args.get(idx).map(std::borrow::Borrow::borrow) {
         None => default,
         Some(Value::Null) if !matches!(default, Value::Null) => default,
         Some(v) => v.clone(),
     }
 }
 
+/// The optional `params` slot as a map: the dict it holds, else the empty map (what `get_arg(.., Value::Map({}))`
+/// then `.into_dict()` answered for an absent, `Null` or non-map slot).
+pub fn get_arg_dict<T: std::borrow::Borrow<Value>>(args: &[T], idx: usize) -> crate::value::Dict {
+    match args.get(idx).map(std::borrow::Borrow::borrow) { Some(Value::Dict(m)) => Arc::clone(m), _ => crate::value::Dict::default() }
+}
+
 pub fn append_to_array(arr: &mut Value, v: Value) {
     if crate::value::try_book_cache_push(arr, &v) { return; }
     if let Value::Arr(a) = arr {
         Arc::make_mut(a).push(v);
-    }
-}
-
-/// `obj[key].push(v)` — append to an array *field* of a dict in place. The
-/// transpiled `dict['bids'].push(x)` otherwise lowers to
-/// `append_to_array(&mut get_value(&dict, &key), x)`, whose `get_value` yields a
-/// COW clone, so the push is lost (paradex's order-book inserts). Mutate the
-/// field through the dict instead.
-pub fn append_to_object_array(obj: &mut Value, key: &Value, v: Value) {
-    // Registry-backed fields (a book's "cache") expose a live handle whose
-    // append already reflects — route through it.
-    let field = crate::get_value(obj, key);
-    if crate::value::try_book_cache_push(&field, &v) {
-        return;
-    }
-    // Plain array field: mutate through the dict (get_value would COW-clone).
-    if let (Value::Dict(m), Value::Str(k)) = (obj, key) {
-        let entry = Arc::make_mut(m).entry(k.to_string())
-            .or_insert_with(|| Value::Array(Vec::new()));
-        if let Value::Arr(a) = entry {
-            Arc::make_mut(a).push(v);
-        }
     }
 }
 
@@ -738,17 +541,6 @@ pub fn deep_merge_dict(base: &Value, over: &Value) -> Value {
             Value::Map(out)
         }
         _ => over.clone(),
-    }
-}
-
-pub fn concat_arrays(a: &Value, b: &Value) -> Value {
-    match (a, b) {
-        (Value::Arr(x), Value::Arr(y)) => {
-            let mut out = (**x).clone();
-            out.extend(y.iter().cloned());
-            Value::Array(out)
-        }
-        _ => Value::Array(vec![]),
     }
 }
 
@@ -778,21 +570,6 @@ pub mod Math {
         if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().max(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.max(y)), _ => Value::Null }
     }
-    pub fn abs(a: &Value) -> Value {
-        // checked_abs so i64::MIN falls through to the float branch instead of
-        // panicking on overflow, keeping the module's lenient no-panic contract
-        if let Value::Int(n) = a { if let Some(v) = n.checked_abs() { return Value::Int(v); } }
-        match as_f64(a) { Some(x) => Value::Float(x.abs()), None => Value::Null }
-    }
-    pub fn pow(a: &Value, b: &Value) -> Value {
-        match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.powf(y)), _ => Value::Null }
-    }
-    pub fn floor(v: &Value) -> Value { super::math_floor(v) }
-    pub fn round(v: &Value) -> Value { super::math_round(v) }
-    pub fn ceil(v: &Value)  -> Value { super::math_ceil(v) }
-    pub fn log(v: &Value) -> Value {
-        match as_f64(v) { Some(x) => Value::Float(x.ln()), None => Value::Null }
-    }
 }
 
 // Allow `Math.min(...)` style access through a Math singleton with method
@@ -800,73 +577,6 @@ pub mod Math {
 // if the rust transpiler picks up FullPropertyAccessReplacements). Post-
 // processing in build/rustTranspiler.ts converts `Math.X(...)` to
 // `crate::runtime::Math::X(...)`.
-
-/// `join(array, separator)` — joins array elements into a string.
-pub fn join(arr: &Value, sep: &Value) -> Value {
-    let s = stringify_simple(sep);
-    if let Value::Arr(a) = arr {
-        let parts: Vec<String> = a.iter().map(stringify_simple).collect();
-        Value::Str(parts.join(&s).into())
-    } else { Value::Str(String::new().into()) }
-}
-
-/// Generic `.toString()` for Value.
-pub fn to_string_val(v: &Value) -> Value {
-    Value::Str(stringify_simple(v).into())
-}
-
-/// `parse_int(value)` — best-effort to integer.
-pub fn parse_int(v: &Value) -> Value {
-    match v {
-        Value::Int(_)   => v.clone(),
-        Value::Float(f) => Value::Int(*f as i64),
-        Value::Str(s)   => s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null),
-        _ => Value::Null,
-    }
-}
-
-/// `parse_float(value)` — best-effort to float.
-pub fn parse_float(v: &Value) -> Value {
-    match v {
-        Value::Float(_) => v.clone(),
-        Value::Int(n)   => Value::Float(*n as f64),
-        Value::Str(s)   => s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null),
-        _ => Value::Null,
-    }
-}
-
-/// `starts_with(haystack, prefix)` — true if Value haystack starts with prefix.
-pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
-    match (haystack, prefix) {
-        (Value::Str(h), Value::Str(p)) => h.starts_with(p.as_ref()),
-        _ => false,
-    }
-}
-
-/// `ends_with(haystack, suffix)` — true if Value haystack ends with suffix.
-pub fn ends_with(haystack: &Value, suffix: &Value) -> bool {
-    match (haystack, suffix) {
-        (Value::Str(h), Value::Str(s)) => h.ends_with(s.as_ref()),
-        _ => false,
-    }
-}
-
-/// `trim(s)` — string trim.
-pub fn trim(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.trim().to_string().into()), _ => Value::Null }
-}
-
-/// `contains(haystack, needle)` — substring check for `Value::Str`,
-/// element check for `Value::Array`. Used by the transpiled tests
-/// for `string.includes(...)` / `array.includes(...)` (the regex
-/// transpiler rewrites both into this free function).
-pub fn contains(haystack: &Value, needle: &Value) -> bool {
-    match (haystack, needle) {
-        (Value::Str(h), Value::Str(n))   => h.contains(n.as_ref()),
-        (Value::Arr(a), n)             => a.iter().any(|el| is_equal(el, n)),
-        _ => false,
-    }
-}
 
 // ── Numeric / precision constants (mirrors decimal_to_precision.ts) ─────────
 
@@ -879,24 +589,6 @@ pub const SIGNIFICANT_DIGITS:   i64 = 3;
 pub const TICK_SIZE: i64 = 4;
 pub const NO_PADDING:           i64 = 5;
 pub const PAD_WITH_ZERO:        i64 = 6;
-
-/// `string_replace(s, old, new)` — string replacement.
-pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
-    match (s, old, new_val) {
-        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_ref(), n.as_ref()).into()),
-        _ => s.clone(),
-    }
-}
-
-/// `split(s, delim)` — string split returning Value::Array of Value::Str.
-pub fn split(s: &Value, delim: &Value) -> Value {
-    match (s, delim) {
-        (Value::Str(s), Value::Str(d)) => {
-            Value::Array(s.split(d.as_ref()).map(|p| Value::Str(p.to_string().into())).collect())
-        }
-        _ => Value::Array(vec![]),
-    }
-}
 
 /// `repeat(s, n)` — repeat string n times.
 pub fn repeat(s: &Value, n: &Value) -> Value {
@@ -1392,72 +1084,6 @@ pub fn jwt(request: impl Into<Value>, secret: impl Into<Value>, algorithm: Value
     let sig_url = sig_std.replace('+', "-").replace('/', "_")
         .trim_end_matches('=').to_string();
     format!("{token}.{sig_url}")
-}
-
-/// `replace_str(s, old, new)` — string replacement, alias for string_replace.
-pub fn replace_str(s: &Value, old: &Value, new_val: &Value) -> Value {
-    string_replace(s, old, new_val)
-}
-
-/// `replace_all_str(s, old, new)` — replace every occurrence (TS String.replaceAll).
-pub fn replace_all_str(s: &Value, old: &Value, new_val: &Value) -> Value {
-    let (Value::Str(sv), Value::Str(ov), Value::Str(nv)) = (s, old, new_val) else {
-        return s.clone();
-    };
-    Value::Str(sv.replace(ov.as_ref(), nv.as_ref()).into())
-}
-
-/// `Date.now()` — current Unix time in milliseconds.
-pub fn date_now() -> Value {
-    let ms = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0);
-    Value::Int(ms)
-}
-
-/// `pad_start(s, len, pad)` / `pad_end` — left/right pad strings.
-pub fn pad_start(s: &Value, len: &Value, pad: &Value) -> Value {
-    let target = match as_i64(len) { Some(v) => v as usize, None => 0 };
-    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string().into() };
-    match s {
-        Value::Str(sv) => {
-            if sv.chars().count() >= target { Value::Str(sv.clone()) }
-            else {
-                let need = target - sv.chars().count();
-                Value::Str(format!("{}{}", p.repeat((need / p.chars().count().max(1)).max(1)), sv).into())
-            }
-        }
-        _ => Value::Null,
-    }
-}
-
-pub fn pad_end(s: &Value, len: &Value, pad: &Value) -> Value {
-    let target = match as_i64(len) { Some(v) => v as usize, None => 0 };
-    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string().into() };
-    match s {
-        Value::Str(sv) => {
-            if sv.chars().count() >= target { Value::Str(sv.clone()) }
-            else {
-                let need = target - sv.chars().count();
-                Value::Str(format!("{}{}", sv, p.repeat((need / p.chars().count().max(1)).max(1))).into())
-            }
-        }
-        _ => Value::Null,
-    }
-}
-
-/// `to_fixed(x, digits)` — JS `Number.prototype.toFixed`: format a number
-/// with a fixed number of decimal places, returned as a string.
-pub fn to_fixed(x: &Value, digits: &Value) -> Value {
-    let d = match as_i64(digits) { Some(v) => v.max(0) as usize, None => 0 };
-    let n = match x {
-        Value::Int(i) => *i as f64,
-        Value::Float(f) => *f,
-        Value::Str(s) => s.trim().parse::<f64>().unwrap_or(0.0),
-        _ => 0.0,
-    };
-    Value::Str(format!("{:.*}", d, n).into())
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────

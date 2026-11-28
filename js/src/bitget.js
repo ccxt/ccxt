@@ -2093,7 +2093,8 @@ export default class bitget extends Exchange {
     async handleUTAAndParams(params, methodName, defaultValue = false) {
         const [uta, paramsUta] = this.handleOptionAndParams(params, methodName, 'uta');
         if (uta !== undefined) {
-            return [uta, paramsUta];
+            const utaFlag = this.safeBool([uta], 0);
+            return [(utaFlag === true), paramsUta];
         }
         if (this.checkRequiredCredentials(false)) {
             // use the api to determine if the account is uta or not
@@ -2308,8 +2309,8 @@ export default class bitget extends Exchange {
                 continue;
             }
             const parsedMarket = this.parseMarket(market);
-            if ((parsedMarket !== undefined) && parsedMarket['spot']) {
-                const marketId = parsedMarket['id'];
+            if ((parsedMarket !== undefined) && this.safeBool(parsedMarket, 'spot', false)) {
+                const marketId = this.safeString(parsedMarket, 'id', '');
                 const instrument = this.safeDict(spotInstruments, marketId);
                 if (instrument !== undefined) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
@@ -2420,12 +2421,16 @@ export default class bitget extends Exchange {
             const priceEndStep = this.safeString(market, 'priceEndStep');
             const sizeMultiplier = this.safeString(market, 'sizeMultiplier');
             const precise = new Precise(priceEndStep);
-            precise.decimals = Math.max(precise.decimals, pricePlaces);
+            if (pricePlaces !== undefined) {
+                precise.decimals = Math.max(precise.decimals, pricePlaces);
+            }
             precise.reduce();
             const priceString = precise.toString();
             pricePrecision = this.parseNumber(priceString);
             const preciseAmount = new Precise(sizeMultiplier);
-            preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            if (volumePlaces !== undefined) {
+                preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce();
             const amountString = preciseAmount.toString();
             amountPrecision = this.parseNumber(amountString);
@@ -2926,7 +2931,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let marginMode = undefined;
         let productType = undefined;
-        let uta = undefined;
+        let uta = false;
         let paramsMarginMode = undefined;
         [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'isolated');
         [productType, paramsMarginMode] = this.handleProductTypeAndParams(market, paramsMarginMode);
@@ -4017,7 +4022,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseTicker(data[0], market);
+        return this.parseTicker(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -4046,7 +4051,7 @@ export default class bitget extends Exchange {
             response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType));
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseTicker(data[0], market);
+        return this.parseTicker(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -4375,9 +4380,13 @@ export default class bitget extends Exchange {
             const feeCostString = this.safeString2(feeStructure, 'totalFee', 'fee');
             const deductionString = this.safeString(feeStructure, 'deduction');
             const deduction = (deductionString === 'yes');
+            let feeCostSigned = feeCostString;
+            if (!deduction) {
+                feeCostSigned = Precise.stringNeg(feeCostString);
+            }
             fee = {
                 'currency': currencyCode,
-                'cost': deduction ? feeCostString : Precise.stringNeg(feeCostString),
+                'cost': feeCostSigned,
             };
         }
         return this.safeTrade({
@@ -4435,7 +4444,7 @@ export default class bitget extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta = false;
         [uta, paramsPaginate] = await this.handleUTAAndParams(paramsPaginate, 'fetchTrades', false);
         const isStockOrUta = (isStockSpot || (uta === true));
         if (limit !== undefined) {
@@ -4584,7 +4593,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta = false;
         let paramsUTA = undefined;
         [uta, paramsUTA] = await this.handleUTAAndParams(params, 'fetchTradingFee', false);
         if (uta === true) {
@@ -4658,7 +4667,7 @@ export default class bitget extends Exchange {
         let paramsMarginMode = undefined;
         [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchTradingFees', params);
         [marketType, paramsMarginMode] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, paramsMarginMode);
-        let uta = undefined;
+        let uta = false;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'fetchTradingFees', false);
         if (uta === true) {
             const utaMargin = this.safeBool(paramsMarginMode, 'margin', false);
@@ -4698,7 +4707,7 @@ export default class bitget extends Exchange {
             const rows = this.safeList(utaResponse, 'data', []);
             const utaResult = {};
             for (let i = 0; i < rows.length; i++) {
-                const entry = rows[i];
+                const entry = this.safeDict(rows, i, {});
                 const entryMarketId = this.safeString(entry, 'symbol');
                 if ((entryMarketId === undefined) || (this.markets_by_id === undefined) || !(entryMarketId in this.markets_by_id)) {
                     continue; // skip ids missing from the loaded market map, a raw id must not become a unified symbol key
@@ -4725,7 +4734,7 @@ export default class bitget extends Exchange {
         else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType = undefined;
             [productType, paramsMarginMode] = this.handleProductTypeAndParams(undefined, paramsMarginMode);
-            paramsMarginMode['productType'] = productType;
+            paramsMarginMode = this.extend(paramsMarginMode, { 'productType': productType });
             response = await this.publicMixGetV2MixMarketContracts(paramsMarginMode);
         }
         else {
@@ -4805,7 +4814,7 @@ export default class bitget extends Exchange {
         const data = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict(data, i, {});
             const marketId = this.safeString(entry, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
             const market = this.market(symbol);
@@ -4942,13 +4951,14 @@ export default class bitget extends Exchange {
         let historicalEndpointNeeded = (useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        let calculatedStartTime = undefined;
-        let calculatedEndTime = undefined;
+        // the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        const hasEndTime = (since !== undefined) || (until !== undefined);
+        let calculatedEndTime = now;
         if (since !== undefined) {
-            calculatedStartTime = since;
             request['startTime'] = since;
             if (until === undefined) {
-                calculatedEndTime = this.sum(since, recentDuration);
+                const sinceEndTime = this.sum(since, recentDuration);
+                calculatedEndTime = sinceEndTime;
                 if (since > now - recentDuration) {
                     calculatedEndTime = now;
                 }
@@ -4964,7 +4974,6 @@ export default class bitget extends Exchange {
             request['endTime'] = untilEndTime;
             if (since === undefined) {
                 const untilStartTime = untilEndTime - recentDuration;
-                calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
                 if ((recentEndpointAvailableDays !== undefined) && (untilStartTime <= now - (recentEndpointAvailableDays - 1) * msInDay)) {
                     historicalEndpointNeeded = true;
@@ -4976,15 +4985,16 @@ export default class bitget extends Exchange {
             const historicalLimit = (recentLimit > maxLimitForHistoryEndpoint) ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             const historicalDuration = historicalLimit * duration;
-            calculatedStartTime = calculatedEndTime - historicalDuration;
-            request['startTime'] = calculatedStartTime;
-            // for contract, maximum 90 days allowed between start-end times
-            if (!this.safeBool(market, 'spot', false)) {
-                const maxDistanceForContracts = 90 * msInDay;
-                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if ((calculatedEndTime !== undefined) && (historicalDuration > maxDistanceForContracts)) {
-                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
-                    request['endTime'] = calculatedEndTime;
+            if (hasEndTime) {
+                const historicalStartTime = calculatedEndTime - historicalDuration;
+                request['startTime'] = historicalStartTime;
+                // for contract, maximum 90 days allowed between start-end times
+                if (!this.safeBool(market, 'spot', false)) {
+                    const maxDistanceForContracts = 90 * msInDay;
+                    // endTime - startTime is historicalDuration here
+                    if (historicalDuration > maxDistanceForContracts) {
+                        request['endTime'] = this.sum(historicalStartTime, maxDistanceForContracts);
+                    }
                 }
             }
         }
@@ -5097,7 +5107,7 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         let response = undefined;
         const [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchBalance', 'stock', false);
-        let uta = undefined;
+        let uta = false;
         let paramsUTA = undefined;
         [uta, paramsUTA] = await this.handleUTAAndParams(paramsStock, 'fetchBalance', false);
         const isStock = (stock === true);
@@ -5925,7 +5935,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     createUtaOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
@@ -6338,8 +6348,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        const firstOrder = this.safeDict(orders, 0);
-        let symbol = this.safeString(firstOrder, 'symbol');
+        let symbol = undefined;
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -6408,15 +6417,14 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let uta = undefined;
+        let uta = false;
         let paramsUTA = undefined;
         [uta, paramsUTA] = await this.handleUTAAndParams(params, 'createOrders', false);
         if (uta === true) {
             return await this.createUtaOrders(orders, paramsUTA);
         }
         const ordersRequests = [];
-        const firstOrder = this.safeDict(orders, 0);
-        let symbol = this.safeString(firstOrder, 'symbol');
+        let symbol = undefined;
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -6581,7 +6589,7 @@ export default class bitget extends Exchange {
         let paramsOmitted = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
         let productType = undefined;
-        let uta = undefined;
+        let uta = false;
         [productType, paramsOmitted] = this.handleProductTypeAndParams(market, paramsOmitted);
         [uta, paramsOmitted] = await this.handleUTAAndParams(paramsOmitted, 'editOrder', false);
         if (uta === true) {
@@ -6750,7 +6758,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -6798,7 +6806,7 @@ export default class bitget extends Exchange {
         if (!((this.safeBool(market, 'spot', false)) && (trigger === true))) {
             request['symbol'] = market['id'];
         }
-        let uta = undefined;
+        let uta = false;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'cancelOrder', false);
         const isStockOrUta = (isStockSpot || (uta === true));
         const isPlanOrder = (trigger === true) || trailing;
@@ -6936,13 +6944,13 @@ export default class bitget extends Exchange {
         }
         else {
             if (isStockOrUta && (trigger === true)) {
-                order = response;
+                order = this.extend({}, response);
             }
             else {
                 order = data;
             }
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     async cancelUtaOrders(ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -6952,7 +6960,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const productType = this.handleProductTypeAndParams(market, params)[0];
+        const [productType] = this.handleProductTypeAndParams(market, params);
         const requestList = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = this.safeString(ids, i);
@@ -7006,7 +7014,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let uta = undefined;
+        let uta = false;
         let paramsUTA = undefined;
         [uta, paramsUTA] = await this.handleUTAAndParams(params, 'cancelOrders', false);
         if (uta === true) {
@@ -7113,7 +7121,7 @@ export default class bitget extends Exchange {
         const trigger = this.safeBool2(paramsMarginMode, 'stop', 'trigger');
         paramsMarginMode = this.omit(paramsMarginMode, ['stop', 'trigger']);
         let response = undefined;
-        let uta = undefined;
+        let uta = false;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'cancelAllOrders', false);
         if (uta === true) {
             if (productType === 'SPOT') {
@@ -7377,7 +7385,7 @@ export default class bitget extends Exchange {
         const data = this.safeDict(response, 'data');
         if ((data !== undefined)) {
             if (!Array.isArray(data)) {
-                return this.parseOrder(data, market);
+                return this.parseOrder(this.extend({}, data), market);
             }
         }
         const dataList = this.safeList(response, 'data', []);
@@ -7386,7 +7394,7 @@ export default class bitget extends Exchange {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id + ' in ' + this.json(response));
         }
         const first = this.safeDict(dataList, 0, {});
-        return this.parseOrder(first, market);
+        return this.parseOrder(this.extend({}, first), market);
         // const first = this.safeDict (data, 0, data);
         // return this.parseOrder (first, market);
     }
@@ -7424,7 +7432,7 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         let paramsMarginMode = undefined;
         [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchOpenOrders', params);
-        let uta = undefined;
+        let uta = false;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'fetchOpenOrders', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -7903,7 +7911,7 @@ export default class bitget extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let uta = undefined;
+        let uta = false;
         let paramsUTA = undefined;
         [uta, paramsUTA] = await this.handleUTAAndParams(params, 'fetchCanceledAndClosedOrders', false);
         if (uta === true) {
@@ -8358,14 +8366,15 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         const symbol = this.safeString(params, 'symbol');
-        let paramsOmitted = this.omit(params, 'symbol');
+        const paramsNoSymbol = this.omit(params, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         let marketType = undefined;
-        [marketType, paramsOmitted] = this.handleMarketTypeAndParams('fetchLedger', market, paramsOmitted);
-        let uta = undefined;
+        let paramsOmitted = undefined;
+        [marketType, paramsOmitted] = this.handleMarketTypeAndParams('fetchLedger', market, paramsNoSymbol);
+        let uta = false;
         [uta, paramsOmitted] = await this.handleUTAAndParams(paramsOmitted, 'fetchLedger', false);
         let paginate = false;
         [paginate, paramsOmitted] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchLedger', 'paginate', false);
@@ -8534,12 +8543,13 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
+            const data = this.safeDict(response, 'data', {});
             const bills = this.safeList(data, 'bills', []);
             return this.parseLedger(bills, currency, since, limit);
         }
-        return this.parseLedger(data, currency, since, limit);
+        const rows = this.safeList(response, 'data', []);
+        return this.parseLedger(rows, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -8850,7 +8860,7 @@ export default class bitget extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let uta = undefined;
+        let uta = false;
         let paramsUTA = undefined;
         [uta, paramsUTA] = await this.handleUTAAndParams(params, 'fetchMyTrades', false);
         if ((uta !== true) && (symbol === undefined)) {
@@ -9087,7 +9097,6 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let result = undefined;
         const [uta, paramsUTA] = await this.handleUTAAndParams(paramsProductType, 'fetchPosition', false);
         if (uta === true) {
             request['category'] = productType;
@@ -9131,7 +9140,8 @@ export default class bitget extends Exchange {
             //     }
             //
             const data = this.safeDict(response, 'data', {});
-            result = this.safeList(data, 'list', []);
+            const utaPositionRows = this.safeList(data, 'list', []);
+            return this.parsePosition(this.safeDict(utaPositionRows, 0, {}), market);
         }
         else {
             request['marginCoin'] = market['settleId'];
@@ -9167,10 +9177,9 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            result = this.safeList(response, 'data', []);
+            const singlePositionRows = this.safeList(response, 'data', []);
+            return this.parsePosition(this.safeDict(singlePositionRows, 0, {}), market);
         }
-        const first = this.safeDict(result, 0, {});
-        return this.parsePosition(first, market);
     }
     /**
      * @method
@@ -9220,7 +9229,7 @@ export default class bitget extends Exchange {
         const request = {};
         let response = undefined;
         let isHistory = false;
-        let uta = undefined;
+        let uta = false;
         [uta, paramsPaginate] = await this.handleUTAAndParams(paramsPaginate, 'fetchPositions', false);
         if (uta === true) {
             request['category'] = productType;
@@ -9371,7 +9380,7 @@ export default class bitget extends Exchange {
         }
         const result = [];
         for (let i = 0; i < position.length; i++) {
-            const parsedPosition = this.parsePosition(position[i], market);
+            const parsedPosition = this.parsePosition(this.safeDict(position, i, {}), market);
             result.push(parsedPosition);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
@@ -9509,7 +9518,7 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerN(position, ['cTime', 'ctime', 'createdTime']);
         let marginMode = this.safeString(position, 'marginMode');
         let collateral = undefined;
@@ -9642,9 +9651,9 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let productType = undefined;
-        let uta = undefined;
+        let uta = false;
         let response = undefined;
-        let result = undefined;
+        let result = [];
         let paramsProductType = undefined;
         [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
         [uta, paramsProductType] = await this.handleUTAAndParams(paramsProductType, 'fetchFundingRateHistory', false);
@@ -9745,7 +9754,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta = false;
         let response = undefined;
         [uta, paramsProductType] = await this.handleUTAAndParams(paramsProductType, 'fetchFundingRate', false);
         if (uta === true) {
@@ -9811,7 +9820,7 @@ export default class bitget extends Exchange {
             }
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseFundingRate(data[0], market);
+        return this.parseFundingRate(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -10253,7 +10262,8 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
-        if (amount > 0) {
+        const amountString = this.numberToString(amount);
+        if (Precise.stringGt(amountString, '0')) {
             throw new BadRequest(this.id + ' reduceMargin() amount parameter must be a negative value');
         }
         const holdSide = this.safeString(params, 'holdSide');
@@ -10379,7 +10389,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'leverage': this.numberToString(leverage),
         };
-        let uta = undefined;
+        let uta = false;
         let response = {};
         [uta, paramsProductType] = await this.handleUTAAndParams(paramsProductType, 'setLeverage', false);
         if (uta === true) {
@@ -11155,7 +11165,8 @@ export default class bitget extends Exchange {
             requestUntil['startTime'] = since;
         }
         else {
-            requestUntil['startTime'] = this.milliseconds() - 7776000000;
+            const defaultStart = this.milliseconds() - 7776000000;
+            requestUntil['startTime'] = defaultStart;
         }
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
@@ -11735,7 +11746,7 @@ export default class bitget extends Exchange {
         }
         const data = this.safeDict(response, 'data', {});
         const order = this.safeList2(data, 'successList', 'list', []);
-        return this.parseOrder(order[0], market);
+        return this.parseOrder(this.extend({}, this.safeDict(order, 0, {})), market);
     }
     /**
      * @method

@@ -1,6 +1,6 @@
 import hyperliquidRest from '../hyperliquid.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, Liquidation, type int } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Balances, Position, Liquidation, type int } from '../base/types.js';
 export default class hyperliquid extends hyperliquidRest {
     describe(): Dict;
     /**
@@ -352,7 +352,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
     handleOrder(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     /**
      * @method
      * @name hyperliquid#waitForPendingUnsubscribe

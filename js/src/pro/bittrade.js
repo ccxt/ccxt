@@ -114,7 +114,7 @@ export default class bittrade extends bittradeRest {
         const timestamp = this.safeInteger(message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         this.tickers[symbol] = ticker;
         client.resolve(ticker, ch);
         return message;
@@ -192,7 +192,7 @@ export default class bittrade extends bittradeRest {
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let tradesCache = this.safeValue(this.trades, symbol);
         if (tradesCache === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -200,7 +200,7 @@ export default class bittrade extends bittradeRest {
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i], market);
+            const trade = this.parseTrade(this.safeDict(data, i, {}), market);
             tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
@@ -275,7 +275,7 @@ export default class bittrade extends bittradeRest {
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
@@ -329,7 +329,7 @@ export default class bittrade extends bittradeRest {
             'symbol': symbolValue,
             'limit': limitValue,
             'params': params,
-            'method': this.handleOrderBookSubscription,
+            'method': 'handleOrderBookSubscription',
         };
         const orderbook = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
         return orderbook.limit();
@@ -373,7 +373,8 @@ export default class bittrade extends bittradeRest {
         // unroll the accumulated deltas
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
-            this.handleOrderBookMessage(client, messages[i], orderbook);
+            const messageItem = this.safeDict(messages, i, {});
+            this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -403,7 +404,7 @@ export default class bittrade extends bittradeRest {
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
-                'method': this.handleOrderBookSnapshot,
+                'method': 'handleOrderBookSnapshot',
             };
             const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
@@ -529,21 +530,25 @@ export default class bittrade extends bittradeRest {
         //
         const id = this.safeString(message, 'id');
         if (id === undefined) {
-            return message;
+            return;
         }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
-            const method = this.safeValue(subscription, 'method');
-            if (method !== undefined) {
-                return method.call(this, client, message, subscription);
+            const method = this.safeString(subscription, 'method');
+            if (method === 'handleOrderBookSnapshot') {
+                this.handleOrderBookSnapshot(client, message, subscription);
+                return;
+            }
+            else if (method === 'handleOrderBookSubscription') {
+                this.handleOrderBookSubscription(client, message, subscription);
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
     handleSystemStatus(client, message) {
         //

@@ -956,8 +956,8 @@ class onetrading extends Exchange {
         $result = array();
         $rawTickers = $this->to_array($response);
         for ($i = 0; $i < count($rawTickers); $i++) {
-            $ticker = $this->parse_ticker($rawTickers[$i]);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ticker($this->safe_dict($rawTickers, $i, array()));
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -1534,7 +1534,7 @@ class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {
@@ -1966,7 +1966,7 @@ class onetrading extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

@@ -507,7 +507,7 @@ class hitbtc extends hitbtc$1["default"] {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = this.safeSymbol(marketId, market);
-            const ticker = this.parseWsTicker(data[marketId], market);
+            const ticker = this.parseWsTicker(this.safeDict(data, marketId, {}), market);
             this.tickers[symbol] = ticker;
             result.push(ticker);
             const messageHash = topic + '::' + symbol;
@@ -634,7 +634,7 @@ class hitbtc extends hitbtc$1["default"] {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = this.safeSymbol(marketId, market);
-            const ticker = this.parseWsBidAsk(data[marketId], market);
+            const ticker = this.parseWsBidAsk(this.safeDict(data, marketId, {}), market);
             this.bidsasks[symbol] = ticker;
             result.push(ticker);
             const messageHash = topic + '::' + symbol;
@@ -646,7 +646,7 @@ class hitbtc extends hitbtc$1["default"] {
         const timestamp = this.safeInteger(ticker, 't');
         let bidAskSymbol = undefined;
         if (market !== undefined) {
-            bidAskSymbol = market['symbol'];
+            bidAskSymbol = this.safeString(market, 'symbol');
         }
         return this.safeTicker({
             'symbol': bidAskSymbol,
@@ -761,7 +761,7 @@ class hitbtc extends hitbtc$1["default"] {
                 stored = new Cache.ArrayCache(tradesLimit);
                 this.trades[symbol] = stored;
             }
-            const trades = this.parseWsTrades(data[marketId], market);
+            const trades = this.parseWsTrades(this.safeList(data, marketId, []), market);
             for (let j = 0; j < trades.length; j++) {
                 stored.append(trades[j]);
             }
@@ -1048,15 +1048,16 @@ class hitbtc extends hitbtc$1["default"] {
             const limit = this.safeInteger(this.options, 'ordersLimit');
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const data = this.safeValue(message, 'params', []);
-        if (Array.isArray(data)) {
+        const dataDict = this.safeDict(message, 'params');
+        if (dataDict !== undefined) {
+            this.handleOrderHelper(client, message, dataDict);
+        }
+        else {
+            const data = this.safeList(message, 'params', []);
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 this.handleOrderHelper(client, message, order);
             }
-        }
-        else {
-            this.handleOrderHelper(client, message, data);
         }
         return message;
     }
@@ -1070,7 +1071,7 @@ class hitbtc extends hitbtc$1["default"] {
         const splitMethod = method.split('_order');
         const messageHash = this.safeString(splitMethod, 0);
         const symbol = this.safeSymbol(marketId);
-        const parsed = this.parseOrder(order);
+        const parsed = this.parseOrder(this.extend({}, order));
         orders.append(parsed);
         client.resolve(orders, messageHash);
         if (messageHash !== undefined) {
@@ -1447,18 +1448,19 @@ class hitbtc extends hitbtc$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const result = this.safeValue(message, 'result', {});
-        if (Array.isArray(result)) {
+        const rows = this.safeList(message, 'result');
+        if (rows === undefined) {
+            const parsedOrder = this.parseWsOrder(this.safeDict(message, 'result', {}));
+            client.resolve(parsedOrder, messageHash);
+        }
+        else {
             const parsedOrders = [];
-            for (let i = 0; i < result.length; i++) {
-                const parsedOrder = this.parseWsOrder(result[i]);
+            const rowsLength = rows.length;
+            for (let i = 0; i < rowsLength; i++) {
+                const parsedOrder = this.parseWsOrder(this.safeDict(rows, i, {}));
                 parsedOrders.push(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
-        }
-        else {
-            const parsedOrder = this.parseWsOrder(result);
-            client.resolve(parsedOrder, messageHash);
         }
         return message;
     }
@@ -1510,10 +1512,11 @@ class hitbtc extends hitbtc$1["default"] {
             if ((result === true) && !('id' in message)) {
                 this.handleAuthenticate(client, message);
             }
-            if (Array.isArray(result)) {
+            const rows = this.safeList(message, 'result');
+            if (rows !== undefined) {
                 // to do improve this, not very reliable right now
-                const first = this.safeDict(result, 0, {});
-                const arrayLength = result.length;
+                const first = this.safeDict(rows, 0, {});
+                const arrayLength = rows.length;
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest(client, message);
                 }
@@ -1544,7 +1547,7 @@ class hitbtc extends hitbtc$1["default"] {
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
                 const messageHashes = this.safeList(subscription, 'messageHashes', []);
                 for (let j = 0; j < subMessageHashes.length; j++) {
-                    this.cleanUnsubscription(client, subMessageHashes[j], messageHashes[j]);
+                    this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), this.safeString(messageHashes, j));
                 }
                 this.cleanCache(subscription);
                 return;

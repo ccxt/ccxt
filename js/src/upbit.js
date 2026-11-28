@@ -943,7 +943,6 @@ export default class upbit extends Exchange {
         //         }
         //
         const id = this.safeString2(trade, 'sequential_id', 'uuid');
-        const orderId = undefined;
         let timestamp = this.safeInteger(trade, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601(this.safeString(trade, 'created_at'));
@@ -972,7 +971,7 @@ export default class upbit extends Exchange {
         return this.safeTrade({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
@@ -1328,8 +1327,9 @@ export default class upbit extends Exchange {
         else {
             throw new InvalidOrder(this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const paramsOrdType = (customType === 'best') ? this.omit(params, ['ordType', 'ord_type']) : params;
+        let paramsOrdType = params;
         if (customType === 'best') {
+            paramsOrdType = this.omit(paramsOrdType, ['ordType', 'ord_type']);
             request['ord_type'] = 'best';
             if (side === 'buy') {
                 const orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);

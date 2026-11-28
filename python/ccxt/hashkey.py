@@ -1102,11 +1102,10 @@ class hashkey(Exchange, ImplicitAPI):
                 minLeverage = self.parse_to_int(Precise.string_div('1', maxInitialMargin))
                 maxLeverage = self.parse_to_int(Precise.string_div('1', minInitialMargin))
         tradingFees = self.safe_dict(self.fees, 'trading')
-        fees = None
+        feeKey = 'swap'
         if isSpot:
-            fees = self.safe_dict(tradingFees, 'spot')
-        else:
-            fees = self.safe_dict(tradingFees, 'swap')
+            feeKey = 'spot'
+        fees = self.safe_dict(tradingFees, feeKey)
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -1684,7 +1683,7 @@ class hashkey(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
         contractSizeValue = self.safe_string(marketResolved, 'contractSize')
@@ -1886,7 +1885,9 @@ class hashkey(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCodeInParams, paramsNetworkCode = self.handle_network_code_and_params(params)
-        networkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork')) if (networkCodeInParams is None) else networkCodeInParams
+        networkCode = networkCodeInParams
+        if networkCode is None:
+            networkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork'))
         request['chainType'] = self.network_code_to_id(networkCode, code)
         response = self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsNetworkCode))
         #
@@ -2495,7 +2496,7 @@ class hashkey(Exchange, ImplicitAPI):
         if (not isMarketBuy) and (cost is not None):
             raise NotSupported(self.id + ' createOrder() supports cost parameter for spot market buy orders only')
         request = self.create_spot_order_request(symbol, type, side, amount, price, params)
-        response = {}
+        response = None
         test = self.safe_bool(params, 'test', False)
         if test:
             response = self.privatePostApiV1SpotOrderTest(request)
@@ -2931,7 +2932,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3110,7 +3111,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3558,15 +3559,14 @@ class hashkey(Exchange, ImplicitAPI):
                 type = 'market'
             else:
                 type = 'limit'
-        timeInForce = self.safe_string(order, 'timeInForce')
-        postOnly = None
-        type, timeInForce, postOnly = self.parse_order_type_time_in_force_and_post_only(type, timeInForce)
+        rawTimeInForce = self.safe_string(order, 'timeInForce')
+        timeInForce = self.parse_order_time_in_force_value(type, rawTimeInForce)
+        typeParsed = self.parse_order_type(type)
         average = self.omit_zero(self.safe_string(order, 'avgPrice'))
         if price is None:
             price = average
-        side = self.safe_string_lower(order, 'side')
-        reduceOnly = None
-        side, reduceOnly = self.parse_order_side_and_reduce_only(side)
+        rawSide = self.safe_string_lower(order, 'side')
+        side = self.parse_order_side_value(rawSide)
         feeCurrncyId = self.safe_string(order, 'feeCoin')
         if feeCurrncyId == '':
             feeCurrncyId = None
@@ -3579,7 +3579,7 @@ class hashkey(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(status),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': typeParsed,
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
@@ -3596,20 +3596,25 @@ class hashkey(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(feeCurrncyId),
                 'cost': self.omit_zero(self.safe_string(order, 'feeAmount')),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': self.parse_order_reduce_only_value(rawSide),
+            'postOnly': self.parse_order_post_only_value(type, rawTimeInForce),
             'info': order,
         }, marketResolved)
 
-    def parse_order_side_and_reduce_only(self, unparsed: object):
-        parts = unparsed.split('_')
-        side = parts[0]
-        secondPart = self.safe_string(parts, 1)
+    def parse_order_side_value(self, unparsed: Str) -> Str:
+        if unparsed is None:
+            return None
+        return self.safe_string(unparsed.split('_'), 0)
+
+    def parse_order_reduce_only_value(self, unparsed: Str) -> Bool:
+        if unparsed is None:
+            return None
+        secondPart = self.safe_string(unparsed.split('_'), 1)
         if secondPart == 'open':
-            return [side, False]
+            return False
         if secondPart == 'close':
-            return [side, True]
-        return [side, None]
+            return True
+        return None
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -3625,15 +3630,17 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type_time_in_force_and_post_only(self, type: Str, timeInForce: Str) -> list:
+    def parse_order_time_in_force_value(self, type: Str, timeInForce: Str) -> Str:
         isMakerTimeInForce = (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER')
-        timeInForceParsed = timeInForce
         if (type != 'LIMIT_MAKER') and isMakerTimeInForce:
-            timeInForceParsed = 'PO'
-        typeValue = self.parse_order_type(type)
+            return 'PO'
+        return timeInForce
+
+    def parse_order_post_only_value(self, type: Str, timeInForce: Str) -> Bool:
+        isMakerTimeInForce = (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER')
         if (type == 'LIMIT_MAKER') or isMakerTimeInForce:
-            return [typeValue, timeInForceParsed, True]
-        return [typeValue, timeInForceParsed, None]
+            return True
+        return None
 
     def parse_order_type(self, type: Str) -> Str:
         types = {
@@ -3800,7 +3807,8 @@ class hashkey(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only')
         if self.markets is None:
             self.load_markets()
-        return self.fetch_positions_for_symbol(symbols[0], self.extend({'methodName': 'fetchPositions'}, params))
+        firstSymbol = self.safe_string(symbols, 0, '')
+        return self.fetch_positions_for_symbol(firstSymbol, self.extend({'methodName': 'fetchPositions'}, params))
 
     def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
         """
@@ -3852,7 +3860,7 @@ class hashkey(Exchange, ImplicitAPI):
     def parse_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_position({
             'symbol': symbol,
             'id': None,
@@ -4200,8 +4208,8 @@ class hashkey(Exchange, ImplicitAPI):
             fee = self.safe_dict(response, symbol)
             return fee
         elif self.safe_bool(market, 'swap', False):
-            response = self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
-            return self.parse_trading_fee(response, market)
+            swapResponse = self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
+            return self.parse_trading_fee(swapResponse, market)
             #
             #     {
             #         "openMakerFee": "0.00025",
@@ -4253,7 +4261,8 @@ class hashkey(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             fee = self.safe_dict(data, i, {})
             parsedFee = self.parse_trading_fee(fee)
-            result[parsedFee['symbol']] = parsedFee
+            feeSymbol = self.safe_string(parsedFee, 'symbol', '')
+            result[feeSymbol] = parsedFee
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -4341,7 +4350,7 @@ class hashkey(Exchange, ImplicitAPI):
         result = result.replace('%2C', ',')
         return result
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         errorInArray = False

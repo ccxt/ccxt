@@ -882,7 +882,7 @@ class cex extends Exchange {
             if ($useKeyAsId) {
                 $market = $this->safe_market($key);
             }
-            $parsed = $this->parse_trading_fee($response[$key], $market);
+            $parsed = $this->parse_trading_fee($this->safe_dict($response, $key, array()), $market);
             $parsedSymbol = $this->safe_string($parsed, 'symbol');
             if ($parsedSymbol !== null) {
                 $result[$parsedSymbol] = $parsed;
@@ -1234,7 +1234,7 @@ class cex extends Exchange {
             $marketId = $currency1 . '-' . $currency2;
         }
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $fee = array();
         $feeAmount = $this->safe_number($order, 'feeAmount');
@@ -1847,7 +1847,7 @@ class cex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix

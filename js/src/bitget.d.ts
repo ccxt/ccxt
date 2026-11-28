@@ -21,7 +21,7 @@ export default class bitget extends Exchange {
      */
     enableDemoTrading(enabled: boolean): void;
     handleProductTypeAndParams(market?: Market, params?: Dict): [Str, Dict];
-    handleUTAAndParams(params: Dict, methodName: Str, defaultValue?: boolean): Promise<[Bool, Dict]>;
+    handleUTAAndParams(params: Dict, methodName: Str, defaultValue?: boolean): Promise<[boolean, Dict]>;
     /**
      * @method
      * @name bitget#fetchTime
@@ -1144,7 +1144,7 @@ export default class bitget extends Exchange {
      */
     fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LongShortRatio[]>;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

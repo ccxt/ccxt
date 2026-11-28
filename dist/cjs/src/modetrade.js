@@ -811,11 +811,11 @@ class modetrade extends modetrade$1["default"] {
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString(trade, 'executed_price');
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
-        const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
+        const fee = this.parseTokenAndFeeTemp(this.extend({}, trade), 'fee_asset', 'fee');
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         let takerOrMaker = undefined;
@@ -1604,7 +1604,7 @@ class modetrade extends modetrade$1["default"] {
         const clientOrderId = this.omitZero(this.safeString2(order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString2(order, 'order_price', 'price');
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
@@ -1751,7 +1751,7 @@ class modetrade extends modetrade$1["default"] {
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         let orderQtyKey = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';
@@ -1935,8 +1935,8 @@ class modetrade extends modetrade$1["default"] {
             }
             const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
@@ -2033,7 +2033,7 @@ class modetrade extends modetrade$1["default"] {
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }
@@ -2319,7 +2319,7 @@ class modetrade extends modetrade$1["default"] {
         // }
         //
         const orders = this.safeDict(response, 'data', response);
-        return this.parseOrder(orders, market);
+        return this.parseOrder(this.extend({}, orders), market);
     }
     /**
      * @method

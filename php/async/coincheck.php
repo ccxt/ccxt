@@ -414,7 +414,6 @@ class coincheck extends Exchange {
         $amount = $this->safe_string($order, 'pending_amount');
         $remaining = $this->safe_string($order, 'pending_amount');
         $price = $this->safe_string($order, 'rate');
-        $status = null;
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         return $this->safe_order(array(
@@ -430,7 +429,7 @@ class coincheck extends Exchange {
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
-            'status' => $status,
+            'status' => null,
             'symbol' => $symbol,
             'price' => $price,
             'triggerPrice' => null,
@@ -584,7 +583,7 @@ class coincheck extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, '_');
         $baseId = $this->safe_string($marketResolved, 'baseId');
         $quoteId = $this->safe_string($marketResolved, 'quoteId');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $takerOrMaker = null;
         $amountString = null;
         $costString = null;
@@ -1091,7 +1090,7 @@ class coincheck extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

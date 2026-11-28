@@ -21,7 +21,22 @@ type throttlerState struct {
 type Throttler struct {
 	Queue  Queue
 	Config map[string]any // immutable after NewThrottler
+	num    throttlerNumbers
 	state  chan throttlerState
+}
+
+// throttlerNumbers holds the numeric Config entries read once as float64 (Config is immutable).
+type throttlerNumbers struct {
+	tokens, cost, delay, refillRate, capacity, windowSize, maxWeight float64
+}
+
+func newThrottlerNumbers(config map[string]any) throttlerNumbers {
+	keys := []string{"tokens", "cost", "delay", "refillRate", "capacity", "windowSize", "maxWeight"}
+	values := make([]float64, len(keys))
+	for i := 0; i < len(keys); i++ {
+		values[i] = ToFloat64(config[keys[i]])
+	}
+	return throttlerNumbers{values[0], values[1], values[2], values[3], values[4], values[5], values[6]}
 }
 
 func NewThrottler(config map[string]any) *Throttler {
@@ -44,17 +59,18 @@ func NewThrottler(config map[string]any) *Throttler {
 	throttler := &Throttler{
 		Queue:  NewQueue(),
 		Config: config,
+		num:    newThrottlerNumbers(config),
 		state:  make(chan throttlerState, 1),
 	}
-	throttler.state <- throttlerState{Tokens: ToFloat64(config["tokens"])}
+	throttler.state <- throttlerState{Tokens: throttler.num.tokens}
 	return throttler
 }
 
 func (t *Throttler) Throttle(cost2 any) <-chan bool {
-	if cost2 == nil {
-		cost2 = t.Config["cost"]
+	cost := t.num.cost
+	if cost2 != nil {
+		cost = ToFloat64(cost2)
 	}
-	cost := ToFloat64(cost2)
 	task := make(chan bool)
 
 	queueElement := QueueElement{
@@ -119,7 +135,7 @@ func (t *Throttler) leakyBucketLoop() {
 			}
 			t.Queue.Dequeue()
 		} else {
-			sleepTime := ToFloat64(t.Config["delay"]) * 1000
+			sleepTime := t.num.delay * 1000
 			t.state <- st
 			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 
@@ -128,9 +144,9 @@ func (t *Throttler) leakyBucketLoop() {
 			lastTimestamp = current
 
 			st = <-t.state
-			sumTokens := ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed)
+			sumTokens := t.num.refillRate * float64(elapsed)
 			tokens := st.Tokens + sumTokens
-			capacity := ToFloat64(t.Config["capacity"])
+			capacity := t.num.capacity
 			if tokens < capacity {
 				st.Tokens = tokens
 			} else {
@@ -156,8 +172,8 @@ func (t *Throttler) rollingWindowLoop() {
 		now := Milliseconds()
 
 		st = <-t.state
-		windowSize := ToFloat64(t.Config["windowSize"])
-		maxWeight := ToFloat64(t.Config["maxWeight"])
+		windowSize := t.num.windowSize
+		maxWeight := t.num.maxWeight
 		st.Timestamps = filterTimestamps(st.Timestamps, now, windowSize)
 		totalCost := sumCosts(st.Timestamps)
 

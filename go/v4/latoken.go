@@ -11,7 +11,6 @@ type Latoken struct {
 
 func newLatoken() *Latoken {
 	p := &Latoken{}
-	setDefaults(p)
 	return p
 }
 
@@ -594,20 +593,30 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			panic(r.Err)
 		}
 	}
-	var currencies map[string]any = this.SafeDictMap(this.Options, "cachedCurrencies", map[string]any{})
+	var currencies map[string]any
+	currencies, _ = this.Options["cachedCurrencies"].(map[string]any)
+	if currencies == nil {
+		currencies = map[string]any{}
+	}
 	var currenciesById map[string]any = this.IndexBy(currencies, "id")
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market map[string]any = SafeMapTyped(rawMarkets, i)
+		var market, _ = rawMarkets[i].(map[string]any)
 		var id *string = this.SafeString(market, "id")
 		// the exchange shows them inverted
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
-		var baseCurrency map[string]any = SafeMapTyped(currenciesById, baseId)
-		var quoteCurrency map[string]any = SafeMapTyped(currenciesById, quoteId)
-		var baseCurrencyInfo map[string]any = SafeMapTyped(baseCurrency, "info")
-		var quoteCurrencyInfo map[string]any = SafeMapTyped(quoteCurrency, "info")
+		var baseCurrency map[string]any
+		if baseId != nil {
+			baseCurrency, _ = currenciesById[*baseId].(map[string]any)
+		}
+		var quoteCurrency map[string]any
+		if quoteId != nil {
+			quoteCurrency, _ = currenciesById[*quoteId].(map[string]any)
+		}
+		var baseCurrencyInfo, _ = baseCurrency["info"].(map[string]any)
+		var quoteCurrencyInfo, _ = quoteCurrency["info"].(map[string]any)
 		if (baseCurrencyInfo != nil) && (quoteCurrencyInfo != nil) {
 			var base *string = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
 			var quote *string = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
@@ -817,17 +826,16 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 			}
 		}
 	}
+	var ternaryStr66120 string = "other"
+	if isCrypto {
+		ternaryStr66120 = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":   id,
-		"code": code,
-		"info": currency,
-		"name": this.SafeString(currency, "name"),
-		"type": func() string {
-			if isCrypto {
-				return "crypto"
-			}
-			return "other"
-		}(),
+		"id":        id,
+		"code":      code,
+		"info":      currency,
+		"name":      this.SafeString(currency, "name"),
+		"type":      ternaryStr66120,
 		"active":    (this.SafeString(currency, "status") != nil && *this.SafeString(currency, "status") == "CURRENCY_STATUS_ACTIVE"),
 		"deposit":   nil,
 		"withdraw":  nil,
@@ -908,14 +916,17 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var types map[string]any = SafeMapTyped(this.Options, "types")
+	var types, _ = this.Options["types"].(map[string]any)
 	var accountType *string = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
 	var balances []any = SafeListTyped(balancesByType, accountType)
-	var firstBalance map[string]any = SafeMapTyped(balances, 0)
+	var firstBalance map[string]any
+	if 0 < len(balances) {
+		firstBalance, _ = balances[0].(map[string]any)
+	}
 	var maxTimestamp *int64 = this.SafeInteger(firstBalance, "timestamp")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var timestamp *int64 = this.SafeInteger(balance, "timestamp")
 		if timestamp != nil {
@@ -967,13 +978,19 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"currency": market["baseId"],
-		"quote":    market["quoteId"],
+		"currency": nil,
+		"quote":    nil,
+	}
+	if market.BaseId != nil {
+		request["currency"] = *market.BaseId
+	}
+	if market.QuoteId != nil {
+		request["quote"] = *market.QuoteId
 	}
 	if limit != nil {
-		request["limit"] = limit // max 1000
+		request["limit"] = *limit // max 1000
 	}
 
 	r1 := <-this.PublicGetBookCurrencyQuote(this.Extend(request, params))
@@ -1005,22 +1022,24 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	// observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
 	// for over half an hour - such a level is a deleted level their
 	// aggregation failed to drop, so it is removed here
-	var rawAsks []any = SafeListTyped(response, "ask")
-	var rawBids []any = SafeListTyped(response, "bid")
+	var rawAsks []any
+	rawAsks, _ = response["ask"].([]any)
+	var rawBids []any
+	rawBids, _ = response["bid"].([]any)
 	var asks []any = []any{}
 	var bids []any = []any{}
 	for i := 0; i < len(rawAsks); i++ {
-		var askEntry any = rawAsks[i]
+		var askEntry, _ = rawAsks[i].(map[string]any)
 		var askQuantity *string = this.SafeString(askEntry, "quantity")
 		if Precise.StringGt(askQuantity, "0") {
-			asks = append(asks, askEntry)
+			asks = append(asks, rawAsks[i])
 		}
 	}
 	for i := 0; i < len(rawBids); i++ {
-		var bidEntry any = rawBids[i]
+		var bidEntry, _ = rawBids[i].(map[string]any)
 		var bidQuantity *string = this.SafeString(bidEntry, "quantity")
 		if Precise.StringGt(bidQuantity, "0") {
-			bids = append(bids, bidEntry)
+			bids = append(bids, rawBids[i])
 		}
 	}
 	var filtered map[string]any = map[string]any{
@@ -1031,7 +1050,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(filtered, symbol, nil, "bid", "ask", "price", "quantity"))}
 	return nil
 }
-func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Latoken) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//    {
 	//        "symbol": "BTC/USDT",
@@ -1061,16 +1080,18 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var quoteId *string = this.SafeString(ticker, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
-		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
-			marketResolved = this.Market(symbol)
+		var knownSymbol string = *base + "/" + *quote
+		if _, ok := this.Markets[knownSymbol]; (this.Markets != nil) && ok {
+			marketResolved = this.Market(&knownSymbol)
 		}
+		symbolStr := knownSymbol
+		symbol = &symbolStr
 	}
 	var last *string = this.SafeString(ticker, "lastPrice")
-	var timestamp any = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
+	var timestamp *int64 = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
 	// during venue incidents a deleted level leaks a signed aggregate into the
 	// best sizes - the quoted prices stay usable, so only negatives are dropped
 	var bidVolume *string = this.SafeString(ticker, "bestBidQuantity")
@@ -1081,8 +1102,8 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	if (askVolume != nil) && Precise.StringLt(askVolume, "0") {
 		askVolume = nil
 	}
-	return this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+	var literal87032 map[string]any = map[string]any{
+		"symbol":        nil,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"low":           nil,
@@ -1102,7 +1123,11 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    this.SafeString(ticker, "amount24h"),
 		"quoteVolume":   this.SafeString(ticker, "volume24h"),
 		"info":          ticker,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal87032["symbol"] = *symbol
+	}
+	return this.SafeTicker(literal87032, marketResolved)
 }
 
 /**
@@ -1131,7 +1156,7 @@ func (this *Latoken) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"base":  market["baseId"],
 		"quote": market["quoteId"],
@@ -1262,7 +1287,6 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var typeVar any = nil
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "quantity")
@@ -1270,17 +1294,20 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var makerBuyer *bool = this.SafeBool(trade, "makerBuyer", false)
 	var side *string = this.SafeString(trade, "direction")
 	if side == nil {
-		side = SafeStringPtr(func() string {
-			if makerBuyer != nil && *makerBuyer {
-				return "sell"
-			}
-			return "buy"
-		}())
+		var sideStr string
+		if makerBuyer != nil && *makerBuyer {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
+		side = &sideStr
 	} else {
 		if side != nil && *side == "TRADE_DIRECTION_BUY" {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		} else if side != nil && *side == "TRADE_DIRECTION_SELL" {
-			side = SafeStringPtr("sell")
+			sideStr3 := "sell"
+			side = &sideStr3
 		}
 	}
 	var isBuy bool = (side != nil && *side == "buy")
@@ -1295,13 +1322,15 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
-		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
-			marketResolved = this.Market(symbol)
+		var knownSymbol string = *base + "/" + *quote
+		if _, ok := this.Markets[knownSymbol]; (this.Markets != nil) && ok {
+			marketResolved = this.Market(&knownSymbol)
 		}
+		symbolStr := knownSymbol
+		symbol = &symbolStr
 	}
 	var id *string = this.SafeString(trade, "id")
 	var orderId *string = this.SafeString(trade, "order")
@@ -1313,21 +1342,25 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": quote,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal104931 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       symbol,
+		"symbol":       nil,
 		"id":           id,
 		"order":        orderId,
-		"type":         typeVar,
+		"type":         nil,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
 		"price":        priceString,
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal104931["symbol"] = *symbol
+	}
+	return this.SafeTrade(literal104931, marketResolved)
 }
 
 /**
@@ -1341,12 +1374,12 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Latoken) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Latoken) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1362,7 +1395,7 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
@@ -1408,7 +1441,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFee")
+	var options, _ = this.Options["fetchTradingFee"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTradingFee")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var paramsOmitted map[string]any = this.OmitDict(params, "method")
@@ -1449,17 +1482,17 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan AsyncResult[TradingFeeInt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
 	}
 
-	r1 := <-this.PublicGetTradeFeeCurrencyQuote(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PublicGetTradeFeeCurrencyQuote(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -1470,7 +1503,7 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan AsyncResult[TradingFeeInt
 	//     }
 	//
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
 		"taker":      this.SafeNumber(response, "takerFee"),
@@ -1496,17 +1529,17 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan AsyncResult[TradingFeeIn
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["baseId"],
 		"quote":    market["quoteId"],
 	}
 
-	r1 := <-this.PrivateGetAuthTradeFeeCurrencyQuote(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetAuthTradeFeeCurrencyQuote(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -1517,7 +1550,7 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan AsyncResult[TradingFeeIn
 	//     }
 	//
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
 		"taker":      this.SafeNumber(response, "takerFee"),
@@ -1565,26 +1598,26 @@ func (this *Latoken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
-	var response any = []any{}
+	var response []any = []any{}
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["currency"] = market["baseId"]
 		request["quote"] = market["quoteId"]
 
-		r1 := <-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 
-		r2 := <-this.PrivateGetAuthTrade(this.Extend(request, params))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetAuthTrade(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 
 	//
@@ -1631,7 +1664,7 @@ func (this *Latoken) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Latoken) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1683,14 +1716,15 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	var quoteId *string = this.SafeString(order, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
-	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
-	}
-	var symbolKnown bool = (symbol != nil) && (this.Markets != nil) && (InOp(this.Markets, symbol))
+	var symbol *string = nil
 	var marketResolved map[string]any = market
-	if symbolKnown {
-		marketResolved = this.Market(symbol)
+	if (base != nil) && (quote != nil) {
+		var knownSymbol string = *base + "/" + *quote
+		if _, ok := this.Markets[knownSymbol]; (this.Markets != nil) && ok {
+			marketResolved = this.Market(&knownSymbol)
+		}
+		symbolStr := knownSymbol
+		symbol = &symbolStr
 	}
 	var orderSide *string = this.SafeString(order, "side")
 	var side *string = nil
@@ -1708,14 +1742,16 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	var message *string = this.SafeString(order, "message")
 	if message != nil {
 		if strings.Index(*message, "cancel") >= 0 {
-			status = SafeStringPtr("canceled")
+			statusStr := "canceled"
+			status = &statusStr
 		} else if strings.Index(*message, "accept") >= 0 {
-			status = SafeStringPtr("open")
+			statusStr2 := "open"
+			status = &statusStr2
 		}
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "condition"))
-	return this.SafeOrder(map[string]any{
+	var literal134631 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"info":               order,
@@ -1723,11 +1759,11 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       this.SafeString(order, "stopPrice"),
 		"cost":               cost,
@@ -1737,7 +1773,14 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		"remaining":          nil,
 		"fee":                nil,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal134631["symbol"] = *symbol
+	}
+	if side != nil {
+		literal134631["side"] = *side
+	}
+	return this.SafeOrder(literal134631, marketResolved)
 }
 
 /**
@@ -1873,7 +1916,7 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	var response []any = nil
 	if symbol != nil {
@@ -2054,7 +2097,7 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var uppercaseType string = strings.ToUpper(typeVar)
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
@@ -2064,17 +2107,17 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"condition":     "GTC",
 		"type":          uppercaseType,
 		"clientOrderId": this.Uuid(),
-		"quantity":      this.AmountToPrecision(symbol, amount),
+		"quantity":      this.AmountToPrecision(&symbol, amount),
 		"timestamp":     this.Seconds(),
 	}
 	if uppercaseType == "LIMIT" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice"})
 	var response map[string]any = nil
 	if triggerPrice != nil {
-		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 
 		r1 := <-this.PrivatePostAuthStopOrderPlace(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -2328,12 +2371,16 @@ func (this *Latoken) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], o
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var content []any = SafeListTypedDefault(response, "content", []any{})
+	var content []any
+	content, _ = response["content"].([]any)
+	if content == nil {
+		content = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(content, currency, since, limit))}
 	return nil
 }
-func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Latoken) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -2489,7 +2536,11 @@ func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "hasContent": true
 	//     }
 	//
-	var transfers []any = SafeListTypedDefault(response, "content", []any{})
+	var transfers []any
+	transfers, _ = response["content"].([]any)
+	if transfers == nil {
+		transfers = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
@@ -2509,12 +2560,12 @@ func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Latoken) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Latoken) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2526,11 +2577,14 @@ func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code strin
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency":  currency["id"],
+		"currency":  nil,
 		"recipient": toAccount,
 		"value":     this.CurrencyToPrecision(code, amount),
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var response map[string]any = nil
 	if strings.Index(toAccount, "@") >= 0 {
@@ -2581,7 +2635,7 @@ func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response)}
 	return nil
 }
-func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Latoken) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -2672,14 +2726,18 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestString
-	return map[string]any{
+	var literal203915 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal203915["body"] = *requestBody
+	}
+	return literal203915
 }
-func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}
@@ -2698,7 +2756,7 @@ func (this *Latoken) HandleErrors(code int64, reason string, url string, method 
 	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

@@ -1004,11 +1004,7 @@ class ndax extends ndax$1["default"] {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -2365,7 +2361,7 @@ class ndax extends ndax$1["default"] {
         //    ]"
         //
         if (typeof response === 'string') {
-            return this.parseTransactions(JSON.parse(response), currency, since, limit);
+            return this.parseTransactions(this.toArray(JSON.parse(response)), currency, since, limit);
         }
         return this.parseTransactions(response, currency, since, limit);
     }
@@ -2651,7 +2647,7 @@ class ndax extends ndax$1["default"] {
         if (template === undefined) {
             throw new errors.ExchangeError(this.id + ' withdraw() could not find a withdraw template for ' + currency['code']);
         }
-        const withdrawTemplate = JSON.parse(template);
+        const withdrawTemplate = this.extend({}, JSON.parse(template));
         withdrawTemplate['ExternalAddress'] = address;
         if (tagWithdrawTag !== undefined) {
             if ('Memo' in withdrawTemplate) {

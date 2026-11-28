@@ -640,10 +640,9 @@ export default class indodax extends Exchange {
         const parsedTickers = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const rawTicker = tickers[key];
             const marketId = key.replace('_', '');
             const market = this.safeMarket(marketId);
-            const parsed = this.parseTicker(rawTicker, market);
+            const parsed = this.parseTicker(this.safeDict(tickers, key, {}), market);
             parsedTickers[marketId] = parsed;
         }
         return this.filterByArrayTickers(parsedTickers, 'symbol', symbols);
@@ -840,7 +839,6 @@ export default class indodax extends Exchange {
             filled = this.safeString(order, 'receive_' + baseId);
         }
         const timestamp = this.safeInteger(order, 'submit_time');
-        const fee = undefined;
         const id = this.safeString(order, 'order_id');
         return this.safeOrder({
             'info': order,
@@ -862,7 +860,7 @@ export default class indodax extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         });
     }
@@ -917,13 +915,10 @@ export default class indodax extends Exchange {
         }
         const response = await this.privatePostOpenOrders(this.extend(request, params));
         const openOrdersResult = this.safeDict(response, 'return', {});
-        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if ((rawOrders === undefined) || (rawOrders === null)) {
-            return [];
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol !== undefined) {
+            const rawOrders = this.safeList(openOrdersResult, 'orders', []);
             return this.parseOrders(rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
@@ -997,6 +992,8 @@ export default class indodax extends Exchange {
         if (isMarketBuy) {
             paramsOmitted = this.omit(params, 'cost');
         }
+        const quoteId = this.safeString(market, 'quoteId', '');
+        const baseId = this.safeString(market, 'baseId', '');
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount = undefined;
@@ -1013,7 +1010,7 @@ export default class indodax extends Exchange {
                     const costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
-                request[market['quoteId']] = quoteAmount;
+                request[quoteId] = quoteAmount;
             }
             else {
                 quantityIsRequired = true;
@@ -1023,7 +1020,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId']] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                request[quoteId] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
         if (priceIsRequired) {
@@ -1033,7 +1030,7 @@ export default class indodax extends Exchange {
             request['price'] = price;
         }
         if (quantityIsRequired) {
-            request[market['baseId']] = this.amountToPrecision(symbol, amount);
+            request[baseId] = this.amountToPrecision(symbol, amount);
         }
         const result = await this.privatePostTrade(this.extend(request, paramsOmitted));
         const data = this.safeDict(result, 'return', {});
@@ -1091,7 +1088,7 @@ export default class indodax extends Exchange {
         //    }
         //
         const data = this.safeDict(response, 'return');
-        return this.parseOrder(data);
+        return this.parseOrder(this.extend({}, data));
     }
     /**
      * @method
@@ -1474,7 +1471,7 @@ export default class indodax extends Exchange {
                         throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                     }
                     if (networkId.indexOf(',') >= 0) {
-                        network = [];
+                        const networkCodes = [];
                         if (networkId === undefined) {
                             throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                         }
@@ -1482,9 +1479,10 @@ export default class indodax extends Exchange {
                         for (let j = 0; j < networkIds.length; j++) {
                             const _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if (_netIdTmp !== undefined) {
-                                network.push(_netIdTmp.toUpperCase());
+                                networkCodes.push(_netIdTmp.toUpperCase());
                             }
                         }
+                        network = networkCodes;
                     }
                     else {
                         const _netIdTmp = this.networkIdToCode(networkId, code);

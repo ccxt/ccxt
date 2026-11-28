@@ -463,7 +463,8 @@ class krakenfutures extends Exchange {
             $symbol = $id;
             $split = explode('_', $id);
             $splitMarket = $this->safe_string($split, 1, '');
-            $baseId = mb_substr($splitMarket, 0, strlen($splitMarket) - 3 - 0);
+            $baseIdLength = strlen($splitMarket) - 3;
+            $baseId = mb_substr($splitMarket, 0, $baseIdLength - 0);
             $quoteId = 'usd'; // always USD
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -973,7 +974,7 @@ class krakenfutures extends Exchange {
         //        "more_candles": true
         //    }
         //
-        $candles = $this->safe_list($response, 'candles');
+        $candles = $this->safe_list($response, 'candles', array());
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limitResolved);
     }
 
@@ -1446,10 +1447,10 @@ class krakenfutures extends Exchange {
         //         }
         //     }
         //
-        $sendStatus = $this->safe_value($response, 'sendStatus');
+        $sendStatus = $this->safe_dict($response, 'sendStatus');
         $status = $this->safe_string($sendStatus, 'status');
         $this->verify_order_action_success($status, 'createOrder', array( 'filled' ));
-        return $this->parse_order($sendStatus, $market);
+        return $this->parse_order($this->extend(array(), $sendStatus), $market);
     }
 
     public function create_orders(array $orders, $params = array()): array {
@@ -1471,8 +1472,8 @@ class krakenfutures extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(is_array($extendedParams) && array_key_exists('order_tag' ?? '', $extendedParams))) {
@@ -1557,12 +1558,14 @@ class krakenfutures extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->privatePostCancelorder($this->extend(array( 'order_id' => $id ), $params));
-        $status = $this->safe_string($this->safe_dict($response, 'cancelStatus', array()), 'status');
+        $request = array( 'order_id' => $id );
+        $response = $this->privatePostCancelorder($this->extend($request, $params));
+        $cancelStatus = $this->safe_dict($response, 'cancelStatus');
+        $status = $this->safe_string($cancelStatus, 'status');
         $this->verify_order_action_success($status, 'cancelOrder');
         $order = array();
-        if (is_array($response) && array_key_exists('cancelStatus' ?? '', $response)) {
-            $order = $this->parse_order($response['cancelStatus']);
+        if ($cancelStatus !== null) {
+            $order = $this->parse_order($cancelStatus);
         }
         return $this->extend(array( 'info' => $response ), $order);
     }
@@ -1929,31 +1932,32 @@ class krakenfutures extends Exchange {
         return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
-    public function verify_order_action_success(mixed $status, string $method, array $omit = array()) {
-        $errors = array(
-            'invalidOrderType' => '\\ccxt\\InvalidOrder',
-            'invalidSide' => '\\ccxt\\InvalidOrder',
-            'invalidSize' => '\\ccxt\\InvalidOrder',
-            'invalidPrice' => '\\ccxt\\InvalidOrder',
-            'insufficientAvailableFunds' => '\\ccxt\\InsufficientFunds',
-            'selfFill' => '\\ccxt\\ExchangeError',
-            'tooManySmallOrders' => '\\ccxt\\ExchangeError',
-            'maxPositionViolation' => '\\ccxt\\BadRequest',
-            'marketSuspended' => '\\ccxt\\ExchangeNotAvailable',
-            'marketInactive' => '\\ccxt\\ExchangeNotAvailable',
-            'clientOrderIdAlreadyExist' => '\\ccxt\\DuplicateOrderId',
-            'clientOrderIdTooLong' => '\\ccxt\\BadRequest',
-            'outsidePriceCollar' => '\\ccxt\\InvalidOrder',
-            'postWouldExecute' => '\\ccxt\\OrderImmediatelyFillable',  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
-            'iocWouldNotExecute' => '\\ccxt\\OrderNotFillable', // -||-
-            'wouldNotReducePosition' => '\\ccxt\\ExchangeError',
-            'orderForEditNotFound' => '\\ccxt\\OrderNotFound',
-            'orderForEditNotAStop' => '\\ccxt\\InvalidOrder',
-            'filled' => '\\ccxt\\OrderNotFound',
-            'notFound' => '\\ccxt\\OrderNotFound',
-        );
-        if ((is_array($errors) && array_key_exists($status ?? '', $errors)) && !$this->in_array($status, $omit)) {
-            throw new $errors[$status]($this->id . ' => ' . $method . ' failed due to ' . $status);
+    public function verify_order_action_success(?string $status, string $method, array $omit = array()) {
+        if ($status !== null) {
+            if (!$this->in_array($status, $omit)) {
+                $this->throw_exactly_matched_exception(array(
+                    'invalidOrderType' => '\\ccxt\\InvalidOrder',
+                    'invalidSide' => '\\ccxt\\InvalidOrder',
+                    'invalidSize' => '\\ccxt\\InvalidOrder',
+                    'invalidPrice' => '\\ccxt\\InvalidOrder',
+                    'insufficientAvailableFunds' => '\\ccxt\\InsufficientFunds',
+                    'selfFill' => '\\ccxt\\ExchangeError',
+                    'tooManySmallOrders' => '\\ccxt\\ExchangeError',
+                    'maxPositionViolation' => '\\ccxt\\BadRequest',
+                    'marketSuspended' => '\\ccxt\\ExchangeNotAvailable',
+                    'marketInactive' => '\\ccxt\\ExchangeNotAvailable',
+                    'clientOrderIdAlreadyExist' => '\\ccxt\\DuplicateOrderId',
+                    'clientOrderIdTooLong' => '\\ccxt\\BadRequest',
+                    'outsidePriceCollar' => '\\ccxt\\InvalidOrder',
+                    'postWouldExecute' => '\\ccxt\\OrderImmediatelyFillable',  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+                    'iocWouldNotExecute' => '\\ccxt\\OrderNotFillable', // -||-
+                    'wouldNotReducePosition' => '\\ccxt\\ExchangeError',
+                    'orderForEditNotFound' => '\\ccxt\\OrderNotFound',
+                    'orderForEditNotAStop' => '\\ccxt\\InvalidOrder',
+                    'filled' => '\\ccxt\\OrderNotFound',
+                    'notFound' => '\\ccxt\\OrderNotFound',
+                ), $status, $this->id . ' => ' . $method . ' failed due to ' . $status);
+            }
         }
     }
 
@@ -2354,14 +2358,14 @@ class krakenfutures extends Exchange {
                 // Final order (after placement / editing / execution / canceling)
                 $orderTrigger = $this->safe_dict($item, 'orderTrigger');
                 if ($details === null) {
-                    $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
+                    $details = $this->safe_dict_2($item, 'new', 'order', $orderTrigger);
                     if ($details !== null) {
                         $isPrior = false;
                         $fixed = true;
                     } elseif (!$fixed) {
                         $executedPrice = $this->safe_string($item, 'price');
                         $orderPriorExecution = $this->safe_dict($item, 'orderPriorExecution');
-                        $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
+                        $details = $this->safe_dict_2($item, 'orderPriorExecution', 'orderPriorEdit');
                         if ($executedPrice === null) {
                             $price = $this->safe_string($orderPriorExecution, 'limitPrice');
                         } else {
@@ -2433,15 +2437,18 @@ class krakenfutures extends Exchange {
         }
         $cost = null;
         if (($filled !== null) && ($marketResolved !== null)) {
-            $whichPrice = $price;
+            $isLinear = $this->safe_bool($marketResolved, 'linear', false);
             if ($average !== null) {
-                $whichPrice = $average;
-            }
-            if ($whichPrice !== null) {
-                if ($this->safe_bool($marketResolved, 'linear', false)) {
-                    $cost = Precise::string_mul($filled, $whichPrice); // in quote
+                if ($isLinear) {
+                    $cost = Precise::string_mul($filled, $average); // in quote
                 } else {
-                    $cost = Precise::string_div($filled, $whichPrice); // in base
+                    $cost = Precise::string_div($filled, $average); // in base
+                }
+            } elseif ($price !== null) {
+                if ($isLinear) {
+                    $cost = Precise::string_mul($filled, $price); // in quote
+                } else {
+                    $cost = Precise::string_div($filled, $price); // in base
                 }
             }
         }
@@ -3623,7 +3630,8 @@ class krakenfutures extends Exchange {
             'multiCollateralMargin' => 'flex',
         );
         if (is_array($accountByType) && array_key_exists($account ?? '', $accountByType)) {
-            return $accountByType[$account];
+            $accountName = $this->safe_string($accountByType, $account, '');
+            return $accountName;
         } elseif (($this->markets !== null) && (is_array($this->markets) && array_key_exists($account ?? '', $this->markets))) {
             $market = $this->market($account);
             $marketId = $this->safe_string($market, 'id', '');
@@ -3810,7 +3818,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

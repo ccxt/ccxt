@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -414,7 +414,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol: Str, amount: object) -> Str:
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, self.safe_value(market['precision'], 'amount'), DECIMAL_PLACES)
+        return self.decimal_to_precision(amount, TRUNCATE, self.safe_integer(market['precision'], 'amount'), DECIMAL_PLACES)
 
     def get_gen2_market_id(self, market: Market) -> str:
         marketId = self.safe_string(market, 'id')
@@ -465,8 +465,8 @@ class bithumb(Exchange, ImplicitAPI):
                 if marketId is not None:
                     parts = marketId.split('-')
                     # to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = parts[1]
-                    quoteId = parts[0]
+                    baseId = self.safe_string(parts, 1)
+                    quoteId = self.safe_string(parts, 0)
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                 if (base is None) or (quote is None):
@@ -747,7 +747,6 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'generation', 2)
         market = self.market(symbol)
         request = {}
-        response = None
         data = None
         timestamp = None
         if generation == 2:
@@ -975,18 +974,23 @@ class bithumb(Exchange, ImplicitAPI):
             marketIdsLength = len(marketIds)
             if marketIdsLength == 0:
                 return result
-            marketIdsChunks = []
+            singleMarketIds = []
             promises = []
             # the exchange rejects more than 200 market ids per request
             maxMarketIdsOption = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200)
-            maxMarketIdsPerRequest = self.parse_to_int(200 if ((maxMarketIdsOption is None) or (maxMarketIdsOption < 1)) else maxMarketIdsOption)
+            maxMarketIdsPerRequest = 200
+            if (maxMarketIdsOption is not None) and (maxMarketIdsOption >= 1):
+                maxMarketIdsPerRequest = self.parse_to_int(maxMarketIdsOption)
             marketIdsChunk = []
             for i in range(0, marketIdsLength):
                 marketIdsChunk.append(marketIds[i])
                 marketIdsChunkLength = len(marketIdsChunk)
                 isLastMarketId = (i == (marketIdsLength - 1))
                 if (marketIdsChunkLength >= maxMarketIdsPerRequest) or isLastMarketId:
-                    marketIdsChunks.append(marketIdsChunk)
+                    if marketIdsChunkLength == 1:
+                        singleMarketIds.append(marketIds[i])
+                    else:
+                        singleMarketIds.append('')
                     request['markets'] = ','.join(marketIdsChunk)
                     promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
                     marketIdsChunk = []
@@ -1028,19 +1032,16 @@ class bithumb(Exchange, ImplicitAPI):
                 response = self.safe_value(responses, i)
                 if self.is_dictionary(response) and (self.safe_value(response, 'data') is not None):
                     response = self.safe_value(response, 'data')
-                expectedMarketId = None
-                requestedMarketIds = self.safe_list(marketIdsChunks, i, [])
-                firstMarketId = self.safe_string(requestedMarketIds, 0)
-                if (firstMarketId is not None) and (self.safe_string(requestedMarketIds, 1) is None):
-                    expectedMarketId = firstMarketId
+                expectedMarketId = self.safe_string(singleMarketIds, i)
                 tickers = []
                 if isinstance(response, list):
                     tickers = response
                 elif self.is_dictionary(response):
-                    if ('market' in response) or ('trade_date' in response) or ('trade_timestamp' in response):
+                    if (self.safe_string(response, 'market') is not None) or (self.safe_string(response, 'trade_date') is not None) or (self.safe_string(response, 'trade_timestamp') is not None):
                         tickers = [response]
                     else:
-                        ids = list(response.keys())
+                        responseDict = self.extend({}, response)
+                        ids = list(responseDict.keys())
                         for j in range(0, len(ids)):
                             id = ids[j]
                             ticker = self.safe_dict(response, id)
@@ -1056,7 +1057,7 @@ class bithumb(Exchange, ImplicitAPI):
                     symbol = self.safe_symbol(marketId, market)
                     if symbol is None:
                         continue
-                    result[symbol] = self.parse_ticker(entry, market)
+                    result[symbol] = self.parse_ticker(self.safe_dict(tickers, j, {}), market)
         else:
             quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
             quotes = list(quoteCurrencies.keys())
@@ -1107,14 +1108,13 @@ class bithumb(Exchange, ImplicitAPI):
                 currencyIds = list(tickers.keys())
                 for j in range(0, len(currencyIds)):
                     currencyId = currencyIds[j]
-                    ticker = data[currencyId]
+                    ticker = self.extend({}, data[currencyId])
                     base = self.safe_currency_code(currencyId)
                     if base is None:
                         continue
                     symbol = base + '/' + quote
                     market = self.safe_market(symbol)
-                    ticker['date'] = timestamp
-                    result[symbol] = self.parse_ticker(ticker, market)
+                    result[symbol] = self.parse_ticker(self.extend(ticker, {'date': timestamp}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1134,7 +1134,6 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchTicker', 'generation', 2)
         market = self.market(symbol)
         request = {}
-        response = None
         data = {}
         if generation == 2:
             request['markets'] = self.get_gen2_market_id(market)
@@ -1196,7 +1195,7 @@ class bithumb(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_dict(response, 'data', {})
-        return self.parse_ticker(data, market)
+        return self.parse_ticker(self.extend({}, data), market)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -1269,7 +1268,7 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = []
         if generation == 2:
-            paginate, paramsPaginate = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+            paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
             if paginate:
                 return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
             until = self.safe_integer(paramsGeneration, 'until')
@@ -1447,7 +1446,6 @@ class bithumb(Exchange, ImplicitAPI):
                 timestamp = productTimestamp
                 if (productTimestamp is not None) and (not isGenerationTwo):
                     timestamp = productTimestamp - 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
-        type = None
         side = self.safe_string_lower_2(trade, 'ask_bid', 'type')
         if side == 'bid':
             side = 'buy'
@@ -1478,7 +1476,7 @@ class bithumb(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': None,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': priceString,
@@ -1508,7 +1506,6 @@ class bithumb(Exchange, ImplicitAPI):
         request = {}
         if limit is not None:
             request['count'] = limit
-        response = None
         data = []
         if generation == 2:
             request['market'] = self.get_gen2_market_id(market)
@@ -1587,8 +1584,8 @@ class bithumb(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             if side is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
@@ -1615,7 +1612,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'batch_orders_response', [])
         return self.parse_orders(data, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> dict:
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
  @ignore
         helper function to build the request *for generation 2 createOrder and createOrders only*
@@ -2276,7 +2273,6 @@ class bithumb(Exchange, ImplicitAPI):
             request['market'] = self.get_gen2_market_id(market)
         if limit is not None:
             request['limit'] = limit
-        response = None
         data = None
         if twap:
             response = self.privateGetV1Twap(self.extend(request, paramsRequest))
@@ -3074,7 +3070,8 @@ class bithumb(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def urlencode_with_array_brackets(self, query: dict) -> str:
-        keys = list(query.keys())
+        queryCopy = self.extend({}, query)
+        keys = list(queryCopy.keys())
         result = ''
         for i in range(0, len(keys)):
             key = keys[i]
@@ -3165,7 +3162,7 @@ class bithumb(Exchange, ImplicitAPI):
                 }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         # generation 2:

@@ -768,7 +768,8 @@ class woofipro extends Exchange {
             if ($parsed === null) {
                 throw new ExchangeError($this->id . ' fetchCurrencies() could not resolve parsed');
             }
-            $result[$parsed['code']] = $parsed;
+            $parsedCode = $this->safe_string($parsed, 'code', '');
+            $result[$parsedCode] = $parsed;
         }
         return $result;
     }
@@ -833,7 +834,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey) {
+    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey): ?array {
         $feeCost = $this->safe_string($item, $feeAmountKey);
         $fee = null;
         if ($feeCost !== null) {
@@ -875,15 +876,15 @@ class woofipro extends Exchange {
         //         "is_maker": "1"
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
+        $isFromFetchOrder = ($this->safe_string($trade, 'id') !== null);
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($trade, 'executed_price');
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
-        $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
+        $fee = $this->parse_token_and_fee_temp($this->extend(array(), $trade), 'fee_asset', 'fee');
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
         $takerOrMaker = null;
@@ -1789,7 +1790,7 @@ class woofipro extends Exchange {
         $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($order, 'order_price', 'price');
         $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
         $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount
@@ -1802,7 +1803,7 @@ class woofipro extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $filled = $this->safe_string_n($order, array( 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ));
         $average = $this->omit_zero($this->safe_string_2($order, 'average_executed_price', 'averageExecutedPrice'));
-        $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
+        $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_list($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
@@ -1928,7 +1929,7 @@ class woofipro extends Exchange {
         $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $postOnly = $this->is_post_only($isMarket, false, $params);
         $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
         $priceKey = $isConditional ? 'price' : 'order_price';
         $typeKey = $isConditional ? 'type' : 'order_type';
@@ -2098,8 +2099,8 @@ class woofipro extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
@@ -2193,7 +2194,7 @@ class woofipro extends Exchange {
             $orderType = strtoupper($type);
             $timeInForce = $this->safe_string_lower($paramsOmitted, 'timeInForce');
             $isMarket = $orderType === 'MARKET';
-            $postOnly = $this->is_post_only($isMarket, null, $paramsOmitted);
+            $postOnly = $this->is_post_only($isMarket, false, $paramsOmitted);
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {
@@ -2492,7 +2493,7 @@ class woofipro extends Exchange {
         if ($parsedOrders === null) {
             $parsedOrders = array();
         }
-        return $this->parse_order($parsedOrders, $market);
+        return $this->parse_order($this->extend(array(), $parsedOrders), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3261,7 +3262,8 @@ class woofipro extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $marginModes = Async\await($this->fetch_margin_modes(array( $market['symbol'] ), $params));
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $marginModes = Async\await($this->fetch_margin_modes(array( $marketSymbol ), $params));
         $marginMode = $this->safe_dict($marginModes, $market['symbol']);
         if ($marginMode === null) {
             throw new BadSymbol($this->id . ' fetchMarginMode() did not return a margin mode for ' . $market['symbol']);
@@ -3706,8 +3708,15 @@ class woofipro extends Exchange {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($requestParams, 'orders', array());
+                        $taggedOrders = array();
+                        $hasOrders = false;
                         for ($i = 0; $i < count($ordersList); $i++) {
-                            $requestParams['orders'][$i]['order_tag'] = $brokerId;
+                            $orderRow = $this->extend($ordersList[$i], array( 'order_tag' => $brokerId ));
+                            $taggedOrders[] = $orderRow;
+                            $hasOrders = true;
+                        }
+                        if ($hasOrders) {
+                            $requestParams['orders'] = $taggedOrders;
                         }
                     } else {
                         $requestParams['order_tag'] = $brokerId;
@@ -3752,7 +3761,7 @@ class woofipro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

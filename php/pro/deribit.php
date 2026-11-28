@@ -245,8 +245,8 @@ class deribit extends \ccxt\async\deribit {
             Async\await($this->authenticate());
         }
         $channels = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $channels[] = 'ticker.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $message = array(
@@ -330,8 +330,8 @@ class deribit extends \ccxt\async\deribit {
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $url = $this->urls['api']['ws'];
         $channels = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $channels[] = 'quote.' . $this->safe_string($market, 'id', '');
         }
         $message = array(
@@ -485,8 +485,7 @@ class deribit extends \ccxt\async\deribit {
         }
         $stored = $this->trades[$symbol];
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = $trades[$i];
-            $parsed = $this->parse_trade($trade, $market);
+            $parsed = $this->parse_trade($this->safe_dict($trades, $i, array()), $market);
             $stored->append($parsed);
         }
         $this->trades[$symbol] = $stored;
@@ -739,8 +738,8 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
-        $price = $this->safe_value($delta, 1);
-        $amount = $this->safe_value($delta, 2);
+        $price = $this->safe_number($delta, 1);
+        $amount = $this->safe_number($delta, 2);
         $action = $this->safe_string($delta, 0);
         if ($action === 'new' || $action === 'change') {
             $bookside->storeArray(array( $price, $amount, 1 ));
@@ -840,11 +839,12 @@ class deribit extends \ccxt\async\deribit {
         }
         $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
-        $data = $this->safe_value($params, 'data', array());
+        $dataList = $this->safe_list($params, 'data');
         $orders = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $orders = $this->parse_orders($data);
+        if ($dataList !== null) {
+            $orders = $this->parse_orders($dataList);
         } else {
+            $data = $this->safe_dict($params, 'data', array());
             $order = $this->parse_order($data);
             $orders = array( $order );
         }
@@ -877,7 +877,8 @@ class deribit extends \ccxt\async\deribit {
         }
         $symbolValue = $this->symbol($symbol);
         $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $ohlcvs[$symbolValue][$timeframe];
+        $bySymbol = $ohlcvs[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -934,7 +935,7 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($parts, 2);
         $rawTimeframe = $this->safe_string($parts, 3);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);

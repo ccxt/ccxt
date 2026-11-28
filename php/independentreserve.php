@@ -477,7 +477,7 @@ class independentreserve extends Exchange {
             $defaultMarketId = $baseId . '/' . $quoteId;
         }
         $marketResolved = $this->safe_market($defaultMarketId, $market, '/');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'LastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -882,7 +882,8 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_dict($fees, $market['base'], array());
+            $baseCode = $this->safe_string($market, 'base', '');
+            $fee = $this->safe_dict($fees, $baseCode, array());
             $result[$symbol] = array(
                 'info' => $this->safe_dict($fee, 'info'),
                 'symbol' => $symbol,

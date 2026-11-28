@@ -76,7 +76,8 @@ class woofipro(ccxt.async_support.woofipro):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
@@ -536,7 +537,7 @@ class woofipro(ccxt.async_support.woofipro):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(trade, 'executedPrice', 'price')
         amount = self.safe_string_2(trade, 'executedQuantity', 'size')
         cost = Precise.string_mul(price, amount)
@@ -784,7 +785,7 @@ class woofipro(ccxt.async_support.woofipro):
         orderId = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
             'cost': self.safe_string(order, 'totalFee'),
@@ -862,24 +863,24 @@ class woofipro(ccxt.async_support.woofipro):
         #         }
         #     }
         #
-        topic = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
-        if isinstance(data, list):
+        topic = self.safe_string(message, 'topic', '')
+        dataList = self.safe_list(message, 'data')
+        if dataList is not None:
             # algoexecutionreport
-            for i in range(0, len(data)):
-                order = data[i]
-                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            for i in range(0, len(dataList)):
+                tradeId = self.omit_zero(self.safe_string(dataList, 'tradeId'))
                 if tradeId is not None:
-                    self.handle_my_trade(client, order)
-                self.handle_order(client, order, topic)
+                    self.handle_my_trade(client, self.safe_dict(dataList, i, {}))
+                self.handle_order(client, self.safe_dict(dataList, i, {}), topic)
         else:
+            data = self.safe_dict(message, 'data', {})
             # executionreport
             tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
             if tradeId is not None:
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message: dict, topic: Str):
+    def handle_order(self, client: Client, message: dict, topic: str):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -937,7 +938,7 @@ class woofipro(ccxt.async_support.woofipro):
         messageHash = 'myTrades'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade = self.parse_ws_trade(message, market)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1062,7 +1063,7 @@ class woofipro(ccxt.async_support.woofipro):
             position = self.parse_ws_position(rawPosition, market)
             newPositions.append(position)
             cache.append(position)
-            positionSymbol = market['symbol']
+            positionSymbol = self.safe_string(market, 'symbol', '')
             messageHash = 'positions::' + positionSymbol
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')

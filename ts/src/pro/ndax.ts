@@ -297,7 +297,7 @@ export default class ndax extends ndaxRest {
                 if (timestamp === undefined) {
                     continue;
                 }
-                const candleTimestamp = this.parseToInt ((timestamp / duration) * duration);
+                const candleTimestamp = this.parseToInt (timestamp / duration) * duration;
                 const parsed = [
                     candleTimestamp,
                     this.safeFloat (ohlcv, 3),
@@ -365,7 +365,7 @@ export default class ndax extends ndaxRest {
         const marketIds = Object.keys (updates);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const timeframes = Object.keys (updates[marketId]);
+            const timeframes = Object.keys (this.safeDict (updates, marketId, {}));
             for (let j = 0; j < timeframes.length; j++) {
                 const timeframe = timeframes[j];
                 const messageHash = name + ':' + timeframe + ':' + marketId;
@@ -567,7 +567,7 @@ export default class ndax extends ndaxRest {
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
-                method.call (this, client, message, subscription);
+                this.handleOrderBookSubscription (client, message, subscription);
             }
         }
     }

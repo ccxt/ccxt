@@ -261,8 +261,8 @@ public partial class onetrading : Exchange
                     { "taker", this.parseNumber("0.0015") },
                     { "maker", this.parseNumber("0.001") },
                     { "tiers", new List<object>() {new Dictionary<string, object>() {
-    { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.00065")}} },
-    { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0005")}} },
+    { "taker", new List<object>() {new List<object> {0.0, 0.0015}, new List<object> {100.0, 0.0013}, new List<object> {250.0, 0.0013}, new List<object> {1000.0, 0.001}, new List<object> {5000.0, 0.0009}, new List<object> {10000.0, 0.00075}, new List<object> {20000.0, 0.00065}} },
+    { "maker", new List<object>() {new List<object> {0.0, 0.001}, new List<object> {100.0, 0.001}, new List<object> {250.0, 0.0009}, new List<object> {1000.0, 0.00075}, new List<object> {5000.0, 0.0006}, new List<object> {10000.0, 0.0005}, new List<object> {20000.0, 0.0005}} },
 }} },
                 } },
             } },
@@ -896,7 +896,7 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker, fetchTickers
@@ -1008,7 +1008,7 @@ public partial class onetrading : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetMarketTicker(parameters);
         //
         //     [
@@ -1031,10 +1031,10 @@ public partial class onetrading : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> rawTickers = this.toArray(response);
+        IList<object> rawTickers = response;
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            ccxt.Ticker ticker = this.parseTicker(rawTickers[i]);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(rawTickers, i, new Dictionary<string, object>() {}));
             string? symbol = ticker.symbol;
             if ((symbol != null))
             {
@@ -1129,7 +1129,7 @@ public partial class onetrading : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount");
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1320,7 +1320,7 @@ public partial class onetrading : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -1395,7 +1395,7 @@ public partial class onetrading : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1636,7 +1636,7 @@ public partial class onetrading : Exchange
         //
         // responds with an empty body
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
     }
 
     /**
@@ -2105,11 +2105,11 @@ public partial class onetrading : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {"error":"MISSING_FROM_PARAM"}
@@ -2119,11 +2119,11 @@ public partial class onetrading : Exchange
         string? message = this.safeString(response, "error");
         if ((message != null))
         {
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

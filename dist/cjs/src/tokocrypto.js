@@ -1383,7 +1383,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             const firstTicker = this.safeDict(response, 0, {});
             return this.parseTicker(firstTicker, market);
         }
-        return this.parseTicker(response, market);
+        return this.parseTicker(this.extend({}, response), market);
     }
     /**
      * @method
@@ -1492,13 +1492,6 @@ class tokocrypto extends tokocrypto$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response = undefined;
-        if (this.isNativeMarket(market)) {
-            response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
-        }
-        else {
-            response = await this.binanceGetKlines(this.extend(request, paramsOmitted));
-        }
         //
         // binanceGetKlines
         //
@@ -1533,10 +1526,8 @@ class tokocrypto extends tokocrypto$1["default"] {
         //     }
         //
         let data = [];
-        if (Array.isArray(response)) {
-            data = response;
-        }
-        else {
+        if (this.isNativeMarket(market)) {
+            const response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
             const dataList = this.safeList(response, 'data');
             if (dataList !== undefined) {
                 data = dataList;
@@ -1545,6 +1536,9 @@ class tokocrypto extends tokocrypto$1["default"] {
                 const dataDict = this.safeDict(response, 'data', {});
                 data = this.safeList(dataDict, 'list', []);
             }
+        }
+        else {
+            data = await this.binanceGetKlines(this.extend(request, paramsOmitted));
         }
         return this.parseOHLCVs(data, market, timeframe, since, limitValue);
     }
@@ -2678,7 +2672,7 @@ class tokocrypto extends tokocrypto$1["default"] {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        const restUrls = this.extend({}, this.urls['api']['rest']);
+        const restUrls = this.extend({}, this.safeDict(this.urls['api'], 'rest', {}));
         if (!(apiName in restUrls)) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }

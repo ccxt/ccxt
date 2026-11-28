@@ -128,6 +128,7 @@ export interface MarketInterface {
     resolved?: Bool;
     resolvedOutcome?: Str;
     outcomes?: PredictionOutcome[];
+    marketId?: Str;
 }
 export interface PredictionFees {
     trading?: Num;

@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Endpoint } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -676,9 +676,9 @@ export default class bitteam extends Exchange {
         let fee: Num = undefined;
         const withdrawCommissionFixed = this.safeDict (txLimits, 'withdrawCommissionFixed', {});
         let feesByNetworkId: Dict = {};
-        const blockChain = this.safeString (currency, 'blockChain');
+        const blockChain = this.safeString (currency, 'blockChain', '');
         // if only one blockChain
-        if ((blockChain !== undefined) && (blockChain !== '')) {
+        if (blockChain !== '') {
             fee = this.parseNumber (withdrawCommissionFixed);
             feesByNetworkId[blockChain] = fee;
         } else {
@@ -1054,7 +1054,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {}) as Dict;
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -1176,7 +1176,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const order = this.safeDict (response, 'result', {}) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**
@@ -1206,7 +1206,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {}) as Dict;
-        return this.parseOrder (result);
+        return this.parseOrder (this.extend ({}, result));
     }
 
     /**
@@ -1469,8 +1469,7 @@ export default class bitteam extends Exchange {
             rawTickers = response;
         }
         for (let i = 0; i < rawTickers.length; i++) {
-            const rawTicker = rawTickers[i];
-            const ticker = this.parseTicker (rawTicker);
+            const ticker = this.parseTicker (this.safeDict (rawTickers, i, {}));
             tickers.push (ticker);
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
@@ -2074,7 +2073,7 @@ export default class bitteam extends Exchange {
         //
         const marketId = this.safeString (trade, 'pair');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString2 (trade, 'id', 'trade_id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'quantity', 'base_volume');
@@ -2196,7 +2195,8 @@ export default class bitteam extends Exchange {
             const free = this.safeString (currencyBalance, 'free');
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
-            const currencyCode = this.safeCurrencyCode (rawCurrencyId.toLowerCase ());
+            const rawCurrencyIdLower = rawCurrencyId.toLowerCase ();
+            const currencyCode = this.safeCurrencyCode (rawCurrencyIdLower);
             if (currencyCode !== undefined) {
                 balance[currencyCode] = {
                     'free': free,
@@ -2467,7 +2467,7 @@ export default class bitteam extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

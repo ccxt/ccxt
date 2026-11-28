@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bittrade import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -458,8 +458,10 @@ class bittrade(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' markets not loaded')
         result = {}
         for i in range(0, len(symbolsResolved)):
-            symbol = symbolsResolved[i]
-            result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
+            symbol = self.safe_string(symbolsResolved, i)
+            limits = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
+            if symbol is not None:
+                result[symbol] = limits
         return result
 
     def fetch_trading_limits_by_id(self, id: Str, params: dict = {}) -> dict:
@@ -824,8 +826,8 @@ class bittrade(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             marketId = self.safe_string(tickers[i], 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
-            ticker = self.parse_ticker(tickers[i], market)
+            symbol = self.safe_string(market, 'symbol', '')
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
@@ -1001,7 +1003,7 @@ class bittrade(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             trades = self.safe_list(data[i], 'data', [])
             for j in range(0, len(trades)):
-                trade = self.parse_trade(trades[j], market)
+                trade = self.parse_trade(self.safe_dict(trades, j, {}), market)
                 result.append(trade)
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, self.safe_string(market, 'symbol'), since, limit)
@@ -1412,9 +1414,9 @@ class bittrade(Exchange, ImplicitAPI):
         if feeCost is not None:
             feeCurrency = None
             if side == 'sell':
-                feeCurrency = marketResolved['quote']
+                feeCurrency = self.safe_string(marketResolved, 'quote')
             else:
-                feeCurrency = marketResolved['base']
+                feeCurrency = self.safe_string(marketResolved, 'base')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1919,7 +1921,8 @@ class bittrade(Exchange, ImplicitAPI):
         if network is not None:
             # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if network == 'erc20':
-                request['chain'] = currency['id'] + network
+                currencyId = self.safe_string(currency, 'id', '')
+                request['chain'] = currencyId + network
             else:
                 request['chain'] = network + currency['id']
         paramsNetwork = self.omit(paramsWithdrawTag, 'network') if (network is not None) else paramsWithdrawTag
@@ -1985,7 +1988,7 @@ class bittrade(Exchange, ImplicitAPI):
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         if self.safe_string(response, 'status') is not None:

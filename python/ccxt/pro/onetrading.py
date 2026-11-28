@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -235,15 +235,14 @@ class onetrading(ccxt.async_support.onetrading):
             ticker = tickers[i]
             marketId = self.safe_string(ticker, 'instrument')
             symbol = self.safe_symbol(marketId)
-            parsedTicker = self.parse_ws_ticker(ticker)
             timestamp = self.parse8601(datetime)
-            parsedTicker['timestamp'] = timestamp
-            parsedTicker['datetime'] = self.iso8601(timestamp)
+            isoDatetime = self.iso8601(timestamp)
+            parsedTicker = self.parse_ws_ticker(ticker, None, timestamp, isoDatetime)
             self.tickers[symbol] = parsedTicker
             client.resolve(parsedTicker, 'ticker.' + symbol)
         client.resolve(self.tickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, ticker: dict, market: Market, timestamp: Int, datetime: Str) -> Ticker:
         #
         #     {
         #         "instrument": "ETH_BTC",
@@ -258,8 +257,8 @@ class onetrading(ccxt.async_support.onetrading):
         marketId = self.safe_string(ticker, 'instrument')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market),
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': None,
@@ -318,11 +317,11 @@ class onetrading(ccxt.async_support.onetrading):
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolResolved, limit)
-        trades = self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved)
-        numTrades = len(trades)
+        filtered = self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved)
+        numTrades = len(filtered)
         if numTrades == 0:
             return await self.watch_my_trades(symbolResolved, since, limitResolved, params)
-        return trades
+        return filtered
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -423,7 +422,7 @@ class onetrading(ccxt.async_support.onetrading):
         else:
             raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
-    def handle_book_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: list[object]):
         #
         #    [
         #       [ 'BUY', "0.053593", "0" ],
@@ -473,11 +472,11 @@ class onetrading(ccxt.async_support.onetrading):
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)
-        orders = self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved)
-        numOrders = len(orders)
+        filtered = self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved)
+        numOrders = len(filtered)
         if numOrders == 0:
             return await self.watch_orders(symbolResolved, since, limitResolved, params)
-        return orders
+        return filtered
 
     def handle_trading(self, client: Client, message: dict):
         #
@@ -726,13 +725,13 @@ class onetrading(ccxt.async_support.onetrading):
             return
         orders = self.orders
         for i in range(0, len(rawOrders)):
-            order = self.parse_order(rawOrders[i])
+            order = self.parse_order(self.safe_dict(rawOrders, i, {}))
             symbol = self.safe_string(order, 'symbol', '')
             orders.append(order)
             client.resolve(self.orders, 'orders:' + symbol)
             rawTrades = self.safe_list(rawOrders[i], 'trades', [])
             for ii in range(0, len(rawTrades)):
-                trade = self.parse_trade(rawTrades[ii])
+                trade = self.parse_trade(self.safe_dict(rawTrades, ii, {}))
                 symbol = self.safe_string(trade, 'symbol', symbol)
                 self.myTrades.append(trade)
                 client.resolve(self.myTrades, 'myTrades:' + symbol)
@@ -1075,12 +1074,9 @@ class onetrading(ccxt.async_support.onetrading):
                     client.subscriptions[subscriptionHash] = None
             else:
                 subscription = {}
-        subscriptionMarketId = self.safe_dict(subscription, marketId)
-        if subscriptionMarketId is None:
-            if marketId is not None:
-                subscription[marketId] = {}
-        if (marketId is not None) and (timeframe is not None):
-            subscription[marketId][timeframe] = True
+        marketTimeframes = self.safe_dict(subscription, marketId, {})
+        marketTimeframes[timeframe] = True
+        subscription[marketId] = marketTimeframes
         properties = []
         marketIds = list(subscription.keys())
         for i in range(0, len(marketIds)):
@@ -1172,11 +1168,14 @@ class onetrading(ccxt.async_support.onetrading):
         timeframesResolved = self.timeframes if (timeframes is None) else timeframes
         if timeframesResolved is None:
             raise ArgumentsRequired(self.id + ' findTimeframe() timeframes is required')
+        unit = self.safe_string(timeframe, 'unit')
+        period = self.safe_string(timeframe, 'period')
         keys = list(timeframesResolved.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            timeframeResolved = self.safe_dict(timeframesResolved, key, {})
-            if timeframeResolved['unit'] == timeframe['unit'] and timeframeResolved['period'] == timeframe['period']:
+            rowUnit = self.safe_string(timeframesResolved[key], 'unit')
+            rowPeriod = self.safe_string(timeframesResolved[key], 'period')
+            if rowUnit == unit and rowPeriod == period:
                 return key
         return None
 
@@ -1205,7 +1204,7 @@ class onetrading(ccxt.async_support.onetrading):
         #
         return message
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "error": "MALFORMED_JSON",
@@ -1315,7 +1314,9 @@ class onetrading(ccxt.async_support.onetrading):
             marketId = marketIds[i]
             subscription[marketId] = True
         request['type'] = type
-        request['channels'][0]['instrument_codes'] = list(subscription.keys())
+        instrumentCodes = list(subscription.keys())
+        channel = self.extend(self.safe_dict(self.safe_list(request, 'channels', []), 0, {}), {'instrument_codes': instrumentCodes})
+        request['channels'] = [channel]
         return await self.watch(url, messageHash, self.deep_extend(request, params), subscriptionHash, subscription)
 
     async def authenticate(self, params: dict = {}):

@@ -12,7 +12,6 @@ type Paymium struct {
 
 func newPaymium() *Paymium {
 	p := &Paymium{}
-	setDefaults(p)
 	return p
 }
 
@@ -214,7 +213,7 @@ func (this *Paymium) Describe() map[string]any {
 		},
 	})
 }
-func (this *Paymium) ParseBalance(response any) map[string]any {
+func (this *Paymium) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -227,8 +226,8 @@ func (this *Paymium) ParseBalance(response any) map[string]any {
 	}
 	for i := 0; i < len(currencies); i++ {
 		var code string = currencies[i]
-		var currency map[string]any = this.Currency(code)
-		var currencyId *string = SafeStringPtr(currency["id"])
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId *string = currency.Id
 		var freeAmount *string = this.SafeString(response, "balance_"+*currencyId)
 		if freeAmount != nil {
 			var account map[string]any = this.Account()
@@ -305,9 +304,12 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"currency": market["id"],
+		"currency": nil,
+	}
+	if market.Id != nil {
+		request["currency"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetDataCurrencyDepth(this.Extend(request, params))
@@ -316,10 +318,10 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "amount"))}
 	return nil
 }
-func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Paymium) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "high":"33740.82",
@@ -396,7 +398,7 @@ func (this *Paymium) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}
@@ -467,12 +469,12 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Paymium) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Paymium) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -488,7 +490,7 @@ func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}
@@ -644,7 +646,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(response, codes, false))}
 	return nil
 }
-func (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Paymium) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -698,7 +700,7 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"type":      this.Capitalize(typeVar) + "Order",
 		"currency":  market["id"],
@@ -709,14 +711,14 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["price"] = price
 	}
 
-	r1 := <-this.PrivatePostUserOrders(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostUserOrders(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   this.SafeString(response, "uuid"),
 	}, market)}
 	return nil
@@ -772,12 +774,12 @@ func (this *Paymium) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Paymium) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Paymium) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Paymium) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Paymium) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -843,7 +845,7 @@ func (this *Paymium) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
+func (this *Paymium) ParseTransfer(transfer map[string]any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -882,7 +884,10 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var updatedAt *string = this.SafeString(transfer, "updated_at")
 	var timetstamp any = this.ParseDate(updatedAt)
 	var accountOperations []any = SafeListTyped(transfer, "account_operations")
-	var firstOperation map[string]any = SafeMapTyped(accountOperations, 0)
+	var firstOperation map[string]any
+	if 0 < len(accountOperations) {
+		firstOperation, _ = accountOperations[0].(map[string]any)
+	}
 	var status *string = this.SafeString(transfer, "state")
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
@@ -966,7 +971,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Paymium) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Paymium) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

@@ -18,6 +18,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -88,22 +89,23 @@ type Client struct {
 	ConnectionTimeout     any  // e.g. *time.Timer or context.CancelFunc
 	Verbose               bool // default false
 	DecompressBinary      bool
-	IsMock                bool                          // static ws tests: transport is stubbed, sends are recorded
-	MockSentMessages      []any                         // frames recorded in mock mode
-	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
-	MaxPingPongMisses     any                           // int or counter type
-	PingInterval          any                           // time.Duration recommended
-	ConnectionEstablished any                           // signal or state variable
-	Gunzip                any                           // gzip decompressor (e.g. io.Reader)
-	Inflate               any                           // zlib inflater or similar
-	URL                   string                        // URL string
-	IsConnected           any                           // bool or state variable
-	OnConnectedCallback   func(client any, message any) // callback function signature - adjust as needed
-	OnMessageCallback     func(client any, message any) // example callback with message
-	OnErrorCallback       func(client any, err any)     // error callback
-	OnCloseCallback       func(client any, err any)     // connection closed callback
-	Ping                  any                           // e.g. timer or pong/ping state
-	Throttle              any                           // throttling mechanism (rate limiter, etc.)
+	IsMock                bool                                      // static ws tests: transport is stubbed, sends are recorded
+	MockSentMessages      []any                                     // frames recorded in mock mode; read via MockSent
+	mockSentMu            sync.Mutex                                // guards MockSentMessages: each send records on its own goroutine
+	ConnectionTimer       any                                       // e.g. *time.Timer or custom timer
+	MaxPingPongMisses     any                                       // int or counter type
+	PingInterval          any                                       // time.Duration recommended
+	ConnectionEstablished any                                       // signal or state variable
+	Gunzip                any                                       // gzip decompressor (e.g. io.Reader)
+	Inflate               any                                       // zlib inflater or similar
+	URL                   string                                    // URL string
+	IsConnected           any                                       // bool or state variable
+	OnConnectedCallback   func(client ClientInterface, message any) // callback function signature - adjust as needed
+	OnMessageCallback     func(client any, message any)             // example callback with message
+	OnErrorCallback       func(client ClientInterface, err any)     // error callback
+	OnCloseCallback       func(client ClientInterface, err any)     // connection closed callback
+	Ping                  any                                       // e.g. timer or pong/ping state
+	Throttle              any                                       // throttling mechanism (rate limiter, etc.)
 	// Owner any 											// pointer to the exchange that created the client
 }
 
@@ -117,7 +119,7 @@ func (this *Client) Resolve(data any, subHash any) any {
 
 	// the store takes the future out before it is resolved here, so a second
 	// message for the same hash finds no consumer and cannot deliver twice
-	if reply := this.storeCall(storeTake, hash, nil); reply.ok {
+	if reply := this.storeCall(storeSettle, hash, func(f *Future) { f.Resolve(data) }); reply.ok {
 		reply.value.(*Future).Resolve(data)
 	}
 	return data
@@ -143,14 +145,16 @@ func (this *Client) NewFuture(messageHash any) *Future {
 // Reject rejects specific future or all
 func (this *Client) Reject(err any, messageHash ...any) {
 	if len(messageHash) == 0 {
-		for _, future := range this.storeCall(storeTakeAll, "", nil).value.([]any) {
+		for _, future := range this.storeCall(storeSettleAll, "", func(f *Future) { rejectFuture(f, err) }).value.([]any) {
 			rejectFuture(future, err)
 		}
 		return
 	}
 	hash := derefScalar(messageHash[0]).(string)
-	if reply := this.storeCall(storeTake, hash, nil); reply.ok {
-		rejectFuture(reply.value, err)
+	if reply := this.storeCall(storeSettle, hash, func(f *Future) { rejectFuture(f, err) }); reply.ok || reply.count > 0 {
+		if reply.ok {
+			rejectFuture(reply.value, err)
+		}
 		return
 	}
 	// ts parity: an error arriving while no consumer future exists is retained
@@ -183,7 +187,7 @@ func (this *Client) Close() error {
 
 // NewClient creates a new WebSocket client with the given URL and callbacks
 // Matches the TypeScript constructor exactly with all the same properties
-func NewClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client any, err any), onCloseCallback func(client any, err any), onConnectedCallback func(client any, err any), config ...map[string]any) *Client {
+func NewClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client ClientInterface, err any), onCloseCallback func(client ClientInterface, err any), onConnectedCallback func(client ClientInterface, err any), config ...map[string]any) *Client {
 	// Set up defaults exactly like TypeScript constructor
 	defaults := map[string]any{
 		"Url":                   url,
@@ -368,9 +372,13 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 			// non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
 			var parsed any
 			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
+				this.mockSentMu.Lock()
 				this.MockSentMessages = append(this.MockSentMessages, parsed)
+				this.mockSentMu.Unlock()
 			} else {
+				this.mockSentMu.Lock()
 				this.MockSentMessages = append(this.MockSentMessages, msgStr)
+				this.mockSentMu.Unlock()
 			}
 			future.Resolve(true)
 			ch <- AsyncResult[bool]{Value: true}
@@ -394,6 +402,13 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 	}()
 
 	return ch
+}
+
+// MockSent returns a copy of the frames recorded in mock mode.
+func (this *Client) MockSent() []any {
+	this.mockSentMu.Lock()
+	defer this.mockSentMu.Unlock()
+	return append([]any(nil), this.MockSentMessages...)
 }
 
 func gunzipData(data []byte) ([]byte, error) {
@@ -485,11 +500,11 @@ func (this *Client) OnMessage(messageEvent any) {
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
 	if messageIsBinary && !this.DecompressBinary {
-		this.OnMessageCallback(this, messageBytes)
+		this.DispatchMessage(this, messageBytes)
 	} else if parsedMessage != nil {
-		this.OnMessageCallback(this, parsedMessage)
+		this.DispatchMessage(this, parsedMessage)
 	} else {
-		this.OnMessageCallback(this, messageStr)
+		this.DispatchMessage(this, messageStr)
 
 	}
 }
@@ -780,6 +795,22 @@ func (this *Client) PendingFutureCount() int {
 	return this.storeCall(storePending, "", nil).count
 }
 
+// DispatchMessage runs the frame handler; futures it settles complete after it returns
+// (js resolves on a microtask), so a waiter woken by one hash cannot re-watch and take
+// a sibling future the same frame is about to settle.
+func (this *Client) DispatchMessage(client any, message any) {
+	if !this.storeCall(storeDispatchBegin, "", nil).ok {
+		this.OnMessageCallback(client, message)
+		return
+	}
+	defer func() {
+		for _, settle := range this.storeCall(storeDispatchEnd, "", nil).value.([]func()) {
+			settle()
+		}
+	}()
+	this.OnMessageCallback(client, message)
+}
+
 type wsMessageHandler interface {
 	HandleMessage(client *Client, msg any)
 }
@@ -797,14 +828,16 @@ type storeKind int
 
 const (
 	storeNewFuture storeKind = iota
-	storeTake
-	storeTakeAll
 	storeRetain
 	storePeek
 	storeRejections
 	storePending
 	storePongGet
 	storePongSet
+	storeSettle
+	storeSettleAll
+	storeDispatchBegin
+	storeDispatchEnd
 )
 
 type storeOp struct {
@@ -852,6 +885,9 @@ func (this *clientStore) own() {
 	this.initial = nil
 	rejections := map[string]any{}
 	var lastPong any
+	// while a frame handler runs, settles are queued here and handed back when it ends
+	dispatching := false
+	var deferred []func()
 	for op := range this.req {
 		switch op.kind {
 		case storeNewFuture:
@@ -869,21 +905,6 @@ func (this *clientStore) own() {
 				this.publish(futures)
 			}
 			op.reply <- storeReply{value: futures[op.hash]}
-		case storeTake:
-			future, ok := futures[op.hash]
-			if ok {
-				delete(futures, op.hash)
-				this.publish(futures)
-			}
-			op.reply <- storeReply{value: future, ok: ok}
-		case storeTakeAll:
-			pending := make([]any, 0, len(futures))
-			for hash, future := range futures {
-				pending = append(pending, future)
-				delete(futures, hash)
-			}
-			this.publish(futures)
-			op.reply <- storeReply{value: pending}
 		case storeRetain:
 			rejections[op.hash] = op.value
 			op.reply <- storeReply{}
@@ -903,6 +924,46 @@ func (this *clientStore) own() {
 		case storePongSet:
 			lastPong = op.value
 			op.reply <- storeReply{}
+		case storeSettle:
+			// take the future; inside a handler queue its settle instead (count 1)
+			future, ok := futures[op.hash]
+			if ok {
+				delete(futures, op.hash)
+				this.publish(futures)
+				if dispatching {
+					settle := op.value.(func(*Future))
+					deferred = append(deferred, func() { settle(future) })
+					op.reply <- storeReply{count: 1}
+					continue
+				}
+			}
+			op.reply <- storeReply{value: future, ok: ok}
+		case storeSettleAll:
+			pending := make([]any, 0, len(futures))
+			for hash, future := range futures {
+				pending = append(pending, future)
+				delete(futures, hash)
+			}
+			this.publish(futures)
+			if dispatching {
+				settle := op.value.(func(*Future))
+				for _, future := range pending {
+					taken := future.(*Future)
+					deferred = append(deferred, func() { settle(taken) })
+				}
+				pending = pending[:0]
+			}
+			op.reply <- storeReply{value: pending}
+		case storeDispatchBegin:
+			// a nested dispatch joins the outer one
+			began := !dispatching
+			dispatching = true
+			op.reply <- storeReply{ok: began}
+		case storeDispatchEnd:
+			queued := deferred
+			deferred = nil
+			dispatching = false
+			op.reply <- storeReply{value: queued}
 		}
 	}
 }

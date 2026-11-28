@@ -4,9 +4,10 @@ import lunoRest from '../luno.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -100,9 +101,9 @@ export default class luno extends lunoRest {
         if (length === 0) {
             return;
         }
-        const symbol: string = subscription['symbol'];
+        const symbol: string = this.safeString (subscription, 'symbol', '');
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         let stored = this.safeValue (this.trades, symbolValue);
         if (stored === undefined) {
@@ -131,12 +132,7 @@ export default class luno extends lunoRest {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeString (market, 'symbol');
         return this.safeTrade ({
             'info': trade,
             'id': undefined,
@@ -251,7 +247,7 @@ export default class luno extends lunoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customParseOrderBook (orderbook: Dict, symbol: Str, timestamp: Int = undefined, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
+    customParseOrderBook (orderbook: Dict, symbol: Str, timestamp: Int = undefined, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2): Dict {
         const bids = this.parseOrderBookBidsAsks (this.safeList (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeList (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
@@ -273,7 +269,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2): List {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
@@ -374,7 +370,7 @@ export default class luno extends lunoRest {
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    reduceOrderVolume (orderSide: any, orderId: string, tradedAmount: string): boolean {
+    reduceOrderVolume (orderSide: OrderBookSide, orderId: string, tradedAmount: string): boolean {
         const sideLength = orderSide.length;
         for (let i = 0; i < sideLength; i++) {
             const order = orderSide[i];
@@ -459,10 +455,8 @@ export default class luno extends lunoRest {
             // frames still arriving until the client resubscribes
             return;
         }
-        const handlers = [ this.handleOrderBook, this.handleTrades ];
-        for (let j = 0; j < handlers.length; j++) {
-            const handler = handlers[j];
-            handler.call (this, client, message, subscriptions[0]);
-        }
+        const subscription: Dict = this.safeDict (subscriptions, 0, {});
+        this.handleOrderBook (client, message, subscription);
+        this.handleTrades (client, message, subscription);
     }
 }

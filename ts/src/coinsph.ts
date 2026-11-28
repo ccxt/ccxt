@@ -3,7 +3,7 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, Status, Endpoint, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, Status, Endpoint, NullableDict, Bool } from './base/types.js';
 
 /**
  * @class coinsph
@@ -677,8 +677,8 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
-        const hasSymbolParam = ('symbol' in params);
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
+        const hasSymbolParam = (this.safeString (params, 'symbol') !== undefined);
         const hasSymbolsParam = ('symbols' in params);
         const limit = this.safeInteger (params, 'limit');
         if (('noSymbol' in config) && !hasSymbolParam) {
@@ -954,7 +954,7 @@ export default class coinsph extends Exchange {
         } else {
             ticker = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
         }
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (this.extend ({}, ticker), market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1290,13 +1290,12 @@ export default class coinsph extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'time');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const type = undefined;
         let fee: Dict = {};
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
@@ -1326,7 +1325,7 @@ export default class coinsph extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -1478,7 +1477,7 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         const paramsRequest: Dict = this.omit (paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response: Dict = {};
+        let response: NullableDict = undefined;
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, paramsRequest));
         } else {
@@ -1891,8 +1890,9 @@ export default class coinsph extends Exchange {
         const result: Dict = {};
         const fees: Dict[] = this.toArray (response);
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
-            const symbol = fee['symbol'];
+            const feeRow = this.safeDict (fees, i, {});
+            const fee = this.parseTradingFee (feeRow);
+            const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -1910,7 +1910,7 @@ export default class coinsph extends Exchange {
         //
         const marketId = this.safeString (fee, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,
@@ -2139,7 +2139,6 @@ export default class coinsph extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp: Int = undefined;
         timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
-        const updated = undefined;
         let type: Str = undefined;
         const withdrawOrderId = this.safeString (transaction, 'withdrawOrderId');
         const depositOrderId = this.safeString (transaction, 'depositOrderId');
@@ -2174,7 +2173,7 @@ export default class coinsph extends Exchange {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'internal': internal,
             'comment': undefined,
             'fee': fee,
@@ -2315,7 +2314,7 @@ export default class coinsph extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

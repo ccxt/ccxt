@@ -543,7 +543,7 @@ class hibachi extends Exchange {
         //      }
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
@@ -906,7 +906,7 @@ class hibachi extends Exchange {
             'signature' => $signature,
             'maxFeesPercent' => $this->number_to_string($feeRate),
         );
-        $postOnly = $this->is_post_only(strtoupper($type) === 'MARKET', null, $params);
+        $postOnly = $this->is_post_only(strtoupper($type) === 'MARKET', false, $params);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
@@ -1827,7 +1827,7 @@ class hibachi extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2206,7 +2206,8 @@ class hibachi extends Exchange {
     public function parse_settlements(array $settlements, ?array $market = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($settlements[$i], $market);
+            $settlementRow = $this->extend(array(), $settlements[$i]);
+            $result[] = $this->parse_settlement($settlementRow, $market);
         }
         return $result;
     }

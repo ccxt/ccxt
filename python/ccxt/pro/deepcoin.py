@@ -103,7 +103,6 @@ class deepcoin(ccxt.async_support.deepcoin):
 
     def handle_pong(self, client: Client, message: str):
         client.lastPong = self.milliseconds()
-        return message
 
     def request_id(self) -> int:
         self.lock_id()
@@ -162,7 +161,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         return await self.watch(url, unsubHash, self.deep_extend(request, params), unsubHash, subscriptionExtended)
 
     async def watch_private(self, messageHash: str, params: dict = {}) -> object:
-        listenKey = await self.authenticate()
+        await self.authenticate()
+        listenKey = self.safe_string(self.options, 'listenKey', '')
         return await self.watch(self.safe_string(self.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, None, 'private', params)
 
     async def authenticate(self, params: dict = {}) -> Str:
@@ -725,7 +725,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
         type = self.safe_string(message, 't')
-        if orderbook['timestamp'] is None:
+        if self.safe_integer(orderbook, 'timestamp') is None:
             if type == 'f':
                 # snapshot
                 self.handle_order_book_snapshot(client, message)
@@ -768,7 +768,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         orderbook.reset(snapshot)
         cachedMessages = orderbook.cache
         for j in range(0, len(cachedMessages)):
-            cachedMessage = cachedMessages[j]
+            cachedMessage = self.safe_dict(cachedMessages, j, {})
             self.handle_order_book_message(client, cachedMessage, orderbook)
         orderbook.cache = []
         messageHash = 'orderbook' + '::' + symbol
@@ -1035,7 +1035,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         """
         if self.markets is None:
             await self.load_markets()
-        listenKey = await self.authenticate()
+        await self.authenticate()
+        listenKey = self.safe_string(self.options, 'listenKey', '')
         symbolsNormalized = self.market_symbols(symbols)
         messageHash = 'positions'
         messageHashes = []
@@ -1223,7 +1224,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "a": "RecvTopicAction",
@@ -1256,3 +1257,4 @@ class deepcoin(ccxt.async_support.deepcoin):
             raise ExchangeError(feedback)
         except Exception as e:
             client.reject(e, messageHash)
+        return False

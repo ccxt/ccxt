@@ -9,7 +9,6 @@ type Gateeu struct {
 
 func newGateeu() *Gateeu {
 	p := &Gateeu{}
-	setDefaults(p)
 	return p
 }
 

@@ -317,9 +317,9 @@ func (this *Hashkey) PrivateDeleteApiV1SpotOrder(args ...any) <-chan EndpointRes
 	return EndpointTyped[map[string]any](this.RequestAsync("api/v1/spot/order", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)}))
 }
 
-// PrivateDeleteApiV1SpotOpenOrders returns a channel that yields a JSON array.
-func (this *Hashkey) PrivateDeleteApiV1SpotOpenOrders(args ...any) <-chan EndpointResult[[]any] {
-	return EndpointTyped[[]any](this.RequestAsync("api/v1/spot/openOrders", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(5)}))
+// PrivateDeleteApiV1SpotOpenOrders returns a channel that yields a JSON object.
+func (this *Hashkey) PrivateDeleteApiV1SpotOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.RequestAsync("api/v1/spot/openOrders", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(5)}))
 }
 
 // PrivateDeleteApiV1SpotCancelOrderByIds returns a channel that yields a JSON object.

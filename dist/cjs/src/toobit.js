@@ -734,7 +734,7 @@ class toobit extends toobit$1["default"] {
             const coin = coins[i];
             const parsed = this.parseCurrency(coin);
             if (parsed !== undefined) {
-                const code = parsed['code'];
+                const code = this.safeString(parsed, 'code', '');
                 result[code] = parsed;
             }
         }
@@ -948,8 +948,7 @@ class toobit extends toobit$1["default"] {
         const all = this.arrayConcat(symbols, contracts);
         const result = [];
         for (let i = 0; i < all.length; i++) {
-            const market = this.safeDict(all, i, {});
-            const parsed = this.parseMarket(market);
+            const parsed = this.parseMarket(this.safeDict(all, i, {}));
             if (parsed !== undefined) {
                 result.push(parsed);
             }
@@ -982,7 +981,7 @@ class toobit extends toobit$1["default"] {
         if (isContract) {
             symbol = base + '/' + quote + ':' + settle;
         }
-        return this.safeMarketStructure({
+        const result = {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -999,8 +998,8 @@ class toobit extends toobit$1["default"] {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? (inverse !== true) : undefined,
-            'inverse': isContract ? inverse : undefined,
+            'linear': undefined,
+            'inverse': undefined,
             'contractSize': this.safeNumber(market, 'contractMultiplier'),
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1030,7 +1029,12 @@ class toobit extends toobit$1["default"] {
             },
             'created': undefined,
             'info': market,
-        });
+        };
+        if (isContract) {
+            result['linear'] = (inverse !== true);
+            result['inverse'] = inverse;
+        }
+        return this.safeMarketStructure(result);
     }
     /**
      * @method
@@ -1199,7 +1203,7 @@ class toobit extends toobit$1["default"] {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         const marketResolved = this.safeMarket(undefined, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -1270,16 +1274,18 @@ class toobit extends toobit$1["default"] {
         }
         else if ((since !== undefined) && (limit !== undefined)) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
+            const durationMs = this.parseTimeframe(timeframe) * 1000;
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request['endTime'] = Math.min(since - (1 - durationMs * limit), this.milliseconds());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = [];
+        let candles = [];
         if (endpoint === 'index') {
             request['symbol'] = this.safeString(market['info'], 'indexToken'); // index klines take the index id instead of the market id
-            response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
+            const indexResponse = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
+            candles = this.safeList(indexResponse, 'data', []);
             //
             //     {
             //         "code": 200,
@@ -1309,7 +1315,8 @@ class toobit extends toobit$1["default"] {
             //
         }
         else if (endpoint === 'mark') {
-            response = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice));
+            const markResponse = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice));
+            candles = this.safeList(markResponse, 'data', []);
             //
             //     {
             //         "code": 200,
@@ -1329,7 +1336,7 @@ class toobit extends toobit$1["default"] {
             //
         }
         else {
-            response = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
+            candles = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
             //
             //    [
             //        [
@@ -1347,13 +1354,6 @@ class toobit extends toobit$1["default"] {
             //        ],
             //        ...
             //
-        }
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
-        else {
-            candles = this.safeList(response, 'data', []);
         }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
@@ -1808,7 +1808,7 @@ class toobit extends toobit$1["default"] {
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
@@ -2099,7 +2099,7 @@ class toobit extends toobit$1["default"] {
         if (status !== 'open') {
             throw new errors.OrderNotFound(this.id + ' order ' + id + ' can not be canceled, ' + this.json(response));
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -2256,7 +2256,7 @@ class toobit extends toobit$1["default"] {
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -2729,7 +2729,8 @@ class toobit extends toobit$1["default"] {
         const result = {};
         const marketResolved = this.safeMarket(this.safeString(response, 'symbol'), market);
         const fee = this.parseTradingFee(response, marketResolved);
-        result[marketResolved['symbol']] = fee;
+        const feeSymbol = this.safeString(marketResolved, 'symbol', '');
+        result[feeSymbol] = fee;
         return result;
     }
     parseTradingFee(data, market = undefined) {
@@ -2846,10 +2847,10 @@ class toobit extends toobit$1["default"] {
         const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.push(this.extend(this.parseTransactionWithType(this.safeDict(response, i, {}), currency, transactType), paramsUntil));
         }
         const sorted = this.sortBy(results, 'timestamp');
-        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
+        const currencyCode = (currency !== undefined) ? this.safeString(currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit);
     }
     parseTransactionWithType(transaction, currency = undefined, transactType = undefined) {
@@ -2917,7 +2918,9 @@ class toobit extends toobit$1["default"] {
         const tagFrom = this.safeString(transaction, 'fromAddressTag');
         const addressTo = this.safeString(transaction, 'address');
         const addressFrom = this.safeString(transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
+        const arriveQuantity = this.safeString(transaction, 'arriveQuantity');
+        const success = this.safeBool(transaction, 'success');
+        const isWithdraw = (arriveQuantity !== undefined) || (success !== undefined);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,

@@ -344,7 +344,7 @@ public partial class coincheck : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -471,7 +471,7 @@ public partial class coincheck : Exchange
         return ccxt.BaseExchange.ToOrderList(result);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOpenOrders
@@ -493,7 +493,6 @@ public partial class coincheck : Exchange
         string? amount = this.safeString(order, "pending_amount");
         string? remaining = this.safeString(order, "pending_amount");
         string? price = this.safeString(order, "rate");
-        string? status = null;
         string? marketId = this.safeString(order, "pair");
         string? symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -509,7 +508,7 @@ public partial class coincheck : Exchange
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },
-            { "status", status },
+            { "status", null },
             { "symbol", symbol },
             { "price", price },
             { "triggerPrice", null },
@@ -546,7 +545,7 @@ public partial class coincheck : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // {
@@ -664,7 +663,7 @@ public partial class coincheck : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
         string? baseId = this.safeString(marketResolved, "baseId");
         string? quoteId = this.safeString(marketResolved, "quoteId");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? takerOrMaker = null;
         string? amountString = null;
         string? costString = null;
@@ -1063,7 +1062,7 @@ public partial class coincheck : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -1183,7 +1182,7 @@ public partial class coincheck : Exchange
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-NONCE", nonce },
-                { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGNATURE", this.hmac(auth, this.secret, sha256) },
             };
         }
         Dictionary<string, object> headersResolved = headersSigned;
@@ -1196,11 +1195,11 @@ public partial class coincheck : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {"success":false,"error":"disabled API Key"}'
@@ -1211,10 +1210,10 @@ public partial class coincheck : Exchange
         {
             string? error = this.safeString(response, "error");
             string feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

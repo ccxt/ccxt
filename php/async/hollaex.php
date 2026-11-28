@@ -368,8 +368,10 @@ class hollaex extends Exchange {
             $market = $this->safe_dict($pairs, $key);
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
-            $baseCode = $this->common_currency_code(strtoupper($baseId));
-            $quoteCode = $this->common_currency_code(strtoupper($quoteId));
+            $upperBaseId = strtoupper($baseId);
+            $upperQuoteId = strtoupper($quoteId);
+            $baseCode = $this->common_currency_code($upperBaseId);
+            $quoteCode = $this->common_currency_code($upperQuoteId);
             $result[] = array(
                 'id' => $this->safe_string($market, 'name'),
                 'symbol' => $baseCode . '/' . $quoteCode,
@@ -722,13 +724,14 @@ class hollaex extends Exchange {
 
     public function parse_tickers(mixed $tickers, ?array $symbols = null, $params = array()): array {
         $result = array();
-        $keys = is_array($tickers) ? array_keys($tickers) : array();
+        $tickersDict = $this->extend(array(), $tickers);
+        $keys = is_array($tickersDict) ? array_keys($tickersDict) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $ticker = $this->safe_dict($tickers, $key, array());
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = $this->extend($this->parse_ticker($ticker, $market), $params);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
@@ -763,7 +766,7 @@ class hollaex extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
         $close = $this->safe_string($ticker, 'close');
         return $this->safe_ticker(array(
@@ -856,7 +859,7 @@ class hollaex extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
@@ -1236,7 +1239,7 @@ class hollaex extends Exchange {
         if ($response === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id);
         }
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1427,7 +1430,7 @@ class hollaex extends Exchange {
         $meta = $this->safe_dict($params, 'meta', array());
         $exchangeSpecificParam = $this->safe_bool($meta, 'post_only', false);
         $isMarketOrder = $type === 'market';
-        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === true, $params);
         if (!$isMarketOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -1702,12 +1705,10 @@ class hollaex extends Exchange {
         //     }
         //
         $wallet = $this->safe_list($response, 'wallet', array());
-        $addresses = null;
         if ($network === null) {
-            $addresses = $wallet;
-        } else {
-            $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
+            return $this->parse_deposit_addresses($wallet, $codes, false);
         }
+        $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
 
@@ -1940,10 +1941,8 @@ class hollaex extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $addressTo = null;
-        $addressFrom = null;
         $tag = null;
         $tagTo = null;
-        $tagFrom = null;
         if ($address !== null) {
             $parts = explode(':', $address);
             $address = $this->safe_string($parts, 0);
@@ -1983,10 +1982,10 @@ class hollaex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
-            'addressFrom' => $addressFrom,
+            'addressFrom' => null,
             'address' => $address,
             'addressTo' => $addressTo,
-            'tagFrom' => $tagFrom,
+            'tagFrom' => null,
             'tag' => $tag,
             'tagTo' => $tagTo,
             'type' => $type,
@@ -2218,7 +2217,7 @@ class hollaex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         // { "message": "Invalid token" }
         if ($response === null) {
             return null;

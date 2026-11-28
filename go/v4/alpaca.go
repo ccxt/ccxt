@@ -12,7 +12,6 @@ type Alpaca struct {
 
 func newAlpaca() *Alpaca {
 	p := &Alpaca{}
-	setDefaults(p)
 	return p
 }
 
@@ -507,8 +506,8 @@ func (this *Alpaca) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.0015"),
 				"taker":      this.ParseNumber("0.0025"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0022")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00")}},
+					"taker": []any{[]any{0.0, 0.0025}, []any{100000.0, 0.0022}, []any{500000.0, 0.0020}, []any{1000000.0, 0.0018}, []any{10000000.0, 0.0015}, []any{25000000.0, 0.0013}, []any{50000000.0, 0.0012}, []any{100000000.0, 0.001}},
+					"maker": []any{[]any{0.0, 0.0015}, []any{100000.0, 0.0012}, []any{500000.0, 0.001}, []any{1000000.0, 0.0008}, []any{10000000.0, 0.0005}, []any{25000000.0, 0.0002}, []any{50000000.0, 0.0002}, []any{100000000.0, 0.00}},
 				},
 			},
 		},
@@ -757,7 +756,8 @@ func (this *Alpaca) ParseMarket(asset any) map[string]any {
 	// Us equity markets do not include quote in symbol.
 	// We can safely coerce us_equity quote to USD
 	if (quote == nil) && (assetClass != nil && *assetClass == "us_equity") {
-		quote = SafeStringPtr("USD")
+		quoteStr := "USD"
+		quote = &quoteStr
 	}
 	if (base == nil) || (quote == nil) {
 		return nil
@@ -839,12 +839,12 @@ func (this *Alpaca) ParseMarket(asset any) map[string]any {
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Alpaca) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Alpaca) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -860,7 +860,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId *string = this.SafeString(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method string = *this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
@@ -869,20 +869,20 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		"loc":     loc,
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"loc", "method"})
-	var symbolTrades any = nil
+	var symbolTrades []any = nil
 	if method == "marketPublicGetV1beta3CryptoLocTrades" {
 		if since != nil {
 			request["start"] = this.Iso8601(since)
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 
 		r1 := <-this.MarketPublicGetV1beta3CryptoLocTrades(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response := r1.Raw
+		var response map[string]any = r1.Value
 		//
 		//    {
 		//        "next_page_token": null,
@@ -899,15 +899,15 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		//        }
 		//    }
 		//
-		var trades map[string]any = SafeMapTyped(response, "trades")
-		symbolTrades = this.SafeList(trades, marketId, []any{})
+		var trades, _ = response["trades"].(map[string]any)
+		symbolTrades = this.SafeListSlice(trades, marketId, []any{})
 	} else if method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
 		r2 := <-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 		//
 		//    {
 		//       "trades": {
@@ -921,15 +921,21 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		//        }
 		//    }
 		//
-		var trades map[string]any = SafeMapTyped(response, "trades")
-		var symbolTrade map[string]any = this.SafeDictMap(trades, marketId, map[string]any{})
+		var trades, _ = response["trades"].(map[string]any)
+		var symbolTrade map[string]any
+		if marketId != nil {
+			symbolTrade, _ = trades[*marketId].(map[string]any)
+		}
+		if symbolTrade == nil {
+			symbolTrade = map[string]any{}
+		}
 		symbolTrades = []any{symbolTrade}
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
 	}
 	var symbolTradesList []any = []any{}
 	if symbolTrades != nil {
-		symbolTradesList = ArrayTyped(symbolTrades)
+		symbolTradesList = symbolTrades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(symbolTradesList, market, since, limit))}
@@ -966,8 +972,8 @@ func (this *Alpaca) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var id *string = this.SafeString(market, "id")
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
+	var id *string = market.Id
 	var loc *string = this.SafeString(params, "loc", "us")
 	var request map[string]any = map[string]any{
 		"symbols": id,
@@ -1016,11 +1022,17 @@ func (this *Alpaca) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//       }
 	//   }
 	//
-	var orderbooks map[string]any = SafeMapTyped(response, "orderbooks")
-	var rawOrderbook map[string]any = this.SafeDictMap(orderbooks, id, map[string]any{})
+	var orderbooks, _ = response["orderbooks"].(map[string]any)
+	var rawOrderbook map[string]any
+	if id != nil {
+		rawOrderbook, _ = orderbooks[*id].(map[string]any)
+	}
+	if rawOrderbook == nil {
+		rawOrderbook = map[string]any{}
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(rawOrderbook, market["symbol"], timestamp, "b", "a", "p", "s"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(rawOrderbook, market.Symbol, timestamp, "b", "a", "p", "s"))}
 	return nil
 }
 
@@ -1065,7 +1077,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId *string = this.SafeString(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method string = *this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
@@ -1079,10 +1091,10 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"loc":     loc,
 	}
 	query = this.Omit(query, []any{"loc", "method"})
-	var ohlcvs any = nil
+	var ohlcvs []any = nil
 	if method == "marketPublicGetV1beta3CryptoLocBars" {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		if since != nil {
 			request["start"] = this.Iso8601(since)
@@ -1128,13 +1140,13 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		//        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
 		//     }
 		//
-		var bars any = this.SafeDict(response, "bars", map[string]any{})
-		ohlcvs = this.SafeList(bars, marketId, []any{})
+		var bars map[string]any = this.SafeDictMap(response, "bars", map[string]any{})
+		ohlcvs = this.SafeListSlice(bars, marketId, []any{})
 		if paginate {
 			// the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
 			var pageToken *string = this.SafeString(response, "next_page_token")
 			for i := 1; int64(i) < paginationCalls; i++ {
-				var ohlcvsLength int = GetArrayLength(ohlcvs)
+				var ohlcvsLength int = len(ohlcvs)
 				if (pageToken == nil) || ((limit != nil) && (int64(ohlcvsLength) >= *limit)) {
 					break
 				}
@@ -1145,8 +1157,8 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 					panic(r2.Err)
 				}
 				response = r2.Raw
-				bars = this.SafeDict(response, "bars", map[string]any{})
-				var page []any = SafeListTypedDefault(bars, marketId, []any{})
+				bars = this.SafeDictMap(response, "bars", map[string]any{})
+				var page []any = this.SafeListSlice(bars, marketId, []any{})
 				var pageLength int = len(page)
 				if pageLength == 0 {
 					break
@@ -1161,7 +1173,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response := r3.Raw
+		var response map[string]any = r3.Value
 		//
 		//    {
 		//        "bars": {
@@ -1178,8 +1190,14 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		//        }
 		//     }
 		//
-		var bars map[string]any = SafeMapTyped(response, "bars")
-		var bar map[string]any = this.SafeDictMap(bars, marketId, map[string]any{})
+		var bars, _ = response["bars"].(map[string]any)
+		var bar map[string]any
+		if marketId != nil {
+			bar, _ = bars[*marketId].(map[string]any)
+		}
+		if bar == nil {
+			bar = map[string]any{}
+		}
 		ohlcvs = []any{bar}
 	} else {
 		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))
@@ -1235,16 +1253,16 @@ func (this *Alpaca) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbolValue)
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker = tickers[symbolValue]
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 
@@ -1279,12 +1297,12 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	// every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
 	// symbol iteration order differs per language
-	var symbolsSorted any = func() any {
-		if symbols == nil {
-			return this.Sort(this.Symbols)
-		}
-		return symbols
-	}()
+	var symbolsSorted any
+	if symbols == nil {
+		symbolsSorted = this.Sort(this.Symbols)
+	} else {
+		symbolsSorted = symbols
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbolsSorted)
 	var loc *string = this.SafeString(params, "loc", "us")
 	var ids []string = this.MarketIdsStrings(symbolsNormalized)
@@ -1352,7 +1370,7 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//     }
 	//
 	var results []any = []any{}
-	var snapshots map[string]any = SafeMapTyped(response, "snapshots")
+	var snapshots, _ = response["snapshots"].(map[string]any)
 	var marketIds []string = nil
 	if snapshots != nil {
 		marketIds = make([]string, 0, len(snapshots))
@@ -1363,11 +1381,11 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var entry map[string]any = SafeMapTyped(snapshots, marketId)
-		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
-		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
-		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")
-		var latestTrade map[string]any = SafeMapTyped(entry, "latestTrade")
+		var entry, _ = snapshots[marketId].(map[string]any)
+		var dailyBar, _ = entry["dailyBar"].(map[string]any)
+		var prevDailyBar, _ = entry["prevDailyBar"].(map[string]any)
+		var latestQuote, _ = entry["latestQuote"].(map[string]any)
+		var latestTrade, _ = entry["latestTrade"].(map[string]any)
 		var datetime *string = this.SafeString(latestQuote, "t")
 		var ticker map[string]any = TickerToMap(this.SafeTicker(map[string]any{
 			"info":          entry,
@@ -1419,12 +1437,12 @@ func (this *Alpaca) GenerateClientOrderId(params any) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Alpaca) CreateMarketOrderWithCostAsync(symbol string, side string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Alpaca) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1458,12 +1476,12 @@ func (this *Alpaca) createMarketOrderWithCostBody(ch chan AsyncResult[Order], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Alpaca) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Alpaca) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1497,12 +1515,12 @@ func (this *Alpaca) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Alpaca) CreateMarketSellOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Alpaca) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1561,7 +1579,7 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var id *string = this.SafeString(market, "id")
 	var request map[string]any = map[string]any{
 		"symbol": id,
@@ -1576,32 +1594,31 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		} else {
 			panic(NotSupported(this.Id + " createOrder() does not support stop orders for " + typeVar + " orders, only stop_limit orders are supported"))
 		}
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		request["type"] = newType
 	}
 	if strings.Index(typeVar, "limit") >= 0 {
-		request["limit_price"] = this.PriceToPrecision(symbol, price)
+		request["limit_price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		request["notional"] = this.CostToPrecision(symbol, cost)
+		request["notional"] = this.CostToPrecision(&symbol, cost)
 	} else {
-		request["qty"] = this.AmountToPrecision(symbol, amount)
+		request["qty"] = this.AmountToPrecision(&symbol, amount)
 	}
-	var paramsCost map[string]any = func() map[string]any {
-		if cost != nil {
-			return this.OmitDict(params, "cost")
-		}
-		return params
-	}()
+	var paramsCost map[string]any
+	if cost != nil {
+		paramsCost = this.OmitDict(params, "cost")
+	} else {
+		paramsCost = params
+	}
 	defaultTIF, paramsTimeInForce := this.HandleOptionStringAndParams(paramsCost, "createOrder", "timeInForce")
 	// the venue only accepts lowercase values, normalize the unified uppercase spellings
-	request["time_in_force"] = func() any {
-		if defaultTIF != nil {
-			return ToLower(defaultTIF)
-		}
-		return defaultTIF
-	}()
+	if defaultTIF != nil {
+		request["time_in_force"] = strings.ToLower(*defaultTIF)
+	} else {
+		request["time_in_force"] = nil
+	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsTimeInForce, []any{"timeInForce", "triggerPrice"})
 	request["client_order_id"] = this.GenerateClientOrderId(paramsOmitted)
 
@@ -1722,22 +1739,14 @@ func (this *Alpaca) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		}
 	}
 
-	r1 := <-this.TraderPrivateDeleteV2Orders(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseRecv := <-this.TraderPrivateDeleteV2Orders(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r1.Raw
-	if IsArray(response) {
+	var response []any = responseRecv.Value
 
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
-		return nil
-	} else {
-
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
-			"info": response,
-		}))})}
-		return nil
-	}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
+	return nil
 }
 
 /**
@@ -1833,12 +1842,12 @@ func (this *Alpaca) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if until != nil {
 		request["until"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if since != nil {
 		request["after"] = this.Iso8601(since)
 		var direction *string = this.SafeString(paramsOmitted, "direction")
@@ -1848,7 +1857,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		}
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.TraderPrivateGetV2Orders(this.Extend(request, paramsOmitted))
@@ -1938,11 +1947,11 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes140315 []any = OrdersToList(r.Value)
-	if retRes140315 == nil {
+	var retRes139915 []any = OrdersToList(r.Value)
+	if retRes139915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes139915)}
 	}
 	return nil
 }
@@ -1984,11 +1993,11 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes142315 []any = OrdersToList(r.Value)
-	if retRes142315 == nil {
+	var retRes141915 []any = OrdersToList(r.Value)
+	if retRes141915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141915)}
 	}
 	return nil
 }
@@ -2010,12 +2019,12 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Alpaca) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2035,24 +2044,24 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		"order_id": id,
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
-		market = this.Market(symbol)
+	if true {
+		market = this.Market(&symbol)
 	}
 	if amount != nil {
-		request["qty"] = this.AmountToPrecision(symbol, amount)
+		request["qty"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
-	var paramsTrigger map[string]any = func() map[string]any {
-		if triggerPrice != nil {
-			return this.OmitDict(params, "triggerPrice")
-		}
-		return params
-	}()
+	var paramsTrigger map[string]any
+	if triggerPrice != nil {
+		paramsTrigger = this.OmitDict(params, "triggerPrice")
+	} else {
+		paramsTrigger = params
+	}
 	if price != nil {
-		request["limit_price"] = this.PriceToPrecision(symbol, price)
+		request["limit_price"] = this.PriceToPrecision(&symbol, price)
 	}
 	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc")
 	if timeInForce != nil {
@@ -2070,7 +2079,7 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Alpaca) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//    {
 	//        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -2128,7 +2137,8 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) Order {
 	if orderType != nil {
 		if strings.Index(*orderType, "limit") >= 0 {
 			// might be limit or stop-limit
-			orderType = SafeStringPtr("limit")
+			orderTypeStr := "limit"
+			orderType = &orderTypeStr
 		}
 	}
 	var datetime *string = this.SafeString(order, "submitted_at")
@@ -2237,17 +2247,17 @@ func (this *Alpaca) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if until != nil {
 		request["until"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if since != nil {
 		request["after"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsOmitted)
 
@@ -2319,9 +2329,11 @@ func (this *Alpaca) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var alpacaSide *string = this.SafeString(trade, "tks")
 	var side *string = this.SafeString(trade, "side")
 	if alpacaSide != nil && *alpacaSide == "B" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if alpacaSide != nil && *alpacaSide == "S" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "s", "qty")
@@ -2389,7 +2401,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Alpaca) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -2424,12 +2436,12 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Alpaca) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Alpaca) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2445,13 +2457,13 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagSuffix string = *this.SafeString(params, "tag", "")
-	var taggedAddress any = Add(Add(address, ":"), tagSuffix)
-	var addressValue any = func() any {
-		if tagSuffix != "" {
-			return taggedAddress
-		}
-		return address
-	}()
+	var taggedAddress string = address + ":" + tagSuffix
+	var addressValue string
+	if tagSuffix != "" {
+		addressValue = taggedAddress
+	} else {
+		addressValue = address
+	}
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
 		"address": addressValue,
@@ -2488,12 +2500,12 @@ func (this *Alpaca) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
-func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code *string, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
+func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code *string, since *int64, limit *int64, params any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
 	return ch
 }
-func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since any, limit any, params any) any {
+func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since *int64, limit *int64, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	if this.Markets == nil {
@@ -2516,11 +2528,11 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 			"activity_types": "CSD,CSW,TRANS",
 		}
 
-		r1 := <-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		activitiesRecv := <-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params))
+		if activitiesRecv.Err != nil {
+			panic(activitiesRecv.Err)
 		}
-		activities := r1.Raw
+		var activities []any = activitiesRecv.Value
 		//
 		//     [
 		//         {
@@ -2534,8 +2546,8 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		//
 		var filtered []any = []any{}
 		var ledger []any = []any{}
-		if IsArray(activities) {
-			ledger = ArrayTyped(activities)
+		if activities != nil {
+			ledger = activities
 		}
 		for i := 0; i < len(ledger); i++ {
 			var entry any = ledger[i]
@@ -2555,11 +2567,11 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		return nil
 	}
 
-	r2 := <-this.TraderPrivateGetV2WalletsTransfers(params)
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseRecv := <-this.TraderPrivateGetV2WalletsTransfers(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r2.Raw
+	var response []any = responseRecv.Value
 	//
 	//     {
 	//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2579,8 +2591,8 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 	//
 	var results []any = []any{}
 	var transfers []any = []any{}
-	if IsArray(response) {
-		transfers = ArrayTyped(response)
+	if response != nil {
+		transfers = response
 	}
 	for i := 0; i < len(transfers); i++ {
 		var entry any = transfers[i]
@@ -2628,10 +2640,7 @@ func (this *Alpaca) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2669,10 +2678,7 @@ func (this *Alpaca) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2710,15 +2716,12 @@ func (this *Alpaca) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
 }
-func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Alpaca) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
 	//
@@ -2771,12 +2774,13 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		var date string = *this.SafeString(transaction, "date", "")
 		timestamp = this.Parse8601(date + "T00:00:00Z")
 		datetime = this.Iso8601(timestamp)
-		typeVar = SafeStringPtr(func() string {
-			if isIncoming {
-				return "deposit"
-			}
-			return "withdrawal"
-		}())
+		var typeVarStr string
+		if isIncoming {
+			typeVarStr = "deposit"
+		} else {
+			typeVarStr = "withdrawal"
+		}
+		typeVar = &typeVarStr
 		amount = this.ParseNumber(Precise.StringAbs(netAmount))
 		// cash ledger rows carry no per-entry asset field and are USD, while crypto
 		// TRANS entries may carry symbol/asset - never blindly adopt the caller's
@@ -2988,7 +2992,7 @@ func (this *Alpaca) ParseBalance(response map[string]any) map[string]any {
 	//         }
 	//     ]
 	//
-	var account map[string]any = SafeMapTyped(response, "account")
+	var account, _ = response["account"].(map[string]any)
 	var positions []any = SafeListTyped(response, "positions")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -3004,24 +3008,21 @@ func (this *Alpaca) ParseBalance(response map[string]any) map[string]any {
 		result[*code] = cashAccount
 	}
 	for i := 0; i < len(positions); i++ {
-		var position map[string]any = SafeMapTyped(positions, i)
+		var position, _ = positions[i].(map[string]any)
 		var positionSymbol *string = this.SafeString(position, "symbol", "")
 		if positionSymbol != nil && *positionSymbol == "" {
 			continue
 		}
-		var baseId any = nil
+		var baseId *string = nil
 		if strings.Index(*positionSymbol, "/") >= 0 {
 			var parts []string = strings.Split(*positionSymbol, "/")
-			if derefPtr := this.SafeString(parts, 0); derefPtr != nil {
-				baseId = *derefPtr
-			} else {
-				baseId = nil
-			}
+			baseId = this.SafeString(parts, 0)
 		} else {
 			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
 			var baseLength int64 = int64(len(*positionSymbol)) - 3
 			if (baseLength > 0) && strings.HasSuffix(*positionSymbol, "USD") {
-				baseId = Slice(positionSymbol, 0, baseLength)
+				baseIdStr := (*positionSymbol)[0:min(baseLength+int64(len((*positionSymbol)))*min(max(-baseLength, 0), 1), int64(len(*positionSymbol)))]
+				baseId = &baseIdStr
 			}
 		}
 		if baseId == nil {
@@ -3077,7 +3078,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Alpaca) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Alpaca) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // default error handler
 	}
@@ -3665,7 +3666,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	var res Transaction = r.Value
 	return res, nil
 }
-func (this *Alpaca) FetchTransactionsHelper(typeVar string, code *string, since int64, limit int64, params any) ([]Transaction, error) {
+func (this *Alpaca) FetchTransactionsHelper(typeVar string, code *string, since *int64, limit *int64, params any) ([]Transaction, error) {
 	r := <-this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params)
 	if r.Err != nil {
 		return nil, r.Err

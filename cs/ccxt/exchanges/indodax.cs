@@ -402,10 +402,10 @@ public partial class indodax : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = rawMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)rawMarkets[i]);
             string? id = this.safeString(market, "id");
             string? baseId = this.safeString(market, "traded_currency");
             string? quoteId = this.safeString(market, "base_currency");
@@ -473,7 +473,7 @@ public partial class indodax : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         IDictionary<string, object> free = this.safeDict(balances, "balance", new Dictionary<string, object>() {});
@@ -574,7 +574,7 @@ public partial class indodax : Exchange
         return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buy", "sell");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -697,10 +697,9 @@ public partial class indodax : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object rawTicker = (key != null && tickers.ContainsKey(key) ? tickers[key] : null);
             string marketId = key.Replace("_", (string)"");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            ccxt.Ticker parsed = this.parseTicker(rawTicker, market);
+            ccxt.Ticker parsed = this.parseTicker(this.safeDict(tickers, key, new Dictionary<string, object>() {}), market);
             parsedTickers[(string)marketId] = ccxt.BaseExchange.FromTicker(parsed);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(parsedTickers, "symbol", symbols));
@@ -752,7 +751,7 @@ public partial class indodax : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -826,7 +825,7 @@ public partial class indodax : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -839,7 +838,7 @@ public partial class indodax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -913,7 +912,6 @@ public partial class indodax : Exchange
             filled = this.safeString(order, ("receive_" + baseId));
         }
         Int64? timestamp = this.safeInteger(order, "submit_time");
-        string? fee = null;
         string? id = this.safeString(order, "order_id");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -935,7 +933,7 @@ public partial class indodax : Exchange
             { "filled", filled },
             { "remaining", remaining },
             { "status", status },
-            { "fee", fee },
+            { "fee", null },
             { "trades", null },
         });
     }
@@ -969,8 +967,8 @@ public partial class indodax : Exchange
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {
-            { "id", id },
-        }, (orders != null && orders.ContainsKey("order") ? orders["order"] : null)), market));
+    { "id", id },
+}, (orders != null && orders.ContainsKey("order") ? orders["order"] : null)), market));
         order["info"] = response;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -1002,15 +1000,11 @@ public partial class indodax : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOpenOrders(this.extend(request, parameters));
         IDictionary<string, object> openOrdersResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        object rawOrders = (openOrdersResult != null && openOrdersResult.ContainsKey("orders") ? openOrdersResult["orders"] : null);
         // { success: 1, return: { orders: null }} if no orders
-        if (((rawOrders == null)) || ((rawOrders == null)))
-        {
-            return ccxt.BaseExchange.ToOrderList(new List<object>() {});
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if ((symbol != null))
         {
+            List<object> rawOrders = this.safeList(openOrdersResult, "orders", new List<object>() {});
             return this.parseOrders(rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
@@ -1090,11 +1084,13 @@ public partial class indodax : Exchange
         bool priceIsRequired = false;
         bool quantityIsRequired = false;
         bool isMarketBuy = ((type == "market")) && ((side == "buy"));
-        object paramsOmitted = parameters;
+        IDictionary<string, object> paramsOmitted = parameters;
         if (isMarketBuy)
         {
             paramsOmitted = this.omit(parameters, "cost");
         }
+        string? quoteId = this.safeString(market, "quoteId", "");
+        string? baseId = this.safeString(market, "baseId", "");
         if ((type == "market"))
         {
             if ((side == "buy"))
@@ -1115,7 +1111,7 @@ public partial class indodax : Exchange
                     string? costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
-                request[(string)((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null))] = quoteAmount;
+                request[(string)quoteId] = quoteAmount;
             } else
             {
                 quantityIsRequired = true;
@@ -1126,7 +1122,7 @@ public partial class indodax : Exchange
             quantityIsRequired = true;
             if ((side == "buy"))
             {
-                request[(string)((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null))] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                request[(string)quoteId] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
         if (priceIsRequired)
@@ -1139,7 +1135,7 @@ public partial class indodax : Exchange
         }
         if (quantityIsRequired)
         {
-            request[(string)((string)(market.ContainsKey("baseId") ? market["baseId"] : null))] = this.amountToPrecision(symbol, amount);
+            request[(string)baseId] = this.amountToPrecision(symbol, amount);
         }
         Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(result, "return", new Dictionary<string, object>() {});
@@ -1200,7 +1196,7 @@ public partial class indodax : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "return");
-        return this.parseOrder(data);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data));
     }
 
     /**
@@ -1456,7 +1452,7 @@ public partial class indodax : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -1619,7 +1615,7 @@ public partial class indodax : Exchange
                     }
                     if (networkId.IndexOf(",", StringComparison.Ordinal) >= 0)
                     {
-                        network = new List<object>() {};
+                        List<object> networkCodes = new List<object>() {};
                         if ((networkId == null))
                         {
                             throw new ExchangeError ((this.id + " fetchDepositAddresses() missing networkId")) ;
@@ -1630,9 +1626,10 @@ public partial class indodax : Exchange
                             string? _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if ((_netIdTmp != null))
                             {
-                                ((IList<object>)network).Add(_netIdTmp.ToUpper());
+                                networkCodes.Add(_netIdTmp.ToUpper());
                             }
                         }
+                        network = networkCodes;
                     } else
                     {
                         string? _netIdTmp = this.networkIdToCode(networkId, code);
@@ -1655,7 +1652,7 @@ public partial class indodax : Exchange
                 }
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
+        return ccxt.BaseExchange.ToDepositAddressList(result);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
@@ -1693,7 +1690,7 @@ public partial class indodax : Exchange
             privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(privateBody), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(privateBody, this.secret, sha512) },
             };
         }
         string? requestBody = privateBody;
@@ -1714,29 +1711,29 @@ public partial class indodax : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return null;  // public endpoints may return []-arrays
+            return ((bool?)((object)(null)));  // public endpoints may return []-arrays
         }
         string? error = this.safeString(response, "error", "");
         string? status = this.safeString(response, "success");
         if (((status == null)) && (error == ""))
         {
-            return null;  // no 'success' property on public responses
+            return ((bool?)((object)(null)));  // no 'success' property on public responses
         }
         if (status == "approved")
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         if ((this.safeInteger(response, "success", 0) == 1))
         {
@@ -1746,11 +1743,11 @@ public partial class indodax : Exchange
                 throw new ExchangeError (((this.id + ": malformed response: ") + this.json(response))) ;
             } else
             {
-                return null;
+                return ((bool?)((object)(null)));
             }
         }
-        string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        string feedback = ((this.id + " ") + body);
+        this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
         throw new ExchangeError (feedback) ;
     }

@@ -93,14 +93,14 @@ public partial class mudrex : ccxt.mudrex
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> assets = new List<object>() {};
         if ((symbolsNormalized != null))
@@ -178,12 +178,12 @@ public partial class mudrex : ccxt.mudrex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.safeString(message, "method") == "PONG"))
         {
@@ -208,7 +208,7 @@ public partial class mudrex : ccxt.mudrex
         }
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         IDictionary<string, object> error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         string? code = this.safeString(error, "code");
@@ -237,7 +237,7 @@ public partial class mudrex : ccxt.mudrex
         {
             return;
         }
-        Dictionary<string, object> market = this.safeMarket(s.ToUpper());
+        Dictionary<string, object> market = this.safeMarket(((string)s.ToUpper()));
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> parsed = new List<object> {this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -248,7 +248,7 @@ public partial class mudrex : ccxt.mudrex
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (tf != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)tf] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)tf] = stored;
             }
         }
         stored.append(parsed);
@@ -261,13 +261,13 @@ public partial class mudrex : ccxt.mudrex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object t = data[i];
+            IDictionary<string, object> t = ((IDictionary<string, object>)data[i]);
             string? s = this.safeString(t, "s");
             if ((s == null))
             {
                 continue;
             }
-            Dictionary<string, object> market = this.safeMarket(s.ToUpper());
+            Dictionary<string, object> market = this.safeMarket(((string)s.ToUpper()));
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Int64 timestamp = this.milliseconds();
             double? last = this.safeNumber(t, "p");

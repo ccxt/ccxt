@@ -20,7 +20,7 @@ export default class bullish extends bullishRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unsubscribePublic(url: string, topic: string, messageHash: string, symbol: string, request?: {}, params?: {}): Promise<any>;
+    unsubscribePublic(url: string, topic: string, messageHash: string, symbol: string, request?: Dict, params?: Dict): Promise<any>;
     handleUnSubscription(client: Client, subscription: Dict): void;
     watchPrivate(messageHash: string, subscribeHash: string, request?: {}, params?: {}): Promise<any>;
     /**
@@ -35,7 +35,7 @@ export default class bullish extends bullishRest {
      * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
      * @returns {any} status of the unwatch request
      */
-    unsubscribePrivate(topic: string, subscribeHash: string, request?: {}, params?: {}): Promise<any>;
+    unsubscribePrivate(topic: string, subscribeHash: string, request?: Dict, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bullish#watchTrades
@@ -178,7 +178,7 @@ export default class bullish extends bullishRest {
      */
     unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
     handlePositions(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleUnSubscriptionError(client: Client, message: Dict): void;
     handleMessage(client: Client, message: Dict): void;
 }

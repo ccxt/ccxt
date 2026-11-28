@@ -2738,7 +2738,7 @@ abstract class binanceusdm extends \ccxt\binance {
         return $this->request('premiumIndexKlines', array('dapiPublic'), 'GET', $params, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return array<string, mixed>|list<mixed>
+     * @return list<mixed>
      */
     public function dapipublic_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', array('dapiPublic'), 'GET', $params, array("cost" => 1, "noSymbol" => 40));
@@ -3818,7 +3818,7 @@ abstract class binanceusdm extends \ccxt\binance {
         return $this->request('exerciseHistory', array('eapiPublic'), 'GET', $params, array("cost" => 3));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function eapipublic_get_openinterest($params = array()) {
         return $this->request('openInterest', array('eapiPublic'), 'GET', $params, array("cost" => 3));
@@ -7718,7 +7718,7 @@ abstract class binanceusdm extends \ccxt\binance {
         return $this->request('premiumIndexKlines', array('dapiPublic'), 'GET', $params, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return array<string, mixed>|list<mixed>
+     * @return list<mixed>
      */
     public function dapiPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', array('dapiPublic'), 'GET', $params, array("cost" => 1, "noSymbol" => 40));
@@ -8798,7 +8798,7 @@ abstract class binanceusdm extends \ccxt\binance {
         return $this->request('exerciseHistory', array('eapiPublic'), 'GET', $params, array("cost" => 3));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function eapiPublicGetOpenInterest($params = array()) {
         return $this->request('openInterest', array('eapiPublic'), 'GET', $params, array("cost" => 3));

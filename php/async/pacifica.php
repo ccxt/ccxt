@@ -1037,7 +1037,7 @@ class pacifica extends Exchange {
             $setting = $settings[$i];
             $marketId = $this->safe_string($setting, 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $settingsBySymbol[$symbol] = $setting;
         }
         return $settingsBySymbol;
@@ -1240,7 +1240,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string($info, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $funding = $this->safe_number($info, 'funding');
         $markPx = $this->safe_number($info, 'mark');
         $oraclePx = $this->safe_number($info, 'oracle');
@@ -1306,21 +1306,21 @@ class pacifica extends Exchange {
             'symbol' => $market['id'],
             'interval' => $tf,
         );
-        $sinceValue = $since;
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
-        if ($this->safe_integer($requestUntil, 'end_time') === null) {
-            if ($sinceValue === null) {
-                $sinceValue = $nowMs - $limitValue * $duration;
-            }
-            $windowEnd = $this->parse_to_int($this->sum($sinceValue - 1, $limitValue * $duration));
+        $untilEnd = $this->safe_integer($requestUntil, 'end_time');
+        $startTime = $this->parse_to_int($nowMs - $limitValue * $duration);
+        if ($untilEnd !== null) {
+            $startTime = $this->parse_to_int($untilEnd - $limitValue * $duration);
+        }
+        if ($since !== null) {
+            $startTime = $this->parse_to_int($since);
+        }
+        if ($untilEnd === null) {
+            $windowEnd = $this->parse_to_int($this->sum($startTime - 1, $limitValue * $duration));
             $until = ($windowEnd > $nowMs) ? $nowMs : $windowEnd;
             $requestUntil['end_time'] = $until;
-        } else {
-            if ($sinceValue === null) {
-                $sinceValue = $requestUntil['end_time'] - $limitValue * $duration;
-            }
         }
-        $requestUntil['start_time'] = $sinceValue;
+        $requestUntil['start_time'] = $startTime;
         $response = Async\await($this->publicGetKline($this->extend($requestUntil, $paramsUntil)));
         //
         // {
@@ -1527,7 +1527,7 @@ class pacifica extends Exchange {
         $amount = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
@@ -1804,8 +1804,7 @@ class pacifica extends Exchange {
             $side = $this->safe_string($order, 'side');
             $price = $this->safe_string($order, 'price');
             $type = $this->safe_string($order, 'type', 'limit');
-            $orderParams = $this->safe_dict($order, 'params', array());
-            $orderParams['timestamp'] = $timestamp;
+            $orderParams = $this->extend($this->safe_dict($order, 'params', array()), array( 'timestamp' => $timestamp ));
             $amount = $this->safe_string($order, 'amount');
             $amountNumber = $this->parse_number($amount);
             $priceNumber = $this->parse_number($price);
@@ -2311,7 +2310,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -2538,10 +2537,7 @@ class pacifica extends Exchange {
         $dataLength = count($data);
         if ($hasMore) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
-                $first = $data[0];
-                $first['next_cursor'] = $paginationCursor;
-                $first['has_more'] = $hasMore;
-                $data[0] = $first;
+                $data[0] = $this->extend($data[0], array( 'next_cursor' => $paginationCursor, 'has_more' => $hasMore ));
             }
         }
         return $data;
@@ -2622,11 +2618,10 @@ class pacifica extends Exchange {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
-        $lastInfo = array();
         if ($lastIdx > 0) {
-            $lastInfo = $sorted[0];
+            return $this->parse_order($this->safe_dict($sorted, 0, array()), $market);
         }
-        return $this->parse_order($lastInfo, $market);
+        return $this->parse_order(array(), $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -2766,7 +2761,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');
@@ -2874,7 +2869,8 @@ class pacifica extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_position($data[$i], null);
+            $parsedPosition = $this->parse_position($this->safe_dict($data, $i, array()), null);
+            $result[] = $parsedPosition;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
@@ -2895,7 +2891,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $margin = $this->safe_string($position, 'margin');
         $rawIsolated = $this->safe_bool($position, 'isolated');
         $isIsolated = ($margin !== null) && ($margin !== '0');
@@ -3437,6 +3433,7 @@ class pacifica extends Exchange {
         );
         $eventType = $this->safe_string($transaction, 'event_type');
         $amount = $this->safe_string($transaction, 'amount');
+        $currencyCode = $this->safe_currency_code('USDC', $currency);
         return array(
             'info' => $transaction,
             'id' => null,
@@ -3452,7 +3449,7 @@ class pacifica extends Exchange {
             'tagFrom' => null,
             'type' => $this->safe_string($types, $eventType),
             'amount' => $this->parse_number(Precise::string_abs($amount)),
-            'currency' => $this->safe_currency_code('USDC', $currency),
+            'currency' => $currencyCode,
             'status' => null,
             'updated' => null,
             'comment' => null,
@@ -3537,7 +3534,7 @@ class pacifica extends Exchange {
         $timestamp = $this->safe_integer($income, 'created_at');
         $marketId = $this->safe_string($income, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $amount = $this->safe_string($income, 'payout');
         $code = $this->safe_currency_code('USDC');
         $rate = $this->safe_number($income, 'rate');
@@ -3666,7 +3663,8 @@ class pacifica extends Exchange {
         if ($subAccountPrivateKey === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        list($timestamp, $paramsTimestamp) = $this->handle_param_integer($paramsSubAccountPrivateKey, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($paramsSubAccountPrivateKey, 'timestamp', $this->milliseconds());
+        $paramsTimestamp = $this->omit($paramsSubAccountPrivateKey, 'timestamp');
         list($expiryWindow, $paramsExpiryWindow) = $this->handle_option_integer_and_params_2($paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
             'timestamp' => $timestamp,
@@ -3855,7 +3853,7 @@ class pacifica extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3924,7 +3922,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3944,11 +3942,12 @@ class pacifica extends Exchange {
     public function sort_json_keys(mixed $value): mixed {
         if ($this->is_dictionary($value)) {
             $result = array();
-            $keys = is_array($value) ? array_keys($value) : array();
+            $valueCopy = $this->extend(array(), $value);
+            $keys = is_array($valueCopy) ? array_keys($valueCopy) : array();
             $sortedKeys = $this->sort($keys);
             for ($i = 0; $i < count($sortedKeys); $i++) {
                 $key = $this->safe_string($sortedKeys, $i, '');
-                $result[$key] = $this->sort_json_keys($value[$key]);
+                $result[$key] = $this->sort_json_keys($valueCopy[$key]);
             }
             return $result;
         } elseif ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
@@ -4013,7 +4012,7 @@ class pacifica extends Exchange {
         $signature = $this->sign_message($signatureHeader, $sigPayload, $this->privateKey);
         $finalHeaders = array( );
         list($agentAddress, $paramsAgentAddress) = $this->handle_option_string_and_params($paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        $originAddress = $this->handle_origin_and_single_address('postActionRequest', $paramsAgentAddress)[0];
+        list($originAddress) = $this->handle_origin_and_single_address('postActionRequest', $paramsAgentAddress);
         if ($originAddress === null) {
             throw new ArgumentsRequired($this->id . ' action => ' . $operationType . ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

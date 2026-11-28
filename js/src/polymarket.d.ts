@@ -1,5 +1,5 @@
 import Exchange from './abstract/polymarket.js';
-import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
+import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification, Bool } from './base/types.js';
 /**
  * @class polymarket
  * @description Polymarket perpetual futures - a hybrid dex with an off-chain order book and on-chain settlement of collateral. The venue trades linear perpetual contracts on crypto, indices, equities and commodities, quoted using USD and collateralized exclusively with pUSD. The prediction-market CLOB is a separate product, integrated separately under ccxt.prediction.polymarket
@@ -194,7 +194,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    createOrderRequest(market: Market, type: OrderType, side: OrderSide, amount: any, price?: any, params?: Dict): Dict;
+    createOrderRequest(market: Market, type: OrderType, side: OrderSide, amount: Str, price?: any, params?: Dict): Dict;
     /**
      * @method
      * @name polymarket#createOrder
@@ -476,7 +476,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, type: string, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name polymarket#addMargin
@@ -500,8 +500,8 @@ export default class polymarket extends Exchange {
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): string;
-    signMessage(message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signMessage(message: any, privateKey: string): string;
     /**
      * @method
      * @name polymarket#createProxyCredentials
@@ -543,5 +543,5 @@ export default class polymarket extends Exchange {
     amountToPrecision(symbol: Str, amount: any): Str;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: {}): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

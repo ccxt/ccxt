@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Ticker, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Ticker, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint, NullableDict, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -887,7 +887,7 @@ export default class cryptomus extends Exchange {
         const result: Dict[] = this.safeList (response, 'result', []);
         const orders: List = [];
         for (let i = 0; i < result.length; i++) {
-            orders.push (this.parseOrder (result[i], market));
+            orders.push (this.parseOrder (this.safeDict (result, i, {}), market));
         }
         return orders;
     }
@@ -1211,7 +1211,7 @@ export default class cryptomus extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

@@ -92,7 +92,7 @@ pub mod shared {
             }
         }
         let markets = ccxt::get_value(ex, &Value::Str("markets".into()));
-        ccxt::runtime::in_op(&markets, symbol)
+        crate::test_helpers::in_op(&markets, symbol)
     }
 
     /// `testSharedMethods.isTemporaryFailure(e)` — the WS method tests treat a
@@ -212,7 +212,7 @@ pub mod shared {
                     &ccxt::get_value(&exchange, &Value::Str("has".into())),
                     &Value::Str("fetchOHLCV".into()),
                 );
-                if ccxt::runtime::is_true(&has_ohlcv) {
+                if crate::test_helpers::is_true(&has_ohlcv) {
                     return true;
                 }
             }

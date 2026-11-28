@@ -944,7 +944,6 @@ class upbit extends Exchange {
         //         }
         //
         $id = $this->safe_string_2($trade, 'sequential_id', 'uuid');
-        $orderId = null;
         $timestamp = $this->safe_integer($trade, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
@@ -972,7 +971,7 @@ class upbit extends Exchange {
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
-            'order' => $orderId,
+            'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
@@ -1324,8 +1323,9 @@ class upbit extends Exchange {
         } else {
             throw new InvalidOrder($this->id . ' createOrder() supports only limit or market types in the type argument.');
         }
-        $paramsOrdType = ($customType === 'best') ? $this->omit($params, array( 'ordType', 'ord_type' )) : $params;
+        $paramsOrdType = $params;
         if ($customType === 'best') {
+            $paramsOrdType = $this->omit($paramsOrdType, array( 'ordType', 'ord_type' ));
             $request['ord_type'] = 'best';
             if ($side === 'buy') {
                 $orderPrice = $this->calc_order_price($symbol, $amount, $price, $paramsOrdType);
@@ -2468,7 +2468,7 @@ class upbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => ($apiName === 'private') ? $headers : null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

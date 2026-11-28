@@ -645,8 +645,8 @@ export default class coinbase extends Exchange {
         const cursor = this.safeString(pagination, 'next_starting_after');
         const accounts = this.safeList(response, 'data', []);
         const length = accounts.length;
-        const lastIndex = length - 1;
-        if ((cursor !== undefined) && (cursor !== '')) {
+        if ((length > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = length - 1;
             accounts[lastIndex] = this.extend(this.safeDict(accounts, lastIndex, {}), { 'next_starting_after': cursor });
         }
         return this.parseAccounts(data, paramsPaginate);
@@ -1603,21 +1603,21 @@ export default class coinbase extends Exchange {
         const data = this.safeList(spot, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            const spotMarket = this.parseSpotMarket(data[i], feeTier);
+            const spotMarket = this.parseSpotMarket(this.safeDict(data, i, {}), feeTier);
             if (spotMarket !== undefined) {
                 result.push(spotMarket);
             }
         }
         const futureData = this.safeList(expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
-            const futureMarket = this.parseContractMarket(futureData[i]);
+            const futureMarket = this.parseContractMarket(this.safeDict(futureData, i, {}));
             if (futureMarket !== undefined) {
                 result.push(futureMarket);
             }
         }
         const perpetualData = this.safeList(perpetualFutures, 'products', []);
         for (let i = 0; i < perpetualData.length; i++) {
-            const perpetualMarket = this.parseContractMarket(perpetualData[i]);
+            const perpetualMarket = this.parseContractMarket(this.safeDict(perpetualData, i, {}));
             if (perpetualMarket !== undefined) {
                 result.push(perpetualMarket);
             }
@@ -2051,10 +2051,14 @@ export default class coinbase extends Exchange {
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
             if (code !== undefined) {
-                this.options['networks'][code] = name.toLowerCase();
+                const networksDict1 = this.safeDict(this.options, 'networks', {});
+                networksDict1[code] = name.toLowerCase();
+                this.options['networks'] = networksDict1;
             }
             if (code !== undefined) {
-                this.options['networksById'][code] = name.toLowerCase();
+                const networksByIdDict2 = this.safeDict(this.options, 'networksById', {});
+                networksByIdDict2[code] = name.toLowerCase();
+                this.options['networksById'] = networksByIdDict2;
             }
             let type = 'fiat';
             if (assetId !== undefined) {
@@ -2164,7 +2168,7 @@ export default class coinbase extends Exchange {
             const marketId = baseId + delimiter + quoteId;
             const market = this.safeMarket(marketId, undefined, delimiter);
             const symbol = this.safeString(market, 'symbol', '');
-            result[symbol] = this.parseTicker(rates[baseId], market);
+            result[symbol] = this.parseTicker(this.safeDict(rates, baseId, {}), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
@@ -2229,11 +2233,10 @@ export default class coinbase extends Exchange {
         const data = this.safeList(response, 'products', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const marketId = this.safeString(entry, 'product_id');
+            const marketId = this.safeString(data[i], 'product_id');
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = this.safeString(market, 'symbol', '');
-            result[symbol] = this.parseTicker(entry, market);
+            result[symbol] = this.parseTicker(this.safeDict(data, i, {}), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
@@ -2423,8 +2426,8 @@ export default class coinbase extends Exchange {
         let ask = this.safeNumber(ticker, 'ask');
         let bidVolume = undefined;
         let askVolume = undefined;
-        if (('bids' in ticker)) {
-            const bids = this.safeList(ticker, 'bids', []);
+        const bids = this.safeList(ticker, 'bids');
+        if (bids !== undefined) {
             const asks = this.safeList(ticker, 'asks', []);
             const firstBid = this.safeDict(bids, 0, {});
             const firstAsk = this.safeDict(asks, 0, {});
@@ -2701,7 +2704,9 @@ export default class coinbase extends Exchange {
             const pagination = this.safeDict(response, 'pagination', {});
             const cursor = this.safeString(pagination, 'next_starting_after');
             if ((cursor !== undefined) && (cursor !== '')) {
-                last['info']['next_starting_after'] = cursor;
+                const lastInfo = this.safeDict(last, 'info', {});
+                lastInfo['next_starting_after'] = cursor;
+                last['info'] = lastInfo;
                 ledger[lastIndex] = last;
             }
         }
@@ -3466,7 +3471,13 @@ export default class coinbase extends Exchange {
             postOnly = this.safeBool(target, 'post_only');
         }
         else if (isStop) {
-            const stopTarget = (stopLimitGTC !== undefined) ? stopLimitGTC : stopLimitGTD;
+            let stopTarget = undefined;
+            if (stopLimitGTC !== undefined) {
+                stopTarget = stopLimitGTC;
+            }
+            else {
+                stopTarget = stopLimitGTD;
+            }
             price = this.safeString(stopTarget, 'limit_price');
             amount = this.safeString(stopTarget, 'base_size');
             postOnly = this.safeBool(stopTarget, 'post_only');
@@ -3647,7 +3658,7 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -3797,9 +3808,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
+        const ordersLength = orders.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            orders[0] = this.extend(this.safeDict(orders, 0, {}), { 'cursor': cursor });
+        if ((ordersLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = ordersLength - 1;
+            orders[lastIndex] = this.extend(this.safeDict(orders, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3871,9 +3884,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList(response, 'orders', []);
+        const ordersLength = orders.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            orders[0] = this.extend(this.safeDict(orders, 0, {}), { 'cursor': cursor });
+        if ((ordersLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = ordersLength - 1;
+            orders[lastIndex] = this.extend(this.safeDict(orders, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseOrders(orders, market, since, limitResolved);
     }
@@ -4169,9 +4184,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeList(response, 'fills', []);
+        const tradesLength = trades.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            trades[0] = this.extend(this.safeDict(trades, 0, {}), { 'cursor': cursor });
+        if ((tradesLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = tradesLength - 1;
+            trades[lastIndex] = this.extend(this.safeDict(trades, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -5231,13 +5248,16 @@ export default class coinbase extends Exchange {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
-        if (url !== '') {
-            uri = method + ' ' + url.replace('https://', '');
-            const quesPos = uri.indexOf('?');
+        if ((url !== '') && (method !== undefined)) {
+            const fullUri = method + ' ' + url.replace('https://', '');
+            const quesPos = fullUri.indexOf('?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (quesPos > 0) {
-                uri = uri.slice(0, quesPos);
+                uri = fullUri.slice(0, quesPos);
+            }
+            else {
+                uri = fullUri;
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

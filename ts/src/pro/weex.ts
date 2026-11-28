@@ -142,7 +142,9 @@ export default class weex extends weexRest {
         const timestamp = this.nonce ().toString ();
         const payload = timestamp + '/v3/ws/private';
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-        const originalHeaders = this.safeDict (this.options['ws']['options'], 'headers');
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const wsInnerOptions = this.safeDict (wsOptions, 'options', {});
+        const originalHeaders = this.safeDict (wsInnerOptions, 'headers', {});
         const userAgent = this.safeString (originalHeaders, 'User-Agent', 'ccxt');
         const extendedOptions: Dict = {
             'ws': {
@@ -351,10 +353,8 @@ export default class weex extends weexRest {
         const timestamp = this.safeInteger (ticker, 'C');
         const close = this.safeString (ticker, 'c');
         let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -430,7 +430,7 @@ export default class weex extends weexRest {
             messageHashes.push (messageHash);
             channels.push (channelName);
         }
-        const trades = await this.subscribePublic (messageHashes, channels, isContract, params);
+        const trades: ArrayCache = await this.subscribePublic (messageHashes, channels, isContract, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -554,10 +554,8 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger (trade, 'T');
         let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
         }
         const isBuyerMaker = this.safeBool (trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let side: Str = undefined;
@@ -601,7 +599,8 @@ export default class weex extends weexRest {
             'callerMethodName': 'watchOHLCV',
         });
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, extendedParams);
-        return result[symbol][timeframe];
+        const bySymbol: Dict = result[symbol];
+        return bySymbol[timeframe];
     }
 
     /**
@@ -628,7 +627,7 @@ export default class weex extends weexRest {
         const firstSymbol = this.safeString (firstEntry, 0);
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
-        let priceType = 'LAST_PRICE';
+        let priceType: string = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
         if (isContract === true) {
             [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
@@ -637,7 +636,7 @@ export default class weex extends weexRest {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0, '');
             const market = this.market (symbolString);
-            if (market['type'] !== firstMarket['type']) {
+            if (this.safeString (market, 'type') !== this.safeString (firstMarket, 'type')) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
             symbolString = this.safeString (market, 'symbol', '');
@@ -697,7 +696,7 @@ export default class weex extends weexRest {
         const firstSymbol = this.safeString (firstEntry, 0);
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
-        let priceType = 'LAST_PRICE';
+        let priceType: string = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
         if (isContract === true) {
             [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
@@ -706,7 +705,7 @@ export default class weex extends weexRest {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0, '');
             const market = this.market (symbolString);
-            if (market['type'] !== firstMarket['type']) {
+            if (this.safeString (market, 'type') !== this.safeString (firstMarket, 'type')) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
             symbolString = this.safeString (market, 'symbol', '');
@@ -1089,21 +1088,19 @@ export default class weex extends weexRest {
             return;
         }
         const ticker = this.parseWsBidAsk (message, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
+            const messageHash = 'bidask::' + symbol;
+            client.resolve (ticker, messageHash);
         }
-        const messageHash = 'bidask::' + symbol;
-        client.resolve (ticker, messageHash);
     }
 
     parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (message, 'E');
         let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -1150,7 +1147,7 @@ export default class weex extends weexRest {
             messageHash += '::' + symbolResolved;
         }
         const channel = 'fill';
-        const trades = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        const trades: ArrayCacheBySymbolById = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1362,7 +1359,7 @@ export default class weex extends weexRest {
             messageHash += '::' + symbolResolved;
         }
         const channel = 'orders';
-        const orders = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (messageHash, subscriptionHash, channel, isContract, paramsMarketType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -1763,10 +1760,8 @@ export default class weex extends weexRest {
             accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
-        if (!(accountType in this.balance)) {
-            this.balance[accountType] = {};
-        }
-        this.balance[accountType]['info'] = message;
+        const balance = this.safeDict (this.balance, accountType, {});
+        balance['info'] = message;
         const balanceUpdates = this.safeList (message, 'd', []);
         for (let i = 0; i < balanceUpdates.length; i++) {
             const entry = this.safeDict (balanceUpdates, i);
@@ -1777,13 +1772,13 @@ export default class weex extends weexRest {
             account['used'] = this.safeString (entry, 'frozen');
             account['total'] = this.safeString2 (entry, 'equity', 'legacyAmount');
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger (message, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
-        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
+        this.balance[accountType] = this.safeBalance (balance);
         client.resolve (this.balance[accountType], messageHash);
     }
 
@@ -1988,12 +1983,14 @@ export default class weex extends weexRest {
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
         if (unsubscribe) {
             const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
-            const messageHashes = this.safeList (subscription, 'messageHashes', []);
+            const messageHashes: Strings = this.safeStringList (subscription, [ 'messageHashes' ]);
             const subHashes = this.safeList (subscription, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const unSubHash = this.safeString (messageHashes, i);
-                const subHash = this.safeString (subHashes, i);
-                this.cleanUnsubscription (client, subHash, unSubHash, subHashIsPrefix);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const unSubHash = this.safeString (messageHashes, i);
+                    const subHash = this.safeString (subHashes, i);
+                    this.cleanUnsubscription (client, subHash, unSubHash, subHashIsPrefix);
+                }
             }
             this.cleanCache (subscription);
         }

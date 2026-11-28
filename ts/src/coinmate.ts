@@ -6,7 +6,7 @@ import Exchange from './abstract/coinmate.js';
 import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -458,7 +458,7 @@ export default class coinmate extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeDict (balances, currencyId);
+            const balance = this.safeDict (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'reserved');
@@ -544,7 +544,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data') as Dict;
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -588,7 +588,10 @@ export default class coinmate extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const market = this.market (keys[i]);
             const ticker = this.parseTicker (this.safeDict (data, keys[i], {}), market);
-            result[market['symbol']] = ticker;
+            const symbol = this.safeString (market, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
@@ -862,7 +865,7 @@ export default class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, undefined, since, limitResolved);
     }
 
@@ -967,7 +970,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1245,7 +1248,7 @@ export default class coinmate extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privatePostOrderById (this.extend (request, params));
-        const data = this.safeDict (response, 'data') as Dict;
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1273,7 +1276,7 @@ export default class coinmate extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict (response, 'data') as Dict;
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
 
@@ -1316,7 +1319,7 @@ export default class coinmate extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

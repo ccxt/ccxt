@@ -452,7 +452,7 @@ class coinmate extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_dict($balances, $currencyId);
+            $balance = $this->safe_dict($balances, $currencyId, array());
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'reserved');
@@ -538,7 +538,7 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -582,7 +582,10 @@ class coinmate extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $market = $this->market($keys[$i]);
             $ticker = $this->parse_ticker($this->safe_dict($data, $keys[$i], array()), $market);
-            $result[$market['symbol']] = $ticker;
+            $symbol = $this->safe_string($market, 'symbol');
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
@@ -1239,7 +1242,7 @@ class coinmate extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privatePostOrderById($this->extend($request, $params));
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -1267,7 +1270,7 @@ class coinmate extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
     }
 
@@ -1310,7 +1313,7 @@ class coinmate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

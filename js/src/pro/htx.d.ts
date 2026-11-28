@@ -1,5 +1,5 @@
 import htxRest from '../htx.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class htx extends htxRest {
@@ -131,7 +131,7 @@ export default class htx extends htxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    getOrderChannelAndMessageHash(type: Str, subType: Str, market?: Market, params?: Dict): Str[];
+    getOrderChannelAndMessageHash(type: Str, subType: Str, market?: Market, params?: Dict): [string, string];
     getV5LinearChannelAndMessageHash(topic: Str, market?: Market, params?: Dict): any[];
     /**
      * @method
@@ -164,6 +164,7 @@ export default class htx extends htxRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
+    resolvePositionsByMarginMode(client: Client, marginMode: string, marginModePositions: Position[]): void;
     /**
      * @method
      * @name htx#watchBalance
@@ -183,7 +184,7 @@ export default class htx extends htxRest {
     pong(client: Client, message: Dict): Promise<void>;
     handlePing(client: Client, message: Dict): void;
     handleAuthenticate(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     handleMyTrade(client: Client, message: Dict, extendParams?: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;

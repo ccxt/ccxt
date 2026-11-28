@@ -1,5 +1,5 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): Dict;
@@ -242,7 +242,7 @@ export default class poloniex extends poloniexRest {
     parseStatus(status: Str): Str;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleOrder(client: Client, message: Dict): Dict;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleTicker(client: Client, message: Dict): Dict;
     handleOrderBook(client: Client, message: Dict): void;
     handleBalance(client: Client, message: Dict): void;
@@ -250,7 +250,7 @@ export default class poloniex extends poloniexRest {
     handlePong(client: Client): void;
     handleMessage(client: Client, message: Dict): void;
     handleUnsubscription(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleAuthenticate(client: Client, message: Dict): Dict;
     ping(client: Client): Dict;
 }

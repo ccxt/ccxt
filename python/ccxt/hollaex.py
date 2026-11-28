@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -368,8 +368,10 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
-            baseCode = self.common_currency_code(baseId.upper())
-            quoteCode = self.common_currency_code(quoteId.upper())
+            upperBaseId = baseId.upper()
+            upperQuoteId = quoteId.upper()
+            baseCode = self.common_currency_code(upperBaseId)
+            quoteCode = self.common_currency_code(upperQuoteId)
             result.append({
                 'id': self.safe_string(market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -686,13 +688,14 @@ class hollaex(Exchange, ImplicitAPI):
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
         result = {}
-        keys = list(tickers.keys())
+        tickersDict = self.extend({}, tickers)
+        keys = list(tickersDict.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             ticker = self.safe_dict(tickers, key, {})
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
@@ -725,7 +728,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
         close = self.safe_string(ticker, 'close')
         return self.safe_ticker({
@@ -811,7 +814,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
@@ -1141,7 +1144,7 @@ class hollaex(Exchange, ImplicitAPI):
         #             }
         if response is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1315,7 +1318,7 @@ class hollaex(Exchange, ImplicitAPI):
         meta = self.safe_dict(params, 'meta', {})
         exchangeSpecificParam = self.safe_bool(meta, 'post_only', False)
         isMarketOrder = type == 'market'
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam is True, params)
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)
         if triggerPrice is not None:
@@ -1557,11 +1560,9 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         wallet = self.safe_list(response, 'wallet', [])
-        addresses = None
         if network is None:
-            addresses = wallet
-        else:
-            addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
+            return self.parse_deposit_addresses(wallet, codes, False)
+        addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
         return self.parse_deposit_addresses(addresses, codes, False)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1768,10 +1769,8 @@ class hollaex(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         addressTo = None
-        addressFrom = None
         tag = None
         tagTo = None
-        tagFrom = None
         if address is not None:
             parts = address.split(':')
             address = self.safe_string(parts, 0)
@@ -1808,10 +1807,10 @@ class hollaex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': None,
-            'addressFrom': addressFrom,
+            'addressFrom': None,
             'address': address,
             'addressTo': addressTo,
-            'tagFrom': tagFrom,
+            'tagFrom': None,
             'tag': tag,
             'tagTo': tagTo,
             'type': type,
@@ -2017,7 +2016,7 @@ class hollaex(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # { "message": "Invalid token" }
         if response is None:
             return None

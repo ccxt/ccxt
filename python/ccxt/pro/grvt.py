@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -120,7 +120,7 @@ class grvt(ccxt.async_support.grvt):
         apiPart = 'privateTrading'
         if publicOrPrivate:
             apiPart = 'publicMarket'
-        return await self.watch_multiple(self.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes)
+        return await self.watch_multiple(self.safe_string(self.urls['api']['ws'], apiPart), messageHashes, payload, rawHashes)
 
     def request_id(self) -> int:
         self.lock_id()
@@ -362,7 +362,7 @@ class grvt(ccxt.async_support.grvt):
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         # same as REST api
-        return self.parse_trade(trade, market)
+        return self.parse_trade(self.extend({}, trade), market)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -382,7 +382,8 @@ class grvt(ccxt.async_support.grvt):
         symbolValue = self.symbol(symbol)
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return result[symbolValue][timeframe]
+        bySymbol = result[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -503,16 +504,16 @@ class grvt(ccxt.async_support.grvt):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         limitOption, paramsLimitOption = self.handle_option_integer_and_params(paramsChannel, 'watchOrderBook', 'limit', 100)
-        limitResolved = limitOption
+        limitString = str(limitOption)
         paramsLimit = paramsLimitOption
         if limit is not None:
-            limitResolved = limit
+            limitString = str(limit)
             paramsLimit = paramsChannel
         interval, paramsInterval = self.handle_option_integer_and_params(paramsLimit, 'watchOrderBook', 'interval', 500)
         symbolsNormalized = self.market_symbols(symbols)
         extraPart = None
         if isSnapshot:
-            extraPart = str(interval) + '-' + str(limitResolved)
+            extraPart = str(interval) + '-' + limitString
         else:
             extraPart = str(interval)
         rawHashes = []
@@ -614,7 +615,7 @@ class grvt(ccxt.async_support.grvt):
                 },
             }
             self.extend_exchange_options(defaultOptions)
-            self.client(self.urls['api']['ws']['privateTrading'])
+            self.client(self.safe_string(self.urls['api']['ws'], 'privateTrading'))
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -637,7 +638,7 @@ class grvt(ccxt.async_support.grvt):
         rawHashes = []
         if symbol is not None:
             market = self.market(symbol)
-            rawHashes.append(subAccountId + '-' + market['id'])
+            rawHashes.append(subAccountId + '-' + self.safe_string(market, 'id', ''))
             messageHashes.append('myTrades::' + market['symbol'])
         else:
             messageHashes.append('myTrades')
@@ -723,7 +724,7 @@ class grvt(ccxt.async_support.grvt):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
-                rawHashes.append(subAccountId + '-' + market['id'])
+                rawHashes.append(subAccountId + '-' + self.safe_string(market, 'id', ''))
                 messageHashes.append('positions::' + market['symbol'])
         else:
             messageHashes.append('positions')
@@ -768,17 +769,13 @@ class grvt(ccxt.async_support.grvt):
         #
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
-        data = self.safe_dict(message, 'feed')
-        position = self.parse_ws_position(data)
+        data = self.safe_dict(message, 'feed', {})
+        position = self.parse_position(data)
         self.positions.append(position)
         newPositions = []
         newPositions.append(position)
         client.resolve(newPositions, 'positions::' + self.safe_string(position, 'symbol', ''))
         client.resolve(newPositions, 'positions')
-
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
-        # same as REST api
-        return self.parse_position(position, market)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -804,7 +801,7 @@ class grvt(ccxt.async_support.grvt):
         else:
             market = self.market(symbol)
             messageHashes.append('order::' + market['symbol'])
-            rawHashes.append(subAccountId + '-' + market['id'])
+            rawHashes.append(subAccountId + '-' + self.safe_string(market, 'id', ''))
         request = {
             'stream': 'v1.order',
             'selectors': rawHashes,
@@ -880,7 +877,7 @@ class grvt(ccxt.async_support.grvt):
         #        "prev_sequence_number": "16"
         #    }
         #
-        data = self.safe_dict(message, 'feed')
+        data = self.safe_dict(message, 'feed', {})
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -889,11 +886,11 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.orders, 'orders')
         client.resolve(self.orders, 'order::' + self.safe_string(order, 'symbol', ''))
 
-    def parse_ws_order(self, order: object, market: Market = None) -> Order:
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         # same as REST api
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
-    def handle_error_message(self, client: Client, response: dict) -> Bool:
+    def handle_error_message(self, client: Client, response: dict) -> bool:
         #
         #    {
         #        "jsonrpc": "2.0",

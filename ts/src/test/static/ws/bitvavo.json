@@ -111,6 +111,71 @@
                     }
                 ]
             }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "spot 1m candle",
+                "input": [
+                    "BTC/EUR",
+                    "1m"
+                ],
+                "url": "wss://ws.bitvavo.com/v2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "subscriptions": {
+                            "candles": {
+                                "1m": [
+                                    "BTC-EUR"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "event": "candle",
+                        "market": "BTC-EUR",
+                        "interval": "1m",
+                        "candle": [
+                            [
+                                1786614360000,
+                                "55190",
+                                "55210",
+                                "55180",
+                                "55198",
+                                "0.01038628"
+                            ]
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "channels": [
+                            {
+                                "name": "candles",
+                                "interval": [
+                                    "1m"
+                                ],
+                                "markets": [
+                                    "BTC-EUR"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786614360000,
+                            55190,
+                            55210,
+                            55180,
+                            55198,
+                            0.01038628
+                        ]
+                    ]
+                ]
+            }
         ]
     }
 }

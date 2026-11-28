@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -168,10 +168,8 @@ class poloniex(ccxt.async_support.poloniex):
                 name,
             ],
         }
-        marketIds = []
-        if self.is_empty(symbols):
-            marketIds.append('all')
-        else:
+        marketIds = ['all']
+        if not self.is_empty(symbols):
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
             marketIds = self.market_ids(symbols)
@@ -248,6 +246,7 @@ class poloniex(ccxt.async_support.poloniex):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         uppercaseType = type.upper()
         if side is None:
             raise ArgumentsRequired(self.id + ' createOrderWs() side is required')
@@ -281,7 +280,7 @@ class poloniex(ccxt.async_support.poloniex):
                 quoteAmount = self.cost_to_precision(symbol, amount)
             request['amount'] = quoteAmount
         else:
-            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+            request['quantity'] = self.amount_to_precision(precisionSymbol, amount)
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
         orders = await self.trade_request('createOrder', self.extend(request, paramsOmitted))
@@ -650,8 +649,8 @@ class poloniex(ccxt.async_support.poloniex):
                 self.balance[key] = response[key]
         if not ('info' in self.balance):
             self.balance['info'] = response['info']
-            self.balance['timestamp'] = response['timestamp']
-            self.balance['datetime'] = response['datetime']
+            self.balance['timestamp'] = self.safe_integer(response, 'timestamp')
+            self.balance['datetime'] = self.safe_string(response, 'datetime')
         self.balance = self.safe_balance(self.balance)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -938,7 +937,7 @@ class poloniex(ccxt.async_support.poloniex):
         orders = self.orders
         marketIds = []
         for i in range(0, len(data)):
-            order = self.safe_dict(data, i)
+            order = self.safe_dict(data, i, {})
             marketId = self.safe_string(order, 'symbol')
             eventType = self.safe_string(order, 'eventType')
             if marketId is not None:
@@ -962,7 +961,7 @@ class poloniex(ccxt.async_support.poloniex):
                     if previousOrder['trades'] is None:
                         previousOrder['trades'] = []
                     previousOrder['trades'].append(trade)
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp']
+                    previousOrder['lastTradeTimestamp'] = self.safe_integer(trade, 'timestamp')
                     totalCost = '0'
                     totalAmount = '0'
                     previousOrderTrades = self.safe_list(previousOrder, 'trades', [])
@@ -975,12 +974,14 @@ class poloniex(ccxt.async_support.poloniex):
                     if Precise.string_gt(totalAmount, '0'):
                         previousOrder['average'] = self.parse_number(Precise.string_div(totalCost, totalAmount))
                     previousOrder['cost'] = self.parse_number(totalCost)
-                    if previousOrder['filled'] is not None:
+                    previousOrderFilledRaw = self.safe_string(previousOrder, 'filled')
+                    if previousOrderFilledRaw is not None:
                         tradeAmount = self.number_to_string(trade['amount'])
                         previousOrderFilled = self.number_to_string(previousOrder['filled'])
                         previousOrderFilled = Precise.string_add(previousOrderFilled, tradeAmount)
                         previousOrder['filled'] = previousOrderFilled
-                        if previousOrder['amount'] is not None:
+                        previousOrderAmountRaw = self.safe_string(previousOrder, 'amount')
+                        if previousOrderAmountRaw is not None:
                             previousOrderAmount = self.number_to_string(previousOrder['amount'])
                             previousOrder['remaining'] = self.parse_number(Precise.string_sub(previousOrderAmount, previousOrderFilled))
                     if previousOrder['fee'] is None:
@@ -989,8 +990,8 @@ class poloniex(ccxt.async_support.poloniex):
                             'cost': 0,
                             'currency': self.safe_string(trade['fee'], 'currency'),
                         }
-                    if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
-                        stringOrderCost = self.number_to_string(previousOrder['fee']['cost'])
+                    if (self.safe_string(previousOrder['fee'], 'cost') is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
+                        stringOrderCost = self.safe_string(previousOrder['fee'], 'cost')
                         stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
                         previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
                     rawState = self.safe_string(order, 'state')
@@ -1008,7 +1009,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.resolve(orders, 'orders')
         return message
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None):
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -1103,10 +1104,9 @@ class poloniex(ccxt.async_support.poloniex):
         data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
-            item = data[i]
-            marketId = self.safe_string(item, 'symbol')
+            marketId = self.safe_string(data[i], 'symbol')
             if marketId is not None:
-                ticker = self.parse_ticker(item)
+                ticker = self.parse_ticker(self.safe_dict(data, i, {}))
                 symbol = self.safe_string(ticker, 'symbol')
                 if symbol is not None:
                     self.tickers[symbol] = ticker
@@ -1186,8 +1186,8 @@ class poloniex(ccxt.async_support.poloniex):
             subscription = self.safe_dict(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
             timestamp = self.safe_integer(item, 'ts')
-            asks = self.safe_list(item, 'asks')
-            bids = self.safe_list(item, 'bids')
+            asks = self.safe_list(item, 'asks', [])
+            bids = self.safe_list(item, 'bids', [])
             if snapshot or update:
                 orderbook = self.safe_value(self.orderbooks, symbol)
                 if snapshot and (orderbook is None):
@@ -1354,7 +1354,7 @@ class poloniex(ccxt.async_support.poloniex):
                 self.clean_cache({'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]]})
                 self.clean_unsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        message: 'Invalid channel value ["ordersss"]',

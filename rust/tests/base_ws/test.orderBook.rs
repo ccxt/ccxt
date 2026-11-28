@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use ccxt::pro::*;
 
 fn equals(a: Value, b: Value) -> Value {
@@ -12,7 +13,7 @@ fn equals(a: Value, b: Value) -> Value {
 }
 // --------------------------------------------------------------------------------------------------------------------
 pub fn testWsOrderBook() {
-    let mut orderBookInput: Value = Value::Map({
+    let orderBookInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)]), Value::from(vec![Value::Float(4.5),
                 Value::Int(13)]), Value::from(vec![Value::Float(4.5), Value::Int(0)])]));
@@ -22,7 +23,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut orderBookTarget: Value = Value::Map({
+    let orderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(15.5), Value::Int(11)]), Value::from(vec![Value::Float(16.6), Value::Int(10)])]));
@@ -32,7 +33,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut storeBid: Value = Value::Map({
+    let storeBid: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)]), Value::from(vec![Value::Int(3), Value::Int(4)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(15.5), Value::Int(11)]), Value::from(vec![Value::Float(16.6), Value::Int(10)])]));
@@ -42,7 +43,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut limitedOrderBookTarget: Value = Value::Map({
+    let limitedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(15.5), Value::Int(11)])]));
@@ -52,7 +53,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut limitedDeletedOrderBookTarget: Value = Value::Map({
+    let limitedDeletedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)])]));
@@ -62,7 +63,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut indexedOrderBookInput: Value = Value::Map({
+    let indexedOrderBookInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".into())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".into())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".into())]), Value::from(vec![Value::Float(7.3), Value::Int(13),
                 Value::Str("1237".into())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".into())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".into())])]));
@@ -73,7 +74,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut indexedOrderBookTarget: Value = Value::Map({
+    let indexedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".into())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".into())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".into())]), Value::from(vec![Value::Float(7.3), Value::Int(13),
                 Value::Str("1237".into())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".into())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".into())])]));
@@ -85,7 +86,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut limitedIndexedOrderBookTarget: Value = Value::Map({
+    let limitedIndexedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".into())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".into())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".into())]), Value::from(vec![Value::Float(7.3), Value::Int(13),
                 Value::Str("1237".into())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".into())])]));
@@ -137,7 +138,7 @@ pub fn testWsOrderBook() {
     //     'nonce': 69,
     //     'symbol': undefined,
     // }
-    let mut overwrite1234: Value = Value::Map({
+    let overwrite1234: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".into())]), Value::from(vec![Value::Int(9), Value::Int(3), Value::Str("1231".into())]), Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".into())]), Value::from(vec![Value::Float(8.2), Value::Int(12),
                 Value::Str("1236".into())]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".into())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".into())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".into())]), Value::from(vec![Value::Int(4), Value::Int(2), Value::Str("12399".into())])]));
@@ -149,7 +150,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut overwrite1244: Value = Value::Map({
+    let overwrite1244: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".into())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".into())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".into())]), Value::from(vec![Value::Float(7.3), Value::Int(13),
                 Value::Str("1237".into())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".into())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".into())])]));
@@ -161,7 +162,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut countedOrderBookInput: Value = Value::Map({
+    let countedOrderBookInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Int(1)]),
                 Value::from(vec![Value::Float(7.3), Value::Int(0), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Int(5)]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Int(1)]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Int(0)])]));
@@ -172,7 +173,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut countedOrderBookTarget: Value = Value::Map({
+    let countedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]),
@@ -183,7 +184,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut storedCountedOrderbookTarget: Value = Value::Map({
+    let storedCountedOrderbookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)]), Value::from(vec![Value::Int(1), Value::Int(1), Value::Int(6)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]),
@@ -194,7 +195,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut limitedCountedOrderBookTarget: Value = Value::Map({
+    let limitedCountedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]),
@@ -256,34 +257,34 @@ pub fn testWsOrderBook() {
     let mut orderBook = OrderBook::new(orderBookInput.clone(), Value::Null);
     let mut limited = OrderBook::new(orderBookInput.clone(), Value::Int(5));
     orderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
     limited.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limited.clone(), limitedOrderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(limited.clone(), limitedOrderBookTarget))));
     orderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
     orderBook.store_to_bids(Value::Int(1000), Value::Int(0));
     orderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
     orderBook.store_to_bids(Value::Int(3), Value::Int(4));
     orderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), storeBid.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(orderBook.clone(), storeBid.clone()))));
     orderBook.store_to_bids(Value::Int(3), Value::Int(0));
     orderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(orderBook, orderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(orderBook, orderBookTarget.clone()))));
     limited.store_to_asks(Value::Float(15.5), Value::Int(0));
     limited.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limited, limitedDeletedOrderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(limited, limitedDeletedOrderBookTarget))));
     // --------------------------------------------------------------------------------------------------------------------
     let mut indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
     let mut limitedIndexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Int(5));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
     limitedIndexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget))));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(1000), Value::Int(0), Value::Str("12345".into())]));
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget))));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(0), Value::Str("1234".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(2), Value::Str("1231".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("1232".into())]));
@@ -292,11 +293,11 @@ pub fn testWsOrderBook() {
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(3), Value::Str("1231".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".into())]));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1234))));
-    indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
+    assert!(crate::test_helpers::is_true(&(equals(indexedOrderBook, overwrite1234))));
+    indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput, Value::Null);
     indexedOrderBook.store_array_to_asks(Value::from(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".into())]));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook, overwrite1244))));
+    assert!(crate::test_helpers::is_true(&(equals(indexedOrderBook, overwrite1244))));
     // --------------------------------------------------------------------------------------------------------------------
     // a zero size delta for an id that is not in the book stores nothing, so the
     // constructor must not advance the length on its account. it used to, which
@@ -308,86 +309,86 @@ pub fn testWsOrderBook() {
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Int(200), Value::Int(0), Value::Str("ghost".into())]), Value::from(vec![Value::Int(201), Value::Int(1), Value::Str("d".into())])]));
         m
     }), Value::Int(2));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".into()))).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".into()))).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("bids".into())), &Value::Int(0)) != Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("bids".into())), &Value::Int(1)) != Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("asks".into())), &Value::Int(0)) != Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".into()))).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".into()))).as_f64() == Some(1.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("bids".into())), &Value::Int(0)) != Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("bids".into())), &Value::Int(1)) != Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("asks".into())), &Value::Int(0)) != Value::Null))));
     noopDeltas.limit();
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".into()))).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".into()))).as_f64() == Some(1.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".into()))).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".into()))).as_f64() == Some(1.0)))));
     // --------------------------------------------------------------------------------------------------------------------
     let mut countedOrderBook = CountedOrderBook::new(countedOrderBookInput.clone(), Value::Null);
-    let mut limitedCountedOrderBook = CountedOrderBook::new(countedOrderBookInput.clone(), Value::Int(5));
+    let mut limitedCountedOrderBook = CountedOrderBook::new(countedOrderBookInput, Value::Int(5));
     countedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
     limitedCountedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limitedCountedOrderBook, limitedCountedOrderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(limitedCountedOrderBook, limitedCountedOrderBookTarget))));
     countedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
+    assert!(crate::test_helpers::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
     countedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(5), Value::Int(0), Value::Int(6)]));
     countedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget))));
     countedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(1), Value::Int(1), Value::Int(6)]));
     countedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook, storedCountedOrderbookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(countedOrderBook, storedCountedOrderbookTarget))));
     // --------------------------------------------------------------------------------------------------------------------
     // let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
     // const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
     // incrementalOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, incremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, incremetalOrderBookTarget))));
     // incrementalOrderBook.limit (5);
     // limitedIncrementalOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, limitedIncremetalOrderBookTarget))));
-    // assert!(ccxt::runtime::is_true(&(equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, limitedIncremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (limitedIncrementalOrderBook, limitedIncremetalOrderBookTarget))));
     // incrementalOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, incremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, incremetalOrderBookTarget))));
     // bids = incrementalOrderBook['bids'];
     // bids.store (3, 3);
     // incrementalOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, storedIncremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, storedIncremetalOrderBookTarget))));
     // bids.store (3, 7);
     // incrementalOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget))));
     // bids.store (17, 0);
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, doubleStoredIncremetalOrderBookTarget))));
     // incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
     // asks = incrementalOrderBook['asks'];
     // asks.store (15.5, -10);
     // incrementalOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalOrderBook, negativeStoredIncremetalOrderBookTarget))));
     // --------------------------------------------------------------------------------------------------------------------
     // let incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
     // const limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput, 5);
     // incrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget))));
     // incrementalIndexedOrderBook.limit (5);
     // limitedIncrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget))));
-    // assert!(ccxt::runtime::is_true(&(equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (limitedIncrementalIndexedOrderBook, limitedIncrementalIndexedOrderBookTarget))));
     // incrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget))));
     // bids = incrementalIndexedOrderBook['bids'];
     // bids.store (5, 0, 'xxyy');
     // incrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget))));
     // bids.store (10.0, 3, '1234');  // price does match merge size
     // incrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget))));
     // bids.store (0, 0, '1234');
     // incrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget))));
     // incrementalIndexedOrderBook = new IncrementalIndexedOrderBook (indexedOrderBookInput);
     // bids = incrementalIndexedOrderBook['bids'];
     // bids.store (10.2, 3, '1234');  // price does not match merge size
     // incrementalIndexedOrderBook.limit ();
-    // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget))));
+    // assert!(crate::test_helpers::is_true(&(equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget))));
     // --------------------------------------------------------------------------------------------------------------------
-    let mut resetBook = OrderBook::new(storeBid.clone(), Value::Null);
+    let mut resetBook = OrderBook::new(storeBid, Value::Null);
     resetBook.limit();
     resetBook.reset(orderBookInput.clone());
     resetBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(resetBook, orderBookTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(resetBook, orderBookTarget))));
     // --------------------------------------------------------------------------------------------------------------------
     // regression for the php phantom index desync under limit, the corruption
     // sequence was a reset with a snapshot, a depth trim via limit, then
@@ -396,7 +397,7 @@ pub fn testWsOrderBook() {
     // https://github.com/ccxt/ccxt/pull/29603 and
     // https://github.com/ccxt/ccxt/issues/26967
     let mut desyncBook = OrderBook::new(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }), Value::Int(3));
     desyncBook.reset(orderBookInput);
@@ -408,7 +409,7 @@ pub fn testWsOrderBook() {
     // a delete on a surviving level must remove exactly that level
     desyncBook.store_array_to_bids(Value::from(vec![Value::Float(9.1), Value::Int(0)]));
     desyncBook.limit();
-    let mut desyncTarget: Value = Value::Map({
+    let desyncTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(7)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)])]));
@@ -418,22 +419,22 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    assert!(ccxt::runtime::is_true(&(equals(desyncBook.clone(), desyncTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(desyncBook.clone(), desyncTarget))));
     // every row must be a well formed price and amount pair, the php
     // corruption produced rows holding only an amount
-    let mut desyncSides: Value = Value::from(vec![get_value(&desyncBook, &Value::Str("bids".into())), get_value(&desyncBook, &Value::Str("asks".into()))]);
+    let desyncSides: Value = Value::from(vec![get_value(&desyncBook, &Value::Str("bids".into())), get_value(&desyncBook, &Value::Str("asks".into()))]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1617: bool = true;
-        while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; i < (desyncSides.len() as i64) } {
-        let mut side: Value = desyncSides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (desyncSides.len() as i64) } {
+        let side: Value = desyncSides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         {
                         let mut k: i64 = 0;
-            let mut __for_first_1616: bool = true;
-            while { if !__for_first_1616 { k += 1; } __for_first_1616 = false; (k as f64) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&side, &Value::Int(k));
-            assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&row).as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN)))));
-            assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&row, &Value::Int(0)) != Value::Null))));
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { k += 1; } __for_first_0 = false; (k as f64) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
+            let row: Value = get_value(&side, &Value::Int(k));
+            assert!(crate::test_helpers::is_true(&(Value::Bool(get_array_length(&row).as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN)))));
+            assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&row, &Value::Int(0)) != Value::Null))));
         }
         }
     }
@@ -443,7 +444,7 @@ pub fn testWsOrderBook() {
     // delta arriving later for a trimmed id previously threw in js and looped
     // in php while python handled it, an update of a trimmed id must reinsert
     // cleanly and a delete of a trimmed id must be a no op
-    let mut trimIndexedInput: Value = Value::Map({
+    let trimIndexedInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("x".into())]), Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("y".into())]), Value::from(vec![Value::Int(8), Value::Int(1), Value::Str("z".into())]), Value::from(vec![Value::Int(7), Value::Int(1), Value::Str("w".into())]),
                 Value::from(vec![Value::Int(6), Value::Int(1), Value::Str("v".into())])]));
@@ -454,7 +455,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut trimIndexedTarget: Value = Value::Map({
+    let trimIndexedTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("x".into())]), Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("y".into())]), Value::from(vec![Value::Int(8), Value::Int(1), Value::Str("z".into())])]));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Int(11), Value::Int(1), Value::Str("a".into())]), Value::from(vec![Value::Int(12), Value::Int(1), Value::Str("b".into())]), Value::from(vec![Value::Int(13), Value::Int(1), Value::Str("c".into())])]));
@@ -464,7 +465,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut trimIndexedBook = IndexedOrderBook::new(trimIndexedInput.clone(), Value::Int(3));
+    let mut trimIndexedBook = IndexedOrderBook::new(trimIndexedInput, Value::Int(3));
     trimIndexedBook.limit();
     // update of a trimmed id reinserts cleanly
     trimIndexedBook.store_array_to_asks(Value::from(vec![Value::Int(15), Value::Int(2), Value::Str("e".into())]));
@@ -475,5 +476,5 @@ pub fn testWsOrderBook() {
     trimIndexedBook.store_array_to_asks(Value::from(vec![Value::Int(14), Value::Int(0), Value::Str("d".into())]));
     trimIndexedBook.store_array_to_bids(Value::from(vec![Value::Int(6), Value::Int(0), Value::Str("v".into())]));
     trimIndexedBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(trimIndexedBook, trimIndexedTarget))));
+    assert!(crate::test_helpers::is_true(&(equals(trimIndexedBook, trimIndexedTarget))));
 }

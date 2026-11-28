@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.btcbox import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -386,10 +386,11 @@ class btcbox(Exchange, ImplicitAPI):
             currency = self.currency(code)
             currencyId = self.safe_string(currency, 'id', '')
             free = currencyId + '_balance'
-            if free in response:
+            freeValue = self.safe_string(response, free)
+            if freeValue is not None:
                 account = self.account()
                 used = currencyId + '_lock'
-                account['free'] = self.safe_string(response, free)
+                account['free'] = freeValue
                 account['used'] = self.safe_string(response, used)
                 result[code] = account
         return self.safe_balance(result)
@@ -504,7 +505,6 @@ class btcbox(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'tid')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        type = None
         side = self.safe_string(trade, 'type')
         return self.safe_trade({
             'info': trade,
@@ -513,7 +513,7 @@ class btcbox(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': priceString,
@@ -804,7 +804,7 @@ class btcbox(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}

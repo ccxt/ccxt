@@ -289,7 +289,7 @@ export default class kalshi extends Exchange {
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        const entryMarkets = eventEntry['markets'];
+                        const entryMarkets: Market[] = eventEntry['markets'];
                         entryMarkets.push (m);
                         eventEntry['markets'] = entryMarkets;
                     }
@@ -411,7 +411,8 @@ export default class kalshi extends Exchange {
             if (outcomeSymbol.indexOf (':') >= 0) {
                 continue;
             }
-            let baseTicker: Str = outcomeSymbol;
+            const tickerText: string = this.safeString (outcomeSymbols, i, '');
+            let baseTicker: string = tickerText;
             if (outcomeSymbol.endsWith ('-NO')) {
                 baseTicker = outcomeSymbol.slice (0, -3);
             }
@@ -451,14 +452,15 @@ export default class kalshi extends Exchange {
             }
         }
         for (let i = 0; i < outcomeSymbolsLength; i++) {
-            if (!this.hasOutcome (outcomeSymbols[i])) {
-                await this.fetchOutcome (outcomeSymbols[i]);
+            const pendingSymbol = this.safeString (outcomeSymbols, i, '');
+            if (!this.hasOutcome (pendingSymbol)) {
+                await this.fetchOutcome (pendingSymbol);
             }
         }
         return this.outcomes;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -570,7 +572,11 @@ export default class kalshi extends Exchange {
             const eventParts = eventTicker.split ('-');
             const eventPartsLength = eventParts.length;
             if (eventPartsLength > 1) {
-                const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
+                const seriesParts: string[] = [];
+                for (let si = 0; si < eventPartsLength - 1; si++) {
+                    const seriesPart: string = this.safeString (eventParts, si, '');
+                    seriesParts.push (seriesPart);
+                }
                 seriesTicker = seriesParts.join ('-');
             }
         }
@@ -596,16 +602,16 @@ export default class kalshi extends Exchange {
         };
         // Build outcomes
         const outcomeLabels = [ 'YES', 'NO' ];
-        const outcomeIds = [ ticker, ticker + '-NO' ];
         const outcomes: any[] = [];
         let resolvedOutcome: Str = undefined;
+        const resultText: string = this.safeStringLower (raw, 'result', '');
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol (eventTicker, subtitleOrTicker, label);
             let winnerRaw: Bool = undefined;
             let settleFractionRaw: Num = undefined;
             if (resolved && (result !== undefined) && (result !== '')) {
-                winnerRaw = (label.toLowerCase () === result);
+                winnerRaw = (label.toLowerCase () === resultText);
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
                 if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
@@ -615,9 +621,14 @@ export default class kalshi extends Exchange {
             // reassigned local into the anonymous inner class it emits for a map literal)
             const winner = winnerRaw;
             const settleFraction = settleFractionRaw;
+            let outcomeSuffix = '';
+            if (oi > 0) {
+                outcomeSuffix = '-NO';
+            }
+            const outcomeId = ticker + outcomeSuffix;
             outcomes.push ({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': outcomeId,
+                'outcomeId': outcomeId,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -766,7 +777,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const raw = this.safeDict (response, 'market', response);
+        const raw = this.extend ({}, this.safeDict (response, 'market', response));
         return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
@@ -899,7 +910,7 @@ export default class kalshi extends Exchange {
         //     }
         //
         const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (this.safeDict (market, 'info'), 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
@@ -991,7 +1002,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcomes (outcomes);
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
-        const tickers: any[] = [];
+        const tickers: string[] = [];
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -1027,7 +1038,7 @@ export default class kalshi extends Exchange {
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
             const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
-                const raw = rawMarkets[i];
+                const raw = this.safeDict (rawMarkets, i, {});
                 const marketTicker = this.safeString (raw, 'ticker');
                 if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
                     continue;
@@ -1236,7 +1247,7 @@ export default class kalshi extends Exchange {
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         this.options['ohlcvCandleDurationSeconds'] = tf;
-        return this.parseOHLCVs (usableCandles, outcomeObj as any, timeframe, since, limit);
+        return this.parseOHLCVs (usableCandles, outcomeObj, timeframe, since, limit);
     }
 
     /**
@@ -1623,7 +1634,7 @@ export default class kalshi extends Exchange {
         const rawSettlementsLength = rawSettlements.length;
         const parsed: Dict[] = [];
         for (let i = 0; i < rawSettlementsLength; i++) {
-            parsed.push (this.parseSettlement (rawSettlements[i]));
+            parsed.push (this.parseSettlement (this.extend ({}, rawSettlements[i])));
         }
         const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
         const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
@@ -1866,7 +1877,7 @@ export default class kalshi extends Exchange {
             await this.loadOutcome (outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parsePredictionOrder (this.safeDict (response, 'order', response));
+        return this.parsePredictionOrder (this.extend ({}, this.safeDict (response, 'order', response)));
     }
 
     /**
@@ -2116,7 +2127,7 @@ export default class kalshi extends Exchange {
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        const order = this.parsePredictionOrder (this.safeDict (response, 'order', response), outcomeObj);
+        const order = this.parsePredictionOrder (this.extend ({}, this.safeDict (response, 'order', response)), outcomeObj);
         if (this.safeString (order, 'id') === undefined) {
             order['id'] = id;
         }
@@ -2152,13 +2163,12 @@ export default class kalshi extends Exchange {
         const restingOrdersLength = restingOrders.length;
         const canceledOrders: PredictionOrder[] = [];
         for (let i = 0; i < restingOrdersLength; i++) {
-            const restingOrder = restingOrders[i];
-            const orderId = this.safeString (restingOrder, 'order_id');
+            const orderId = this.safeString (restingOrders[i], 'order_id');
             if (orderId !== undefined) {
                 await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': orderId }, params));
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                const parsed = this.parsePredictionOrder (restingOrder);
+                const parsed = this.parsePredictionOrder (this.safeDict (restingOrders, i, {}));
                 parsed['status'] = 'canceled';
                 canceledOrders.push (parsed);
             }
@@ -2213,7 +2223,7 @@ export default class kalshi extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         const eventId = this.safeString2 (paramsOmitted, 'eventId', 'slug');
-        let rawEvents: any[] = [];
+        let rawEvents: Dict[] = [];
         if (queriesLength > 0) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
             rawEvents = await this.fetchEventsByQuery (queries, fetchCap, rest);
@@ -2233,14 +2243,16 @@ export default class kalshi extends Exchange {
         const rawEventsLength = rawEvents.length;
         const result: any[] = [];
         for (let di = 0; di < rawEventsLength; di++) {
-            const parsedEvent = this.parseEvent (rawEvents[di]);
+            const parsedEvent = this.parseEvent (this.extend ({}, rawEvents[di]));
             result.push (parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
             const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
-                const m = parsedMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString (parsedMarkets[mi], 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = parsedMarkets[mi];
+                }
             }
         }
         this.populateOutcomes ();
@@ -2418,7 +2430,7 @@ export default class kalshi extends Exchange {
             let cursor: Str = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (hasLimit && (limitValue !== undefined)) {
+                if (hasLimit) {
                     const collectedSoFar = rawEvents.length;
                     const remaining = this.parseToInt (limitValue - collectedSoFar);
                     if (remaining < reqLimit) {
@@ -2429,7 +2441,7 @@ export default class kalshi extends Exchange {
                     }
                 }
                 const request: Dict = {
-                    'series_ticker': seriesTickers[si],
+                    'series_ticker': this.safeString (seriesTickers, si),
                     'status': status,
                     'with_nested_markets': true,
                     'limit': reqLimit,
@@ -2467,7 +2479,7 @@ export default class kalshi extends Exchange {
      */
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const fullEvent = await this.fetchRawEventByTicker (id, params);
-        const event = this.parseEvent (fullEvent);
+        const event = this.parseEvent (this.extend ({}, fullEvent));
         this.indexEventOutcomes (event);
         return event;
     }
@@ -2646,7 +2658,8 @@ export default class kalshi extends Exchange {
         const apiGroup: string = api[0];
         const access: string = api[1];
         const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString (baseUrls, apiGroup, this.safeString (baseUrls, 'kalshi', ''));
+        const baseUrlDefault: string = this.safeString (baseUrls, 'kalshi', '');
+        const baseUrl: string = this.safeString (baseUrls, apiGroup, baseUrlDefault);
         const implodedPath = this.implodeParams (path, params);
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));

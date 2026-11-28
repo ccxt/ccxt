@@ -132,9 +132,7 @@ class backpack extends backpack$1["default"] {
             if ((symbols === undefined) && (stock || (explicitSource === 'External') || (channel !== undefined)) && (market['stock'] !== true)) {
                 continue;
             }
-            const marketSelection = this.handleStockParams(methodName, query, market);
-            const marketStock = this.safeBool(marketSelection, 0, false);
-            const marketParams = this.safeDict(marketSelection, 1, {});
+            const [marketStock, marketParams] = this.handleStockParams(methodName, query, market);
             const isRfq = this.safeString(market['info'], 'marketType') === 'RFQ';
             let source = explicitSource;
             if (source === undefined) {
@@ -177,7 +175,7 @@ class backpack extends backpack$1["default"] {
             else if ((this.safeString(market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
                 throw new errors.NotSupported(this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
             }
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const messageHash = kind + ':' + symbol + '@' + topic;
             const subscriptionKey = 'marketData:' + topic;
             let subscriptions = this.safeDict(client.subscriptions, subscriptionKey, {});
@@ -432,7 +430,7 @@ class backpack extends backpack$1["default"] {
         //
         const ticker = this.safeDict(message, 'data', {});
         const stream = this.safeString(message, 'stream', '');
-        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions = this.extend({}, this.safeDict(client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys(subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -517,7 +515,7 @@ class backpack extends backpack$1["default"] {
     handleStockTicker(client, message) {
         const data = this.safeDict(message, 'data', {});
         const stream = this.safeString(message, 'stream', '');
-        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions = this.extend({}, this.safeDict(client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys(subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -597,7 +595,7 @@ class backpack extends backpack$1["default"] {
         //     }
         const data = this.safeDict(message, 'data', {});
         const stream = this.safeString(message, 'stream', '');
-        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions = this.extend({}, this.safeDict(client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys(subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -674,7 +672,8 @@ class backpack extends backpack$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const query = await this.prepareWsStockParams('watchOHLCV', params);
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, query);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -789,7 +788,7 @@ class backpack extends backpack$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const stream = this.safeString(message, 'stream', '');
         const parts = stream.split('.');
         const timeframe = this.safeString(parts, 1, '');
@@ -960,7 +959,7 @@ class backpack extends backpack$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new Cache.ArrayCache(limit);
@@ -1155,14 +1154,15 @@ class backpack extends backpack$1["default"] {
         const deltaNonce = this.safeInteger(data, 'u');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheSize = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.push(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market(symbol);
             const isStockMarket = (market['stock'] === true) || ((marketId !== undefined) && ((marketId.indexOf('.US_') >= 0) || (marketId.indexOf('.HK_') >= 0)));
             const defaultSnapshotDelay = isStockMarket ? 0 : 10;
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay));
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
             }
@@ -1333,7 +1333,7 @@ class backpack extends backpack$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(data, 'e', '');
         let parsed;
         if ((event.indexOf('rfq') === 0) || (event.indexOf('quote') === 0)) {
@@ -1504,7 +1504,7 @@ class backpack extends backpack$1["default"] {
         const status = this.parseWsOrderStatus(this.safeString(order, 'X'), market);
         const marketId = this.safeString(order, 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const type = this.safeStringLower(order, 'o');
         const timeInForce = this.safeString(order, 'f');
         const side = this.parseWsOrderSide(this.safeString(order, 'S'));
@@ -1586,7 +1586,8 @@ class backpack extends backpack$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 messageHashes.push('positions' + ':' + symbol);
-                topics.push('account.positionUpdate.' + this.marketId(symbol));
+                const marketId = this.safeString(this.market(symbol), 'id', '');
+                topics.push('account.positionUpdate.' + marketId);
             }
         }
         else {
@@ -1619,7 +1620,8 @@ class backpack extends backpack$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 messageHashes.push('unsubscribe:positions' + ':' + symbol);
-                topics.push('account.positionUpdate.' + this.marketId(symbol));
+                const marketId = this.safeString(this.market(symbol), 'id', '');
+                topics.push('account.positionUpdate.' + marketId);
             }
         }
         else {
@@ -1692,7 +1694,7 @@ class backpack extends backpack$1["default"] {
         const id = this.safeString(position, 'i');
         const marketId = this.safeString(position, 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const notional = this.safeString(position, 'n');
         const liquidationPrice = this.safeString(position, 'l');
         const entryPrice = this.safeString(position, 'b');
@@ -1702,15 +1704,15 @@ class backpack extends backpack$1["default"] {
         const markPrice = this.safeString(position, 'M');
         const netQuantity = this.safeNumber(position, 'q');
         let hedged = false;
-        let side = 'long';
+        let side = undefined;
         if (netQuantity !== undefined) {
+            side = 'long';
             if (0 > netQuantity) {
                 side = 'short';
             }
         }
         else {
             hedged = undefined;
-            side = undefined;
         }
         const microseconds = this.safeInteger(position, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);

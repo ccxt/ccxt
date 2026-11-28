@@ -109,7 +109,7 @@ func GetValue(collection any, key any) any {
 }
 
 func IsLessThan(a any, b any) bool {
-	return base.IsLessThan(a, b)
+	return !base.IsGreaterThan(a, b) && !base.IsEqual(a, b)
 }
 
 // the generated base ws tests emit the full comparison family, mirror the
@@ -121,11 +121,11 @@ func IsGreaterThan(a any, b any) bool {
 }
 
 func IsGreaterThanOrEqual(a any, b any) bool {
-	return base.IsGreaterThanOrEqual(a, b)
+	return base.IsGreaterThan(a, b) || base.IsEqual(a, b)
 }
 
 func IsLessThanOrEqual(a any, b any) bool {
-	return base.IsLessThanOrEqual(a, b)
+	return IsLessThan(a, b) || base.IsEqual(a, b)
 }
 
 func ToString(value any) string {

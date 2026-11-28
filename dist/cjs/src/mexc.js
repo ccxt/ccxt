@@ -1064,11 +1064,13 @@ class mexc extends mexc$1["default"] {
         let status = undefined;
         let updated = undefined;
         if (marketType === 'spot') {
-            response = await this.spotPublicGetPing(query);
+            const spotResponse = await this.spotPublicGetPing(query);
+            response = spotResponse;
             //
             //     {}
             //
-            const keys = Object.keys(response);
+            const spotResponseCopy = this.extend({}, spotResponse);
+            const keys = Object.keys(spotResponseCopy);
             const length = keys.length;
             status = (length > 0) ? this.json(response) : 'ok';
         }
@@ -1692,7 +1694,6 @@ class mexc extends mexc$1["default"] {
         let orderId = undefined;
         let symbol = undefined;
         let fee = undefined;
-        const type = undefined;
         let side = undefined;
         let takerOrMaker = undefined;
         let priceString = undefined;
@@ -1700,7 +1701,8 @@ class mexc extends mexc$1["default"] {
         let costString = undefined;
         let marketResolved = undefined;
         // if swap
-        if ('v' in trade) {
+        const swapVolume = this.safeString(trade, 'v');
+        if (swapVolume !== undefined) {
             //
             // swap: fetchTrades
             //
@@ -1715,7 +1717,7 @@ class mexc extends mexc$1["default"] {
             //
             timestamp = this.safeInteger(trade, 't');
             marketResolved = this.safeMarket(undefined, market);
-            symbol = marketResolved['symbol'];
+            symbol = this.safeString(marketResolved, 'symbol');
             priceString = this.safeString(trade, 'p');
             amountString = this.safeString(trade, 'v');
             side = this.parseOrderSide(this.safeString(trade, 'T'));
@@ -1774,12 +1776,13 @@ class mexc extends mexc$1["default"] {
             //
             const marketId = this.safeString(trade, 'symbol');
             marketResolved = this.safeMarket(marketId, market);
-            symbol = marketResolved['symbol'];
+            symbol = this.safeString(marketResolved, 'symbol');
             id = this.safeString2(trade, 'id', 'a');
             priceString = this.safeString2(trade, 'price', 'p');
             orderId = this.safeString(trade, 'orderId');
             // if swap
-            if ('positionMode' in trade) {
+            const positionMode = this.safeString(trade, 'positionMode');
+            if (positionMode !== undefined) {
                 timestamp = this.safeInteger(trade, 'timestamp');
                 amountString = this.safeString(trade, 'vol');
                 side = this.parseContractOrderSide(this.safeString(trade, 'side'));
@@ -1825,7 +1828,7 @@ class mexc extends mexc$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -2152,7 +2155,7 @@ class mexc extends mexc$1["default"] {
             ticker = this.safeDict(response, 'data', {});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'symbol');
@@ -2172,7 +2175,7 @@ class mexc extends mexc$1["default"] {
         let prevClose = undefined;
         const isSwap = this.safeBool(marketResolved, 'swap', false);
         // if swap
-        if (isSwap || ('timestamp' in ticker)) {
+        if (isSwap || (this.safeString(ticker, 'timestamp') !== undefined)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2582,12 +2585,8 @@ class mexc extends mexc$1["default"] {
         if ((type !== 'limit') && (type !== 'market') && (!this.inArray(type, [1, 2, 3, 4, 5, 6]))) {
             throw new errors.InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
         let orderType = 0; // typed seed, every branch below assigns it
-        if (postOnly) {
-            orderType = 2;
-        }
-        else if (type === 'limit') {
+        if (type === 'limit') {
             orderType = 1;
         }
         else if (type === 'market') {
@@ -2595,6 +2594,10 @@ class mexc extends mexc$1["default"] {
         }
         else {
             orderType = this.parseToInt(type);
+        }
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', orderType === 2, params);
+        if (postOnly) {
+            orderType = 2;
         }
         let volString = this.amountToPrecision(symbol, amount);
         if (volString === undefined) {
@@ -2737,8 +2740,8 @@ class mexc extends mexc$1["default"] {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             let marginMode = undefined;
             [marginMode, paramsLoop] = this.handleMarginModeAndParams('createOrder', paramsLoop);
@@ -2894,9 +2897,9 @@ class mexc extends mexc$1["default"] {
             //         }
             //     }
             //
-            data = this.safeValue(response, 'data');
+            data = this.safeDict(response, 'data', {});
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -3366,7 +3369,8 @@ class mexc extends mexc$1["default"] {
                 if (marginMode !== 'isolated') {
                     throw new errors.BadRequest(this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                data = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
+                const marginRows = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
+                return this.parseOrder(this.safeDict(marginRows, 0, {}), market);
             }
             else {
                 data = await this.spotPrivateDeleteOrder(this.extend(requestInner, query));
@@ -3443,14 +3447,14 @@ class mexc extends mexc$1["default"] {
             if (method === 'contractPrivatePostPlanorderCancel') {
                 return this.safeOrder({ 'id': id, 'symbol': this.safeString(market, 'symbol'), 'info': response }, market); // planorder/cancel answers without data, failures are raised by handleErrors
             }
-            data = this.safeValue(response, 'data');
-            const order = this.safeDict(data, 0);
-            const errorMsg = this.safeString(order, 'errorMsg', '');
+            const rows = this.safeList(response, 'data', []);
+            data = this.safeDict(rows, 0, {});
+            const errorMsg = this.safeString(data, 'errorMsg', '');
             if (errorMsg !== 'success') {
                 throw new errors.InvalidOrder(this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -3747,13 +3751,7 @@ class mexc extends mexc$1["default"] {
                 'clientOrderId': this.safeString(order, 'newClientOrderId'),
             });
         }
-        let id = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        }
-        else {
-            id = this.safeString2(order, 'orderId', 'id');
-        }
+        const id = this.safeString2(order, 'orderId', 'id');
         let timeInForce = this.parseOrderTimeInForce(this.safeString(order, 'timeInForce'));
         const typeRaw = this.safeString(order, 'type');
         if (timeInForce === undefined) {
@@ -4160,7 +4158,7 @@ class mexc extends mexc$1["default"] {
             }
             else {
                 const market = this.market(symbol);
-                parsedSymbols = market['id'];
+                parsedSymbols = this.safeString(market, 'id');
             }
             this.checkRequiredArgument('fetchBalance', parsedSymbols, 'symbol or symbols');
             marketType = 'margin';
@@ -4973,7 +4971,7 @@ class mexc extends mexc$1["default"] {
             const networkUnified = this.networkIdToCode(networkCode, code);
             const networks = this.safeDict(currency, 'networks', {});
             if ((networkUnified !== undefined) && (networkUnified in networks)) {
-                const network = (networkUnified === undefined) ? {} : this.safeDict(networks, networkUnified, {});
+                const network = this.safeDict(networks, networkUnified, {});
                 const networkInfo = this.safeDict(network, 'info', {});
                 networkId = this.safeString(networkInfo, 'network');
             }
@@ -5028,7 +5026,7 @@ class mexc extends mexc$1["default"] {
         const networkUnified = this.networkIdToCode(networkCode, code);
         const networks = this.safeDict(currency, 'networks', {});
         if ((networkUnified !== undefined) && (networkUnified in networks)) {
-            const network = (networkUnified === undefined) ? {} : this.safeDict(networks, networkUnified, {});
+            const network = this.safeDict(networks, networkUnified, {});
             const networkInfo = this.safeDict(network, 'info', {});
             networkId = this.safeString(networkInfo, 'network');
         }
@@ -5110,7 +5108,7 @@ class mexc extends mexc$1["default"] {
         }
         if (code !== undefined) {
             currency = this.currency(code);
-            const currencyId = currency['id'];
+            const currencyId = this.safeString(currency, 'id', '');
             request['coin'] = currencyId;
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
@@ -5274,7 +5272,7 @@ class mexc extends mexc$1["default"] {
         const currencyWithNetwork = this.safeString(transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
             const currencyParts = currencyWithNetwork.split('-');
-            currencyId = currencyParts[0];
+            currencyId = this.safeString(currencyParts, 0);
         }
         const code = this.safeCurrencyCode(currencyId, currency);
         let network = undefined;
@@ -5637,7 +5635,6 @@ class mexc extends mexc$1["default"] {
         else {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        let resultList = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -5667,7 +5664,7 @@ class mexc extends mexc$1["default"] {
             //     ],
             //     "total": 1
             // }
-            resultList = this.safeList(response, 'rows', []);
+            return this.parseTransfers(this.safeList(response, 'rows', []), currency, since, limit);
         }
         else if (marketType === 'swap') {
             if (limit !== undefined) {
@@ -5675,7 +5672,7 @@ class mexc extends mexc$1["default"] {
             }
             const response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, paramsToAccountType));
             const data = this.safeDict(response, 'data');
-            resultList = this.safeValue(data, 'resultList');
+            return this.parseTransfers(this.safeList(data, 'resultList', []), currency, since, limit);
             //
             //     {
             //         "success": true,
@@ -5701,7 +5698,7 @@ class mexc extends mexc$1["default"] {
             //     }
             //
         }
-        return this.parseTransfers(resultList, currency, since, limit);
+        return this.parseTransfers([], currency, since, limit);
     }
     /**
      * @method
@@ -5753,7 +5750,7 @@ class mexc extends mexc$1["default"] {
         }
         let paramsOmitted = params;
         if (isIsolatedMargin) {
-            paramsOmitted = this.omit(params, 'symbol');
+            paramsOmitted = this.omit(paramsOmitted, 'symbol');
         }
         const response = await this.spotPrivatePostCapitalTransfer(this.extend(request, paramsOmitted));
         //
@@ -6147,12 +6144,13 @@ class mexc extends mexc$1["default"] {
         //
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = this.safeDict(networkList, j);
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': this.safeNumber(networkEntry, 'withdrawFee'),
                         'percentage': undefined,
@@ -6164,6 +6162,7 @@ class mexc extends mexc$1["default"] {
                 };
             }
         }
+        result['networks'] = networks;
         return this.assignDefaultDepositWithdrawFees(result);
     }
     /**
@@ -6215,14 +6214,15 @@ class mexc extends mexc$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
+        return this.parseLeverageList(data, market);
     }
-    parseLeverage(leverage, market = undefined) {
+    parseLeverageList(leverages, market = undefined) {
         let marginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for (let i = 0; i < leverage.length; i++) {
-            const entry = this.safeDict(leverage, i);
+        const numLeverages = leverages.length;
+        for (let i = 0; i < numLeverages; i++) {
+            const entry = this.safeDict(leverages, i);
             const openType = this.safeInteger(entry, 'openType');
             const positionType = this.safeInteger(entry, 'positionType');
             if (positionType === 1) {
@@ -6234,11 +6234,21 @@ class mexc extends mexc$1["default"] {
             marginMode = (openType === 1) ? 'isolated' : 'cross';
         }
         return {
-            'info': leverage,
+            'info': leverages,
             'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return {
+            'info': leverage,
+            'symbol': this.safeString(market, 'symbol'),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {

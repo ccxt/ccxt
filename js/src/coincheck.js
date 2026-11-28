@@ -396,7 +396,6 @@ export default class coincheck extends Exchange {
         const amount = this.safeString(order, 'pending_amount');
         const remaining = this.safeString(order, 'pending_amount');
         const price = this.safeString(order, 'rate');
-        const status = undefined;
         const marketId = this.safeString(order, 'pair');
         const symbol = this.safeSymbol(marketId, market, '_');
         return this.safeOrder({
@@ -412,7 +411,7 @@ export default class coincheck extends Exchange {
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'status': status,
+            'status': undefined,
             'symbol': symbol,
             'price': price,
             'triggerPrice': undefined,
@@ -554,7 +553,7 @@ export default class coincheck extends Exchange {
         const marketResolved = this.safeMarket(marketId, market, '_');
         const baseId = this.safeString(marketResolved, 'baseId');
         const quoteId = this.safeString(marketResolved, 'quoteId');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         let takerOrMaker = undefined;
         let amountString = undefined;
         let costString = undefined;

@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status, Endpoint, List, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -750,7 +750,8 @@ export default class woofipro extends Exchange {
             if (parsed === undefined) {
                 throw new ExchangeError (this.id + ' fetchCurrencies() could not resolve parsed');
             }
-            result[parsed['code']] = parsed;
+            const parsedCode: string = this.safeString (parsed, 'code', '');
+            result[parsedCode] = parsed;
         }
         return result;
     }
@@ -815,7 +816,7 @@ export default class woofipro extends Exchange {
         });
     }
 
-    parseTokenAndFeeTemp (item: Dict, feeTokenKey: string, feeAmountKey: string) {
+    parseTokenAndFeeTemp (item: Dict, feeTokenKey: string, feeAmountKey: string): FeeString {
         const feeCost = this.safeString (item, feeAmountKey);
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {
@@ -857,15 +858,15 @@ export default class woofipro extends Exchange {
         //         "is_maker": "1"
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const isFromFetchOrder = (this.safeString (trade, 'id') !== undefined);
         const timestamp = this.safeInteger (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
-        const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
+        const fee = this.parseTokenAndFeeTemp (this.extend ({}, trade), 'fee_asset', 'fee');
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
         let takerOrMaker: Str = undefined;
@@ -1719,7 +1720,7 @@ export default class woofipro extends Exchange {
         const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString2 (order, 'order_price', 'price');
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
@@ -1732,7 +1733,7 @@ export default class woofipro extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const filled = this.safeStringN (order, [ 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ]);
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
-        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
+        const fee = this.safeNumber2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeList (order, 'Transactions');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
@@ -1860,7 +1861,7 @@ export default class woofipro extends Exchange {
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        const postOnly = this.isPostOnly (isMarket, false, params);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         const typeKey = isConditional ? 'type' : 'order_type';
@@ -2022,8 +2023,8 @@ export default class woofipro extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict (orderParams, 'stopLoss');
@@ -2113,7 +2114,7 @@ export default class woofipro extends Exchange {
             const orderType = type.toUpperCase ();
             const timeInForce = this.safeStringLower (paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly (isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly (isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
@@ -2245,7 +2246,7 @@ export default class woofipro extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const clientOrderIds: Strings = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response: NullableDict = undefined;
@@ -2396,7 +2397,7 @@ export default class woofipro extends Exchange {
         if (parsedOrders === undefined) {
             parsedOrders = {};
         }
-        return this.parseOrder (parsedOrders, market);
+        return this.parseOrder (this.extend ({}, parsedOrders), market);
     }
 
     /**
@@ -3105,7 +3106,8 @@ export default class woofipro extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marginModes = await this.fetchMarginModes ([ market['symbol'] ], params);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
+        const marginModes = await this.fetchMarginModes ([ marketSymbol ], params);
         const marginMode = this.safeDict (marginModes, market['symbol']);
         if (marginMode === undefined) {
             throw new BadSymbol (this.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol']);
@@ -3517,9 +3519,16 @@ export default class woofipro extends Exchange {
                 if (!isSandboxMode) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        const ordersList = this.safeList (requestParams, 'orders', []);
+                        const ordersList: Dict[] = this.safeList (requestParams, 'orders', []);
+                        const taggedOrders: Dict[] = [];
+                        let hasOrders = false;
                         for (let i = 0; i < ordersList.length; i++) {
-                            requestParams['orders'][i]['order_tag'] = brokerId;
+                            const orderRow = this.extend (ordersList[i], { 'order_tag': brokerId });
+                            taggedOrders.push (orderRow);
+                            hasOrders = true;
+                        }
+                        if (hasOrders) {
+                            requestParams['orders'] = taggedOrders;
                         }
                     } else {
                         requestParams['order_tag'] = brokerId;
@@ -3564,7 +3573,7 @@ export default class woofipro extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

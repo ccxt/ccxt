@@ -651,9 +651,6 @@ class blofin extends blofin$1["default"] {
         if (swap) {
             symbol = base + '/' + quote + ':' + settle;
         }
-        const expiry = undefined;
-        const strikePrice = undefined;
-        const optionType = undefined;
         const tickSize = this.safeString(market, 'tickSize');
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         const taker = this.safeNumber(fees, 'taker');
@@ -664,6 +661,13 @@ class blofin extends blofin$1["default"] {
         const contractType = this.safeString(market, 'contractType');
         const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        const costLimits = {
+            'min': undefined,
+            'max': maxSpotCost,
+        };
+        if (contract) {
+            costLimits['max'] = undefined;
+        }
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -686,10 +690,10 @@ class blofin extends blofin$1["default"] {
             'linear': contract ? (contractType === 'linear') : undefined,
             'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber(market, 'contractValue') : undefined,
-            'expiry': expiry,
-            'expiryDatetime': expiry,
-            'strike': strikePrice,
-            'optionType': optionType,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSize'),
@@ -708,10 +712,7 @@ class blofin extends blofin$1["default"] {
                     'min': undefined,
                     'max': undefined,
                 },
-                'cost': {
-                    'min': undefined,
-                    'max': contract ? undefined : maxSpotCost,
-                },
+                'cost': costLimits,
             },
             'info': market,
         });
@@ -786,7 +787,7 @@ class blofin extends blofin$1["default"] {
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
@@ -928,7 +929,7 @@ class blofin extends blofin$1["default"] {
         const id = this.safeString(trade, 'tradeId');
         const marketId = this.safeString(trade, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(trade, 'ts');
         const price = this.safeString2(trade, 'price', 'fillPrice');
         const amount = this.safeString2(trade, 'size', 'fillSize');
@@ -1646,11 +1647,11 @@ class blofin extends blofin$1["default"] {
         }
         if (isCombinedSlTp || isSlOrTp || isTriggerOrder) {
             const dataDict = this.safeDict(response, 'data', {});
-            return this.parseOrder(dataDict, market);
+            return this.parseOrder(this.extend({}, dataDict), market);
         }
         const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0);
-        const order = this.parseOrder(first, market);
+        const order = this.parseOrder(this.extend({}, first), market);
         order['type'] = type;
         order['side'] = side;
         return order;
@@ -1765,12 +1766,12 @@ class blofin extends blofin$1["default"] {
         else if (isTrigger) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
-            return this.parseOrder(triggerData, market);
+            return this.parseOrder(this.extend({}, triggerData), market);
         }
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -1853,7 +1854,20 @@ class blofin extends blofin$1["default"] {
             request['newSize'] = this.amountToPrecision(symbol, amount);
         }
         const query = this.omit(params, ['clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice']);
-        let response = undefined;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
         if (isTpsl) {
             const stopLossPrice = this.safeString(params, 'stopLossPrice');
             if (stopLossPrice !== undefined) {
@@ -1877,7 +1891,8 @@ class blofin extends blofin$1["default"] {
                     request['newTpOrderPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
                 }
             }
-            response = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            const tpslResponse = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            return this.parseOrder(this.safeDict(tpslResponse, 'data', {}), market);
         }
         else if (isTrigger) {
             const triggerPrice = this.safeString(params, 'triggerPrice');
@@ -1890,30 +1905,16 @@ class blofin extends blofin$1["default"] {
             else if (price !== undefined) {
                 request['newOrderPrice'] = this.priceToPrecision(symbol, price);
             }
-            response = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            const algoResponse = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            return this.parseOrder(this.safeDict(algoResponse, 'data', {}), market);
         }
         else {
             if (price !== undefined) {
                 request['newPrice'] = this.priceToPrecision(symbol, price);
             }
-            response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            const response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            return this.parseOrder(this.safeDict(response, 'data', {}), market);
         }
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "Order modified",
-        //         "data": {
-        //             "orderId": "6000004088576",
-        //             "clientOrderId": "",
-        //             "requestId": "",
-        //             "msg": "Order modified",
-        //             "code": "0",
-        //             "ts": "1795184228537"
-        //         }
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
     }
     /**
      * @method
@@ -2421,13 +2422,14 @@ class blofin extends blofin$1["default"] {
         //
         const result = this.depositWithdrawFee(fee);
         const chainsLength = fee.length;
+        const networkFees = {};
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict(fee, i);
             const networkCode = this.chainIdToNetworkCode(this.safeString(chain, 'chain'));
             if (networkCode === undefined) {
                 continue;
             }
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber(chain, 'withdrawFee'),
                     'percentage': false,
@@ -2438,6 +2440,7 @@ class blofin extends blofin$1["default"] {
                 },
             };
         }
+        result['networks'] = networkFees;
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             const networks = this.safeDict(result, 'networks', {});
@@ -2470,6 +2473,7 @@ class blofin extends blofin$1["default"] {
             currency = this.currency(code);
             request['currency'] = currency['id'];
         }
+        const depositId = this.safeString(request, 'depositId', '');
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         // only accept a row that matches the requested id, in case the
@@ -2477,11 +2481,11 @@ class blofin extends blofin$1["default"] {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const entry = this.safeDict(data, i, {});
-            if (this.safeString(entry, 'depositId') === id) {
+            if (this.safeString(entry, 'depositId') === depositId) {
                 return this.parseTransaction(entry, currency);
             }
         }
-        throw new errors.ExchangeError(this.id + ' fetchDeposit() could not find deposit ' + id);
+        throw new errors.ExchangeError(this.id + ' fetchDeposit() could not find deposit ' + depositId);
     }
     /**
      * @method
@@ -2491,24 +2495,29 @@ class blofin extends blofin$1["default"] {
      * @param {string} id withdrawal id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
         const clientId = this.safeString(params, 'clientId');
-        if ((id === undefined) && (clientId === undefined)) {
+        // an undefined or empty id looks the withdrawal up by params['clientId']
+        const hasId = (id !== undefined) && (id !== '');
+        if (!hasId && (clientId === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
         }
         await this.loadMarkets();
-        const request = {};
-        if (id !== undefined) {
-            request['withdrawId'] = id;
+        let request = {};
+        if (hasId) {
+            request = {
+                'withdrawId': id,
+            };
         }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
         }
+        const withdrawId = this.safeString(request, 'withdrawId', '');
         const response = await this.privateGetAssetWithdrawalHistory(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         // only accept a row that matches the requested id (or clientId), in
@@ -2517,8 +2526,8 @@ class blofin extends blofin$1["default"] {
         for (let i = 0; i < dataLength; i++) {
             const entry = this.safeDict(data, i, {});
             let matches = false;
-            if (id !== undefined) {
-                matches = (this.safeString(entry, 'withdrawId') === id);
+            if (hasId) {
+                matches = (this.safeString(entry, 'withdrawId') === withdrawId);
             }
             else {
                 matches = (this.safeString(entry, 'clientId') === clientId);
@@ -2527,7 +2536,10 @@ class blofin extends blofin$1["default"] {
                 return this.parseTransaction(entry, currency);
             }
         }
-        const reference = (id !== undefined) ? id : clientId;
+        let reference = withdrawId;
+        if (!hasId) {
+            reference = this.safeString(params, 'clientId', '');
+        }
         throw new errors.ExchangeError(this.id + ' fetchWithdrawal() could not find withdrawal ' + reference);
     }
     /**
@@ -2820,7 +2832,7 @@ class blofin extends blofin$1["default"] {
             return ids.split(',');
         }
         else {
-            return ids;
+            return this.safeStringList([ids], [0]);
         }
     }
     /**
@@ -2852,7 +2864,6 @@ class blofin extends blofin$1["default"] {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds(ids);
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push({
@@ -2861,16 +2872,16 @@ class blofin extends blofin$1["default"] {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
+            for (let i = 0; i < ids.length; i++) {
                 if (trigger === true) {
                     request.push({
-                        'tpslId': this.safeString(orderIds, i),
+                        'tpslId': this.safeString(ids, i),
                         'instId': market['id'],
                     });
                 }
                 else {
                     request.push({
-                        'orderId': this.safeString(orderIds, i),
+                        'orderId': this.safeString(ids, i),
                         'instId': market['id'],
                     });
                 }
@@ -3005,7 +3016,7 @@ class blofin extends blofin$1["default"] {
         let market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
-            if (symbolsLength === 0) {
+            if (symbolsLength > 0) {
                 market = this.market(symbols[0]);
                 request['instId'] = market['id'];
             }
@@ -3101,7 +3112,7 @@ class blofin extends blofin$1["default"] {
         //
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const pos = this.safeString(position, 'positions');
         const contractsAbs = Precise["default"].stringAbs(pos);
         let side = this.safeString(position, 'positionSide');
@@ -3298,8 +3309,9 @@ class blofin extends blofin$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbolsNormalized);
         const request = {
-            'instId': this.marketIds(symbolsNormalized).join(','),
+            'instId': marketIds.join(','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, query));

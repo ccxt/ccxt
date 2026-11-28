@@ -100,7 +100,6 @@ export default class deepcoin extends deepcoinRest {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     requestId() {
         this.lockId();
@@ -162,7 +161,8 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch(url, unsubHash, this.deepExtend(request, params), unsubHash, subscriptionExtended);
     }
     async watchPrivate(messageHash, params = {}) {
-        const listenKey = await this.authenticate();
+        await this.authenticate();
+        const listenKey = this.safeString(this.options, 'listenKey', '');
         return await this.watch(this.safeString(this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, undefined, 'private', params);
     }
     async authenticate(params = {}) {
@@ -754,7 +754,7 @@ export default class deepcoin extends deepcoinRest {
         }
         const orderbook = this.orderbooks[symbol];
         const type = this.safeString(message, 't');
-        if (orderbook['timestamp'] === undefined) {
+        if (this.safeInteger(orderbook, 'timestamp') === undefined) {
             if (type === 'f') {
                 // snapshot
                 this.handleOrderBookSnapshot(client, message);
@@ -804,7 +804,7 @@ export default class deepcoin extends deepcoinRest {
         orderbook.reset(snapshot);
         const cachedMessages = orderbook.cache;
         for (let j = 0; j < cachedMessages.length; j++) {
-            const cachedMessage = cachedMessages[j];
+            const cachedMessage = this.safeDict(cachedMessages, j, {});
             this.handleOrderBookMessage(client, cachedMessage, orderbook);
         }
         orderbook.cache = [];
@@ -1086,7 +1086,8 @@ export default class deepcoin extends deepcoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const listenKey = await this.authenticate();
+        await this.authenticate();
+        const listenKey = this.safeString(this.options, 'listenKey', '');
         const symbolsNormalized = this.marketSymbols(symbols);
         const messageHash = 'positions';
         const messageHashes = [];
@@ -1328,5 +1329,6 @@ export default class deepcoin extends deepcoinRest {
         catch (e) {
             client.reject(e, messageHash);
         }
+        return false;
     }
 }

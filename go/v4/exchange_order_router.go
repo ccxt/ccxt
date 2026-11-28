@@ -2211,8 +2211,8 @@ func (this *OrderRouter) addPosition(positions []map[string]any, exchangeId stri
 // or a price onto a market's grid. It is not declared on IExchange, but every
 // concrete ccxt exchange embeds Exchange and therefore carries both methods.
 type orderRouterPrecision interface {
-	AmountToPrecision(symbol any, amount any) *string
-	PriceToPrecision(symbol any, price any) *string
+	AmountToPrecision(symbol *string, amount any) *string
+	PriceToPrecision(symbol *string, price any) *string
 }
 
 // orderRouterSink collects everything one step wants to write into the shared
@@ -3028,8 +3028,16 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 	if !ok {
 		return NotSupported("OrderRouter: " + exchangeId + " cannot snap an amount onto its market precision")
 	}
-	amount, amountOk := routerParseFloat(ToString(snapper.AmountToPrecision(symbol, routerNumberAt(step, "amount", 0))))
-	price, priceOk := routerParseFloat(ToString(snapper.PriceToPrecision(symbol, routerStepLimitPrice(step))))
+	// an absent snapped value parses as not-a-number, as "<nil>" did
+	amountText, priceText := "", ""
+	if snapped := snapper.AmountToPrecision(&symbol, routerNumberAt(step, "amount", 0)); snapped != nil {
+		amountText = *snapped
+	}
+	if snapped := snapper.PriceToPrecision(&symbol, routerStepLimitPrice(step)); snapped != nil {
+		priceText = *snapped
+	}
+	amount, amountOk := routerParseFloat(amountText)
+	price, priceOk := routerParseFloat(priceText)
 	if !amountOk || !priceOk || !(amount > 0) || !(price > 0) {
 		return NewError("rounded_to_zero", "OrderRouter: the snapped amount or price is not positive")
 	}

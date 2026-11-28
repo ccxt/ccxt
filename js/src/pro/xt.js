@@ -78,7 +78,8 @@ export default class xt extends xtRest {
         if (isContract) {
             tradeType = 'contract';
         }
-        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(urlsApi, 'ws', {});
         let url = this.safeString(apiUrls, tradeType);
         if (!isContract) {
             url = url + '/private';
@@ -172,15 +173,13 @@ export default class xt extends xtRest {
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < obBids.length; i++) {
-            const bid = this.safeList(obBids, i);
-            const price = this.safeNumber(bid, 0);
-            const quantity = this.safeNumber(bid, 1);
+            const price = this.safeNumber(obBids[i], 0);
+            const quantity = this.safeNumber(obBids[i], 1);
             bids.store(price, quantity);
         }
         for (let i = 0; i < obAsks.length; i++) {
-            const ask = this.safeList(obAsks, i);
-            const price = this.safeNumber(ask, 0);
-            const quantity = this.safeNumber(ask, 1);
+            const price = this.safeNumber(obAsks[i], 0);
+            const quantity = this.safeNumber(obAsks[i], 1);
             asks.store(price, quantity);
         }
         // this.handleBidAsks (storedBids, bids);
@@ -239,7 +238,8 @@ export default class xt extends xtRest {
         const subscription = {
             'id': id,
         };
-        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(urlsApi, 'ws', {});
         const url = this.safeString(apiUrls, tradeType, '') + '/' + tail;
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
@@ -293,7 +293,8 @@ export default class xt extends xtRest {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(urlsApi, 'ws', {});
         const url = this.safeString(apiUrls, tradeType, '') + '/' + tail;
         const subscription = {
             'unsubscribe': true,
@@ -377,7 +378,7 @@ export default class xt extends xtRest {
         }
         let market = undefined;
         if (symbols !== undefined) {
-            market = this.market(symbols[0]);
+            market = this.market(this.safeString(symbols, 0));
         }
         if (name !== undefined) {
             const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
@@ -650,7 +651,8 @@ export default class xt extends xtRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const urlsApi = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(urlsApi, 'ws', {});
         const url = this.safeString(apiUrls, 'contract', '') + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);
@@ -731,7 +733,7 @@ export default class xt extends xtRest {
             const timestamp = this.safeInteger(data, 't');
             fundingRate['timestamp'] = timestamp;
             fundingRate['datetime'] = this.iso8601(timestamp);
-            const symbol = fundingRate['symbol'];
+            const symbol = this.safeString(fundingRate, 'symbol', '');
             this.fundingRates[symbol] = fundingRate;
             const event = this.safeString(message, 'event');
             if (event !== undefined) {
@@ -890,7 +892,7 @@ export default class xt extends xtRest {
             const cv = this.safeString(data, 'cv');
             const isSpot = cv !== undefined;
             const ticker = this.parseTicker(data);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -985,7 +987,7 @@ export default class xt extends xtRest {
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker(tickerData);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -1055,7 +1057,7 @@ export default class xt extends xtRest {
                 tradeType = 'spot';
             }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const parsed = this.parseOHLCV(data, market);
             this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -1114,7 +1116,7 @@ export default class xt extends xtRest {
                 tradeType = 'spot';
             }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const event = this.safeString(message, 'event');
             let tradesArray = this.safeValue(this.trades, symbol);
             if (tradesArray === undefined) {
@@ -1190,7 +1192,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
             let event = this.safeString(message, 'event', '');
@@ -1201,7 +1203,7 @@ export default class xt extends xtRest {
                 tradeType = 'contract';
             }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const obAsks = this.safeList(data, 'a');
             const obBids = this.safeList(data, 'b');
             const messageHash = event + '::' + tradeType;
@@ -1213,8 +1215,8 @@ export default class xt extends xtRest {
             const orderbook = this.orderbooks[symbol];
             const nonce = this.safeInteger(orderbook, 'nonce');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
+                const cacheLength = this.parseToInt(orderbook.cache.length);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 25));
                 if (cacheLength === snapshotDelay) {
                     this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
                 }
@@ -1224,18 +1226,16 @@ export default class xt extends xtRest {
             if (obAsks !== undefined) {
                 const asks = orderbook['asks'];
                 for (let i = 0; i < obAsks.length; i++) {
-                    const ask = this.safeList(obAsks, i);
-                    const price = this.safeNumber(ask, 0);
-                    const quantity = this.safeNumber(ask, 1);
+                    const price = this.safeNumber(obAsks[i], 0);
+                    const quantity = this.safeNumber(obAsks[i], 1);
                     asks.store(price, quantity);
                 }
             }
             if (obBids !== undefined) {
                 const bids = orderbook['bids'];
                 for (let i = 0; i < obBids.length; i++) {
-                    const bid = this.safeList(obBids, i);
-                    const price = this.safeNumber(bid, 0);
-                    const quantity = this.safeNumber(bid, 1);
+                    const price = this.safeNumber(obBids[i], 0);
+                    const quantity = this.safeNumber(obBids[i], 1);
                     bids.store(price, quantity);
                 }
             }
@@ -1282,7 +1282,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString(trade, 's');
         let tradeType = 'spot';
-        if ('symbol' in trade) {
+        if (this.safeString(trade, 'symbol') !== undefined) {
             tradeType = 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, tradeType);
@@ -1352,7 +1352,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString2(order, 's', 'symbol');
         let tradeType = 'spot';
-        if ('symbol' in order) {
+        if (this.safeString(order, 'symbol') !== undefined) {
             tradeType = 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, tradeType);
@@ -1542,7 +1542,7 @@ export default class xt extends xtRest {
         }
         const stored = this.myTrades;
         const parsedTrade = this.parseTrade(data);
-        const tradeSymbol = parsedTrade['symbol'];
+        const tradeSymbol = this.safeString(parsedTrade, 'symbol');
         if (tradeSymbol === undefined) {
             return;
         }
@@ -1629,12 +1629,14 @@ export default class xt extends xtRest {
         return message;
     }
     handleUnSubscription(client, subscription) {
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const messageHashes = this.safeStringList(subscription, ['messageHashes']);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let j = 0; j < messageHashes.length; j++) {
-            const unsubHash = messageHashes[j];
-            const subHash = subMessageHashes[j];
-            this.cleanUnsubscription(client, subHash, unsubHash);
+        if (messageHashes !== undefined) {
+            for (let j = 0; j < messageHashes.length; j++) {
+                const unsubHash = messageHashes[j];
+                const subHash = subMessageHashes[j];
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }
@@ -1652,9 +1654,10 @@ export default class xt extends xtRest {
                 delete client.subscriptions['token'];
             }
             this.getListenKey(true);
-            return;
+            return false;
         }
         const error = new ExchangeError(this.id + ' ' + this.json(message));
         client.reject(error);
+        return false;
     }
 }

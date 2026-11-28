@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -132,7 +132,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             marketIds.append(self.market_id(symbol))
         length = len(symbolsValue)
         if length == 1:
-            market = self.market(marketIds[0])
+            market = self.market(symbolsValue[0])
             messageHash += ':' + market['symbol']
         subscribe['product_ids'] = marketIds
         request = self.extend(subscribe, params)
@@ -743,7 +743,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if previousOrder['trades'] is None:
                     previousOrder['trades'] = []
                 previousOrder['trades'].append(trade)
-                previousOrder['lastTradeTimestamp'] = trade['timestamp']
+                previousOrder['lastTradeTimestamp'] = self.safe_integer(trade, 'timestamp')
                 totalCost = '0'
                 totalAmount = '0'
                 trades = self.safe_list(previousOrder, 'trades', [])
@@ -771,7 +771,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if (previousFee['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
                     stringOrderCost = self.number_to_string(previousFee['cost'])
                     stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
-                    previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
+                    previousFee['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
+                    previousOrder['fee'] = previousFee
                 # update the newUpdates count
                 orders.append(self.safe_order(previousOrder))
                 client.resolve(orders, messageHash + ':' + symbol)
@@ -1375,13 +1376,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         timestamp = self.safe_integer(message, 'timestamp')
         if self.balance is None:
             self.balance = {}
-        updatedBalance = None
         if holding is not None:
             holdingKeys = list(holding.keys())                  # cashAccount
             self.balance['cash'] = self.safe_dict(self.balance, 'cash', {})
-            self.balance['cash']['info'] = message
-            self.balance['cash']['timestamp'] = timestamp
-            self.balance['cash']['datetime'] = self.iso8601(timestamp)
+            cashBalance = self.safe_dict(self.balance, 'cash', {})
+            cashBalance['info'] = message
+            cashBalance['timestamp'] = timestamp
+            cashBalance['datetime'] = self.iso8601(timestamp)
             holdingCodes = {}
             for i in range(0, len(holdingKeys)):
                 key = holdingKeys[i]
@@ -1390,16 +1391,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 newAccount['total'] = self.safe_string(holding, key)
                 if code is not None:
                     holdingCodes[code] = True
-                    self.balance['cash'][code] = newAccount
-            self.balance['cash'] = self.prune_stale_balance_keys(self.balance['cash'], holdingCodes)
-            self.balance['cash'] = self.safe_balance(self.balance['cash'])
-            updatedBalance = self.balance['cash']
+                    cashBalance[code] = newAccount
+            self.balance['cash'] = self.safe_balance(self.prune_stale_balance_keys(cashBalance, holdingCodes))
         if futures is not None:
             futuresKeys = list(futures.keys())                  # marginAccount
             self.balance['margin'] = self.safe_dict(self.balance, 'margin', {})
-            self.balance['margin']['info'] = message
-            self.balance['margin']['timestamp'] = timestamp
-            self.balance['margin']['datetime'] = self.iso8601(timestamp)
+            marginBalance = self.safe_dict(self.balance, 'margin', {})
+            marginBalance['info'] = message
+            marginBalance['timestamp'] = timestamp
+            marginBalance['datetime'] = self.iso8601(timestamp)
             futuresSymbols = {}
             for i in range(0, len(futuresKeys)):
                 key = futuresKeys[i]
@@ -1415,19 +1415,17 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if (symbol is not None) and (code is not None):
                     futuresSymbols[symbol] = True
                     symbolAccounts[code] = newAccount
-                self.balance['margin'][symbol] = symbolAccounts
-            self.balance['margin'] = self.prune_stale_balance_keys(self.balance['margin'], futuresSymbols)
-            self.balance['margin'] = self.safe_balance(self.balance['margin'])
+                marginBalance[symbol] = symbolAccounts
+            self.balance['margin'] = self.safe_balance(self.prune_stale_balance_keys(marginBalance, futuresSymbols))
             client.resolve(self.balance['margin'], messageHash + ':futures')
-            if updatedBalance is None:
-                updatedBalance = self.balance['margin']
         if flexFutures is not None:
             flexFutureCurrencies = self.safe_dict(flexFutures, 'currencies', {})
             flexFuturesKeys = list(flexFutureCurrencies.keys())  # multi-collateral margin account
             self.balance['flex'] = self.safe_dict(self.balance, 'flex', {})
-            self.balance['flex']['info'] = message
-            self.balance['flex']['timestamp'] = timestamp
-            self.balance['flex']['datetime'] = self.iso8601(timestamp)
+            flexBalance = self.safe_dict(self.balance, 'flex', {})
+            flexBalance['info'] = message
+            flexBalance['timestamp'] = timestamp
+            flexBalance['datetime'] = self.iso8601(timestamp)
             flexCodes = {}
             for i in range(0, len(flexFuturesKeys)):
                 key = flexFuturesKeys[i]
@@ -1439,18 +1437,19 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 newAccount['total'] = self.safe_string(flexFuture, 'quantity')
                 if code is not None:
                     flexCodes[code] = True
-                    self.balance['flex'][code] = newAccount
-            self.balance['flex'] = self.prune_stale_balance_keys(self.balance['flex'], flexCodes)
-            self.balance['flex'] = self.safe_balance(self.balance['flex'])
+                    flexBalance[code] = newAccount
+            self.balance['flex'] = self.safe_balance(self.prune_stale_balance_keys(flexBalance, flexCodes))
             client.resolve(self.balance['flex'], messageHash + ':flex_futures')
-            if updatedBalance is None:
-                updatedBalance = self.balance['flex']
         # resolve the plain hash exactly once per message, with the unified
         # balance of the account the message updated (cash first, matching the
         # legacy behaviour): a second resolve on the same hash is not portable
         # (the rust client hands the consumer the LAST resolved value)
-        if updatedBalance is not None:
-            client.resolve(updatedBalance, messageHash)
+        if holding is not None:
+            client.resolve(self.balance['cash'], messageHash)
+        elif futures is not None:
+            client.resolve(self.balance['margin'], messageHash)
+        elif flexFutures is not None:
+            client.resolve(self.balance['flex'], messageHash)
 
     def prune_stale_balance_keys(self, balanceObject: dict, seenKeys: dict) -> dict:
         """
@@ -1559,7 +1558,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             },
         })
 
-    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: object = None, subscriptionArgs: dict | None = None, params: dict = {}):
+    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs: dict | None = None, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']
@@ -1600,7 +1599,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             messageHash += '#' + subChannelName
         return messageHash
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        event: 'alert',
@@ -1657,7 +1656,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             if method is not None:
                 method(client, message)
 
-    def handle_authenticate(self, client: Client, message: dict) -> dict:
+    def handle_authenticate(self, client: Client, message: dict):
         """
  @ignore
         https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
@@ -1671,7 +1670,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         event = self.safe_string(message, 'event')
         messageHash = 'challenge'
         if event != 'error':
-            challenge = self.safe_value(message, 'message')
+            challenge = self.safe_string(message, 'message', '')
             hashedChallenge = self.hash(self.encode(challenge), 'sha256', 'binary')
             base64Secret = self.base64_to_binary(self.secret)
             signature = self.hmac(hashedChallenge, base64Secret, hashlib.sha512, 'base64')
@@ -1684,4 +1683,3 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             client.reject(error, messageHash)
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
-        return message

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.zebpay import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
+from ccxt.base.types import Balances, Bool, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -560,8 +560,9 @@ class zebpay(Exchange, ImplicitAPI):
         fees = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(fees)):
-            fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            feeRow = self.safe_dict(fees, i, {})
+            fee = self.parse_trading_fee(feeRow)
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -922,7 +923,7 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(trade, 'timestamp', 'tradeTime')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market, '_')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = self.safe_string_lower(trade, 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'amount', 'quantity')
@@ -1020,7 +1021,7 @@ class zebpay(Exchange, ImplicitAPI):
             marginAsset = self.safe_string(query, 'marginAsset', 'INR')
             formType = self.safe_string_upper(query, 'formType', 'ORDER_FORM')
             request['formType'] = formType
-            request['amount'] = self.parse_to_numeric(self.amount_to_precision(market['id'], amount))
+            request['amount'] = self.parse_to_numeric(self.amount_to_precision(self.safe_string(market, 'id'), amount))
             request['marginAsset'] = marginAsset
             hasTP = takeProfitPrice is not None
             hasSL = stopLossPrice is not None
@@ -1271,7 +1272,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         type = self.safe_string(order, 'type')
         timestamp = self.safe_number(order, 'timestamp')
         datetime = self.iso8601(timestamp)
@@ -1895,7 +1896,7 @@ class zebpay(Exchange, ImplicitAPI):
         bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None

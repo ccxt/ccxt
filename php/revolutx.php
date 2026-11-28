@@ -538,7 +538,7 @@ class revolutx extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $marketIds[] = $market['id'];
+                $marketIds[] = $this->safe_string($market, 'id', '');
             }
             $request['symbols'] = implode(',', $marketIds);
         }
@@ -1569,17 +1569,14 @@ class revolutx extends Exchange {
         return $order;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         $statusCode = $this->parse_to_int($code);
         if ($statusCode >= 400) {
             if ($response === null) {
                 return null;
             }
             $feedback = $this->id . ' ' . $body;
-            $errorMessage = null;
-            if (gettype($response) === 'array') {
-                $errorMessage = $this->safe_string_2($response, 'message', 'error');
-            }
+            $errorMessage = $this->safe_string_2($response, 'message', 'error');
             if ($errorMessage !== null) {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             }

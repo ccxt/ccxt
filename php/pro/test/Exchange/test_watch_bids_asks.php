@@ -33,7 +33,7 @@ function test_watch_bids_asks_helper($exchange, $skipped_properties, $arg_symbol
             $response = array();
             $start_time = $exchange->milliseconds();
             try {
-                $response = \React\Async\await($exchange->watch_bids_asks($arg_symbols, $arg_params));
+                $response = \React\Async\await($exchange->watch_bids_asks($arg_symbols));
             } catch(\Throwable $e) {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,

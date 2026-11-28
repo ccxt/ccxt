@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Bool, Int, Market, OrderBook, Ticker, Trade
+from ccxt.base.types import Int, Market, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 
@@ -111,7 +111,8 @@ class coinone(ccxt.async_support.coinone):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return
-        symbol = self.symbol(base + '/' + quote)
+        marketSymbol = base + '/' + quote
+        symbol = self.symbol(marketSymbol)
         timestamp = self.safe_integer(data, 'timestamp')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -232,7 +233,8 @@ class coinone(ccxt.async_support.coinone):
         quote = self.safe_currency_code(quoteId)
         symbol = None
         if (base is not None) and (quote is not None):
-            symbol = self.symbol(base + '/' + quote)
+            marketSymbol = base + '/' + quote
+            symbol = self.symbol(marketSymbol)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -359,7 +361,7 @@ class coinone(ccxt.async_support.coinone):
             'fee': None,
         }, marketResolved)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "response_type": "ERROR",

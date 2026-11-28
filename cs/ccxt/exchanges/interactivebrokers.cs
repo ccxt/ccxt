@@ -12,7 +12,7 @@ public partial class interactivebrokers : Exchange
             { "name", "Interactive Brokers" },
             { "countries", new List<object>() {"US"} },
             { "version", "v1" },
-            { "rateLimit", ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(100, 1.2) },
+            { "rateLimit", 120 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -981,9 +981,9 @@ public partial class interactivebrokers : Exchange
         {
             return await this.ibkrGatewaySignIn(parameters);
         }
-        string? encryptionPemPath = this.safeString(this.options, "encryptionPemPath");
-        string? dhParamPemPath = this.safeString(this.options, "dhParamPemPath");
-        if (!isTrue(encryptionPemPath) || !isTrue(dhParamPemPath))
+        string? encryptionPemPath = this.safeString(this.options, "encryptionPemPath", "");
+        string? dhParamPemPath = this.safeString(this.options, "dhParamPemPath", "");
+        if ((encryptionPemPath == "") || (dhParamPemPath == ""))
         {
             throw new ArgumentsRequired ((this.id + " supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details")) ;
         }
@@ -992,12 +992,12 @@ public partial class interactivebrokers : Exchange
         string encryptionKey = ((string)this.readFile(encryptionPemPath));
         object dhPrime = this.convertToBigInt(("0x" + (this.readDhParam(dhParamPemPath))));
         // the access token secret is encrypted with the consumer's public encryption key
-        object decrypted = this.decryptPrivateKey(encryptionKey, this.secret);
+        byte[] decrypted = this.decryptPrivateKey(encryptionKey, this.secret);
         object accessTokenSecretHex = this.binaryToBase16(decrypted);
         this.options["accessTokenSecretHex"] = accessTokenSecretHex; // prepended to the signature base string in sign ()
         this.options["serviceAccountsLoaded"] = false; // a new brokerage session needs iserver/accounts again
         object dhRandom = this.convertToBigInt(("0x" + this.randomBytes(32)));
-        object dhChallenge = this.modPow((this.options != null && this.options.ContainsKey("dhGen") ? this.options["dhGen"] : null), dhRandom, dhPrime);
+        System.Numerics.BigInteger dhChallenge = this.modPow((this.options != null && this.options.ContainsKey("dhGen") ? this.options["dhGen"] : null), dhRandom, dhPrime);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "diffie_hellman_challenge", this.intToBase16(dhChallenge) },
         };
@@ -1009,10 +1009,11 @@ public partial class interactivebrokers : Exchange
         //         "live_session_token_expiration": 1714661586311
         //     }
         //
-        string? dhResponse = this.safeString(response, "diffie_hellman_response");
-        object sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
+        string? dhResponse = this.safeString(response, "diffie_hellman_response", "");
+        System.Numerics.BigInteger sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
         string liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1, "base64");
-        string check = this.hmac(this.encode((this.options != null && this.options.ContainsKey("consumer_key") ? this.options["consumer_key"] : null)), this.base64ToBinary(liveSessionToken), sha1, "hex");
+        string? consumerKey = this.safeString(this.options, "consumer_key", "");
+        string check = this.hmac(consumerKey, this.base64ToBinary(liveSessionToken), sha1, "hex");
         if ((check != this.safeString(response, "live_session_token_signature")))
         {
             throw new AuthenticationError ((this.id + " signIn() live session token validation failed")) ;
@@ -1092,7 +1093,7 @@ public partial class interactivebrokers : Exchange
             return false;
         }
         Int64? checkInterval = this.safeInteger(this.options, "gatewayAuthCheckInterval", 120000);
-        return isLessThan(this.milliseconds(), this.sum(authenticatedTimestamp, checkInterval));
+        return (this.milliseconds() < this.sum(authenticatedTimestamp, checkInterval));
     }
 
     /**
@@ -1105,10 +1106,10 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the iserver/auth/status response
      */
-    public async virtual Task<object> ibkrGatewaySignIn(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> ibkrGatewaySignIn(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.webapiPostV1ApiIserverAuthStatus(parameters);
+        Dictionary<string, object> response = await this.webapiPostV1ApiIserverAuthStatus(parameters);
         //
         //     {
         //         "authenticated": true,
@@ -1139,17 +1140,18 @@ public partial class interactivebrokers : Exchange
         if (authenticated != true)
         {
             // the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
-            Int64? lostTimestamp = ((Int64)this.ibkrGatewayOnSessionLost());
-            object regainDelay = this.ibkrGatewayRegainDelay();
-            if (isLessThanOrEqual(regainDelay, 0))
+            Int64? lostTimestamp = this.ibkrGatewayOnSessionLost();
+            Int64? regainDelay = this.ibkrGatewayRegainDelay();
+            if ((regainDelay == null || regainDelay <= 0))
             {
                 string gatewayUrl = this.safeString(this.options, "gatewayUrl");
                 throw new AuthenticationError (((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ") + gatewayUrl) + " in a browser or set options.autoRegainSession to take it back automatically, ") + this.json(response))) ;
             }
-            object regainTimestamp = this.sum(lostTimestamp, regainDelay);
-            if (isLessThan(this.milliseconds(), regainTimestamp))
+            Int64 regainTimestamp = this.sum(lostTimestamp, regainDelay);
+            if (this.milliseconds() < regainTimestamp)
             {
-                throw new AuthenticationError (((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + this.iso8601(regainTimestamp)) + " (options.autoRegainSession), ") + this.json(response))) ;
+                string? regainDatetime = this.iso8601(regainTimestamp);
+                throw new AuthenticationError (((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + regainDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
             }
             response = await this.ibkrGatewayRegainSession(parameters);
             authenticated = this.safeBool(response, "authenticated", false);
@@ -1158,7 +1160,8 @@ public partial class interactivebrokers : Exchange
                 // try again options.autoRegainSession seconds later
                 this.options["gatewaySessionLostTimestamp"] = this.milliseconds();
                 this.ibkrGatewayScheduleRegain();
-                throw new AuthenticationError (((((this.id + " failed to take back the brokerage session of the client portal gateway, retrying at ") + this.iso8601(this.sum(this.milliseconds(), regainDelay))) + " (options.autoRegainSession), ") + this.json(response))) ;
+                string? retryDatetime = this.iso8601(this.sum(this.milliseconds(), regainDelay));
+                throw new AuthenticationError (((((this.id + " failed to take back the brokerage session of the client portal gateway, retrying at ") + retryDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
             }
         }
         this.options["gatewaySessionLostTimestamp"] = null;
@@ -1179,7 +1182,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the last iserver/auth/status response
      */
-    public async virtual Task<object> ibkrGatewayRegainSession(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> ibkrGatewayRegainSession(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> initRequest = this.safeDict(this.options, "signInInitRequest", new Dictionary<string, object>() {});
@@ -1187,7 +1190,7 @@ public partial class interactivebrokers : Exchange
         Int64? retries = this.safeInteger(this.options, "gatewayReauthenticateRetries", 5);
         Int64? retryDelay = this.safeInteger(this.options, "gatewayReauthenticateDelay", 1000);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        for (int i = 0; (i < retries); i++)
+        for (int i = 0; i < retries.GetValueOrDefault(); i++)
         {
             await this.sleep(retryDelay);
             response = await this.webapiPostV1ApiIserverAuthStatus(parameters);
@@ -1206,14 +1209,14 @@ public partial class interactivebrokers : Exchange
      * @ignore
      * @returns {int} the delay in milliseconds
      */
-    public virtual object ibkrGatewayRegainDelay()
+    public virtual Int64? ibkrGatewayRegainDelay()
     {
         double? seconds = this.safeNumber(this.options, "autoRegainSession", 0);
-        if (((seconds == null)) || (isLessThanOrEqual(seconds, 0)))
+        if (((seconds == null)) || ((!(seconds > 0))))
         {
             return 0;
         }
-        return this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(seconds, 1000));
+        return this.parseToInt(((double?)seconds * 1000));
     }
 
     /**
@@ -1223,15 +1226,18 @@ public partial class interactivebrokers : Exchange
      * @ignore
      * @returns {int} the timestamp when the session was found lost
      */
-    public virtual object ibkrGatewayOnSessionLost()
+    public virtual Int64? ibkrGatewayOnSessionLost()
     {
         this.options["gatewayAuthenticatedTimestamp"] = null;
-        Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if ((lostTimestamp == null))
+        Int64? lostTimestamp = this.milliseconds();
+        Int64? storedTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
+        if ((storedTimestamp == null))
         {
-            lostTimestamp = this.milliseconds();
             this.options["gatewaySessionLostTimestamp"] = lostTimestamp;
             this.ibkrGatewayScheduleRegain();
+        } else
+        {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }
@@ -1245,14 +1251,14 @@ public partial class interactivebrokers : Exchange
      */
     public virtual bool ibkrGatewayScheduleRegain()
     {
-        object regainDelay = this.ibkrGatewayRegainDelay();
-        if ((isLessThanOrEqual(regainDelay, 0)) || (this.safeBool(this.options, "gatewayRegainScheduled", false) == true))
+        Int64? regainDelay = this.ibkrGatewayRegainDelay();
+        if (((regainDelay == null || regainDelay <= 0)) || (this.safeBool(this.options, "gatewayRegainScheduled", false) == true))
         {
             return false;
         }
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp", this.milliseconds());
-        object wait = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(this.sum(lostTimestamp, regainDelay), this.milliseconds());
-        if (isLessThanOrEqual(wait, 0))
+        Int64? wait = (this.sum(lostTimestamp, regainDelay) - this.milliseconds());
+        if ((wait == null || wait <= 0))
         {
             wait = regainDelay;
         }
@@ -1280,7 +1286,8 @@ public partial class interactivebrokers : Exchange
         this.options["gatewayRegainScheduled"] = false;
         bool? useGateway = this.safeBool(this.options, "useGateway", false);
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if (useGateway != true || ((lostTimestamp == null)) || (isLessThanOrEqual(this.ibkrGatewayRegainDelay(), 0)))
+        Int64? regainDelay = this.ibkrGatewayRegainDelay();
+        if (useGateway != true || ((lostTimestamp == null)) || ((regainDelay == null || regainDelay <= 0)))
         {
             return null;  // already regained, or disabled
         }
@@ -1417,7 +1424,7 @@ public partial class interactivebrokers : Exchange
             return true;
         }
         Int64? refreshMargin = this.safeInteger(this.options, "liveSessionTokenRefreshMargin", 60000);
-        return isLessThan(this.sum(this.milliseconds(), refreshMargin), expiration);
+        return (this.sum(this.milliseconds(), refreshMargin) < expiration);
     }
 
     /**
@@ -1432,10 +1439,10 @@ public partial class interactivebrokers : Exchange
     public async virtual Task<object> loadAccountId(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> accountIdFromParamsqueryVariable = (IList<object>)this.handleOptionAndParams(parameters, "loadAccountId", "accountId");
-        var accountIdFromParams = accountIdFromParamsqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)accountIdFromParamsqueryVariable[1]);
-        object accountId = accountIdFromParams;
+        (string?, IDictionary<string, object>) accountIdFromParamsqueryVariable = this.handleOptionStringAndParams(parameters, "loadAccountId", "accountId");
+        string? accountIdFromParams = accountIdFromParamsqueryVariable.Item1;
+        IDictionary<string, object> query = (accountIdFromParamsqueryVariable.Item2);
+        string? accountId = accountIdFromParams;
         if ((accountId == null))
         {
             ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
@@ -1468,16 +1475,17 @@ public partial class interactivebrokers : Exchange
         var accountIdaccountQueryVariable = await this.loadAccountId(parameters);
         var accountId = ((IList<object>) accountIdaccountQueryVariable)[0];
         var accountQuery = ((IList<object>) accountIdaccountQueryVariable)[1];
-        IList<object> withPositionspositionsQueryVariable = (IList<object>)this.handleOptionAndParams(accountQuery, "fetchBalance", "positions", true);
-        var withPositions = withPositionspositionsQueryVariable[0];
-        var positionsQuery = withPositionspositionsQueryVariable[1];
-        IList<object> withOpenOrdersqueryVariable = (IList<object>)this.handleOptionAndParams(positionsQuery, "fetchBalance", "openOrders", true);
-        var withOpenOrders = withOpenOrdersqueryVariable[0];
-        var query = withOpenOrdersqueryVariable[1];
+        Dictionary<string, object> accountParams = this.extend(new Dictionary<string, object>() {}, accountQuery);
+        (bool?, IDictionary<string, object>) withPositionspositionsQueryVariable = this.handleOptionBoolAndParams(accountParams, "fetchBalance", "positions", true);
+        bool? withPositions = withPositionspositionsQueryVariable.Item1;
+        IDictionary<string, object> positionsQuery = (withPositionspositionsQueryVariable.Item2);
+        (bool?, IDictionary<string, object>) withOpenOrdersqueryVariable = this.handleOptionBoolAndParams(positionsQuery, "fetchBalance", "openOrders", true);
+        bool? withOpenOrders = withOpenOrdersqueryVariable.Item1;
+        IDictionary<string, object> query = (withOpenOrdersqueryVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
         };
-        if (isTrue(withPositions) || isTrue(withOpenOrders))
+        if ((withPositions == true) || (withOpenOrders == true))
         {
             // the conids of the positions and orders are resolved to currencies via the markets
             if ((this.markets == null))
@@ -1487,11 +1495,11 @@ public partial class interactivebrokers : Exchange
         }
         List<object> promises = new List<object>() {};
         promises.Add(this.webapiGetV1ApiPortfolioAccountIdLedger(this.extend(request, query)));
-        if (isTrue(withPositions))
+        if ((withPositions == true))
         {
             promises.Add(this.webapiGetV1ApiPortfolio2AccountIdPositions(request));
         }
-        if (isTrue(withOpenOrders))
+        if ((withOpenOrders == true))
         {
             promises.Add(this.fetchLiveOrdersRaw());
         }
@@ -1525,13 +1533,13 @@ public partial class interactivebrokers : Exchange
         Dictionary<string, object> balanceResponse = new Dictionary<string, object>() {
             { "ledger", response },
         };
-        Int64? index = 1;
-        if (isTrue(withPositions))
+        Int64 index = 1;
+        if ((withPositions == true))
         {
             balanceResponse["positions"] = this.safeList(results, index);
             index = (index + 1);
         }
-        if (isTrue(withOpenOrders))
+        if ((withOpenOrders == true))
         {
             // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
             balanceResponse["orders"] = this.safeList(results, index);
@@ -1539,7 +1547,7 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(balanceResponse));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //     {
@@ -1650,10 +1658,12 @@ public partial class interactivebrokers : Exchange
         for (int i = 0; i < usedCodes.Count; i++)
         {
             string? code = ((string)usedCodes[i]);
-            ((IDictionary<string,object>)(code != null && result.ContainsKey(code) ? result[code] : null))["used"] = (code != null && used.ContainsKey(code) ? used[code] : null);
+            Dictionary<string, object> usedAccount = this.extend(new Dictionary<string, object>() {}, this.safeDict(result, code, new Dictionary<string, object>() {}));
+            usedAccount["used"] = (code != null && used.ContainsKey(code) ? used[code] : null);
+            result[(string)code] = usedAccount;
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
-        if (inOp(response, "orders"))
+        if ((response != null && response.ContainsKey("orders")))
         {
             List<object> codes = new List<object>(result.Keys);
             for (int i = 0; i < codes.Count; i++)
@@ -1661,7 +1671,9 @@ public partial class interactivebrokers : Exchange
                 string? code = ((string)codes[i]);
                 if (((code != "info")) && ((this.safeString((code != null && result.ContainsKey(code) ? result[code] : null), "used") == null)))
                 {
-                    ((IDictionary<string,object>)(code != null && result.ContainsKey(code) ? result[code] : null))["used"] = "0";
+                    Dictionary<string, object> zeroAccount = this.extend(new Dictionary<string, object>() {}, this.safeDict(result, code, new Dictionary<string, object>() {}));
+                    zeroAccount["used"] = "0";
+                    result[(string)code] = zeroAccount;
                 }
             }
         }
@@ -1774,8 +1786,7 @@ public partial class interactivebrokers : Exchange
         }
         List<object> results = await promiseAll(promises);
         List<object> markets = this.arraysConcat(results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return ccxt.BaseExchange.ToMarketInterfaceList(this.toArray(this.ibkrDisambiguateContractSymbols(markets)));
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.ibkrDisambiguateContractSymbols(markets));
     }
 
     /**
@@ -1786,36 +1797,38 @@ public partial class interactivebrokers : Exchange
      * @param {object[]} markets parsed markets
      * @returns {object[]} the markets with unique symbols
      */
-    public virtual List<object> ibkrDisambiguateContractSymbols(object markets)
+    public virtual List<object> ibkrDisambiguateContractSymbols(IList<object> markets)
     {
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); i++)
+        for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, getValue(markets, i));
+            Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, markets[i]);
             string symbol = this.safeString(market, "symbol");
             bool? isContract = this.safeBool(market, "contract", false);
             if ((((symbol != null) && (seen?.ContainsKey(symbol) == true))) && (isContract == true))
             {
                 IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
                 string? listingExchange = this.safeString2(info, "listingExchange", "exchange", "default");
-                string? marketBase = this.safeString(market, "base");
-                string? marketBaseId = this.safeString(market, "baseId");
+                string marketBase = this.safeString(market, "base", "");
+                string? marketBaseId = this.safeString(market, "baseId", "");
                 bool? isFuture = this.safeBool(market, "future", false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 List<object> symbolParts = symbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-                string quoteAndSettle = ("/" + ((symbolParts != null && 1 < symbolParts.Count ? symbolParts[1] : null)));
-                object bs = (marketBase == null ? null : marketBase + "." + listingExchange);
+                string? quotePart = this.safeString(symbolParts, 1, "");
+                string quoteAndSettle = ("/" + quotePart);
+                string bs = ((marketBase + ".") + listingExchange);
                 if ((isFuture == true) && ((marketBaseId != marketBase)))
                 {
                     // the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
-                    bs = (marketBase == null ? null : marketBase + "." + marketBaseId);
+                    bs = ((marketBase + ".") + marketBaseId);
                 }
-                object newSymbol = (bs == null ? null : bs + quoteAndSettle);
-                if ((newSymbol is string inOpKey0 && seen.ContainsKey(inOpKey0)))
+                string newSymbol = (bs + quoteAndSettle);
+                if (((newSymbol != null) && (seen?.ContainsKey(newSymbol) == true)))
                 {
-                    bs = (marketBase == null ? null : marketBase + "." + this.safeString(market, "id"));
-                    newSymbol = ((object)(bs == null ? null : bs + quoteAndSettle));
+                    string? marketId = this.safeString(market, "id", "");
+                    bs = ((marketBase + ".") + marketId);
+                    newSymbol = (bs + quoteAndSettle);
                 }
                 market = this.extend(market, new Dictionary<string, object>() {
                     { "symbol", newSymbol },
@@ -1829,7 +1842,7 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchSecWithDetails(IDictionary<string, object> plainEntries)
+    public async virtual Task<List<object>> fetchSecWithDetails(IDictionary<string, object> plainEntries)
     {
         List<object> detailIds = new List<object>(plainEntries.Keys);
         List<object> entries = new List<object>() {};
@@ -1840,16 +1853,20 @@ public partial class interactivebrokers : Exchange
         }
         int chunkSize = 330; // above this number, response becomes unreliable
         List<object> promises = new List<object>() {};
-        object offset = 0;
-        while (isLessThan(offset, numDetails))
+        List<object> chunk = new List<object>() {};
+        for (int k = 0; k < numDetails; k++)
         {
-            object end = mathMin(this.sum(offset, chunkSize), numDetails);
-            List<object> chunk = ((List<object>)this.arraySlice(detailIds, offset, end));
-            Dictionary<string, object> secdefRequest = new Dictionary<string, object>() {
-                { "conids", String.Join(",", chunk.ToArray()) },
-            };
-            promises.Add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new Dictionary<string, object>() {}));
-            offset = end;
+            string? detailId = this.safeString(detailIds, k, "");
+            chunk.Add(detailId);
+            int chunkLength = (chunk?.Count ?? 0);
+            if (((chunkLength == chunkSize)) || ((k == (numDetails - 1))))
+            {
+                Dictionary<string, object> secdefRequest = new Dictionary<string, object>() {
+                    { "conids", String.Join(",", chunk.ToArray()) },
+                };
+                promises.Add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new Dictionary<string, object>() {}));
+                chunk = new List<object>() {};
+            }
         }
         List<object> responses = await promiseAll(promises);
         //
@@ -1873,7 +1890,7 @@ public partial class interactivebrokers : Exchange
             for (int j = 0; j < secdefs.Count; j++)
             {
                 object secdef = secdefs[j];
-                string? conid = this.safeString(secdef, "conid");
+                string? conid = this.safeString(secdef, "conid", "");
                 IDictionary<string, object> entry = this.safeDict(plainEntries, conid);
                 entries.Add(this.extend(entry, secdef));
             }
@@ -1881,7 +1898,7 @@ public partial class interactivebrokers : Exchange
         return entries;
     }
 
-    public async virtual Task<object> fetchForexMarkets(object parameters = null)
+    public async virtual Task<object> fetchForexMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -1912,11 +1929,11 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         return this.parseMarkets(detailMarkets);
     }
 
-    public async virtual Task<object> fetchCryptoMarkets(object parameters = null)
+    public async virtual Task<object> fetchCryptoMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -1936,10 +1953,10 @@ public partial class interactivebrokers : Exchange
         List<object> neededSecTypes = new List<object>() {"CRYPTO"}; // CFD, OPT - they should already be fetched in other calls
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object result = results[i];
-            for (int j = 0; j < getArrayLength(result); j++)
+            List<object> result = this.safeList(results, i, new List<object>() {});
+            for (int j = 0; j < result.Count; j++)
             {
-                object entry = getValue(result, j);
+                object entry = result[j];
                 List<object> sections = this.safeList(entry, "sections", new List<object>() {});
                 for (int k = 0; k < sections.Count; k++)
                 {
@@ -1955,7 +1972,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         return this.parseMarkets(detailMarkets);
     }
 
@@ -1967,7 +1984,7 @@ public partial class interactivebrokers : Exchange
      * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
      * @returns {string[]} the unique IBKR symbols, e.g. [ 'BIP', 'ETP', 'BIT', ... ]
      */
-    public async virtual Task<object> fetchCoinbaseDerivativesSymbols()
+    public async virtual Task<List<object>> fetchCoinbaseDerivativesSymbols()
     {
         List<object> scanTypes = new List<object>() {"MOST_ACTIVE", "NOT_YET_TRADED_TODAY"}; // these two ones cover all coinbase symbols
         List<object> result = new List<object>() {};
@@ -2028,19 +2045,28 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchFuturesAndSwapMarkets(object parameters = null)
+    public async virtual Task<List<object>> fetchFuturesAndSwapMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         List<object> types = this.safeList(options, "types", new List<object>() {});
         IDictionary<string, object> cryptoCmeFutureSymbols = this.safeDict(options, "cryptoCmeFutureSymbols", new Dictionary<string, object>() {});
         IDictionary<string, object> cryptoCboeFutureSymbols = this.safeDict(options, "cryptoCboeFutureSymbols", new Dictionary<string, object>() {});
-        List<object> coinbaseDerivSymbols = ((List<object>)await this.fetchCoinbaseDerivativesSymbols());
+        List<object> coinbaseDerivSymbols = await this.fetchCoinbaseDerivativesSymbols();
         List<object> cmeSymbols = new List<object>(cryptoCmeFutureSymbols.Keys);
         List<object> cfeSymbols = new List<object>(cryptoCboeFutureSymbols.Keys);
         List<object> targetSymbols = this.arraysConcat(new List<object>() {coinbaseDerivSymbols, cmeSymbols, cfeSymbols});
-        List<string> symbols = this.unique(targetSymbols);
-        string joined = String.Join(",", symbols.ToArray()); // c# fix, todo investigate
+        List<object> symbols = new List<object>() {};
+        int targetSymbolsLength = (targetSymbols?.Count ?? 0);
+        for (int i = 0; i < targetSymbolsLength; i++)
+        {
+            string? targetSymbol = this.safeString(targetSymbols, i, "");
+            if (!this.inArray(targetSymbol, symbols))
+            {
+                symbols.Add(targetSymbol);
+            }
+        }
+        string joined = String.Join(",", symbols.ToArray());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", joined },
         };
@@ -2065,7 +2091,7 @@ public partial class interactivebrokers : Exchange
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            List<object> contracts = this.safeList(response, (symbols != null && i < symbols.Count ? symbols[i] : null), new List<object>() {});
+            List<object> contracts = this.safeList(response, symbols[i], new List<object>() {});
             for (int j = 0; j < contracts.Count; j++)
             {
                 object contract = contracts[j];
@@ -2076,18 +2102,17 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> details = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> details = await this.fetchSecWithDetails(entries);
         // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
         // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
         List<object> allowedVenues = new List<object>() {"CME", "CFE", "COINDERIV"};
         List<object> detailMarkets = new List<object>() {};
         for (int i = 0; i < (details?.Count ?? 0); i++)
         {
-            object detail = details[i];
-            string? venue = this.safeString(detail, "listingExchange");
+            string? venue = this.safeString((details != null && i < details.Count ? details[i] : null), "listingExchange");
             if (this.inArray(venue, allowedVenues))
             {
-                detailMarkets.Add(detail);
+                detailMarkets.Add(this.safeDict(details, i));
             }
         }
         IList<object> markets = this.parseMarkets(detailMarkets);
@@ -2118,7 +2143,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchCfdMarkets(object parameters = null)
+    public async virtual Task<object> fetchCfdMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -2128,7 +2153,7 @@ public partial class interactivebrokers : Exchange
         for (int i = 0; i < cfdExchanges.Count; i++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "exchange", cfdExchanges[i] },
+                { "exchange", this.safeString(cfdExchanges, i, "") },
                 { "assetClass", "CFD" },
             };
             promises.Add(this.marketsEndpointCall(request, "webapiGetV1ApiTrsrvAllConids", new List<object>() {}));
@@ -2136,25 +2161,27 @@ public partial class interactivebrokers : Exchange
         List<object> responses = await promiseAll(promises);
         for (int i = 0; i < (responses?.Count ?? 0); i++)
         {
-            object cfds = responses[i];
-            for (int j = 0; j < getArrayLength(cfds); j++)
+            List<object> cfds = this.safeList(responses, i, new List<object>() {});
+            for (int j = 0; j < cfds.Count; j++)
             {
-                object cfd = getValue(cfds, j);
+                object cfd = cfds[j];
                 string conid = this.safeString(cfd, "conid");
                 entries[(string)conid] = cfd;
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         List<object> result = new List<object>() {};
+        int detailMarketsLength = (detailMarkets?.Count ?? 0);
         for (int i = 0; i < cfdExchanges.Count; i++)
         {
-            for (int j = 0; j < (detailMarkets?.Count ?? 0); j++)
+            string? cfdExchange = this.safeString(cfdExchanges, i, "");
+            for (int j = 0; j < detailMarketsLength; j++)
             {
-                object detail = detailMarkets[j];
-                if (isEqual(this.safeString(detail, "listingExchange"), cfdExchanges[i]))
+                string? listingExchange = this.safeString((detailMarkets != null && j < detailMarkets.Count ? detailMarkets[j] : null), "listingExchange", "");
+                if ((listingExchange == cfdExchange))
                 {
-                    result.Add(detail);
+                    result.Add(this.safeDict(detailMarkets, j));
                 }
             }
         }
@@ -2172,7 +2199,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchBondMarkets(object parameters = null)
+    public async virtual Task<List<object>> fetchBondMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -2183,7 +2210,7 @@ public partial class interactivebrokers : Exchange
         for (int i = 0; i < bondSymbols.Count; i++)
         {
             Dictionary<string, object> searchRequest = new Dictionary<string, object>() {
-                { "symbol", bondSymbols[i] },
+                { "symbol", this.safeString(bondSymbols, i, "") },
                 { "secType", "BOND" },
             };
             searchPromises.Add(this.marketsEndpointCall(this.extend(searchRequest, parameters), "webapiPostV1ApiIserverSecdefSearch", new List<object>() {}));
@@ -2195,16 +2222,17 @@ public partial class interactivebrokers : Exchange
         for (int i = 0; i < filterIds.Count; i++)
         {
             string filterId = ((string)filterIds[i]);
-            filterParts.Add(((filterId + ":") + this.safeString(bondFilters, filterId)));
+            string? filterValue = this.safeString(bondFilters, filterId, "");
+            filterParts.Add(((filterId + ":") + filterValue));
         }
         int filterPartsLength = (filterParts?.Count ?? 0);
         List<object> contractPromises = new List<object>() {};
         for (int i = 0; i < (searchResults?.Count ?? 0); i++)
         {
-            object searchResult = searchResults[i];
-            for (int j = 0; j < getArrayLength(searchResult); j++)
+            List<object> searchResult = this.safeList(searchResults, i, new List<object>() {});
+            for (int j = 0; j < searchResult.Count; j++)
             {
-                List<object> issuers = this.safeList(getValue(searchResult, j), "issuers", new List<object>() {});
+                List<object> issuers = this.safeList(searchResult[j], "issuers", new List<object>() {});
                 for (int k = 0; k < issuers.Count; k++)
                 {
                     Dictionary<string, object> contractsRequest = new Dictionary<string, object>() {
@@ -2475,10 +2503,10 @@ public partial class interactivebrokers : Exchange
         //
         for (int i = 0; i < (contractResults?.Count ?? 0); i++)
         {
-            object contracts = contractResults[i];
-            for (int j = 0; j < getArrayLength(contracts); j++)
+            List<object> contracts = this.safeList(contractResults, i, new List<object>() {});
+            for (int j = 0; j < contracts.Count; j++)
             {
-                object contract = getValue(contracts, j);
+                object contract = contracts[j];
                 string? conid = this.safeString(contract, "conid");
                 if ((conid != null))
                 {
@@ -2486,7 +2514,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         IList<object> markets = this.parseMarkets(detailMarkets);
         // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
@@ -2494,11 +2522,16 @@ public partial class interactivebrokers : Exchange
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, markets[i]);
-            string symbol = this.safeString(market, "symbol");
+            string? symbol = this.safeString(market, "symbol", "");
             if (((symbol != null) && (seen?.ContainsKey(symbol) == true)))
             {
-                string bs = ((this.safeString(market, "base") + "-") + this.safeString(market, "id"));
-                symbol = ((((bs + ".") + this.safeString((market.ContainsKey("info") ? market["info"] : null), "exchange", "SMART")) + "/") + this.safeString(market, "quote"));
+                string marketBase = this.safeString(market, "base", "");
+                string? marketId = this.safeString(market, "id", "");
+                string? marketQuote = this.safeString(market, "quote", "");
+                IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+                string? listingExchange = this.safeString(marketInfo, "exchange", "SMART");
+                string bs = ((marketBase + "-") + marketId);
+                symbol = ((((bs + ".") + listingExchange) + "/") + marketQuote);
                 market = this.extend(market, new Dictionary<string, object>() {
                     { "symbol", symbol },
                     { "base", bs },
@@ -2510,7 +2543,7 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchStockMarkets(object parameters = null)
+    public async virtual Task<object> fetchStockMarkets(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> entries = new Dictionary<string, object>() {};
@@ -2519,7 +2552,7 @@ public partial class interactivebrokers : Exchange
         List<object> stockExchanges = this.safeList(exchangesDict, "STK", new List<object>() {});
         for (int j = 0; j < stockExchanges.Count; j++)
         {
-            object exchange = stockExchanges[j];
+            string? exchange = this.safeString(stockExchanges, j, "");
             Dictionary<string, object> stockRequest = new Dictionary<string, object>() {
                 { "exchange", exchange },
                 { "assetClass", "STK" },
@@ -2538,7 +2571,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> markets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> markets = await this.fetchSecWithDetails(entries);
         return this.parseMarkets(markets);
     }
 
@@ -2546,8 +2579,8 @@ public partial class interactivebrokers : Exchange
     {
         IDictionary<string, object> opts = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         Int64? retries = this.safeInteger(opts, "endpointRetries", 3);
-        object retryDelay = this.safeInteger(opts, "retryDelay", 1000);
-        for (int i = 0; (i < retries); i++)
+        Int64? retryDelay = this.safeInteger(opts, "retryDelay", 1000);
+        for (int i = 0; i < retries.GetValueOrDefault(); i++)
         {
             bool isLastRetry = ((i >= (retries - 1)));
             object data = null;
@@ -2558,7 +2591,7 @@ public partial class interactivebrokers : Exchange
                     data = await this.webapiGetV1ApiTrsrvSecdef(request);
                 } else if ((ep == "webapiPostV1ApiIserverScannerRun"))
                 {
-                    retryDelay = mathMax(retryDelay, 1000);
+                    retryDelay = Math.Max(retryDelay.GetValueOrDefault(), 1000);
                     data = await this.webapiPostV1ApiIserverScannerRun(request);
                 } else if ((ep == "webapiGetV1ApiTrsrvFutures"))
                 {
@@ -3024,7 +3057,7 @@ public partial class interactivebrokers : Exchange
             string? maturityDate = this.safeString(market, "maturityDate"); // 20270131
             if ((maturityDate != null))
             {
-                bs = ((object)(bs == null ? null : bs + "-" + (string)(object)(((maturityDate == null) ? null : maturityDate.Substring(Math.Min(2, maturityDate.Length), Math.Min(8, maturityDate.Length) - Math.Min(2, maturityDate.Length))))));
+                bs = ((object)(bs == null ? null : bs + "-" + ((maturityDate == null) ? null : maturityDate.Substring(Math.Min(2, maturityDate.Length), Math.Min(8, maturityDate.Length) - Math.Min(2, maturityDate.Length)))));
             }
         } else if (isStock || isCfd)
         {
@@ -3049,10 +3082,10 @@ public partial class interactivebrokers : Exchange
         {
             settleId = quoteId;
             settle = quote;
-            symbol = ((object)(symbol == null ? null : symbol + ":" + settle));
+            symbol = ((object)(bs == null ? null : bs + "." + microNanoPrefix + listingExchange + "/" + quote + ":" + settle));
             if (isFuture)
             {
-                symbol = ((object)(symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry))));
+                symbol = ((object)(bs == null ? null : bs + "." + microNanoPrefix + listingExchange + "/" + quote + ":" + settle + "-" + (string)(object)(this.yymmdd(expiry))));
             }
         }
         string marketType = "spot";
@@ -3136,12 +3169,13 @@ public partial class interactivebrokers : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         var fieldsqueryVariable = this.handleOptionAndParams(parameters, "fetchTickers", "fields");
         var fields = ((IList<object>) fieldsqueryVariable)[0];
         var query = ((IList<object>) fieldsqueryVariable)[1];
         string fieldsString = String.Join(",", ((IList<object>)fields).ToArray());
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, query);
+        List<object> readyFields = new List<object>() {"31", "84", "86"};
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, query);
         //
         //     [
         //         {
@@ -3171,17 +3205,17 @@ public partial class interactivebrokers : Exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    public async virtual Task<object> ibkrFetchSnapshot(object symbols, object fields, object parameters = null, object readyFields = null)
+    public async virtual Task<List<object>> ibkrFetchSnapshot(IList<object> symbols, object fields, IList<object> readyFields, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> conids = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(symbols[i]);
             conids.Add(this.safeString(market, "id", ""));
         }
         IDictionary<string, object> options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
@@ -3191,15 +3225,15 @@ public partial class interactivebrokers : Exchange
             { "conids", String.Join(",", conids.ToArray()) },
             { "fields", fields },
         };
-        object response = new List<object>() {};
-        for (int i = 0; (i <= retries); i++)
+        List<object> response = new List<object>() {};
+        for (int i = 0; i <= retries.GetValueOrDefault(); i++)
         {
-            response = ((object)await this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters)));
+            response = await this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters));
             if (this.ibkrSnapshotReady(response, readyFields))
             {
                 break;
             }
-            if ((i < retries))
+            if (i < retries.GetValueOrDefault())
             {
                 await this.sleep(retryDelay);
             }
@@ -3207,21 +3241,20 @@ public partial class interactivebrokers : Exchange
         return response;
     }
 
-    public virtual bool ibkrSnapshotReady(object response, object readyFields = null)
+    public virtual bool ibkrSnapshotReady(IList<object> response, IList<object> fieldIds)
     {
-        int numItems = getArrayLength(response);
+        int numItems = response?.Count ?? 0;
         if ((numItems == 0))
         {
             return false;
         }
-        object fieldIds = ((readyFields == null)) ? new List<object>() {"31", "84", "86"} : readyFields;
-        for (int i = 0; i < getArrayLength(response); i++)
+        int numFields = (fieldIds?.Count ?? 0);
+        for (int i = 0; i < numItems; i++)
         {
-            object item = getValue(response, i);
             bool found = false;
-            for (int j = 0; j < getArrayLength(fieldIds); j++)
+            for (int j = 0; j < numFields; j++)
             {
-                if ((this.safeString(item, getValue(fieldIds, j)) != null))
+                if ((this.safeString((response != null && i < response.Count ? response[i] : null), (fieldIds != null && j < fieldIds.Count ? fieldIds[j] : null)) != null))
                 {
                     found = true;
                     break;
@@ -3257,10 +3290,10 @@ public partial class interactivebrokers : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? fields = this.safeString(parameters, "fields", "84,85,86,88");
         Dictionary<string, object> query = this.omit(parameters, "fields");
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, query, new List<object>() {"84", "86"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, new List<object>() {"84", "86"}, query);
         //
         //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -3289,17 +3322,17 @@ public partial class interactivebrokers : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, "31", parameters, new List<object>() {"31"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, "31", new List<object>() {"31"}, parameters);
         //
         //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
         return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(response, symbolsNormalized));
     }
 
-    public override object parseLastPrice(object entry, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLastPrice(IDictionary<string, object> entry, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(entry, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(entry, "_updated");
         return new Dictionary<string, object>() {
             { "symbol", (resolved != null && resolved.ContainsKey("symbol") ? resolved["symbol"] : null) },
@@ -3332,8 +3365,8 @@ public partial class interactivebrokers : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, "7635", parameters, new List<object>() {"7635"});
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, "7635", new List<object>() {"7635"}, parameters);
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -3371,7 +3404,7 @@ public partial class interactivebrokers : Exchange
             }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        object response = await this.ibkrFetchSnapshot(symbolsNormalized, "31,7697,7638", parameters, new List<object>() {"7697", "7638"});
+        List<object> response = await this.ibkrFetchSnapshot(symbolsNormalized, "31,7697,7638", new List<object>() {"7697", "7638"}, parameters);
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
@@ -3381,7 +3414,7 @@ public partial class interactivebrokers : Exchange
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(interest, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(interest, "_updated");
         string? openInterest = this.ibkrParseValue(this.safeString2(interest, "7697", "7638"));
         string? last = this.ibkrParseValue(this.safeString(interest, "31"));
@@ -3461,12 +3494,7 @@ public partial class interactivebrokers : Exchange
         }
         if ((multiplier != null))
         {
-            string? scaled = Precise.stringMul(((result == null) ? null : result.Substring(0, Math.Max(Math.Min(((result.Length - 1) < 0 ? result.Length + ((result.Length - 1)) : (result.Length - 1)), result.Length), 0))), multiplier);
-            if ((scaled == null))
-            {
-                return null;
-            }
-            result = scaled;
+            return ((string?)((object)(Precise.stringMul(((result == null) ? null : result.Substring(0, Math.Max(Math.Min(((result.Length - 1) < 0 ? result.Length + ((result.Length - 1)) : (result.Length - 1)), result.Length), 0))), multiplier))));
         }
         if (result == "")
         {
@@ -3475,12 +3503,12 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "conid");
         Dictionary<string, object> resolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "_updated");
-        object last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
+        string? last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
         if ((last == null))
         {
             // if precise fields are not provided, use generic "last price" field
@@ -3537,8 +3565,17 @@ public partial class interactivebrokers : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? maxLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {}), "limit", 1000);
-        object requestLimit = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);
+        Int64? maxLimit = 1000;
+        Int64? configuredLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {}), "limit");
+        if ((configuredLimit != null))
+        {
+            maxLimit = configuredLimit;
+        }
+        Int64? requestLimit = maxLimit;
+        if ((limit != null))
+        {
+            requestLimit = Math.Min(limit.Value, maxLimit.GetValueOrDefault());
+        }
         int duration = this.parseTimeframe(timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "conid", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3550,7 +3587,13 @@ public partial class interactivebrokers : Exchange
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request["startTime"] = this.ibkrFormatTime((since - (duration * 1000L)));
             request["direction"] = "1"; // forward from startTime, by default startTime is the end of the range
-            requestLimit = mathMin(add(requestLimit, 1), maxLimit);
+            if ((limit != null))
+            {
+                if ((limit < maxLimit))
+                {
+                    requestLimit = (limit + 1);
+                }
+            }
         }
         request["period"] = this.ibkrPeriod(duration, requestLimit);
         Dictionary<string, object> response = await this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, parameters));
@@ -3568,30 +3611,30 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public virtual string? ibkrPeriod(object duration, object limit)
+    public virtual string? ibkrPeriod(Int64 duration, Int64? limit)
     {
         // duration of one bar in seconds, the period is expressed in the largest fitting unit
-        object total = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, limit);
-        if (isLessThan(duration, 3600))
+        Int64? total = (duration * limit);
+        if ((duration < 3600))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 60))) + "min");
-        } else if (isLessThan(duration, 86400))
+            return (this.numberToString(this.parseToInt(((double?)total / 60))) + "min");
+        } else if ((duration < 86400))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 3600))) + "h");
-        } else if (isLessThan(duration, 604800))
+            return (this.numberToString(this.parseToInt(((double?)total / 3600))) + "h");
+        } else if ((duration < 604800))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 86400))) + "d");
-        } else if (isLessThan(duration, 2592000))
+            return (this.numberToString(this.parseToInt(((double?)total / 86400))) + "d");
+        } else if ((duration < 2592000))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 604800))) + "w");
+            return (this.numberToString(this.parseToInt(((double?)total / 604800))) + "w");
         }
         // monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
-        Int64? months = this.parseToInt(divide(total, 2592000));
+        Int64? months = this.parseToInt(((double?)total / 2592000));
         if ((months == null || months <= 12))
         {
             return (this.numberToString(months) + "m");
         }
-        object years = mathMin(this.parseToInt(((double?)((months + 11)) / 12)), 15); // 15y is the documented maximum period
+        Int64 years = Math.Min(this.parseToInt(((double?)((months + 11)) / 12)).GetValueOrDefault(), 15); // 15y is the documented maximum period
         return (this.numberToString(years) + "y");
     }
 
@@ -3602,7 +3645,7 @@ public partial class interactivebrokers : Exchange
         return ((this.yyyymmdd(timestamp, "") + "-") + ((iso == null) ? null : iso.Substring(Math.Min(11, iso.Length), Math.Min(19, iso.Length) - Math.Min(11, iso.Length))));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
@@ -3620,8 +3663,9 @@ public partial class interactivebrokers : Exchange
     {
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         parameters ??= new Dictionary<string, object>();
-        List<object> portfolioAccounts = ((List<object>)await this.fetchPortfolioAccounts(parameters));
-        List<object> accountIds = new List<object>(((IDictionary<string,object>)this.indexBy(portfolioAccounts, "accountId")).Keys);
+        List<object> portfolioAccounts = await this.fetchPortfolioAccounts(parameters);
+        Dictionary<string, object> accountsById = this.indexBy(portfolioAccounts, "accountId");
+        List<object> accountIds = new List<object>(accountsById.Keys);
         int length = accountIds.Count;
         if ((length == 0))
         {
@@ -3640,12 +3684,12 @@ public partial class interactivebrokers : Exchange
         List<object> accounts = new List<object>() {};
         for (int i = 0; i < (portfolioAccounts?.Count ?? 0); i++)
         {
-            accounts.Add(this.parseAccount(portfolioAccounts[i]));
+            accounts.Add(this.parseAccount(this.extend(new Dictionary<string, object>() {}, portfolioAccounts[i])));
         }
         return ccxt.BaseExchange.ToAccountList(accounts);
     }
 
-    public override object parseAccount(object account)
+    public override Dictionary<string, object> parseAccount(IDictionary<string, object> account)
     {
         //
         //     {
@@ -3681,7 +3725,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw response from the exchange
      */
-    public async virtual Task<object> fetchServiceAccounts(IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> fetchServiceAccounts(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.webapiGetV1ApiIserverAccounts(parameters);
@@ -3772,21 +3816,55 @@ public partial class interactivebrokers : Exchange
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
      * @returns {object[]} the raw response from the exchange
      */
-    public async virtual Task<object> fetchPortfolioAccounts(object parameters = null)
+    public async virtual Task<List<object>> fetchPortfolioAccounts(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
         IList<object> methodqueryVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPortfolioAccounts", "method", "privateGetPortfolioAccounts");
         var method = methodqueryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)methodqueryVariable[1]);
-        List<object> response = null;
         if ((method is "privateGetPortfolioSubaccounts"))
         {
-            response = await this.webapiGetV1ApiPortfolioSubaccounts(query);
-        } else
-        {
-            response = await this.webapiGetV1ApiPortfolioAccounts(query);
+            List<object> subaccounts = await this.webapiGetV1ApiPortfolioSubaccounts(query);
+            return subaccounts;
         }
+        List<object> response = await this.webapiGetV1ApiPortfolioAccounts(query);
+        //
+        //    [
+        //        {
+        //            "id": "U3448646",
+        //            "PrepaidCrypto-Z": false,
+        //            "PrepaidCrypto-P": true,
+        //            "brokerageAccess": true,
+        //            "accountId": "U3448646",
+        //            "accountVan": "U3448646",
+        //            "accountTitle": "Toma Todua",
+        //            "displayName": "Toma Todua",
+        //            "accountAlias": null,
+        //            "accountStatus": 1646607600000,
+        //            "currency": "USD",
+        //            "type": "INDIVIDUAL",
+        //            "tradingType": "STKNOPT",
+        //            "businessType": "INDEPENDENT",
+        //            "category": "",
+        //            "ibEntity": "IBLLC-US",
+        //            "faclient": false,
+        //            "clearingStatus": "O",
+        //            "covestor": false,
+        //            "noClientTrading": false,
+        //            "trackVirtualFXPortfolio": true,
+        //            "acctCustType": "INDIVIDUAL",
+        //            "parent": {
+        //                "mmc": [],
+        //                "accountId": "",
+        //                "isMParent": false,
+        //                "isMChild": false,
+        //                "isMultiplex": false
+        //            },
+        //            "desc": "U3448646"
+        //        }
+        //    ]
+        //
         return response;
     }
 
@@ -3800,7 +3878,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw response from the exchange
      */
-    public async virtual Task<object> switchToAccount(string accountId, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> switchToAccount(string accountId, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((accountId == null))
@@ -3864,14 +3942,14 @@ public partial class interactivebrokers : Exchange
             { "orders", new List<object>() {orderRequest} },
         };
         object response = await this.webapiPostV1ApiIserverAccountAccountIdOrders(request);
-        object result = await this.ibkrHandleOrderReplies(response, "createOrder");
+        IDictionary<string, object> result = await this.ibkrHandleOrderReplies(response, "createOrder");
         //
         //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
         //
         return this.parseOrder(result, market);
     }
 
-    public async virtual Task<object> createTestOrder(string symbol, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> createTestOrder(string symbol, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -3935,7 +4013,7 @@ public partial class interactivebrokers : Exchange
         bool isMarketByCost = isMarket && ((cost != null));
         if (!isMarketByCost)
         {
-            request["quantity"] = this.parseNumber(this.amountToPrecision(symbol, amount));
+            request["quantity"] = this.parseNumber(this.amountToPrecision(((string)symbol), amount));
         }
         string? orderType = null;
         if (((trailingAmount != null)) || ((trailingPercent != null)))
@@ -3948,34 +4026,34 @@ public partial class interactivebrokers : Exchange
             } else
             {
                 request["trailingType"] = "amt";
-                request["trailingAmt"] = this.parseNumber(this.priceToPrecision(symbol, trailingAmount));
+                request["trailingAmt"] = this.parseNumber(this.priceToPrecision(((string)symbol), trailingAmount));
             }
             if ((triggerPrice != null))
             {
-                request["auxPrice"] = this.parseNumber(this.priceToPrecision(symbol, triggerPrice));
+                request["auxPrice"] = this.parseNumber(this.priceToPrecision(((string)symbol), triggerPrice));
             }
             if (!isMarket)
             {
-                request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
+                request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), price));
             }
         } else if ((triggerPrice != null))
         {
             if (isMarket)
             {
                 orderType = "STP";
-                request["price"] = this.parseNumber(this.priceToPrecision(symbol, triggerPrice));
+                request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), triggerPrice));
             } else
             {
                 orderType = "STP LMT";
-                request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
-                request["auxPrice"] = this.parseNumber(this.priceToPrecision(symbol, triggerPrice));
+                request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), price));
+                request["auxPrice"] = this.parseNumber(this.priceToPrecision(((string)symbol), triggerPrice));
             }
         } else if (isMarket)
         {
             orderType = "MKT";
             if (isMarketByCost)
             {
-                request["cashQty"] = this.parseNumber(this.priceToPrecision(symbol, cost));
+                request["cashQty"] = this.parseNumber(this.priceToPrecision(((string)symbol), cost));
             } else if ((side is "buy"))
             {
                 throw new InvalidOrder ((this.id + " createOrder() requires params[\"cost\"] for market buy orders")) ;
@@ -3983,7 +4061,7 @@ public partial class interactivebrokers : Exchange
         } else
         {
             orderType = "LMT";
-            request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
+            request["price"] = this.parseNumber(this.priceToPrecision(((string)symbol), price));
         }
         request["orderType"] = orderType;
         string defaultTimeInForce = "DAY";
@@ -3999,8 +4077,13 @@ public partial class interactivebrokers : Exchange
         }
         request["cOID"] = clientOrderId;
         IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty"}));
-        Dictionary<string, object> orderTicket = this.extend(request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        List<object> queryKeys = new List<object>(query.Keys);
+        for (int i = 0; i < queryKeys.Count; i++)
+        {
+            string? key = ((string)queryKeys[i]);
+            request[(string)key] = (query != null && key != null && query.ContainsKey(key) ? query[key] : null);
+        }
+        return request;
     }
 
     /**
@@ -4012,15 +4095,16 @@ public partial class interactivebrokers : Exchange
      * @param {string} methodName the calling method name
      * @returns {object} the accepted order entry
      */
-    public async virtual Task<object> ibkrHandleOrderReplies(object response, string methodName)
+    public async virtual Task<IDictionary<string, object>> ibkrHandleOrderReplies(object response, string methodName)
     {
         IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
         bool? autoConfirm = this.safeBool(options, "autoConfirmOrderReplies", true);
         Int64? maxReplies = this.safeInteger(options, "maxReplies", 10);
+        string errorPrefix = (((this.id + " ") + methodName) + "() ");
         object current = response;
-        for (int i = 0; (i <= maxReplies); i++)
+        for (int i = 0; i <= maxReplies.GetValueOrDefault(); i++)
         {
-            if (!((current is IList<object>) || (current.GetType().IsGenericType && current.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (!((current is IList<object>) || (current is not null && current.GetType().IsGenericType && current.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 //
                 // advanced order reject
@@ -4028,7 +4112,7 @@ public partial class interactivebrokers : Exchange
                 //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 //
                 string? text = this.safeString(current, "text");
-                throw new InvalidOrder (((((this.id + " ") + methodName) + "() rejected: ") + text)) ;
+                throw new InvalidOrder (((errorPrefix + "rejected: ") + text)) ;
             }
             IDictionary<string, object> first = this.safeDict(current, 0, new Dictionary<string, object>() {});
             string? orderId = this.safeString2(first, "order_id", "orderId");
@@ -4046,11 +4130,11 @@ public partial class interactivebrokers : Exchange
             string message = String.Join(" ", messages.ToArray());
             if ((replyId == null))
             {
-                throw new InvalidOrder (((((this.id + " ") + methodName) + "() unexpected response: ") + this.json(current))) ;
+                throw new InvalidOrder (((errorPrefix + "unexpected response: ") + this.json(current))) ;
             }
             if (autoConfirm != true)
             {
-                throw new InvalidOrder ((string)((((((this.id + " ") + methodName) + "() requires confirmation (reply id ") + replyId) + "): ") + message)) ;
+                throw new InvalidOrder (((((errorPrefix + "requires confirmation (reply id ") + replyId) + "): ") + message)) ;
             }
             Dictionary<string, object> replyRequest = new Dictionary<string, object>() {
                 { "replyId", replyId },
@@ -4058,7 +4142,7 @@ public partial class interactivebrokers : Exchange
             };
             current = await this.webapiPostV1ApiIserverReplyReplyId(replyRequest);
         }
-        throw new InvalidOrder ((((this.id + " ") + methodName) + "() exceeded options.createOrder.maxReplies order reply confirmations")) ;
+        throw new InvalidOrder ((errorPrefix + "exceeded options.createOrder.maxReplies order reply confirmations")) ;
     }
 
     /**
@@ -4096,7 +4180,7 @@ public partial class interactivebrokers : Exchange
         orderRequest["accountId"] = accountId;
         orderRequest["orderId"] = id;
         object response = await this.webapiPostV1ApiIserverAccountAccountIdOrderOrderId(orderRequest);
-        object result = await this.ibkrHandleOrderReplies(response, "editOrder");
+        IDictionary<string, object> result = await this.ibkrHandleOrderReplies(response, "editOrder");
         ccxt.Order order = this.parseOrder(result, market);
         order.type = ccxt.BaseExchange.StructString(type);
         order.side = ccxt.BaseExchange.StructString(side);
@@ -4140,7 +4224,7 @@ public partial class interactivebrokers : Exchange
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -4198,7 +4282,7 @@ public partial class interactivebrokers : Exchange
         {
             throw new NullResponse ((this.id + " fetchOrder() returned empty response")) ;
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -4227,7 +4311,7 @@ public partial class interactivebrokers : Exchange
         {
             market = this.market(symbol);
         }
-        List<object> orders = ((List<object>)await this.fetchLiveOrdersRaw(parameters));
+        List<object> orders = await this.fetchLiveOrdersRaw(parameters);
         IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders, market, null, null));
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(parsed, symbol, since, limit));
     }
@@ -4315,16 +4399,15 @@ public partial class interactivebrokers : Exchange
         {
             market = this.market(symbol);
         }
-        List<object> orders = ((List<object>)await this.fetchLiveOrdersRaw(parameters));
+        List<object> orders = await this.fetchLiveOrdersRaw(parameters);
         IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders, market, null, null));
         List<object> result = new List<object>() {};
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)parsed[i]);
-            string? status = ((string)(order != null && order.ContainsKey("status") ? order["status"] : null));
+            string? status = this.safeString(parsed[i], "status");
             if ((status == "closed") || (status == "canceled"))
             {
-                result.Add(order);
+                result.Add(parsed[i]);
             }
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
@@ -4342,7 +4425,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrdersByStatusFilter(string status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrdersByStatusFilter(string status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -4355,7 +4438,7 @@ public partial class interactivebrokers : Exchange
         {
             market = this.market(symbol);
         }
-        List<object> orders = ((List<object>)await this.fetchLiveOrdersRaw(parameters));
+        List<object> orders = await this.fetchLiveOrdersRaw(parameters);
         IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders, market, null, null));
         List<object> filtered = this.filterBy(parsed, "status", status);
         return this.filterBySymbolSinceLimit(filtered, symbol, since, limit);
@@ -4370,7 +4453,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw orders
      */
-    public async virtual Task<object> fetchLiveOrdersRaw(object parameters = null)
+    public async virtual Task<List<object>> fetchLiveOrdersRaw(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -4381,7 +4464,7 @@ public partial class interactivebrokers : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOrders", new Dictionary<string, object>() {});
         Int64? retryDelay = this.safeInteger(options, "retryDelay", 500);
         bool? force = this.safeBool(parameters, "force", this.safeBool(options, "force", true));
-        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "force"));
+        Dictionary<string, object> query = this.omit(parameters, "force");
         if ((force == true))
         {
             // the order list is cached and misses the orders created after it was built,
@@ -4458,7 +4541,7 @@ public partial class interactivebrokers : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseOrderType(object orderType)
+    public virtual string? parseOrderType(string? orderType)
     {
         if ((orderType == null))
         {
@@ -4480,10 +4563,10 @@ public partial class interactivebrokers : Exchange
             { "TRAILING_STOP_LIMIT", "limit" },
             { "MIDPRICE", "limit" },
         };
-        return this.safeString(types, ((string)orderType).ToUpper(), orderType);
+        return this.safeString(types, orderType.ToUpper(), orderType);
     }
 
-    public virtual string? parseOrderTimeInForce(object timeInForce)
+    public virtual string? parseOrderTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "DAY", "Day" },
@@ -4496,7 +4579,7 @@ public partial class interactivebrokers : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder / editOrder
@@ -4601,9 +4684,11 @@ public partial class interactivebrokers : Exchange
         }
         IDictionary<string, object> options = this.safeDict(this.options, "fetchMyTrades", new Dictionary<string, object>() {});
         string defaultMethod = "privateGetIserverAccountTrades";
-        if ((market != null))
+        if ((symbol != null))
         {
-            string? assetClass = this.safeString((market.ContainsKey("info") ? market["info"] : null), "assetClass");
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            IDictionary<string, object> symbolInfo = this.safeDict(symbolMarket, "info");
+            string? assetClass = this.safeString(symbolInfo, "assetClass");
             if (assetClass == "CRYPTO")
             {
                 defaultMethod = "privatePostPaTransactions";
@@ -4615,11 +4700,11 @@ public partial class interactivebrokers : Exchange
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchMyTradesFromTransactions(market, since, limit, query));
         }
-        object days = this.safeInteger(options, "days", 7);
+        Int64? days = this.safeInteger(options, "days", 7);
         if ((since != null))
         {
             object daysPassed = ((double?)((this.milliseconds() - since)) / 86400000);
-            days = mathMin(7, mathMax(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed)))));
+            days = Math.Min(7, Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed)))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "days", days },
@@ -4662,7 +4747,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async virtual Task<object> fetchMyTradesFromTransactions(IDictionary<string, object> market, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> fetchMyTradesFromTransactions(IDictionary<string, object> market, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((market == null))
@@ -4675,16 +4760,16 @@ public partial class interactivebrokers : Exchange
         var accountQuery = ((IList<object>) accountIdaccountQueryVariable)[1];
         IList<object> currencyqueryVariable = (IList<object>)this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
         var currency = currencyqueryVariable[0];
-        var query = currencyqueryVariable[1];
-        object days = this.safeInteger(options, "transactionsDays", 90);
+        IDictionary<string, object> query = ((IDictionary<string, object>)currencyqueryVariable[1]);
+        Int64? days = this.safeInteger(options, "transactionsDays", 90);
         if ((since != null))
         {
-            object daysPassed = divide((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(this.milliseconds(), since)), 86400000);
-            days = mathMax(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed))));
+            object daysPassed = ((double?)((this.milliseconds() - since)) / 86400000);
+            days = Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "acctIds", new List<object>() {accountId} },
-            { "conids", new List<object> {this.parseToInt((market != null && market.ContainsKey("id") ? market["id"] : null))} },
+            { "conids", new List<object> {this.parseToInt(this.safeString(market, "id"))} },
             { "currency", currency },
             { "days", days },
         };
@@ -4719,14 +4804,14 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.FromTradeList(this.parseTrades(transactions, market, since, limit));
     }
 
-    public virtual object parseTransactionDate(object date)
+    public virtual Int64? parseTransactionDate(string? date)
     {
         // "Mon Dec 11 00:00:00 EST 2023" -> 2023-12-11T00:00:00-05:00
         if ((date == null))
         {
             return null;
         }
-        List<object> parts = ((string)date).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = date.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         int partsLength = parts.Count;
         if (partsLength < 6)
         {
@@ -4757,15 +4842,16 @@ public partial class interactivebrokers : Exchange
         {
             return null;
         }
-        string? dayPart = ((string)(parts != null && 2 < parts.Count ? parts[2] : null));
+        string? dayPart = this.safeString(parts, 2, "");
         string day = (dayPart as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0"));
         string? offset = this.safeString(offsets, (parts != null && 4 < parts.Count ? parts[4] : null), "+00:00");
-        return this.parse8601(add(add(add(add(add(add(add((parts != null && 5 < parts.Count ? parts[5] : null), "-"), month), "-"), day), "T"), (parts != null && 3 < parts.Count ? parts[3] : null)), offset));
+        return this.parse8601(((object)((parts != null && 5 < parts.Count ? parts[5] : null) == null ? null : (parts != null && 5 < parts.Count ? parts[5] : null) + "-" + month + "-" + day + "T" + (string)(object)((parts != null && 3 < parts.Count ? parts[3] : null)) + offset)));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("qty")))
+        string? transactionQty = this.safeString(trade, "qty");
+        if ((transactionQty != null))
         {
             //
             // pa/transactions
@@ -4787,7 +4873,7 @@ public partial class interactivebrokers : Exchange
             //
             string? transactionMarketId = this.safeString(trade, "conid");
             Dictionary<string, object> transactionMarket = this.safeMarket(transactionMarketId, market);
-            Int64? transactionTimestamp = ((Int64)this.parseTransactionDate(this.safeString(trade, "date")));
+            Int64? transactionTimestamp = this.parseTransactionDate(this.safeString(trade, "date"));
             string? qty = this.safeString(trade, "qty");
             string? typeId = this.safeStringLower(trade, "type");
             string? transactionSide = null;
@@ -4903,7 +4989,7 @@ public partial class interactivebrokers : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbols));
     }
 
     /**
@@ -4952,11 +5038,11 @@ public partial class interactivebrokers : Exchange
         //         }
         //     ]
         //
-        List<object> positions = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : new List<object>() {};
+        List<object> positions = ((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : new List<object>() {};
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = this.parsePosition(positions[i], market);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), market);
             if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
             {
                 result.Add(position);
@@ -4965,10 +5051,10 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToPositionList(result);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(position, "conid");
-        Dictionary<string, object> resolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> resolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(position, "timestamp");
         string? contracts = this.safeString(position, "position");
         string? side = null;
@@ -5011,23 +5097,23 @@ public partial class interactivebrokers : Exchange
         });
     }
 
-    public virtual string? ibkrEncrypt(object value)
+    public virtual string? ibkrEncrypt(string value)
     {
         // RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string
         string encoded = this.urlencode(new Dictionary<string, object>() {
             { "v", value },
         });
-        return ((string?)((object)(((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length))))));  // strip the 'v=' prefix
+        return ((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length)));  // strip the 'v=' prefix
     }
 
-    public virtual string? ibkrBaseString(object method, object url, object parameters, object prepend = null)
+    public virtual string? ibkrBaseString(string? method, string url, IDictionary<string, object> parameters, string? prepend = null)
     {
         prepend ??= "";
         string query = this.rawencode(this.keysort(parameters));
-        return ((string?)((object)(add(add(add(add(add(prepend, method), "&"), this.ibkrEncrypt(url)), "&"), this.ibkrEncrypt(query)))));
+        return ((string?)((object)((((((prepend + method) + "&") + this.ibkrEncrypt(url)) + "&") + this.ibkrEncrypt(query)))));
     }
 
-    public virtual string? ibkrAuthHeader(object parameters)
+    public virtual string? ibkrAuthHeader(IDictionary<string, object> parameters)
     {
         Dictionary<string, object> sorted = this.keysort(parameters);
         List<object> keys = new List<object>(sorted.Keys);
@@ -5035,12 +5121,14 @@ public partial class interactivebrokers : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string key = ((string)keys[i]);
-            parts.Add((((key + "=\"") + ((sorted != null && key != null && sorted.ContainsKey(key) ? sorted[key] : null))) + "\""));
+            string? value = this.safeString(sorted, key, "");
+            parts.Add((((key + "=\"") + value) + "\""));
         }
-        return ((("OAuth realm=\"" + ((this.options != null && this.options.ContainsKey("realm") ? this.options["realm"] : null))) + "\", ") + String.Join(", ", parts.ToArray()));
+        string? realm = this.safeString(this.options, "realm", "");
+        return ((("OAuth realm=\"" + realm) + "\", ") + String.Join(", ", parts.ToArray()));
     }
 
-    public virtual object ibkrOauthBase(object consumerKey, object consumerAccessToken)
+    public virtual Dictionary<string, object> ibkrOauthBase(object consumerKey, string consumerAccessToken)
     {
         return new Dictionary<string, object>() {
             { "oauth_consumer_key", consumerKey },
@@ -5057,23 +5145,49 @@ public partial class interactivebrokers : Exchange
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    public virtual List<object> ibkrImplodePath(object path, object parameters)
+    public virtual string? ibkrImplodePath(object path, object parameters)
+    {
+        List<object> segments = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        List<object> imploded = new List<object>() {};
+        for (int i = 0; i < segments.Count; i++)
+        {
+            string? segment = ((string)segments[i]);
+            if (segment.StartsWith(":"))
+            {
+                string? name = ((segment == null) ? null : segment.Substring(Math.Min(1, segment.Length)));
+                string? value = this.safeString(parameters, name, segment);
+                imploded.Add(value);
+            } else
+            {
+                imploded.Add(segment);
+            }
+        }
+        return String.Join("/", imploded.ToArray());
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    public virtual List<object> ibkrPathParams(object path)
     {
         List<object> segments = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         List<object> pathParams = new List<object>() {};
         for (int i = 0; i < segments.Count; i++)
         {
-            object segment = segments[i];
-            if (((string)segment).StartsWith(":"))
+            string? segment = ((string)segments[i]);
+            if (segment.StartsWith(":"))
             {
-                string? name = ((segment == null) ? null : ((string)segment).Substring(Math.Min(1, ((string)segment).Length)));
-                pathParams.Add(name);
-                ((List<object>)segments)[Convert.ToInt32(i)] = this.safeString(parameters, name, segment);
+                pathParams.Add(((segment == null) ? null : segment.Substring(Math.Min(1, segment.Length))));
             }
         }
-        return new List<object> {String.Join("/", segments.ToArray()), pathParams};
+        return pathParams;
     }
 
     /**
@@ -5085,7 +5199,7 @@ public partial class interactivebrokers : Exchange
      * @param {string} gatewayUrl options.gatewayUrl
      * @returns {string} the gateway base url
      */
-    public virtual string? ibkrGatewayBaseUrl(object baseUrl, object gatewayUrl)
+    public virtual string? ibkrGatewayBaseUrl(string baseUrl, string gatewayUrl)
     {
         object gateway = gatewayUrl;
         if (!((string)gateway).EndsWith("/"))
@@ -5093,9 +5207,9 @@ public partial class interactivebrokers : Exchange
             gateway = ((object)(gateway == null ? null : gateway + "/"));
         }
         string prefix = "https://api.ibkr.com/";
-        if (((string)baseUrl).StartsWith(prefix))
+        if (baseUrl.StartsWith(prefix))
         {
-            string path = ((string)baseUrl).Replace(prefix, (string)"");
+            string path = baseUrl.Replace(prefix, (string)"");
             return ((string?)((object)(((object)(gateway == null ? null : gateway + path)))));
         }
         return ((string?)((object)(baseUrl)));
@@ -5151,13 +5265,12 @@ public partial class interactivebrokers : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        var implodedPathpathParamsVariable = this.ibkrImplodePath(path, parameters);
-        var implodedPath = implodedPathpathParamsVariable[0];
-        var pathParams = implodedPathpathParamsVariable[1];
+        string? implodedPath = this.ibkrImplodePath(path, parameters);
         string? apiBase = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object baseUrl = add((this.urlsApi != null && apiBase != null && this.urlsApi.ContainsKey(apiBase) ? this.urlsApi[apiBase] : null), implodedPath);
-        object url = baseUrl;
-        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, pathParams));
+        string apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiBase, "");
+        string baseUrl = (apiUrl + implodedPath);
+        string url = baseUrl;
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.ibkrPathParams(path)));
         bool hasQuery = (new List<object>(query.Keys)).Count > 0;
         bool isGetOrDelete = ((method == "GET")) || ((method == "DELETE"));
         string? requestBody = null;
@@ -5167,12 +5280,12 @@ public partial class interactivebrokers : Exchange
         {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             string gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            url = (this.ibkrGatewayBaseUrl((this.urlsApi != null && apiBase != null && this.urlsApi.ContainsKey(apiBase) ? this.urlsApi[apiBase] : null), gatewayUrl) + implodedPath);
+            url = (this.ibkrGatewayBaseUrl(apiUrl, gatewayUrl) + implodedPath);
             if (isGetOrDelete)
             {
                 if (hasQuery)
                 {
-                    url = (url + ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else
             {
@@ -5191,7 +5304,7 @@ public partial class interactivebrokers : Exchange
             };
         }
         this.ibkrCheckOauthCredentials();
-        Dictionary<string, object> oauthParams = ((Dictionary<string, object>)this.ibkrOauthBase((this.options != null && this.options.ContainsKey("consumer_key") ? this.options["consumer_key"] : null), this.apiKey));
+        Dictionary<string, object> oauthParams = this.ibkrOauthBase((this.options != null && this.options.ContainsKey("consumer_key") ? this.options["consumer_key"] : null), this.apiKey);
         if (isLiveSessionTokenRequest)
         {
             // the live session token request is signed with RSA-SHA256,
@@ -5221,7 +5334,7 @@ public partial class interactivebrokers : Exchange
             {
                 if (hasQuery)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                     // the query-string params are part of the signature base string too
                     signingParams = this.extend(oauthParams, query);
                 }
@@ -5230,7 +5343,7 @@ public partial class interactivebrokers : Exchange
                 requestBody = this.json(query);
             }
             string? auth = this.ibkrBaseString(method, baseUrl, signingParams);
-            string signature = this.hmac(this.encode(auth), this.base64ToBinary(liveSessionToken), sha256, "base64");
+            string signature = this.hmac(auth, this.base64ToBinary(liveSessionToken), sha256, "base64");
             oauthParams["oauth_signature"] = this.ibkrEncrypt(signature);
             requestHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.ibkrAuthHeader(oauthParams) },
@@ -5285,7 +5398,7 @@ public partial class interactivebrokers : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "queryAccountsFirst", new Dictionary<string, object>() {});
         Int64? retries = this.safeInteger(options, "retries", 3);
         Int64? retryDelay = this.safeInteger(options, "retryDelay", 1000);
-        for (int i = 0; (i <= retries); i++)
+        for (int i = 0; i <= retries.GetValueOrDefault(); i++)
         {
             try
             {
@@ -5294,7 +5407,7 @@ public partial class interactivebrokers : Exchange
             {
                 string? message = ((string)this.exceptionMessage(e, false));
                 bool mustQueryAccounts = (message?.IndexOf("query /accounts first", StringComparison.Ordinal) ?? -1) >= 0;
-                if (isAccountsPath || !mustQueryAccounts || ((i == retries)))
+                if (isAccountsPath || !mustQueryAccounts || (i >= retries.GetValueOrDefault()))
                 {
                     throw e;
                 }
@@ -5307,18 +5420,18 @@ public partial class interactivebrokers : Exchange
         return null;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 401)) && (this.safeBool(this.options, "useGateway", false) == true))
         {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options["gatewayAuthenticatedTimestamp"] = null;
             string gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            throw new AuthenticationError ((string)((((((((this.id + " the client portal gateway is not logged in, log in again at ") + gatewayUrl) + " in a browser. Current action: ") + method) + " ") + url) + " ") + (body))) ;
+            throw new AuthenticationError ((string)((((((((this.id + " the client portal gateway is not logged in, log in again at ") + gatewayUrl) + " in a browser. Current action: ") + method) + " ") + url) + " ") + body)) ;
         }
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {
@@ -5329,12 +5442,12 @@ public partial class interactivebrokers : Exchange
         string? errorMessage = this.safeString(response, "error");
         if ((errorMessage != null))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             string? statusCode = this.safeString(response, "statusCode");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), statusCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, statusCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

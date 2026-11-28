@@ -195,7 +195,7 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(contract: Dict, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name aster#fetchBalance
@@ -429,9 +429,9 @@ export default class aster extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: Dict): Promise<MarginModification[]>;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Int, limit?: Int, params?: Dict): Promise<MarginModification[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    modifyMarginHelper(symbol: string, amount: any, addOrReduce: number, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, addOrReduce: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name aster#reduceMargin
@@ -572,5 +572,5 @@ export default class aster extends Exchange {
      */
     signIn(params?: Dict): Promise<boolean>;
     initializeClient(params?: Dict): Promise<Bool>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

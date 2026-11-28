@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testOpenInterest(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("openInterestAmount".to_string(), exchange.parse_number(Value::Str("3544581864.598".into()), &[]));
@@ -18,16 +18,16 @@ pub fn testOpenInterest(mut exchange: Value, mut skippedProperties: Value, mut m
             m.insert("timestamp".to_string(), Value::Int(1649373600000));
             m.insert("datetime".to_string(), Value::Str("2022-04-07T23:20:00.000Z".into()));
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("symbol".into()), Value::Str("timestamp".into()), Value::Str("openInterestAmount".into()), Value::Str("openInterestValue".into()), Value::Str("datetime".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone()]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("symbol".into()), Value::Str("timestamp".into()), Value::Str("openInterestAmount".into()), Value::Str("openInterestValue".into()), Value::Str("datetime".into())]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into())]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     //
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("openInterestAmount".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("openInterestValue".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("openInterestAmount".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("openInterestValue".into()), Value::Str("0".into())]);
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/interactivebrokers.js';
-import type { Account, Balances, Dict, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Account, Balances, Dict, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int, Bool } from './base/types.js';
 /**
  * @class interactivebrokers
  * @augments Exchange
@@ -120,7 +120,7 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    loadAccountId(params?: Dict): Promise<List>;
+    loadAccountId(params?: Dict): Promise<[string, Dict]>;
     /**
      * @method
      * @name interactivebrokers#fetchBalance
@@ -135,7 +135,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name interactivebrokers#ibkrBalanceCode
@@ -179,7 +179,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} the markets with unique symbols
      */
     ibkrDisambiguateContractSymbols(markets: Market[]): Market[];
-    fetchSecWithDetails(plainEntries: Dict): Promise<Dict[]>;
+    fetchSecWithDetails(plainEntries: Dict): Promise<List>;
     fetchForexMarkets(params?: Dict): Promise<Market[]>;
     fetchCryptoMarkets(params?: Dict): Promise<Market[]>;
     /**
@@ -246,12 +246,12 @@ export default class interactivebrokers extends Exchange {
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    ibkrFetchSnapshot(symbols: string[], fields: string, params?: Dict, readyFields?: Strings): Promise<List>;
-    ibkrSnapshotReady(response: List, readyFields?: Strings): boolean;
+    ibkrFetchSnapshot(symbols: string[], fields: string, readyFields: string[], params?: Dict): Promise<List>;
+    ibkrSnapshotReady(response: List, fieldIds: string[]): boolean;
     /**
      * @method
      * @name interactivebrokers#fetchBidsAsks
@@ -616,9 +616,18 @@ export default class interactivebrokers extends Exchange {
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    ibkrImplodePath(path: string, params: Dict): List;
+    ibkrImplodePath(path: string, params: Dict): string;
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    ibkrPathParams(path: string): string[];
     /**
      * @method
      * @name interactivebrokers#ibkrGatewayBaseUrl
@@ -657,5 +666,5 @@ export default class interactivebrokers extends Exchange {
      */
     ibkrIsAuthRequest(path: string): boolean;
     request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

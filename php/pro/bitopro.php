@@ -88,7 +88,7 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'ORDER_BOOK' . ':' . $symbolValue;
         $marketIdValue = $this->safe_string($market, 'id', '');
         $endPart = null;
@@ -125,7 +125,7 @@ class bitopro extends \ccxt\async\bitopro {
         //
         $marketId = $this->safe_string($message, 'pair');
         $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($message, 'event');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -160,7 +160,7 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'TRADE' . ':' . $symbolValue;
         $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
         $limitResolved = $limit;
@@ -192,7 +192,7 @@ class bitopro extends \ccxt\async\bitopro {
         //
         $marketId = $this->safe_string($message, 'pair');
         $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($message, 'event');
         $rawData = $this->safe_list($message, 'data', array());
         $trades = $this->parse_trades($rawData, $market);
@@ -235,7 +235,7 @@ class bitopro extends \ccxt\async\bitopro {
         $messageHash = 'USER_TRADE';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolValue = $market['symbol'];
+            $symbolValue = $this->safe_string($market, 'symbol', '');
             $messageHash = $messageHash . ':' . $symbolValue;
         }
         $wsUrl = $this->safe_string($this->urls['ws'], 'private');
@@ -284,7 +284,8 @@ class bitopro extends \ccxt\async\bitopro {
         if (($base === null) || ($quote === null)) {
             return;
         }
-        $symbol = $this->symbol($base . '/' . $quote);
+        $marketSymbol = $base . '/' . $quote;
+        $symbol = $this->symbol($marketSymbol);
         $messageHash = $this->safe_string($message, 'event');
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -327,7 +328,8 @@ class bitopro extends \ccxt\async\bitopro {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $this->symbol($base . '/' . $quote);
+            $marketSymbol = $base . '/' . $quote;
+            $symbol = $this->symbol($marketSymbol);
         }
         $marketResolved = $this->safe_market($symbol, $market);
         $price = $this->safe_string($trade, 'price');
@@ -395,7 +397,7 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'TICKER' . ':' . $symbolValue;
         return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
     }
@@ -425,7 +427,7 @@ class bitopro extends \ccxt\async\bitopro {
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         $market = $this->safe_market($marketId, null, '_');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($message, 'event');
         $result = $this->parse_ticker($message, $market);
         $result['symbol'] = $this->safe_string($market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
@@ -462,7 +464,7 @@ class bitopro extends \ccxt\async\bitopro {
         $this->extend_exchange_options($defaultOptions);
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $wsInnerOptions = $this->safe_dict($wsOptions, 'options', array());
-        $originalHeaders = $wsInnerOptions['headers'];
+        $originalHeaders = $this->safe_dict($wsInnerOptions, 'headers');
         $headers = array(
             'X-BITOPRO-API' => 'ccxt',
             'X-BITOPRO-APIKEY' => $this->apiKey,

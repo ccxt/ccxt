@@ -52,28 +52,13 @@ class phemex(ccxt.async_support.phemex):
             },
         })
 
-    def from_en(self, en: object, scale: object) -> Str:
+    def from_en(self, en: Str, scale: Int) -> Str:
         if en is None:
             return None
         precise = Precise(en)
-        precise.decimals = self.sum(precise.decimals, scale)
+        precise.decimals = self.sum(precise.decimals, self.safe_integer([scale], 0, 0))
         precise.reduce()
         return str(precise)
-
-    def from_ep(self, ep: Str, market: Market = None) -> Str:
-        if (ep is None) or (market is None):
-            return ep
-        return self.from_en(ep, self.safe_integer(market, 'priceScale'))
-
-    def from_ev(self, ev: Str, market: Market = None) -> Str:
-        if (ev is None) or (market is None):
-            return ev
-        return self.from_en(ev, self.safe_integer(market, 'valueScale'))
-
-    def from_er(self, er: Str, market: Market = None) -> Str:
-        if (er is None) or (market is None):
-            return er
-        return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
     def request_id(self) -> int:
         self.lock_id()
@@ -102,16 +87,16 @@ class phemex(ccxt.async_support.phemex):
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        lastString = self.from_ep(self.safe_string(ticker, 'close'), marketValue)
+        lastString = self.fromEp(self.safe_string(ticker, 'close'), marketValue)
         last = self.parse_number(lastString)
-        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnover'), marketValue))
-        baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volume'), marketValue))
+        quoteVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 'turnover'), marketValue))
+        baseVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 'volume'), marketValue))
         change = None
         percentage = None
         average = None
-        openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 'open'), marketValue))
+        openString = self.omit_zero(self.fromEp(self.safe_string(ticker, 'open'), marketValue))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
             change = self.parse_number(Precise.string_sub(lastString, openString))
@@ -121,8 +106,8 @@ class phemex(ccxt.async_support.phemex):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 'high'), marketValue)),
-            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 'low'), marketValue)),
+            'high': self.parse_number(self.fromEp(self.safe_string(ticker, 'high'), marketValue)),
+            'low': self.parse_number(self.fromEp(self.safe_string(ticker, 'low'), marketValue)),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -137,8 +122,8 @@ class phemex(ccxt.async_support.phemex):
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'markPrice'), marketValue)),
-            'indexPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'indexPrice'), marketValue)),
+            'markPrice': self.parse_number(self.fromEp(self.safe_string(ticker, 'markPrice'), marketValue)),
+            'indexPrice': self.parse_number(self.fromEp(self.safe_string(ticker, 'indexPrice'), marketValue)),
             'info': ticker,
         })
 
@@ -162,15 +147,15 @@ class phemex(ccxt.async_support.phemex):
         marketId = self.safe_string(ticker, 0)
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
-        lastString = self.from_ep(self.safe_string(ticker, 4), marketValue)
+        symbol = self.safe_string(marketResolved, 'symbol')
+        lastString = self.fromEp(self.safe_string(ticker, 4), marketValue)
         last = self.parse_number(lastString)
-        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), marketValue))
-        baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 5), marketValue))
+        quoteVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 6), marketValue))
+        baseVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 5), marketValue))
         change = None
         percentage = None
         average = None
-        openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 1), marketValue))
+        openString = self.omit_zero(self.fromEp(self.safe_string(ticker, 1), marketValue))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
             change = self.parse_number(Precise.string_sub(lastString, openString))
@@ -180,8 +165,8 @@ class phemex(ccxt.async_support.phemex):
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 2), marketValue)),
-            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 3), marketValue)),
+            'high': self.parse_number(self.fromEp(self.safe_string(ticker, 2), marketValue)),
+            'low': self.parse_number(self.fromEp(self.safe_string(ticker, 3), marketValue)),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -287,12 +272,10 @@ class phemex(ccxt.async_support.phemex):
             for i in range(0, len(data)):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            symbol = self.safe_string(ticker, 'symbol', '')
+            symbol = self.safe_string(tickers[i], 'symbol', '')
             messageHash = 'ticker:' + symbol
             timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
+            ticker = self.extend(tickers[i], {'timestamp': timestamp, 'datetime': self.iso8601(timestamp)})
             self.tickers[symbol] = ticker
             client.resolve(ticker, messageHash)
 
@@ -313,11 +296,11 @@ class phemex(ccxt.async_support.phemex):
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(paramsMarketType, 'settle') == 'USDT'
         messageHash = 'perpetual:balance'
-        if not usePerpetualApi:
+        if not usePerpetualApi and (type is not None):
             messageHash = type + ':balance'
         return await self.subscribe_private(type, messageHash, paramsMarketType)
 
-    def handle_balance(self, type: str, client: Client, message: list[object]):
+    def handle_balance(self, client: Client, message: list[object], type: str):
         # spot
         #    [
         #       {
@@ -368,16 +351,18 @@ class phemex(ccxt.async_support.phemex):
             currency = self.safe_dict(self.currencies, code, {})
             scale = self.safe_integer(currency, 'valueScale', 8)
             account = self.account()
-            used = self.safe_string(balance, 'totalUsedBalanceRv')
-            if used is None:
+            usedRv = self.safe_string(balance, 'totalUsedBalanceRv')
+            used = usedRv
+            if usedRv is None:
                 usedEv = self.safe_string(balance, 'totalUsedBalanceEv')
                 if usedEv is None:
                     lockedTradingBalanceEv = self.safe_string(balance, 'lockedTradingBalanceEv')
                     lockedWithdrawEv = self.safe_string_2(balance, 'lockedWithdrawEv', 'lockedWithdrawRv')
                     usedEv = Precise.string_add(lockedTradingBalanceEv, lockedWithdrawEv)
                 used = self.from_en(usedEv, scale)
-            total = self.safe_string(balance, 'accountBalanceRv')
-            if total is None:
+            totalRv = self.safe_string(balance, 'accountBalanceRv')
+            total = totalRv
+            if totalRv is None:
                 totalEv = self.safe_string_2(balance, 'accountBalanceEv', 'balanceEv')
                 total = self.from_en(totalEv, scale)
             account['used'] = used
@@ -418,7 +403,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'trade'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = name + ':' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -465,7 +450,7 @@ class phemex(ccxt.async_support.phemex):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         candles = self.safe_list_2(message, 'kline', 'kline_p', [])
         first = self.safe_list(candles, 0, [])
         interval = self.safe_string(first, 1)
@@ -480,8 +465,7 @@ class phemex(ccxt.async_support.phemex):
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             for i in range(0, len(ohlcvs)):
-                candle = ohlcvs[i]
-                stored.append(candle)
+                stored.append(ohlcvs[i])
             client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -499,7 +483,7 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         name = 'spot_market24h'
@@ -578,7 +562,8 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -593,7 +578,7 @@ class phemex(ccxt.async_support.phemex):
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         }
         request = self.deep_extend(subscribe, params)
@@ -620,7 +605,8 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -635,7 +621,7 @@ class phemex(ccxt.async_support.phemex):
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         }
         request = self.deep_extend(subscribe, params)
@@ -660,7 +646,8 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -675,7 +662,7 @@ class phemex(ccxt.async_support.phemex):
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
                 self.safe_integer(self.timeframes, timeframe),
             ],
         }
@@ -717,8 +704,10 @@ class phemex(ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        isUsdtSwap = (market['swap'] is True) and (market['settle'] == 'USDT')
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        isSwap = market['swap']
+        isUsdtSwap = (isSwap is True) and (market['settle'] == 'USDT')
         name = 'trade'
         if isUsdtSwap:
             name = 'trade_p'
@@ -726,7 +715,7 @@ class phemex(ccxt.async_support.phemex):
             'topic': 'trades',
             'symbols': [symbolValue],
         }
-        return await self.un_subscribe_public(name + '.unsubscribe', 'trade:' + symbolValue, [market['id']], subscription, params)
+        return await self.un_subscribe_public(name + '.unsubscribe', 'trade:' + symbolValue, [marketId], subscription, params)
 
     async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
@@ -743,8 +732,10 @@ class phemex(ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        isUsdtSwap = (market['swap'] is True) and (market['settle'] == 'USDT')
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        isSwap = market['swap']
+        isUsdtSwap = (isSwap is True) and (market['settle'] == 'USDT')
         name = 'kline'
         if isUsdtSwap:
             name = 'kline_p'
@@ -753,7 +744,7 @@ class phemex(ccxt.async_support.phemex):
             'symbolsAndTimeframes': [[symbolValue, timeframe]],
         }
         # phemex drops only the given interval when it is sent along with the symbol
-        marketParams = [market['id'], self.safe_integer(self.timeframes, timeframe)]
+        marketParams = [marketId, self.safe_integer(self.timeframes, timeframe)]
         return await self.un_subscribe_public(name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params)
 
     def handle_un_subscription(self, client: Client, message: dict):
@@ -837,7 +828,7 @@ class phemex(ccxt.async_support.phemex):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         type = self.safe_string(message, 'type')
         depth = self.safe_integer(message, 'depth')
         name = 'orderbook'
@@ -896,7 +887,7 @@ class phemex(ccxt.async_support.phemex):
             settle = self.safe_string(paramsType, 'settle')
             if settle == 'USDT':
                 messageHash = 'trades:perpetual'
-            else:
+            elif type is not None:
                 messageHash = 'trades:' + type
         trades = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
@@ -1014,10 +1005,13 @@ class phemex(ccxt.async_support.phemex):
             market = self.safe_market(marketId)
             parsed = self.parse_trade(rawTrade)
             cachedTrades.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if type is None:
                 marketSettle = self.safe_string(market, 'settle')
-                type = 'perpetual' if (marketSettle == 'USDT') else market['type']
+                if marketSettle == 'USDT':
+                    type = 'perpetual'
+                else:
+                    type = self.safe_string(market, 'type')
             if symbol is not None:
                 marketIds[symbol] = True
         keys = list(marketIds.keys())
@@ -1055,7 +1049,7 @@ class phemex(ccxt.async_support.phemex):
         if symbol is None:
             if isUSDTSettled:
                 messageHash = 'orders:perpetual'
-            else:
+            elif type is not None:
                 messageHash = 'orders:' + type
         orders = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
@@ -1063,7 +1057,7 @@ class phemex(ccxt.async_support.phemex):
             limitResolved = orders.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         # spot update
         # {
         #        "closed":[
@@ -1222,26 +1216,28 @@ class phemex(ccxt.async_support.phemex):
         #        ...
         #    ]
         #
+        # spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         trades = []
         parsedOrders = []
-        if ('closed' in message) or ('fills' in message) or ('open' in message):
-            closed = self.safe_list(message, 'closed', [])
-            open = self.safe_list(message, 'open', [])
+        ordersDict = self.safe_dict_2(message, 'orders', 'orders_p', {})
+        if ('closed' in ordersDict) or ('fills' in ordersDict) or ('open' in ordersDict):
+            closed = self.safe_list(ordersDict, 'closed', [])
+            open = self.safe_list(ordersDict, 'open', [])
             orders = self.array_concat(open, closed)
             ordersLength = len(orders)
             if ordersLength == 0:
                 return
-            trades = self.safe_list(message, 'fills', [])
+            trades = self.safe_list(ordersDict, 'fills', [])
             for i in range(0, len(orders)):
-                rawOrder = orders[i]
-                parsedOrder = self.parse_order(rawOrder)
+                parsedOrder = self.parse_order(self.safe_dict(orders, i, {}))
                 parsedOrders.append(parsedOrder)
         else:
-            messageLength = len(message)
-            if messageLength == 0:
+            updates = self.safe_list(message, 'orders_p', [])
+            updatesLength = len(updates)
+            if updatesLength == 0:
                 return
-            for i in range(0, messageLength):
-                update = message[i]
+            for i in range(0, updatesLength):
+                update = updates[i]
                 action = self.safe_string(update, 'action')
                 if (action is not None) and (action != 'Cancel'):
                     # order + trade info together
@@ -1258,11 +1254,14 @@ class phemex(ccxt.async_support.phemex):
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol', '')
             market = self.market(symbol)
             if type is None:
                 isUsdt = market['settle'] == 'USDT'
-                type = 'perpetual' if isUsdt else market['type']
+                if isUsdt:
+                    type = 'perpetual'
+                else:
+                    type = self.safe_string(market, 'type')
             marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
@@ -1402,16 +1401,16 @@ class phemex(ccxt.async_support.phemex):
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parseOrderType(self.safe_string(order, 'ordType'))
-        price = self.safe_string(order, 'priceRp', self.from_ep(self.safe_string(order, 'priceEp'), marketValue))
+        price = self.safe_string(order, 'priceRp', self.fromEp(self.safe_string(order, 'priceEp'), marketValue))
         amount = self.safe_string(order, 'orderQty')
         filled = self.safe_string(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
         timestamp = self.safe_integer_product(order, 'actionTimeNs', 0.000001)
-        cost = self.safe_string(order, 'cumValueRv', self.from_ev(self.safe_string(order, 'cumValueEv'), marketValue))
+        cost = self.safe_string(order, 'cumValueRv', self.fromEv(self.safe_string(order, 'cumValueEv'), marketValue))
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
@@ -1544,7 +1543,7 @@ class phemex(ccxt.async_support.phemex):
             method = self.safe_value(client.subscriptions, id)
             del client.subscriptions[id]
             if method is not True:
-                method(client, message)
+                self.handle_authenticate(client, message)
                 return
         if ('result' in message) or ('error' in message):
             self.handle_un_subscription(client, message)
@@ -1563,8 +1562,7 @@ class phemex(ccxt.async_support.phemex):
             self.handle_order_book(client, message)
             return
         if ('orders' in message) or ('orders_p' in message):
-            orders = self.safe_dict_2(message, 'orders', 'orders_p', {})
-            self.handle_orders(client, orders)
+            self.handle_orders(client, message)
         if ('accounts' in message) or ('accounts_p' in message) or ('wallets' in message):
             type = 'spot'
             if 'accounts' in message:
@@ -1572,7 +1570,7 @@ class phemex(ccxt.async_support.phemex):
             if 'accounts_p' in message:
                 type = 'perpetual'
             accounts = self.safe_list_n(message, ['accounts', 'accounts_p', 'wallets'], [])
-            self.handle_balance(type, client, accounts)
+            self.handle_balance(client, accounts, type)
 
     def handle_authenticate(self, client: Client, message: dict):
         #

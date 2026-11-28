@@ -14,6 +14,7 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -45,7 +46,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             put( "name", "Interactive Brokers" );
             put( "countries", new ArrayList<Object>(Arrays.asList("US")) );
             put( "version", "v1" );
-            put( "rateLimit", Helpers.multiply(100, 1.2) );
+            put( "rateLimit", 120 );
             put( "pro", true );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
@@ -1007,59 +1008,62 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> signIn(Object parameters)
+    public CompletableFuture<Object> signIn(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.signInCore(parameters));
+    }
+
+    private Object signInCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
-            {
-                return (this.ibkrGatewaySignIn(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v19 -> (Map<String, Object>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v19.getClass().getName()); })))).join();
-            }
-            String encryptionPemPath = this.safeString(this.options, "encryptionPemPath");
-            String dhParamPemPath = this.safeString(this.options, "dhParamPemPath");
-            if (!Helpers.isTrue(encryptionPemPath) || !Helpers.isTrue(dhParamPemPath))
-            {
-                throw new ArgumentsRequired((this.id + " supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details")) ;
-            }
-            this.ibkrCheckOauthCredentials();
-            (this.initFileSystem()).join();
-            Object encryptionKey = ((String)this.readFile(encryptionPemPath));
-            Object dhPrime = this.convertToBigInt(("0x" + (this.readDhParam(dhParamPemPath))));
-            // the access token secret is encrypted with the consumer's public encryption key
-            Object decrypted = this.decryptPrivateKey(encryptionKey, this.secret);
-            String accessTokenSecretHex = this.binaryToBase16(decrypted);
-            this.options.put("accessTokenSecretHex", accessTokenSecretHex); // prepended to the signature base string in sign ()
-            this.options.put("serviceAccountsLoaded", false); // a new brokerage session needs iserver/accounts again
-            Object dhRandom = this.convertToBigInt(("0x" + this.randomBytes(32)));
-            BigInteger dhChallenge = this.modPow(this.options.get("dhGen"), dhRandom, dhPrime);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "diffie_hellman_challenge", Interactivebrokers.this.intToBase16(dhChallenge) );
-            }};
-            Map<String, Object> response = (this.webapiPostV1ApiOauthLiveSessionToken(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "diffie_hellman_response": "1d9c...",
-            //         "live_session_token_signature": "9a7e...",
-            //         "live_session_token_expiration": 1714661586311
-            //     }
-            //
-            String dhResponse = this.safeString(response, "diffie_hellman_response");
-            BigInteger sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
-            String liveSessionToken = (String) this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1(), "base64");
-            String check = (String) this.hmac(this.encode(this.options.get("consumer_key")), this.base64ToBinary(liveSessionToken), sha1(), "hex");
-            if (!java.util.Objects.equals(check, this.safeString(response, "live_session_token_signature")))
-            {
-                throw new AuthenticationError((this.id + " signIn() live session token validation failed")) ;
-            }
-            this.options.put("liveSessionToken", liveSessionToken);
-            this.options.put("liveSessionTokenExpiration", this.safeInteger(response, "live_session_token_expiration"));
-            // open the brokerage session
-            Map<String, Object> initRequest = this.safeDict(this.options, "signInInitRequest", new HashMap<String, Object>() {{}});
-            (this.webapiPostV1ApiIserverAuthSsodhInit(initRequest)).join();
-            (this.fetchServiceAccounts(new HashMap<String, Object>() {{}})).join();
-            return response;
-        });
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
+        {
+            return (this.ibkrGatewaySignIn(parameters)).join();
+        }
+        String encryptionPemPath = this.safeString(this.options, "encryptionPemPath", "");
+        String dhParamPemPath = this.safeString(this.options, "dhParamPemPath", "");
+        if ((java.util.Objects.equals(encryptionPemPath, "")) || (java.util.Objects.equals(dhParamPemPath, "")))
+        {
+            throw new ArgumentsRequired((this.id + " supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details")) ;
+        }
+        this.ibkrCheckOauthCredentials();
+        (this.initFileSystem()).join();
+        Object encryptionKey = ((String)this.readFile(encryptionPemPath));
+        Object dhPrime = this.convertToBigInt(("0x" + (this.readDhParam(dhParamPemPath))));
+        // the access token secret is encrypted with the consumer's public encryption key
+        Object decrypted = this.decryptPrivateKey(encryptionKey, this.secret);
+        String accessTokenSecretHex = this.binaryToBase16(decrypted);
+        this.options.put("accessTokenSecretHex", accessTokenSecretHex); // prepended to the signature base string in sign ()
+        this.options.put("serviceAccountsLoaded", false); // a new brokerage session needs iserver/accounts again
+        Object dhRandom = this.convertToBigInt(("0x" + this.randomBytes(32)));
+        BigInteger dhChallenge = this.modPow(this.options.get("dhGen"), dhRandom, dhPrime);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "diffie_hellman_challenge", Interactivebrokers.this.intToBase16(dhChallenge) );
+        }};
+        Map<String, Object> response = (this.webapiPostV1ApiOauthLiveSessionToken(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "diffie_hellman_response": "1d9c...",
+        //         "live_session_token_signature": "9a7e...",
+        //         "live_session_token_expiration": 1714661586311
+        //     }
+        //
+        String dhResponse = this.safeString(response, "diffie_hellman_response", "");
+        BigInteger sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
+        String liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1(), "base64");
+        String consumerKey = this.safeString(this.options, "consumer_key", "");
+        String check = this.hmac(this.encode(consumerKey), this.base64ToBinary(liveSessionToken), sha1(), "hex");
+        if (!java.util.Objects.equals(check, this.safeString(response, "live_session_token_signature")))
+        {
+            throw new AuthenticationError((this.id + " signIn() live session token validation failed")) ;
+        }
+        this.options.put("liveSessionToken", liveSessionToken);
+        this.options.put("liveSessionTokenExpiration", this.safeInteger(response, "live_session_token_expiration"));
+        // open the brokerage session
+        Map<String, Object> initRequest = this.safeDict(this.options, "signInInitRequest", new HashMap<String, Object>() {{}});
+        (this.webapiPostV1ApiIserverAuthSsodhInit(initRequest)).join();
+        (this.fetchServiceAccounts(new HashMap<String, Object>() {{}})).join();
+        return response;
 
     }
 
@@ -1073,44 +1077,46 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Map<String, Object> parameters)
+    {
 
+        if (this.ibkrIsAuthenticated())
+        {
+            return this.safeString(this.options, "liveSessionToken");
+        }
+        // single-flight, see https://github.com/ccxt/ccxt/issues/29393
+        // concurrent private calls on a cold (or expiring) instance would each pass the staleness
+        // gate above and each run their own signIn (), so the first caller signs in and the rest
+        // wait for it to finish, then reuse its token (or sign in themselves if the leader failed)
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "signInInProgress", false)))
+        {
+            Long pollInterval = this.safeInteger(this.options, "signInPollInterval", 100);
+            Long maxWait = this.safeInteger(this.options, "signInMaxWait", 60000);
+            Long waited = 0L;
+            while (Boolean.TRUE.equals(this.safeBool(this.options, "signInInProgress", false)) && ((maxWait != null && (waited == null || waited < maxWait))))
+            {
+                (this.sleep(pollInterval)).join();
+                waited = (waited + pollInterval);
+            }
             if (this.ibkrIsAuthenticated())
             {
                 return this.safeString(this.options, "liveSessionToken");
             }
-            // single-flight, see https://github.com/ccxt/ccxt/issues/29393
-            // concurrent private calls on a cold (or expiring) instance would each pass the staleness
-            // gate above and each run their own signIn (), so the first caller signs in and the rest
-            // wait for it to finish, then reuse its token (or sign in themselves if the leader failed)
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "signInInProgress", false)))
-            {
-                Long pollInterval = this.safeInteger(this.options, "signInPollInterval", 100);
-                Long maxWait = this.safeInteger(this.options, "signInMaxWait", 60000);
-                Long waited = 0L;
-                while (Boolean.TRUE.equals(this.safeBool(this.options, "signInInProgress", false)) && ((maxWait != null && (waited == null || waited < maxWait))))
-                {
-                    (this.sleep(pollInterval)).join();
-                    waited = (waited + pollInterval);
-                }
-                if (this.ibkrIsAuthenticated())
-                {
-                    return this.safeString(this.options, "liveSessionToken");
-                }
-            }
-            this.options.put("signInInProgress", true);
-            try
-            {
-                (this.signIn(parameters)).join();
-            } catch(Exception e)
-            {
-                this.options.put("signInInProgress", false);
-                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-            }
+        }
+        this.options.put("signInInProgress", true);
+        try
+        {
+            (this.signIn(parameters)).join();
+        } catch(Exception e)
+        {
             this.options.put("signInInProgress", false);
-            return this.safeString(this.options, "liveSessionToken");
-        });
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+        }
+        this.options.put("signInInProgress", false);
+        return this.safeString(this.options, "liveSessionToken");
 
     }
 
@@ -1148,70 +1154,74 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Map<String, Object>> ibkrGatewaySignIn(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrGatewaySignInCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> ibkrGatewaySignInCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.webapiPostV1ApiIserverAuthStatus(parameters)).join();
-            //
-            //     {
-            //         "authenticated": true,
-            //         "established": true,
-            //         "competing": false,
-            //         "connected": true,
-            //         "message": "",
-            //         "MAC": "06:A5:C8:3D:7F:EC",
-            //         "serverInfo": { "serverName": "JifZ18024", "serverVersion": "Build 10.50.1e, Oct 26, 2026 5:04:19 PM" },
-            //         "hardware_info": "6b0d051e|06:A5:C8:3D:7F:EC",
-            //         "fail": ""
-            //     }
-            //
-            Boolean authenticated = (Boolean) this.safeBool(response, "authenticated", false);
-            Boolean established = (Boolean) this.safeBool(this.options, "gatewaySessionEstablished", false);
-            Boolean openOnStart = (Boolean) this.safeBool(this.options, "gatewayReauthenticate", true);
-            if (!Boolean.TRUE.equals(authenticated) && !Boolean.TRUE.equals(established) && Boolean.TRUE.equals(openOnStart))
-            {
-                // the first sign in of this instance opens the brokerage session right away
-                response = (this.ibkrGatewayRegainSession(parameters)).join();
-                authenticated = (Boolean) this.safeBool(response, "authenticated", false);
-                if (!Boolean.TRUE.equals(authenticated))
-                {
-                    Object gatewayUrl = this.safeString(this.options, "gatewayUrl");
-                    throw new AuthenticationError(((((this.id + " the client portal gateway session is not authenticated, log in at ") + gatewayUrl) + " in a browser, ") + this.json(response))) ;
-                }
-            }
+        Map<String, Object> response = (this.webapiPostV1ApiIserverAuthStatus(parameters)).join();
+        //
+        //     {
+        //         "authenticated": true,
+        //         "established": true,
+        //         "competing": false,
+        //         "connected": true,
+        //         "message": "",
+        //         "MAC": "06:A5:C8:3D:7F:EC",
+        //         "serverInfo": { "serverName": "JifZ18024", "serverVersion": "Build 10.50.1e, Oct 26, 2026 5:04:19 PM" },
+        //         "hardware_info": "6b0d051e|06:A5:C8:3D:7F:EC",
+        //         "fail": ""
+        //     }
+        //
+        Boolean authenticated = this.safeBool(response, "authenticated", false);
+        Boolean established = this.safeBool(this.options, "gatewaySessionEstablished", false);
+        Boolean openOnStart = this.safeBool(this.options, "gatewayReauthenticate", true);
+        if (!Boolean.TRUE.equals(authenticated) && !Boolean.TRUE.equals(established) && Boolean.TRUE.equals(openOnStart))
+        {
+            // the first sign in of this instance opens the brokerage session right away
+            response = (this.ibkrGatewayRegainSession(parameters)).join();
+            authenticated = this.safeBool(response, "authenticated", false);
             if (!Boolean.TRUE.equals(authenticated))
             {
-                // the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
-                Object lostTimestamp = this.ibkrGatewayOnSessionLost();
-                Object regainDelay = this.ibkrGatewayRegainDelay();
-                if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(regainDelay, 0))
-                {
-                    Object gatewayUrl = this.safeString(this.options, "gatewayUrl");
-                    throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ") + gatewayUrl) + " in a browser or set options.autoRegainSession to take it back automatically, ") + this.json(response))) ;
-                }
-                Object regainTimestamp = this.sum(lostTimestamp, regainDelay);
-                if (((!((this.milliseconds()) >= ((Number) regainTimestamp).doubleValue()))))
-                {
-                    throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + this.iso8601(regainTimestamp)) + " (options.autoRegainSession), ") + this.json(response))) ;
-                }
-                response = (this.ibkrGatewayRegainSession(parameters)).join();
-                authenticated = (Boolean) this.safeBool(response, "authenticated", false);
-                if (!Boolean.TRUE.equals(authenticated))
-                {
-                    // try again options.autoRegainSession seconds later
-                    this.options.put("gatewaySessionLostTimestamp", this.milliseconds());
-                    this.ibkrGatewayScheduleRegain();
-                    throw new AuthenticationError(((((this.id + " failed to take back the brokerage session of the client portal gateway, retrying at ") + this.iso8601(this.sum(this.milliseconds(), regainDelay))) + " (options.autoRegainSession), ") + this.json(response))) ;
-                }
+                Object gatewayUrl = this.safeString(this.options, "gatewayUrl");
+                throw new AuthenticationError(((((this.id + " the client portal gateway session is not authenticated, log in at ") + gatewayUrl) + " in a browser, ") + this.json(response))) ;
             }
-            this.options.remove("gatewaySessionLostTimestamp");
-            this.options.put("serviceAccountsLoaded", false);
-            (this.fetchServiceAccounts(new HashMap<String, Object>() {{}})).join();
-            this.options.put("gatewaySessionEstablished", true);
-            this.options.put("gatewayAuthenticatedTimestamp", this.milliseconds());
-            this.ibkrGatewayStartKeepAlive();
-            return response;
-        });
+        }
+        if (!Boolean.TRUE.equals(authenticated))
+        {
+            // the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
+            Object lostTimestamp = this.ibkrGatewayOnSessionLost();
+            Long regainDelay = this.ibkrGatewayRegainDelay();
+            if ((regainDelay == null || regainDelay <= 0))
+            {
+                Object gatewayUrl = this.safeString(this.options, "gatewayUrl");
+                throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ") + gatewayUrl) + " in a browser or set options.autoRegainSession to take it back automatically, ") + this.json(response))) ;
+            }
+            Object regainTimestamp = this.sum(lostTimestamp, regainDelay);
+            if (((!((this.milliseconds()) >= ((Number) regainTimestamp).doubleValue()))))
+            {
+                String regainDatetime = this.iso8601(regainTimestamp);
+                throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + regainDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
+            }
+            response = (this.ibkrGatewayRegainSession(parameters)).join();
+            authenticated = this.safeBool(response, "authenticated", false);
+            if (!Boolean.TRUE.equals(authenticated))
+            {
+                // try again options.autoRegainSession seconds later
+                this.options.put("gatewaySessionLostTimestamp", this.milliseconds());
+                this.ibkrGatewayScheduleRegain();
+                String retryDatetime = this.iso8601(this.sum(this.milliseconds(), regainDelay));
+                throw new AuthenticationError(((((this.id + " failed to take back the brokerage session of the client portal gateway, retrying at ") + retryDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
+            }
+        }
+        this.options.remove("gatewaySessionLostTimestamp");
+        this.options.put("serviceAccountsLoaded", false);
+        (this.fetchServiceAccounts(new HashMap<String, Object>() {{}})).join();
+        this.options.put("gatewaySessionEstablished", true);
+        this.options.put("gatewayAuthenticatedTimestamp", this.milliseconds());
+        this.ibkrGatewayStartKeepAlive();
+        return response;
 
     }
 
@@ -1226,25 +1236,27 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Map<String, Object>> ibkrGatewayRegainSession(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrGatewayRegainSessionCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> ibkrGatewayRegainSessionCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> initRequest = this.safeDict(this.options, "signInInitRequest", new HashMap<String, Object>() {{}});
-            (this.webapiPostV1ApiIserverAuthSsodhInit(initRequest)).join();
-            Long retries = this.safeInteger(this.options, "gatewayReauthenticateRetries", 5);
-            Long retryDelay = this.safeInteger(this.options, "gatewayReauthenticateDelay", 1000);
-            Map<String, Object> response = new HashMap<String, Object>() {{}};
-            for (var i = 0; (retries != null && i < retries); i++)
+        Map<String, Object> initRequest = this.safeDict(this.options, "signInInitRequest", new HashMap<String, Object>() {{}});
+        (this.webapiPostV1ApiIserverAuthSsodhInit(initRequest)).join();
+        Long retries = this.safeInteger(this.options, "gatewayReauthenticateRetries", 5);
+        Long retryDelay = this.safeInteger(this.options, "gatewayReauthenticateDelay", 1000);
+        Map<String, Object> response = new HashMap<String, Object>() {{}};
+        for (var i = 0; (retries != null && i < retries); i++)
+        {
+            (this.sleep(retryDelay)).join();
+            response = (this.webapiPostV1ApiIserverAuthStatus(parameters)).join();
+            if (Boolean.TRUE.equals(this.safeBool(response, "authenticated", false)))
             {
-                (this.sleep(retryDelay)).join();
-                response = (this.webapiPostV1ApiIserverAuthStatus(parameters)).join();
-                if (Boolean.TRUE.equals(this.safeBool(response, "authenticated", false)))
-                {
-                    break;
-                }
+                break;
             }
-            return response;
-        });
+        }
+        return response;
 
     }
 
@@ -1255,12 +1267,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @ignore
      * @returns {int} the delay in milliseconds
      */
-    public Object ibkrGatewayRegainDelay()
+    public Long ibkrGatewayRegainDelay()
     {
         Double seconds = this.safeNumber(this.options, "autoRegainSession", 0);
         if ((java.util.Objects.equals(seconds, null)) || ((seconds == null || !(seconds > 0))))
         {
-            return 0;
+            return 0L;
         }
         return this.parseToInt((seconds * 1000L));
     }
@@ -1275,12 +1287,15 @@ public class Interactivebrokers extends InteractivebrokersApi
     public Object ibkrGatewayOnSessionLost()
     {
         this.options.remove("gatewayAuthenticatedTimestamp");
-        Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if (java.util.Objects.equals(lostTimestamp, null))
+        Long lostTimestamp = this.milliseconds();
+        Long storedTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
+        if (java.util.Objects.equals(storedTimestamp, null))
         {
-            lostTimestamp = this.milliseconds();
             this.options.put("gatewaySessionLostTimestamp", lostTimestamp);
             this.ibkrGatewayScheduleRegain();
+        } else
+        {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }
@@ -1294,14 +1309,14 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public Boolean ibkrGatewayScheduleRegain()
     {
-        Object regainDelay = this.ibkrGatewayRegainDelay();
-        if ((((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(regainDelay, 0)) || Boolean.TRUE.equals(this.safeBool(this.options, "gatewayRegainScheduled", false)))
+        Long regainDelay = this.ibkrGatewayRegainDelay();
+        if (((regainDelay == null || regainDelay <= 0)) || Boolean.TRUE.equals(this.safeBool(this.options, "gatewayRegainScheduled", false)))
         {
             return false;
         }
         Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp", this.milliseconds());
-        Object wait = Helpers.subtract(this.sum(lostTimestamp, regainDelay), this.milliseconds());
-        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(wait, 0))
+        Long wait = ((this.sum(lostTimestamp, regainDelay)) - this.milliseconds());
+        if ((wait == null || wait <= 0))
         {
             wait = regainDelay;
         }
@@ -1326,37 +1341,41 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Object> ibkrGatewayRegainLoop()
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrGatewayRegainLoopCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrGatewayRegainLoopCore()
+    {
 
-            this.options.put("gatewayRegainScheduled", false);
-            Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
-            Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-            if (!Boolean.TRUE.equals(useGateway) || (java.util.Objects.equals(lostTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(this.ibkrGatewayRegainDelay(), 0)))
+        this.options.put("gatewayRegainScheduled", false);
+        Boolean useGateway = this.safeBool(this.options, "useGateway", false);
+        Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
+        Long regainDelay = this.ibkrGatewayRegainDelay();
+        if (!Boolean.TRUE.equals(useGateway) || (java.util.Objects.equals(lostTimestamp, null)) || ((regainDelay == null || regainDelay <= 0)))
+        {
+            return null;  // already regained, or disabled
+        }
+        try
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        } catch(Exception e)
+        {
+            Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+            if ((eCause instanceof ExchangeClosedByUser))
             {
-                return null;  // already regained, or disabled
+                return null;
             }
-            try
+            if (this.verbose)
             {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            } catch(Exception e)
-            {
-                if (Helpers.isInstance(e, ExchangeClosedByUser.class))
-                {
-                    return null;
-                }
-                if (this.verbose)
-                {
-                    this.log(("ibkrGatewayRegainLoop failed " + this.exceptionMessage(e, true)));
-                }
-                // e.g. the sso login is lost too (http 401), retry until it is logged in again at options.gatewayUrl
-                if (!java.util.Objects.equals(this.safeInteger(this.options, "gatewaySessionLostTimestamp"), null))
-                {
-                    this.ibkrGatewayScheduleRegain();
-                }
+                this.log(("ibkrGatewayRegainLoop failed " + this.exceptionMessage(e, true)));
             }
-            return null;
-        });
+            // e.g. the sso login is lost too (http 401), retry until it is logged in again at options.gatewayUrl
+            if (!java.util.Objects.equals(this.safeInteger(this.options, "gatewaySessionLostTimestamp"), null))
+            {
+                this.ibkrGatewayScheduleRegain();
+            }
+        }
+        return null;
 
     }
 
@@ -1369,7 +1388,7 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public Boolean ibkrGatewayStartKeepAlive()
     {
-        Boolean keepAlive = (Boolean) this.safeBool(this.options, "gatewayKeepAlive", true);
+        Boolean keepAlive = this.safeBool(this.options, "gatewayKeepAlive", true);
         if (!Boolean.TRUE.equals(keepAlive) || Boolean.TRUE.equals(this.safeBool(this.options, "gatewayKeepAliveStarted", false)))
         {
             return keepAlive;
@@ -1399,60 +1418,63 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Object> ibkrGatewayKeepAlive()
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrGatewayKeepAliveCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ibkrGatewayKeepAliveCore()
+    {
 
-            Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
-            Boolean keepAlive = (Boolean) this.safeBool(this.options, "gatewayKeepAlive", true);
-            if (!Boolean.TRUE.equals(useGateway) || !Boolean.TRUE.equals(keepAlive))
+        Boolean useGateway = this.safeBool(this.options, "useGateway", false);
+        Boolean keepAlive = this.safeBool(this.options, "gatewayKeepAlive", true);
+        if (!Boolean.TRUE.equals(useGateway) || !Boolean.TRUE.equals(keepAlive))
+        {
+            this.options.put("gatewayKeepAliveStarted", false);
+            return null;
+        }
+        try
+        {
+            Map<String, Object> response = (this.webapiPostV1ApiTickle(new HashMap<String, Object>() {{}})).join();
+            //
+            //     {
+            //         "session": "dcbd01d969bfd9434139f372edc338b2",
+            //         "ssoExpires": 237821,
+            //         "collission": false,
+            //         "userId": 46130428,
+            //         "hmds": { "error": "no bridge" },
+            //         "iserver": { "authStatus": { "authenticated": true, "established": true, "competing": false, "connected": true, ... } }
+            //     }
+            //
+            Map<String, Object> iserver = this.safeDict(response, "iserver", new HashMap<String, Object>() {{}});
+            Map<String, Object> authStatus = this.safeDict(iserver, "authStatus", new HashMap<String, Object>() {{}});
+            if (Boolean.TRUE.equals(this.safeBool(authStatus, "authenticated", false)))
+            {
+                if (java.util.Objects.equals(this.safeInteger(this.options, "gatewaySessionLostTimestamp"), null))
+                {
+                    this.options.put("gatewayAuthenticatedTimestamp", this.milliseconds());
+                }
+            } else
+            {
+                // e.g. taken over by a login with the same username elsewhere, see options.autoRegainSession
+                this.ibkrGatewayOnSessionLost();
+            }
+        } catch(Exception e)
+        {
+            Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+            if ((eCause instanceof ExchangeClosedByUser))
             {
                 this.options.put("gatewayKeepAliveStarted", false);
                 return null;
             }
-            try
+            // a failing tickle (e.g. the gateway container restarts) is retried on the next interval
+            this.options.remove("gatewayAuthenticatedTimestamp");
+            if (this.verbose)
             {
-                Map<String, Object> response = (this.webapiPostV1ApiTickle(new HashMap<String, Object>() {{}})).join();
-                //
-                //     {
-                //         "session": "dcbd01d969bfd9434139f372edc338b2",
-                //         "ssoExpires": 237821,
-                //         "collission": false,
-                //         "userId": 46130428,
-                //         "hmds": { "error": "no bridge" },
-                //         "iserver": { "authStatus": { "authenticated": true, "established": true, "competing": false, "connected": true, ... } }
-                //     }
-                //
-                Map<String, Object> iserver = this.safeDict(response, "iserver", new HashMap<String, Object>() {{}});
-                Map<String, Object> authStatus = this.safeDict(iserver, "authStatus", new HashMap<String, Object>() {{}});
-                if (Boolean.TRUE.equals(this.safeBool(authStatus, "authenticated", false)))
-                {
-                    if (java.util.Objects.equals(this.safeInteger(this.options, "gatewaySessionLostTimestamp"), null))
-                    {
-                        this.options.put("gatewayAuthenticatedTimestamp", this.milliseconds());
-                    }
-                } else
-                {
-                    // e.g. taken over by a login with the same username elsewhere, see options.autoRegainSession
-                    this.ibkrGatewayOnSessionLost();
-                }
-            } catch(Exception e)
-            {
-                if (Helpers.isInstance(e, ExchangeClosedByUser.class))
-                {
-                    this.options.put("gatewayKeepAliveStarted", false);
-                    return null;
-                }
-                // a failing tickle (e.g. the gateway container restarts) is retried on the next interval
-                this.options.remove("gatewayAuthenticatedTimestamp");
-                if (this.verbose)
-                {
-                    this.log(("ibkrGatewayKeepAlive tickle failed " + this.exceptionMessage(e, true)));
-                }
+                this.log(("ibkrGatewayKeepAlive tickle failed " + this.exceptionMessage(e, true)));
             }
-            Long interval = this.safeInteger(this.options, "gatewayKeepAliveInterval", 60000);
-            this.scheduleCallback(interval, "ibkrGatewayKeepAlive");
-            return null;
-        });
+        }
+        Long interval = this.safeInteger(this.options, "gatewayKeepAliveInterval", 60000);
+        this.scheduleCallback(interval, "ibkrGatewayKeepAlive");
+        return null;
 
     }
 
@@ -1488,26 +1510,28 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    public CompletableFuture<Object> loadAccountId(Map<String, Object> parameters)
+    public CompletableFuture<Pair<String, Map<String, Object>>> loadAccountId(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.loadAccountIdCore(parameters));
+    }
+
+    private Pair<String, Map<String, Object>> loadAccountIdCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> accountIdFromParamsqueryVariable = (List<Object>) this.handleOptionAndParams(parameters, "loadAccountId", "accountId", (Object) null);
-            var accountIdFromParams = ((List<Object>) accountIdFromParamsqueryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) accountIdFromParamsqueryVariable).get(1);
-            Object accountId = accountIdFromParams;
-            if (java.util.Objects.equals(accountId, null))
-            {
-                (this.fetchAccounts(new HashMap<String, Object>() {{}})).join();
-                accountId = this.safeString(this.options, "accountId");
-            }
-            if (java.util.Objects.equals(accountId, null))
-            {
-                throw new ArgumentsRequired((this.id + " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts")) ;
-            }
-            return new ArrayList<Object>(Arrays.asList(accountId, query));
-        });
+        Pair<String, Map<String, Object>> accountIdFromParamsqueryVariable = this.handleOptionStringAndParams(parameters, "loadAccountId", "accountId", null);
+        String accountIdFromParams = accountIdFromParamsqueryVariable.first();
+        Map<String, Object> query = accountIdFromParamsqueryVariable.second();
+        String accountId = accountIdFromParams;
+        if (java.util.Objects.equals(accountId, null))
+        {
+            (this.fetchAccounts(new HashMap<String, Object>() {{}})).join();
+            accountId = this.safeString(this.options, "accountId");
+        }
+        if (java.util.Objects.equals(accountId, null))
+        {
+            throw new ArgumentsRequired((this.id + " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts")) ;
+        }
+        return new Pair<>(accountId, query);
 
     }
 
@@ -1526,83 +1550,86 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            var accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdaccountQueryVariable).get(0);
-            var accountQuery = ((List<Object>) accountIdaccountQueryVariable).get(1);
-            List<Object> withPositionspositionsQueryVariable = (List<Object>) this.handleOptionAndParams(accountQuery, "fetchBalance", "positions", true);
-            var withPositions = ((List<Object>) withPositionspositionsQueryVariable).get(0);
-            var positionsQuery = ((List<Object>) withPositionspositionsQueryVariable).get(1);
-            List<Object> withOpenOrdersqueryVariable = (List<Object>) this.handleOptionAndParams(positionsQuery, "fetchBalance", "openOrders", true);
-            var withOpenOrders = ((List<Object>) withOpenOrdersqueryVariable).get(0);
-            var query = ((List<Object>) withOpenOrdersqueryVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-            }};
-            if (Helpers.isTrue(withPositions) || Helpers.isTrue(withOpenOrders))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Pair<String, Map<String, Object>> accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdaccountQueryVariable.first();
+        Map<String, Object> accountQuery = accountIdaccountQueryVariable.second();
+        Map<String, Object> accountParams = this.extend(new HashMap<String, Object>() {{}}, accountQuery);
+        Pair<Boolean, Map<String, Object>> withPositionspositionsQueryVariable = this.handleOptionBoolAndParams(accountParams, "fetchBalance", "positions", true);
+        Boolean withPositions = withPositionspositionsQueryVariable.first();
+        Map<String, Object> positionsQuery = withPositionspositionsQueryVariable.second();
+        Pair<Boolean, Map<String, Object>> withOpenOrdersqueryVariable = this.handleOptionBoolAndParams(positionsQuery, "fetchBalance", "openOrders", true);
+        Boolean withOpenOrders = withOpenOrdersqueryVariable.first();
+        Map<String, Object> query = withOpenOrdersqueryVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+        }};
+        if (Boolean.TRUE.equals(withPositions) || Boolean.TRUE.equals(withOpenOrders))
+        {
+            // the conids of the positions and orders are resolved to currencies via the markets
+            if (java.util.Objects.equals(this.markets, null))
             {
-                // the conids of the positions and orders are resolved to currencies via the markets
-                if (java.util.Objects.equals(this.markets, null))
-                {
-                    (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                }
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            ((List<Object>)promises).add(this.webapiGetV1ApiPortfolioAccountIdLedger(this.extend(request, query)));
-            if (Helpers.isTrue(withPositions))
-            {
-                ((List<Object>)promises).add(this.webapiGetV1ApiPortfolio2AccountIdPositions(request));
-            }
-            if (Helpers.isTrue(withOpenOrders))
-            {
-                ((List<Object>)promises).add(this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}}));
-            }
-            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> response = this.safeDict(results, 0, new HashMap<String, Object>() {{}});
-            //
-            //     {
-            //         "USD": {
-            //             "commoditymarketvalue": 0.0,
-            //             "futuremarketvalue": 0.0,
-            //             "settledcash": 214716688.0,
-            //             "exchangerate": 1,
-            //             "sessionid": 1,
-            //             "cashbalance": 214716688.0,
-            //             "corporatebondsmarketvalue": 0.0,
-            //             "netliquidationvalue": 215335840.0,
-            //             "interest": 305569.94,
-            //             "unrealizedpnl": 39695.82,
-            //             "stockmarketvalue": 314123.88,
-            //             "currency": "USD",
-            //             "realizedpnl": 0.0,
-            //             "acctcode": "U1234567",
-            //             "key": "LedgerList",
-            //             "timestamp": 1702582321,
-            //             "secondkey": "USD",
-            //             ...
-            //         },
-            //         "BASE": { ... }
-            //     }
-            //
-            Map<String, Object> balanceResponse = new HashMap<String, Object>() {{
-                put( "ledger", response );
-            }};
-            Long index = 1L;
-            if (Helpers.isTrue(withPositions))
-            {
-                balanceResponse.put("positions", this.safeList(results, index, null));
-                index = (index + 1L);
-            }
-            if (Helpers.isTrue(withOpenOrders))
-            {
-                // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
-                balanceResponse.put("orders", this.safeList(results, index, null));
-            }
-            return this.parseBalance(balanceResponse);
-        }).thenApply(Balances::new);
+        }
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        promises.add(this.webapiGetV1ApiPortfolioAccountIdLedger(this.extend(request, query)));
+        if (Boolean.TRUE.equals(withPositions))
+        {
+            promises.add(this.webapiGetV1ApiPortfolio2AccountIdPositions(request));
+        }
+        if (Boolean.TRUE.equals(withOpenOrders))
+        {
+            promises.add(this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}}));
+        }
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        Map<String, Object> response = this.safeDict(results, 0, new HashMap<String, Object>() {{}});
+        //
+        //     {
+        //         "USD": {
+        //             "commoditymarketvalue": 0.0,
+        //             "futuremarketvalue": 0.0,
+        //             "settledcash": 214716688.0,
+        //             "exchangerate": 1,
+        //             "sessionid": 1,
+        //             "cashbalance": 214716688.0,
+        //             "corporatebondsmarketvalue": 0.0,
+        //             "netliquidationvalue": 215335840.0,
+        //             "interest": 305569.94,
+        //             "unrealizedpnl": 39695.82,
+        //             "stockmarketvalue": 314123.88,
+        //             "currency": "USD",
+        //             "realizedpnl": 0.0,
+        //             "acctcode": "U1234567",
+        //             "key": "LedgerList",
+        //             "timestamp": 1702582321,
+        //             "secondkey": "USD",
+        //             ...
+        //         },
+        //         "BASE": { ... }
+        //     }
+        //
+        Map<String, Object> balanceResponse = new HashMap<String, Object>() {{
+            put( "ledger", response );
+        }};
+        Long index = 1L;
+        if (Boolean.TRUE.equals(withPositions))
+        {
+            balanceResponse.put("positions", this.safeList(results, index, null));
+            index = (index + 1L);
+        }
+        if (Boolean.TRUE.equals(withOpenOrders))
+        {
+            // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
+            balanceResponse.put("orders", this.safeList(results, index, null));
+        }
+        return this.parseBalance(balanceResponse);
 
     }
 
@@ -1635,7 +1662,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 continue;
             }
-            Object code = ((String)this.safeCurrencyCode(currencyId, (Map<String, Object>) null));
+            Object code = ((String)this.safeCurrencyCode(currencyId, null));
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "cashbalance"));
             result.put((String)code, account);
@@ -1652,14 +1679,14 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 continue;
             }
-            Object code = this.ibkrBalanceCode((Map<String, Object>) (position));
+            String code = this.ibkrBalanceCode((Map<String, Object>) (position));
             if ((java.util.Objects.equals(code, null)) || (result.containsKey(code)))
             {
                 continue;
             }
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(position, "position"));
-            result.put((String)code, account);
+            result.put(code, account);
         }
         // locked amounts, from the open orders: buy orders lock remaining * price of the quote currency, sell orders lock the remaining base amount
         Map<String, Object> used = new HashMap<String, Object>() {{}};
@@ -1672,7 +1699,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 continue;
             }
             String marketId = this.safeString(order, "conid");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 continue;
@@ -1695,7 +1722,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 String cashCurrencyId = this.safeString(order, "cashCcy");
                 if (!java.util.Objects.equals(cashCurrencyId, null))
                 {
-                    code = this.safeCurrencyCode(cashCurrencyId, (Map<String, Object>) null);
+                    code = this.safeCurrencyCode(cashCurrencyId, null);
                 } else
                 {
                     code = this.safeString(market, "quote");
@@ -1717,7 +1744,9 @@ public class Interactivebrokers extends InteractivebrokersApi
         for (var i = 0; i < usedCodes.size(); i++)
         {
             String code = (usedCodes == null || i < 0 || i >= usedCodes.size() ? null : usedCodes.get(i));
-            Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "used", (used == null || code == null ? null : used.get(code)));
+            Map<String, Object> usedAccount = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(result, code, new HashMap<String, Object>() {{}}));
+            usedAccount.put("used", (used == null || code == null ? null : used.get(code)));
+            result.put(code, usedAccount);
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
         if (response.containsKey("orders"))
@@ -1728,7 +1757,9 @@ public class Interactivebrokers extends InteractivebrokersApi
                 String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 if ((!java.util.Objects.equals(code, "info")) && (java.util.Objects.equals(this.safeString((result == null || code == null ? null : result.get(code)), "used"), null)))
                 {
-                    Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "used", "0");
+                    Map<String, Object> zeroAccount = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(result, code, new HashMap<String, Object>() {{}}));
+                    zeroAccount.put("used", "0");
+                    result.put(code, zeroAccount);
                 }
             }
         }
@@ -1746,10 +1777,10 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} position a raw position from portfolio2/{accountId}/positions
      * @returns {string|undefined} the currency code
      */
-    public Object ibkrBalanceCode(Map<String, Object> position)
+    public String ibkrBalanceCode(Map<String, Object> position)
     {
         String marketId = this.safeString(position, "conid");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String base = this.safeString(market, "base");
         if (!java.util.Objects.equals(base, null))
         {
@@ -1765,7 +1796,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         if (java.util.Objects.equals(assetClass, "CRYPTO"))
         {
             // "ETH CRYPTO" -> ETH
-            return this.safeCurrencyCode((String) ((parts == null || 0 >= parts.size() ? null : parts.get(0))), (Map<String, Object>) null);
+            return this.safeCurrencyCode((String) ((parts == null || 0 >= parts.size() ? null : parts.get(0))), null);
         }
         return String.join(".", parts);  // 'BRK B' -> 'BRK.B', as in parseMarket
     }
@@ -1784,14 +1815,16 @@ public class Interactivebrokers extends InteractivebrokersApi
         return null;
     }
 
-    public CompletableFuture<Object> loadMarkets(Object reload, Object parameters)
+    public CompletableFuture<Object> loadMarkets(Object reload, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.loadMarketsCore(reload, parameters));
+    }
+
+    private Object loadMarketsCore(Object reload, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            return (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
-        });
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        return (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
 
     }
 
@@ -1810,45 +1843,46 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            List<Object> types = this.safeList(options, "types", new ArrayList<Object>(Arrays.asList()));
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            // the order matters, on symbol collisions the earlier contract keeps the plain symbol
-            if (this.inArray("stock", types))
-            {
-                ((List<Object>)promises).add(this.fetchStockMarkets(parameters));
-            }
-            if (this.inArray("crypto", types))
-            {
-                ((List<Object>)promises).add(this.fetchCryptoMarkets(parameters));
-            }
-            if (this.inArray("forex", types))
-            {
-                ((List<Object>)promises).add(this.fetchForexMarkets(parameters));
-            }
-            if (this.inArray("swap", types) || this.inArray("future", types))
-            {
-                // the swaps and the futures come from the same scans and requests
-                ((List<Object>)promises).add(this.fetchFuturesAndSwapMarkets(parameters));
-            }
-            if (this.inArray("cfd", types))
-            {
-                ((List<Object>)promises).add(this.fetchCfdMarkets(parameters));
-            }
-            if (this.inArray("bond", types))
-            {
-                ((List<Object>)promises).add(this.fetchBondMarkets(parameters));
-            }
-            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object markets = this.arraysConcat(results);
-            // toArray is the identity on a list, it types the result as a list for the statically typed ports
-            return this.toArray(this.ibkrDisambiguateContractSymbols(markets));
-        });
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        List<Object> types = this.safeList(options, "types", new ArrayList<Object>(Arrays.asList()));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        // the order matters, on symbol collisions the earlier contract keeps the plain symbol
+        if (this.inArray("stock", types))
+        {
+            promises.add(this.fetchStockMarkets(parameters));
+        }
+        if (this.inArray("crypto", types))
+        {
+            promises.add(this.fetchCryptoMarkets(parameters));
+        }
+        if (this.inArray("forex", types))
+        {
+            promises.add(this.fetchForexMarkets(parameters));
+        }
+        if (this.inArray("swap", types) || this.inArray("future", types))
+        {
+            // the swaps and the futures come from the same scans and requests
+            promises.add(this.fetchFuturesAndSwapMarkets(parameters));
+        }
+        if (this.inArray("cfd", types))
+        {
+            promises.add(this.fetchCfdMarkets(parameters));
+        }
+        if (this.inArray("bond", types))
+        {
+            promises.add(this.fetchBondMarkets(parameters));
+        }
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        List<Object> markets = this.arraysConcat(results);
+        return this.ibkrDisambiguateContractSymbols(markets);
 
     }
 
@@ -1860,25 +1894,26 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object[]} markets parsed markets
      * @returns {object[]} the markets with unique symbols
      */
-    public List<Object> ibkrDisambiguateContractSymbols(Object markets)
+    public List<Object> ibkrDisambiguateContractSymbols(List<Object> markets)
     {
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)markets).size(); i++)
+        for (var i = 0; i < markets.size(); i++)
         {
-            Map<String, Object> market = this.extend(new HashMap<String, Object>() {{}}, (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i)));
+            Map<String, Object> market = this.extend(new HashMap<String, Object>() {{}}, (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
             String symbol = this.safeString(market, "symbol");
-            Boolean isContract = (Boolean) this.safeBool(market, "contract", false);
+            Boolean isContract = this.safeBool(market, "contract", false);
             if ((seen.containsKey(symbol)) && Boolean.TRUE.equals(isContract))
             {
                 Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                 String listingExchange = this.safeString2(info, "listingExchange", "exchange", "default");
-                String marketBase = this.safeString(market, "base");
-                String marketBaseId = this.safeString(market, "baseId");
-                Boolean isFuture = (Boolean) this.safeBool(market, "future", false);
+                String marketBase = this.safeString(market, "base", "");
+                String marketBaseId = this.safeString(market, "baseId", "");
+                Boolean isFuture = this.safeBool(market, "future", false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
-                String quoteAndSettle = ("/" + (symbolParts == null || 1 >= symbolParts.size() ? null : symbolParts.get(1)));
+                String quotePart = this.safeString(symbolParts, 1, "");
+                String quoteAndSettle = ("/" + quotePart);
                 String base = ((marketBase + ".") + listingExchange);
                 if (Boolean.TRUE.equals(isFuture) && (!java.util.Objects.equals(marketBaseId, marketBase)))
                 {
@@ -1888,7 +1923,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 String newSymbol = (base + quoteAndSettle);
                 if (seen.containsKey(newSymbol))
                 {
-                    base = ((marketBase + ".") + this.safeString(market, "id"));
+                    String marketId = this.safeString(market, "id", "");
+                    base = ((marketBase + ".") + marketId);
                     newSymbol = (base + quoteAndSettle);
                 }
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -1898,151 +1934,160 @@ public class Interactivebrokers extends InteractivebrokersApi
             }
             String finalSymbol = this.safeString(market, "symbol");
             seen.put(finalSymbol, true);
-            ((List<Object>)result).add(market);
+            result.add(market);
         }
         return result;
     }
 
-    public CompletableFuture<Object> fetchSecWithDetails(Map<String, Object> plainEntries)
+    public CompletableFuture<List<Object>> fetchSecWithDetails(Map<String, Object> plainEntries)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchSecWithDetailsCore(plainEntries));
+    }
+
+    private List<Object> fetchSecWithDetailsCore(Map<String, Object> plainEntries)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<String> detailIds = new ArrayList<String>(plainEntries.keySet());
-            List<Object> entries = new ArrayList<Object>(Arrays.asList());
-            Integer numDetails = detailIds.size();
-            if (java.util.Objects.equals(numDetails, 0))
-            {
-                return entries;
-            }
-            Integer chunkSize = 330; // above this number, response becomes unreliable
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            Object offset = 0;
-            while ((!(offset == null && numDetails == null) && offset == null || (numDetails != null && !(((Number) offset).doubleValue() >= numDetails))))
-            {
-                Object end = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.sum(offset, chunkSize), numDetails);
-                Object chunk = this.arraySlice(detailIds, offset, end);
-                Map<String, Object> secdefRequest = new HashMap<String, Object>() {{
-                    put( "conids", String.join(",", (List<String>)chunk) );
-                }};
-                ((List<Object>)promises).add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new HashMap<String, Object>() {{}}));
-                offset = end;
-            }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            //
-            //     {
-            //         "secdef": [
-            //             {
-            //                 "conid": 479624278,
-            //                 "currency": "USD",
-            //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
-            //                 "listingExchange": "PAXOS",
-            //                 "assetClass": "CRYPTO",
-            //                 "ticker": "BTC",
-            //                 ...
-            //             }
-            //         ]
-            //     }
-            //
-            for (var i = 0; i < responses.size(); i++)
-            {
-                List<Object> secdefs = this.safeList((responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)), "secdef", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < secdefs.size(); j++)
-                {
-                    Object secdef = (secdefs == null || j < 0 || j >= secdefs.size() ? null : secdefs.get(j));
-                    String conid = this.safeString(secdef, "conid");
-                    Map<String, Object> entry = this.safeDict(plainEntries, conid, null);
-                    ((List<Object>)entries).add(this.extend(entry, secdef));
-                }
-            }
+        List<String> detailIds = new ArrayList<String>(plainEntries.keySet());
+        List<Object> entries = new ArrayList<Object>(Arrays.asList());
+        Integer numDetails = detailIds.size();
+        if (java.util.Objects.equals(numDetails, 0))
+        {
             return entries;
-        });
+        }
+        Integer chunkSize = 330; // above this number, response becomes unreliable
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        List<String> chunk = new ArrayList<String>(Arrays.asList());
+        for (var k = 0; (numDetails != null && k < numDetails); k++)
+        {
+            String detailId = this.safeString(detailIds, k, "");
+            chunk.add(detailId);
+            Object chunkLength = chunk.size();
+            if ((java.util.Objects.equals(chunkLength, chunkSize)) || ((k == (((long) numDetails) - 1L))))
+            {
+                Map<String, Object> secdefRequest = new HashMap<String, Object>();
+                secdefRequest.put("conids", String.join(",", (List<String>)chunk));
+                promises.add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new HashMap<String, Object>() {{}}));
+                chunk = new ArrayList<String>(Arrays.asList());
+            }
+        }
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        //
+        //     {
+        //         "secdef": [
+        //             {
+        //                 "conid": 479624278,
+        //                 "currency": "USD",
+        //                 "incrementRules": [ { "lowerEdge": 0, "increment": 0.25 } ],
+        //                 "listingExchange": "PAXOS",
+        //                 "assetClass": "CRYPTO",
+        //                 "ticker": "BTC",
+        //                 ...
+        //             }
+        //         ]
+        //     }
+        //
+        for (var i = 0; i < responses.size(); i++)
+        {
+            List<Object> secdefs = this.safeList((responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)), "secdef", new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < secdefs.size(); j++)
+            {
+                Object secdef = (secdefs == null || j < 0 || j >= secdefs.size() ? null : secdefs.get(j));
+                String conid = this.safeString(secdef, "conid", "");
+                Map<String, Object> entry = this.safeDict(plainEntries, conid, null);
+                entries.add(this.extend(entry, secdef));
+            }
+        }
+        return entries;
 
     }
 
-    public CompletableFuture<Object> fetchForexMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchForexMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchForexMarketsCore(parameters));
+    }
+
+    private List<Object> fetchForexMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> entries = new HashMap<String, Object>() {{}};
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            List<Object> forexCurrencies = this.safeList(options, "forexCurrencies", new ArrayList<Object>(Arrays.asList()));
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < forexCurrencies.size(); i++)
+        Map<String, Object> entries = new HashMap<String, Object>() {{}};
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        List<Object> forexCurrencies = this.safeList(options, "forexCurrencies", new ArrayList<Object>(Arrays.asList()));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        for (var i = 0; i < forexCurrencies.size(); i++)
+        {
+            Object fxCurrency = (forexCurrencies == null || i < 0 || i >= forexCurrencies.size() ? null : forexCurrencies.get(i));
+            Map<String, Object> pairsRequest = new HashMap<String, Object>() {{
+                put( "currency", fxCurrency );
+            }};
+            promises.add(this.marketsEndpointCall(this.extend(pairsRequest, parameters), "webapiGetV1ApiIserverCurrencyPairs", new HashMap<String, Object>() {{}}));
+        }
+        List<Object> fxResults = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        for (var i = 0; i < fxResults.size(); i++)
+        {
+            Object pairsResponse = (fxResults == null || i < 0 || i >= fxResults.size() ? null : fxResults.get(i));
+            Object fxCurrency = (forexCurrencies == null || i < 0 || i >= forexCurrencies.size() ? null : forexCurrencies.get(i));
+            List<Object> pairs = this.safeList(pairsResponse, fxCurrency, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < pairs.size(); j++)
             {
-                Object fxCurrency = (forexCurrencies == null || i < 0 || i >= forexCurrencies.size() ? null : forexCurrencies.get(i));
-                Map<String, Object> pairsRequest = new HashMap<String, Object>() {{
-                    put( "currency", fxCurrency );
-                }};
-                ((List<Object>)promises).add(this.marketsEndpointCall((Map<String, Object>) (this.extend(pairsRequest, parameters)), "webapiGetV1ApiIserverCurrencyPairs", new HashMap<String, Object>() {{}}));
-            }
-            List<Object> fxResults = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < fxResults.size(); i++)
-            {
-                Object pairsResponse = (fxResults == null || i < 0 || i >= fxResults.size() ? null : fxResults.get(i));
-                Object fxCurrency = (forexCurrencies == null || i < 0 || i >= forexCurrencies.size() ? null : forexCurrencies.get(i));
-                List<Object> pairs = this.safeList(pairsResponse, fxCurrency, new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < pairs.size(); j++)
+                Object pair = (pairs == null || j < 0 || j >= pairs.size() ? null : pairs.get(j));
+                String conid = this.safeString(pair, "conid");
+                if (!java.util.Objects.equals(conid, null))
                 {
-                    Object pair = (pairs == null || j < 0 || j >= pairs.size() ? null : pairs.get(j));
-                    String conid = this.safeString(pair, "conid");
-                    if (!java.util.Objects.equals(conid, null))
-                    {
-                        entries.put(conid, pair);
-                    }
+                    entries.put(conid, pair);
                 }
             }
-            Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-            return this.parseMarkets(detailMarkets);
-        });
+        }
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        return this.parseMarkets(detailMarkets);
 
     }
 
-    public CompletableFuture<Object> fetchCryptoMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchCryptoMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCryptoMarketsCore(parameters));
+    }
+
+    private List<Object> fetchCryptoMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> entries = new HashMap<String, Object>() {{}};
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            List<Object> cryptoSpotSymbols = this.safeList(options, "cryptoSpotSymbols", new ArrayList<Object>(Arrays.asList()));
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < cryptoSpotSymbols.size(); i++)
+        Map<String, Object> entries = new HashMap<String, Object>() {{}};
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        List<Object> cryptoSpotSymbols = this.safeList(options, "cryptoSpotSymbols", new ArrayList<Object>(Arrays.asList()));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        for (var i = 0; i < cryptoSpotSymbols.size(); i++)
+        {
+            Object cryptoSymbol = (cryptoSpotSymbols == null || i < 0 || i >= cryptoSpotSymbols.size() ? null : cryptoSpotSymbols.get(i));
+            Map<String, Object> searchRequest = new HashMap<String, Object>() {{
+                put( "symbol", cryptoSymbol );
+                put( "secType", "CRYPTO" );
+            }};
+            promises.add(this.marketsEndpointCall(this.extend(searchRequest, parameters), "webapiPostV1ApiIserverSecdefSearch", new ArrayList<Object>(Arrays.asList())));
+        }
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        List<String> neededSecTypes = new ArrayList<String>(Arrays.asList("CRYPTO")); // CFD, OPT - they should already be fetched in other calls
+        for (var i = 0; i < results.size(); i++)
+        {
+            List<Object> result = this.safeList(results, i, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < result.size(); j++)
             {
-                Object cryptoSymbol = (cryptoSpotSymbols == null || i < 0 || i >= cryptoSpotSymbols.size() ? null : cryptoSpotSymbols.get(i));
-                Map<String, Object> searchRequest = new HashMap<String, Object>() {{
-                    put( "symbol", cryptoSymbol );
-                    put( "secType", "CRYPTO" );
-                }};
-                ((List<Object>)promises).add(this.marketsEndpointCall((Map<String, Object>) (this.extend(searchRequest, parameters)), "webapiPostV1ApiIserverSecdefSearch", new ArrayList<Object>(Arrays.asList())));
-            }
-            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            List<String> neededSecTypes = new ArrayList<String>(Arrays.asList("CRYPTO")); // CFD, OPT - they should already be fetched in other calls
-            for (var i = 0; i < results.size(); i++)
-            {
-                Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
-                for (var j = 0; j < (switch ((Object)(result)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); j++)
+                Object entry = (result == null || j < 0 || j >= result.size() ? null : result.get(j));
+                List<Object> sections = this.safeList(entry, "sections", new ArrayList<Object>(Arrays.asList()));
+                for (var k = 0; k < sections.size(); k++)
                 {
-                    Object entry = Helpers.GetValue(result, j);
-                    List<Object> sections = this.safeList(entry, "sections", new ArrayList<Object>(Arrays.asList()));
-                    for (var k = 0; k < sections.size(); k++)
+                    String secType = this.safeString((sections == null || k < 0 || k >= sections.size() ? null : sections.get(k)), "secType");
+                    if (this.inArray(secType, neededSecTypes))
                     {
-                        String secType = this.safeString((sections == null || k < 0 || k >= sections.size() ? null : sections.get(k)), "secType");
-                        if (this.inArray(secType, neededSecTypes))
+                        String conid = this.safeString(entry, "conid");
+                        if (!java.util.Objects.equals(conid, null))
                         {
-                            String conid = this.safeString(entry, "conid");
-                            if (!java.util.Objects.equals(conid, null))
-                            {
-                                entries.put(conid, entry);
-                            }
+                            entries.put(conid, entry);
                         }
                     }
                 }
             }
-            Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-            return this.parseMarkets(detailMarkets);
-        });
+        }
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        return this.parseMarkets(detailMarkets);
 
     }
 
@@ -2056,56 +2101,58 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Object> fetchCoinbaseDerivativesSymbols()
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCoinbaseDerivativesSymbolsCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCoinbaseDerivativesSymbolsCore()
+    {
 
-            List<String> scanTypes = new ArrayList<String>(Arrays.asList("MOST_ACTIVE", "NOT_YET_TRADED_TODAY")); // these two ones cover all coinbase symbols
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            // the scans are run one by one, the scanner rejects concurrent requests
-            for (var i = 0; i < scanTypes.size(); i++)
+        List<String> scanTypes = new ArrayList<String>(Arrays.asList("MOST_ACTIVE", "NOT_YET_TRADED_TODAY")); // these two ones cover all coinbase symbols
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        // the scans are run one by one, the scanner rejects concurrent requests
+        for (var i = 0; i < scanTypes.size(); i++)
+        {
+            if ((i != 0))
             {
-                if ((i != 0))
+                (this.sleep(1000)).join(); // wait for 1 second before running the next scan
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument", "FUT.US");
+            request.put("location", "FUT.COINDERIV");
+            request.put("type", (scanTypes == null || i < 0 || i >= scanTypes.size() ? null : scanTypes.get(i)));
+            request.put("filter", new ArrayList<Object>(Arrays.asList()));
+            Object response = (this.marketsEndpointCall(request, "webapiPostV1ApiIserverScannerRun", new HashMap<String, Object>() {{}})).join();
+            //
+            //     {
+            //         "contracts": [
+            //             {
+            //                 "server_id": "0",
+            //                 "column_name": "Volume",
+            //                 "symbol": "BIP",
+            //                 "conidex": "805366677@COINDERIV",
+            //                 "con_id": 805366677,
+            //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
+            //                 "contract_description_1": "Dec'30",
+            //                 "listing_exchange": "COINDERIV",
+            //                 "sec_type": "FUT"
+            //             }
+            //         ],
+            //         "scan_data_column_name": "Volume"
+            //     }
+            //
+            List<Object> contracts = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < contracts.size(); j++)
+            {
+                Object contract = (contracts == null || j < 0 || j >= contracts.size() ? null : contracts.get(j));
+                String listingExchange = this.safeString(contract, "listing_exchange");
+                String symbol = this.safeString(contract, "symbol");
+                if ((!java.util.Objects.equals(symbol, null)) && (java.util.Objects.equals(listingExchange, "COINDERIV")) && !this.inArray(symbol, result))
                 {
-                    (this.sleep(1000)).join(); // wait for 1 second before running the next scan
-                }
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("instrument", "FUT.US");
-                request.put("location", "FUT.COINDERIV");
-                request.put("type", (scanTypes == null || i < 0 || i >= scanTypes.size() ? null : scanTypes.get(i)));
-                request.put("filter", new ArrayList<Object>(Arrays.asList()));
-                Object response = (this.marketsEndpointCall(request, "webapiPostV1ApiIserverScannerRun", new HashMap<String, Object>() {{}})).join();
-                //
-                //     {
-                //         "contracts": [
-                //             {
-                //                 "server_id": "0",
-                //                 "column_name": "Volume",
-                //                 "symbol": "BIP",
-                //                 "conidex": "805366677@COINDERIV",
-                //                 "con_id": 805366677,
-                //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
-                //                 "contract_description_1": "Dec'30",
-                //                 "listing_exchange": "COINDERIV",
-                //                 "sec_type": "FUT"
-                //             }
-                //         ],
-                //         "scan_data_column_name": "Volume"
-                //     }
-                //
-                List<Object> contracts = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < contracts.size(); j++)
-                {
-                    Object contract = (contracts == null || j < 0 || j >= contracts.size() ? null : contracts.get(j));
-                    String listingExchange = this.safeString(contract, "listing_exchange");
-                    String symbol = this.safeString(contract, "symbol");
-                    if ((!java.util.Objects.equals(symbol, null)) && (java.util.Objects.equals(listingExchange, "COINDERIV")) && !this.inArray(symbol, result))
-                    {
-                        ((List<Object>)result).add(symbol);
-                    }
+                    result.add(symbol);
                 }
             }
-            return result;
-        });
+        }
+        return result;
 
     }
 
@@ -2119,88 +2166,98 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchFuturesAndSwapMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchFuturesAndSwapMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchFuturesAndSwapMarketsCore(parameters));
+    }
+
+    private List<Object> fetchFuturesAndSwapMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            List<Object> types = this.safeList(options, "types", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> cryptoCmeFutureSymbols = this.safeDict(options, "cryptoCmeFutureSymbols", new HashMap<String, Object>() {{}});
-            Map<String, Object> cryptoCboeFutureSymbols = this.safeDict(options, "cryptoCboeFutureSymbols", new HashMap<String, Object>() {{}});
-            Object coinbaseDerivSymbols = (this.fetchCoinbaseDerivativesSymbols()).join();
-            List<Object> cmeSymbols = new ArrayList<Object>(cryptoCmeFutureSymbols.keySet());
-            List<Object> cfeSymbols = new ArrayList<Object>(cryptoCboeFutureSymbols.keySet());
-            Object targetSymbols = this.arraysConcat(new ArrayList<Object>(Arrays.asList(coinbaseDerivSymbols, cmeSymbols, cfeSymbols)));
-            Object symbols = this.unique(targetSymbols);
-            String joined = String.join(",", (List<String>)(List<String>)(symbols)); // c# fix, todo investigate
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbols", joined );
-            }};
-            Object response = (this.marketsEndpointCall((Map<String, Object>) (this.extend(request, parameters)), "webapiGetV1ApiTrsrvFutures", new HashMap<String, Object>() {{}})).join();
-            //
-            //     {
-            //         "MBT": [
-            //             {
-            //                 "symbol": "MBT",
-            //                 "conid": 750093370,
-            //                 "underlyingConid": 479624278,
-            //                 "expirationDate": 20261127,
-            //                 "ltd": 20261127,
-            //                 "shortFuturesCutOff": 20261127,
-            //                 "longFuturesCutOff": 20261127
-            //             }
-            //         ]
-            //     }
-            //
-            // (for swaps, the date is "20301220")
-            //
-            Map<String, Object> entries = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        List<Object> types = this.safeList(options, "types", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> cryptoCmeFutureSymbols = this.safeDict(options, "cryptoCmeFutureSymbols", new HashMap<String, Object>() {{}});
+        Map<String, Object> cryptoCboeFutureSymbols = this.safeDict(options, "cryptoCboeFutureSymbols", new HashMap<String, Object>() {{}});
+        Object coinbaseDerivSymbols = (this.fetchCoinbaseDerivativesSymbols()).join();
+        List<Object> cmeSymbols = new ArrayList<Object>(cryptoCmeFutureSymbols.keySet());
+        List<Object> cfeSymbols = new ArrayList<Object>(cryptoCboeFutureSymbols.keySet());
+        List<Object> targetSymbols = this.arraysConcat(new ArrayList<Object>(Arrays.asList(coinbaseDerivSymbols, cmeSymbols, cfeSymbols)));
+        List<String> symbols = new ArrayList<String>(Arrays.asList());
+        Integer targetSymbolsLength = targetSymbols.size();
+        for (var i = 0; (targetSymbolsLength != null && i < targetSymbolsLength); i++)
+        {
+            String targetSymbol = this.safeString(targetSymbols, i, "");
+            if (!this.inArray(targetSymbol, symbols))
             {
-                List<Object> contracts = this.safeList(response, (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)), new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < contracts.size(); j++)
+                symbols.add(targetSymbol);
+            }
+        }
+        String joined = String.join(",", (List<String>)symbols);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbols", joined );
+        }};
+        Object response = (this.marketsEndpointCall(this.extend(request, parameters), "webapiGetV1ApiTrsrvFutures", new HashMap<String, Object>() {{}})).join();
+        //
+        //     {
+        //         "MBT": [
+        //             {
+        //                 "symbol": "MBT",
+        //                 "conid": 750093370,
+        //                 "underlyingConid": 479624278,
+        //                 "expirationDate": 20261127,
+        //                 "ltd": 20261127,
+        //                 "shortFuturesCutOff": 20261127,
+        //                 "longFuturesCutOff": 20261127
+        //             }
+        //         ]
+        //     }
+        //
+        // (for swaps, the date is "20301220")
+        //
+        Map<String, Object> entries = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < symbols.size(); i++)
+        {
+            List<Object> contracts = this.safeList(response, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)), new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < contracts.size(); j++)
+            {
+                Object contract = (contracts == null || j < 0 || j >= contracts.size() ? null : contracts.get(j));
+                String conid = this.safeString(contract, "conid");
+                if (!java.util.Objects.equals(conid, null))
                 {
-                    Object contract = (contracts == null || j < 0 || j >= contracts.size() ? null : contracts.get(j));
-                    String conid = this.safeString(contract, "conid");
-                    if (!java.util.Objects.equals(conid, null))
-                    {
-                        entries.put(conid, contract);
-                    }
+                    entries.put(conid, contract);
                 }
             }
-            Object details = (this.fetchSecWithDetails(entries)).join();
-            // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
-            // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
-            List<String> allowedVenues = new ArrayList<String>(Arrays.asList("CME", "CFE", "COINDERIV"));
-            List<Object> detailMarkets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)details).size(); i++)
+        }
+        List<Object> details = (this.fetchSecWithDetails(entries)).join();
+        // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
+        // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
+        List<String> allowedVenues = new ArrayList<String>(Arrays.asList("CME", "CFE", "COINDERIV"));
+        List<Object> detailMarkets = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < details.size(); i++)
+        {
+            String venue = this.safeString((details == null || i < 0 || i >= details.size() ? null : details.get(i)), "listingExchange");
+            if (this.inArray(venue, allowedVenues))
             {
-                Object detail = (details == null || i < 0 || i >= ((List<?>)details).size() ? null : ((List<?>)details).get(i));
-                String venue = this.safeString(detail, "listingExchange");
-                if (this.inArray(venue, allowedVenues))
-                {
-                    ((List<Object>)detailMarkets).add(detail);
-                }
+                detailMarkets.add(this.safeDict(details, i, null));
             }
-            List<Object> markets = (List<Object>) this.parseMarkets(detailMarkets);
-            boolean withSwaps = this.inArray("swap", types);
-            boolean withFutures = this.inArray("future", types);
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < markets.size(); i++)
+        }
+        List<Object> markets = this.parseMarkets(detailMarkets);
+        boolean withSwaps = this.inArray("swap", types);
+        boolean withFutures = this.inArray("future", types);
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < markets.size(); i++)
+        {
+            Map<String, Object> market = (Map<String, Object>) (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
+            String parsedType = this.safeString(market, "type");
+            if (withSwaps && (java.util.Objects.equals(parsedType, "swap")))
             {
-                Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
-                String parsedType = this.safeString(market, "type");
-                if (withSwaps && (java.util.Objects.equals(parsedType, "swap")))
-                {
-                    ((List<Object>)result).add(market);
-                } else if (withFutures && (java.util.Objects.equals(parsedType, "future")))
-                {
-                    ((List<Object>)result).add(market);
-                }
+                result.add(market);
+            } else if (withFutures && (java.util.Objects.equals(parsedType, "future")))
+            {
+                result.add(market);
             }
-            return result;
-        });
+        }
+        return result;
 
     }
 
@@ -2213,49 +2270,53 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchCfdMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchCfdMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCfdMarketsCore(parameters));
+    }
+
+    private List<Object> fetchCfdMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> entries = new HashMap<String, Object>() {{}};
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            List<Object> cfdExchanges = this.safeList(options, "cfdExchanges", new ArrayList<Object>(Arrays.asList()));
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < cfdExchanges.size(); i++)
+        Map<String, Object> entries = new HashMap<String, Object>() {{}};
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        List<Object> cfdExchanges = this.safeList(options, "cfdExchanges", new ArrayList<Object>(Arrays.asList()));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        for (var i = 0; i < cfdExchanges.size(); i++)
+        {
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("exchange", this.safeString(cfdExchanges, i, ""));
+            request.put("assetClass", "CFD");
+            promises.add(this.marketsEndpointCall(request, "webapiGetV1ApiTrsrvAllConids", new ArrayList<Object>(Arrays.asList())));
+        }
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        for (var i = 0; i < responses.size(); i++)
+        {
+            List<Object> cfds = this.safeList(responses, i, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < cfds.size(); j++)
             {
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("exchange", (cfdExchanges == null || i < 0 || i >= cfdExchanges.size() ? null : cfdExchanges.get(i)));
-                request.put("assetClass", "CFD");
-                ((List<Object>)promises).add(this.marketsEndpointCall(request, "webapiGetV1ApiTrsrvAllConids", new ArrayList<Object>(Arrays.asList())));
+                Object cfd = (cfds == null || j < 0 || j >= cfds.size() ? null : cfds.get(j));
+                String conid = this.safeString(cfd, "conid");
+                entries.put(conid, cfd);
             }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < responses.size(); i++)
+        }
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Integer detailMarketsLength = detailMarkets.size();
+        for (var i = 0; i < cfdExchanges.size(); i++)
+        {
+            String cfdExchange = this.safeString(cfdExchanges, i, "");
+            for (var j = 0; (detailMarketsLength != null && j < detailMarketsLength); j++)
             {
-                Object cfds = (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i));
-                for (var j = 0; j < (switch ((Object)(cfds)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); j++)
+                String listingExchange = this.safeString((detailMarkets == null || j < 0 || j >= detailMarkets.size() ? null : detailMarkets.get(j)), "listingExchange", "");
+                if (java.util.Objects.equals(listingExchange, cfdExchange))
                 {
-                    Object cfd = Helpers.GetValue(cfds, j);
-                    String conid = this.safeString(cfd, "conid");
-                    entries.put(conid, cfd);
+                    result.add(this.safeDict(detailMarkets, j, null));
                 }
             }
-            Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-            // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < cfdExchanges.size(); i++)
-            {
-                for (var j = 0; j < ((List<?>)detailMarkets).size(); j++)
-                {
-                    Object detail = (detailMarkets == null || j < 0 || j >= ((List<?>)detailMarkets).size() ? null : ((List<?>)detailMarkets).get(j));
-                    if (java.util.Objects.equals(this.safeString(detail, "listingExchange"), (cfdExchanges == null || i < 0 || i >= cfdExchanges.size() ? null : cfdExchanges.get(i))))
-                    {
-                        ((List<Object>)result).add(detail);
-                    }
-                }
-            }
-            return this.parseMarkets(result);
-        });
+        }
+        return this.parseMarkets(result);
 
     }
 
@@ -2270,441 +2331,454 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchBondMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchBondMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchBondMarketsCore(parameters));
+    }
+
+    private List<Object> fetchBondMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> entries = new HashMap<String, Object>() {{}};
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            List<Object> bondSymbols = this.safeList(options, "bondSymbols", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> bondFilters = this.safeDict(options, "bondFilters", new HashMap<String, Object>() {{}});
-            List<Object> searchPromises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < bondSymbols.size(); i++)
+        Map<String, Object> entries = new HashMap<String, Object>() {{}};
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        List<Object> bondSymbols = this.safeList(options, "bondSymbols", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> bondFilters = this.safeDict(options, "bondFilters", new HashMap<String, Object>() {{}});
+        List<CompletableFuture<?>> searchPromises = new ArrayList<CompletableFuture<?>>();
+        for (var i = 0; i < bondSymbols.size(); i++)
+        {
+            Map<String, Object> searchRequest = new HashMap<String, Object>();
+            searchRequest.put("symbol", this.safeString(bondSymbols, i, ""));
+            searchRequest.put("secType", "BOND");
+            searchPromises.add(this.marketsEndpointCall(this.extend(searchRequest, parameters), "webapiPostV1ApiIserverSecdefSearch", new ArrayList<Object>(Arrays.asList())));
+        }
+        List<Object> searchResults = (CompletableFuture.allOf(searchPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(searchPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        // the filters are sent as columnId:value pairs joined by a comma, e.g. 29:Notes,27:202701
+        List<String> filterIds = new ArrayList<String>(bondFilters.keySet());
+        Object filterParts = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < filterIds.size(); i++)
+        {
+            String filterId = (filterIds == null || i < 0 || i >= filterIds.size() ? null : filterIds.get(i));
+            String filterValue = this.safeString(bondFilters, filterId, "");
+            ((List<Object>)filterParts).add(((filterId + ":") + filterValue));
+        }
+        Integer filterPartsLength = ((List<?>)filterParts).size();
+        List<CompletableFuture<?>> contractPromises = new ArrayList<CompletableFuture<?>>();
+        for (var i = 0; i < searchResults.size(); i++)
+        {
+            List<Object> searchResult = this.safeList(searchResults, i, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < searchResult.size(); j++)
             {
-                Map<String, Object> searchRequest = new HashMap<String, Object>();
-                searchRequest.put("symbol", (bondSymbols == null || i < 0 || i >= bondSymbols.size() ? null : bondSymbols.get(i)));
-                searchRequest.put("secType", "BOND");
-                ((List<Object>)searchPromises).add(this.marketsEndpointCall((Map<String, Object>) (this.extend(searchRequest, parameters)), "webapiPostV1ApiIserverSecdefSearch", new ArrayList<Object>(Arrays.asList())));
-            }
-            List<Object> searchResults = (((List<?>)(searchPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            // the filters are sent as columnId:value pairs joined by a comma, e.g. 29:Notes,27:202701
-            List<String> filterIds = new ArrayList<String>(bondFilters.keySet());
-            Object filterParts = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < filterIds.size(); i++)
-            {
-                String filterId = (filterIds == null || i < 0 || i >= filterIds.size() ? null : filterIds.get(i));
-                ((List<Object>)filterParts).add(((filterId + ":") + this.safeString(bondFilters, filterId)));
-            }
-            Integer filterPartsLength = ((List<?>)filterParts).size();
-            List<Object> contractPromises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < searchResults.size(); i++)
-            {
-                Object searchResult = (searchResults == null || i < 0 || i >= searchResults.size() ? null : searchResults.get(i));
-                for (var j = 0; j < (switch ((Object)(searchResult)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); j++)
+                List<Object> issuers = this.safeList((searchResult == null || j < 0 || j >= searchResult.size() ? null : searchResult.get(j)), "issuers", new ArrayList<Object>(Arrays.asList()));
+                for (var k = 0; k < issuers.size(); k++)
                 {
-                    List<Object> issuers = this.safeList(Helpers.GetValue(searchResult, j), "issuers", new ArrayList<Object>(Arrays.asList()));
-                    for (var k = 0; k < issuers.size(); k++)
+                    Map<String, Object> contractsRequest = new HashMap<String, Object>();
+                    contractsRequest.put("sectype", "BOND");
+                    contractsRequest.put("issuerId", this.safeString((issuers == null || k < 0 || k >= issuers.size() ? null : issuers.get(k)), "id"));
+                    if ((filterPartsLength != null && filterPartsLength > 0))
                     {
-                        Map<String, Object> contractsRequest = new HashMap<String, Object>();
-                        contractsRequest.put("sectype", "BOND");
-                        contractsRequest.put("issuerId", this.safeString((issuers == null || k < 0 || k >= issuers.size() ? null : issuers.get(k)), "id"));
-                        if ((filterPartsLength != null && filterPartsLength > 0))
-                        {
-                            contractsRequest.put("filters", String.join(",", (List<String>)filterParts));
-                        }
-                        ((List<Object>)contractPromises).add(this.marketsEndpointCall(contractsRequest, "webapiGetV1ApiIserverSecdefInfo", new ArrayList<Object>(Arrays.asList())));
+                        contractsRequest.put("filters", String.join(",", (List<String>)filterParts));
                     }
+                    contractPromises.add(this.marketsEndpointCall(contractsRequest, "webapiGetV1ApiIserverSecdefInfo", new ArrayList<Object>(Arrays.asList())));
                 }
             }
-            List<Object> contractResults = (((List<?>)(contractPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            //
-            //  [
-            //    {
-            //        "conid": 15960430,
-            //        "symbol": "US-T",
-            //        "secType": "BOND",
-            //        "exchange": "SMART",
-            //        "listingExchange": "BONDDESKG",
-            //        "right": "?",
-            //        "strike": "0",
-            //        "currency": "USD",
-            //        "cusip": "912810EY0",
-            //        "coupon": "6.5",
-            //        "desc1": "US-T",
-            //        "desc2": "GOVT 6.5 Nov15'26 912810EY0 WR",
-            //        "maturityDate": "20261115",
-            //        "multiplier": 0,
-            //        "tradingClass": "US-T",
-            //        "validExchanges": "SMART",
-            //        "incrementRules": [
-            //            {
-            //                "lowerEdge": 0,
-            //                "increment": 0.001
-            //            }
-            //        ],
-            //        "displayRule": {
-            //            "magnification": 0,
-            //            "displayRuleStep": [
-            //                {
-            //                    "decimalDigits": 3,
-            //                    "lowerEdge": 0,
-            //                    "wholeDigits": 4
-            //                }
-            //            ]
-            //        },
-            //        "time": 11,
-            //        "chineseName": "&#x7F8E;&#x56FD;&#x4E2D;&#x957F;&#x671F;&#x56FD;&#x503A;",
-            //        "allExchanges": "BONDDESKG,VALUBONDG,CITADEL,VIRTBONDG,TRADEWEBG,TRACE,BONDSCOM,JPMCUSG",
-            //        "countryCode": "US",
-            //        "name": "US-T",
-            //        "assetClass": "BOND",
-            //        "expiry": null,
-            //        "lastTradingDay": null,
-            //        "group": null,
-            //        "putOrCall": null,
-            //        "sector": null,
-            //        "sectorGroup": null,
-            //        "ticker": "US-T",
-            //        "undConid": 0,
-            //        "type": "Govt",
-            //        "hasOptions": false,
-            //        "bondName": "US-T Govt Bond 6.5 IBCID15960430",
-            //        "fullName": "US-T Govt Bond 6.5 Nov15'26",
-            //        "bond": {
-            //            "t": "Govt",
-            //            "t2": "Bond",
-            //            "taxSt": null,
-            //            "descr": "T 6 1/2 11/15/26",
-            //            "prt": null,
-            //            "descLabel": "T 6 1/2 11/15/26",
-            //            "countryOfIssue": "US",
-            //            "principalValue": 1000,
-            //            "principalValueCurr": "USD",
-            //            "announceDate": "47121231",
-            //            "issueDate": "19961115",
-            //            "maturityDate": "20261115",
-            //            "payPrincipalOnMaturity": "T",
-            //            "notes": "TENDERS ACCEPTED: $10000MM.                                                     LISTED: NYSE/AMEX. AMT REPURCH THRU DEBT BUYBACKS:$0MM-8/21/00, $10MM-11/13/00, $30MM-1/22/01, $155MM-3/26/01, $130MM-5/21/01, $175MM-7/23/01, $103MM-10/22/01, $20MM-12/17/01, $10MM-04/29/02.",
-            //            "issueAmount": 11493000000,
-            //            "openAmount": 10860000000,
-            //            "initialPrice": 98.457001,
-            //            "bondType": "Govt",
-            //            "isPuttable": "F",
-            //            "isCallable": "N",
-            //            "bf": "F",
-            //            "isSoftCall": "F",
-            //            "couponType": "FIXED",
-            //            "adjP": null,
-            //            "redempVal": null,
-            //            "calcType": "STREET CONVENTION",
-            //            "flag144A": "N",
-            //            "discl144A": "N",
-            //            "regS": "N",
-            //            "accredInv": "N",
-            //            "secRestrict": "0",
-            //            "dtcEligible": "Y",
-            //            "dtcRegistred": "Y",
-            //            "custEligible": {
-            //                "value": "Y",
-            //                "ilr": null
-            //            },
-            //            "nc": null,
-            //            "assetBackedFootNote": "N",
-            //            "unratedFootNote": "Y",
-            //            "redemptionFootNote": "N",
-            //            "ics": null,
-            //            "xlst": "Y",
-            //            "trace": "Y",
-            //            "tflt": null,
-            //            "isCalled": "N",
-            //            "bcdt": null,
-            //            "bcpx": null,
-            //            "isDefaulted": " ",
-            //            "inds": null,
-            //            "indg": null,
-            //            "indsg": null,
-            //            "mdDs": null,
-            //            "mdON": null,
-            //            "mdBT": null,
-            //            "mdDtC": null,
-            //            "mdSC": null,
-            //            "mdSn": null,
-            //            "mdOT": null,
-            //            "mrDs": null,
-            //            "bcd": null,
-            //            "bcc": null,
-            //            "bpc": null,
-            //            "bs": "F",
-            //            "brp": 100,
-            //            "brf": null,
-            //            "bmwc": null,
-            //            "mard": null,
-            //            "marp": null,
-            //            "mdd": null,
-            //            "memd": null,
-            //            "mf": null,
-            //            "mlc": null,
-            //            "mrrd": null,
-            //            "mrrp": null,
-            //            "mr": null,
-            //            "mtc": null,
-            //            "mwi": null,
-            //            "mguar": null,
-            //            "mbab": null,
-            //            "bbMktIss": "US GOVT",
-            //            "brc": "USD",
-            //            "bscp": null,
-            //            "bsdt": null,
-            //            "bt": null,
-            //            "sink": null,
-            //            "conversionOpt": [],
-            //            "embeddedOpt": [],
-            //            "collateralType": null,
-            //            "issueRating": [
-            //                {
-            //                    "agency": "MIKUNI",
-            //                    "ratingValue": " ",
-            //                    "outlook": null,
-            //                    "ratingWatch": null
-            //                },
-            //                ...
-            //            ],
-            //            "coupon": [
-            //                {
-            //                    "df": 19961115,
-            //                    "dt": "20261115",
-            //                    "dateCalcParams": {
-            //                        "dayCountRule": "ACT/ACT",
-            //                        "frequency": 2,
-            //                        "payDateRule": "1"
-            //                    },
-            //                    "cfTable": {
-            //                        "cf": [
-            //                            {
-            //                                "cd": 20060515,
-            //                                "ip": 0,
-            //                                "pp": 0
-            //                            },
-            //                            ...,
-            //                            {
-            //                                "cd": 20261115,
-            //                                "ip": 32500,
-            //                                "pp": 1000000
-            //                            }
-            //                        ]
-            //                    },
-            //                    "floater": null,
-            //                    "rate": 6.5,
-            //                    "intAtMatMethod": null,
-            //                    "pik": "F",
-            //                    "firstDate": 19970515,
-            //                    "firstAccrDate": 19961115,
-            //                    "prevDate": null,
-            //                    "secondDate": 19971115,
-            //                    "ncpdt": 20261115,
-            //                    "cpc": "USD"
-            //                }
-            //            ],
-            //            "payInKind": [],
-            //            "si": [
-            //                {
-            //                    "is": "ISIN",
-            //                    "id": "US912810EY02"
-            //                }
-            //            ],
-            //            "bondContract": [
-            //                {
-            //                    "o": 15960430,
-            //                    "u": null,
-            //                    "p": 62614,
-            //                    "i": "US-T",
-            //                    "rr": 0,
-            //                    "ctl": null,
-            //                    "t": null,
-            //                    "d": null,
-            //                    "cb": null,
-            //                    "pset": null,
-            //                    "hb": [
-            //                        {
-            //                            "n": "TSRYS4493816",
-            //                            "c": null,
-            //                            "b": null,
-            //                            "r": null,
-            //                            "l": null,
-            //                            "mc": null,
-            //                            "mt": 1000,
-            //                            "p": null,
-            //                            "e": null,
-            //                            "mx": 1000,
-            //                            "quotingConvention": 1,
-            //                            "cleanOrDirty": "C"
-            //                        },
-            //                        {
-            //                            "n": "T 6 1/2 11/15/26",
-            //                            "c": null,
-            //                            "b": null,
-            //                            "r": null,
-            //                            "l": null,
-            //                            "mc": null,
-            //                            "mt": 1000,
-            //                            "p": null,
-            //                            "e": null,
-            //                            "mx": 1000,
-            //                            "quotingConvention": 1,
-            //                            "cleanOrDirty": "C"
-            //                        }
-            //                    ],
-            //                    "rcg": null,
-            //                    "er": null,
-            //                    "rc": null
-            //                }
-            //            ],
-            //            "c": null,
-            //            "pa": null,
-            //            "ui": null,
-            //            "guarantorId": null,
-            //            "id": "a23607448",
-            //            "is": null
-            //        },
-            //        "isEventContract": false
-            //    }
-            //  ]
-            //
-            for (var i = 0; i < contractResults.size(); i++)
+        }
+        List<Object> contractResults = (CompletableFuture.allOf(contractPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(contractPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        //
+        //  [
+        //    {
+        //        "conid": 15960430,
+        //        "symbol": "US-T",
+        //        "secType": "BOND",
+        //        "exchange": "SMART",
+        //        "listingExchange": "BONDDESKG",
+        //        "right": "?",
+        //        "strike": "0",
+        //        "currency": "USD",
+        //        "cusip": "912810EY0",
+        //        "coupon": "6.5",
+        //        "desc1": "US-T",
+        //        "desc2": "GOVT 6.5 Nov15'26 912810EY0 WR",
+        //        "maturityDate": "20261115",
+        //        "multiplier": 0,
+        //        "tradingClass": "US-T",
+        //        "validExchanges": "SMART",
+        //        "incrementRules": [
+        //            {
+        //                "lowerEdge": 0,
+        //                "increment": 0.001
+        //            }
+        //        ],
+        //        "displayRule": {
+        //            "magnification": 0,
+        //            "displayRuleStep": [
+        //                {
+        //                    "decimalDigits": 3,
+        //                    "lowerEdge": 0,
+        //                    "wholeDigits": 4
+        //                }
+        //            ]
+        //        },
+        //        "time": 11,
+        //        "chineseName": "&#x7F8E;&#x56FD;&#x4E2D;&#x957F;&#x671F;&#x56FD;&#x503A;",
+        //        "allExchanges": "BONDDESKG,VALUBONDG,CITADEL,VIRTBONDG,TRADEWEBG,TRACE,BONDSCOM,JPMCUSG",
+        //        "countryCode": "US",
+        //        "name": "US-T",
+        //        "assetClass": "BOND",
+        //        "expiry": null,
+        //        "lastTradingDay": null,
+        //        "group": null,
+        //        "putOrCall": null,
+        //        "sector": null,
+        //        "sectorGroup": null,
+        //        "ticker": "US-T",
+        //        "undConid": 0,
+        //        "type": "Govt",
+        //        "hasOptions": false,
+        //        "bondName": "US-T Govt Bond 6.5 IBCID15960430",
+        //        "fullName": "US-T Govt Bond 6.5 Nov15'26",
+        //        "bond": {
+        //            "t": "Govt",
+        //            "t2": "Bond",
+        //            "taxSt": null,
+        //            "descr": "T 6 1/2 11/15/26",
+        //            "prt": null,
+        //            "descLabel": "T 6 1/2 11/15/26",
+        //            "countryOfIssue": "US",
+        //            "principalValue": 1000,
+        //            "principalValueCurr": "USD",
+        //            "announceDate": "47121231",
+        //            "issueDate": "19961115",
+        //            "maturityDate": "20261115",
+        //            "payPrincipalOnMaturity": "T",
+        //            "notes": "TENDERS ACCEPTED: $10000MM.                                                     LISTED: NYSE/AMEX. AMT REPURCH THRU DEBT BUYBACKS:$0MM-8/21/00, $10MM-11/13/00, $30MM-1/22/01, $155MM-3/26/01, $130MM-5/21/01, $175MM-7/23/01, $103MM-10/22/01, $20MM-12/17/01, $10MM-04/29/02.",
+        //            "issueAmount": 11493000000,
+        //            "openAmount": 10860000000,
+        //            "initialPrice": 98.457001,
+        //            "bondType": "Govt",
+        //            "isPuttable": "F",
+        //            "isCallable": "N",
+        //            "bf": "F",
+        //            "isSoftCall": "F",
+        //            "couponType": "FIXED",
+        //            "adjP": null,
+        //            "redempVal": null,
+        //            "calcType": "STREET CONVENTION",
+        //            "flag144A": "N",
+        //            "discl144A": "N",
+        //            "regS": "N",
+        //            "accredInv": "N",
+        //            "secRestrict": "0",
+        //            "dtcEligible": "Y",
+        //            "dtcRegistred": "Y",
+        //            "custEligible": {
+        //                "value": "Y",
+        //                "ilr": null
+        //            },
+        //            "nc": null,
+        //            "assetBackedFootNote": "N",
+        //            "unratedFootNote": "Y",
+        //            "redemptionFootNote": "N",
+        //            "ics": null,
+        //            "xlst": "Y",
+        //            "trace": "Y",
+        //            "tflt": null,
+        //            "isCalled": "N",
+        //            "bcdt": null,
+        //            "bcpx": null,
+        //            "isDefaulted": " ",
+        //            "inds": null,
+        //            "indg": null,
+        //            "indsg": null,
+        //            "mdDs": null,
+        //            "mdON": null,
+        //            "mdBT": null,
+        //            "mdDtC": null,
+        //            "mdSC": null,
+        //            "mdSn": null,
+        //            "mdOT": null,
+        //            "mrDs": null,
+        //            "bcd": null,
+        //            "bcc": null,
+        //            "bpc": null,
+        //            "bs": "F",
+        //            "brp": 100,
+        //            "brf": null,
+        //            "bmwc": null,
+        //            "mard": null,
+        //            "marp": null,
+        //            "mdd": null,
+        //            "memd": null,
+        //            "mf": null,
+        //            "mlc": null,
+        //            "mrrd": null,
+        //            "mrrp": null,
+        //            "mr": null,
+        //            "mtc": null,
+        //            "mwi": null,
+        //            "mguar": null,
+        //            "mbab": null,
+        //            "bbMktIss": "US GOVT",
+        //            "brc": "USD",
+        //            "bscp": null,
+        //            "bsdt": null,
+        //            "bt": null,
+        //            "sink": null,
+        //            "conversionOpt": [],
+        //            "embeddedOpt": [],
+        //            "collateralType": null,
+        //            "issueRating": [
+        //                {
+        //                    "agency": "MIKUNI",
+        //                    "ratingValue": " ",
+        //                    "outlook": null,
+        //                    "ratingWatch": null
+        //                },
+        //                ...
+        //            ],
+        //            "coupon": [
+        //                {
+        //                    "df": 19961115,
+        //                    "dt": "20261115",
+        //                    "dateCalcParams": {
+        //                        "dayCountRule": "ACT/ACT",
+        //                        "frequency": 2,
+        //                        "payDateRule": "1"
+        //                    },
+        //                    "cfTable": {
+        //                        "cf": [
+        //                            {
+        //                                "cd": 20060515,
+        //                                "ip": 0,
+        //                                "pp": 0
+        //                            },
+        //                            ...,
+        //                            {
+        //                                "cd": 20261115,
+        //                                "ip": 32500,
+        //                                "pp": 1000000
+        //                            }
+        //                        ]
+        //                    },
+        //                    "floater": null,
+        //                    "rate": 6.5,
+        //                    "intAtMatMethod": null,
+        //                    "pik": "F",
+        //                    "firstDate": 19970515,
+        //                    "firstAccrDate": 19961115,
+        //                    "prevDate": null,
+        //                    "secondDate": 19971115,
+        //                    "ncpdt": 20261115,
+        //                    "cpc": "USD"
+        //                }
+        //            ],
+        //            "payInKind": [],
+        //            "si": [
+        //                {
+        //                    "is": "ISIN",
+        //                    "id": "US912810EY02"
+        //                }
+        //            ],
+        //            "bondContract": [
+        //                {
+        //                    "o": 15960430,
+        //                    "u": null,
+        //                    "p": 62614,
+        //                    "i": "US-T",
+        //                    "rr": 0,
+        //                    "ctl": null,
+        //                    "t": null,
+        //                    "d": null,
+        //                    "cb": null,
+        //                    "pset": null,
+        //                    "hb": [
+        //                        {
+        //                            "n": "TSRYS4493816",
+        //                            "c": null,
+        //                            "b": null,
+        //                            "r": null,
+        //                            "l": null,
+        //                            "mc": null,
+        //                            "mt": 1000,
+        //                            "p": null,
+        //                            "e": null,
+        //                            "mx": 1000,
+        //                            "quotingConvention": 1,
+        //                            "cleanOrDirty": "C"
+        //                        },
+        //                        {
+        //                            "n": "T 6 1/2 11/15/26",
+        //                            "c": null,
+        //                            "b": null,
+        //                            "r": null,
+        //                            "l": null,
+        //                            "mc": null,
+        //                            "mt": 1000,
+        //                            "p": null,
+        //                            "e": null,
+        //                            "mx": 1000,
+        //                            "quotingConvention": 1,
+        //                            "cleanOrDirty": "C"
+        //                        }
+        //                    ],
+        //                    "rcg": null,
+        //                    "er": null,
+        //                    "rc": null
+        //                }
+        //            ],
+        //            "c": null,
+        //            "pa": null,
+        //            "ui": null,
+        //            "guarantorId": null,
+        //            "id": "a23607448",
+        //            "is": null
+        //        },
+        //        "isEventContract": false
+        //    }
+        //  ]
+        //
+        for (var i = 0; i < contractResults.size(); i++)
+        {
+            List<Object> contracts = this.safeList(contractResults, i, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < contracts.size(); j++)
             {
-                Object contracts = (contractResults == null || i < 0 || i >= contractResults.size() ? null : contractResults.get(i));
-                for (var j = 0; j < (switch ((Object)(contracts)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); j++)
+                Object contract = (contracts == null || j < 0 || j >= contracts.size() ? null : contracts.get(j));
+                String conid = this.safeString(contract, "conid");
+                if (!java.util.Objects.equals(conid, null))
                 {
-                    Object contract = Helpers.GetValue(contracts, j);
-                    String conid = this.safeString(contract, "conid");
-                    if (!java.util.Objects.equals(conid, null))
-                    {
-                        entries.put(conid, contract);
-                    }
+                    entries.put(conid, contract);
                 }
             }
-            Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-            List<Object> markets = (List<Object>) this.parseMarkets(detailMarkets);
-            // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
-            Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < markets.size(); i++)
+        }
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        List<Object> markets = this.parseMarkets(detailMarkets);
+        // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
+        Map<String, Object> seen = new HashMap<String, Object>() {{}};
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < markets.size(); i++)
+        {
+            Map<String, Object> market = this.extend(new HashMap<String, Object>() {{}}, (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
+            String symbol = this.safeString(market, "symbol", "");
+            if (seen.containsKey(symbol))
             {
-                Map<String, Object> market = this.extend(new HashMap<String, Object>() {{}}, (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
-                String symbol = this.safeString(market, "symbol");
-                if (seen.containsKey(symbol))
-                {
-                    String base = ((this.safeString(market, "base") + "-") + this.safeString(market, "id"));
-                    symbol = ((((base + ".") + this.safeString(market.get("info"), "exchange", "SMART")) + "/") + this.safeString(market, "quote"));
-                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                    mapLiteral2.put("symbol", symbol);
-                    mapLiteral2.put("base", base);
-                    market = this.extend(market, mapLiteral2);
-                }
-                seen.put(symbol, true);
-                ((List<Object>)result).add(market);
+                String marketBase = this.safeString(market, "base", "");
+                String marketId = this.safeString(market, "id", "");
+                String marketQuote = this.safeString(market, "quote", "");
+                Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+                String listingExchange = this.safeString(marketInfo, "exchange", "SMART");
+                String base = ((marketBase + "-") + marketId);
+                symbol = ((((base + ".") + listingExchange) + "/") + marketQuote);
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("symbol", symbol);
+                mapLiteral2.put("base", base);
+                market = this.extend(market, mapLiteral2);
             }
-            return result;
-        });
+            seen.put(symbol, true);
+            result.add(market);
+        }
+        return result;
 
     }
 
-    public CompletableFuture<Object> fetchStockMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchStockMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchStockMarketsCore(parameters));
+    }
+
+    private List<Object> fetchStockMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> entries = new HashMap<String, Object>() {{}};
-            Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            Map<String, Object> exchangesDict = this.safeDict(options, "exchanges", new HashMap<String, Object>() {{}});
-            List<Object> stockExchanges = this.safeList(exchangesDict, "STK", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < stockExchanges.size(); j++)
+        Map<String, Object> entries = new HashMap<String, Object>() {{}};
+        Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        Map<String, Object> exchangesDict = this.safeDict(options, "exchanges", new HashMap<String, Object>() {{}});
+        List<Object> stockExchanges = this.safeList(exchangesDict, "STK", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < stockExchanges.size(); j++)
+        {
+            String exchange = this.safeString(stockExchanges, j, "");
+            Map<String, Object> stockRequest = new HashMap<String, Object>() {{
+                put( "exchange", exchange );
+                put( "assetClass", "STK" );
+            }};
+            Object stocks = (this.marketsEndpointCall(this.extend(stockRequest, parameters), "webapiGetV1ApiTrsrvAllConids", new ArrayList<Object>(Arrays.asList()))).join();
+            //
+            //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
+            //
+            for (var k = 0; k < ((List<?>)stocks).size(); k++)
             {
-                Object exchange = (stockExchanges == null || j < 0 || j >= stockExchanges.size() ? null : stockExchanges.get(j));
-                Map<String, Object> stockRequest = new HashMap<String, Object>() {{
-                    put( "exchange", exchange );
-                    put( "assetClass", "STK" );
-                }};
-                Object stocks = (this.marketsEndpointCall((Map<String, Object>) (this.extend(stockRequest, parameters)), "webapiGetV1ApiTrsrvAllConids", new ArrayList<Object>(Arrays.asList()))).join();
-                //
-                //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
-                //
-                for (var k = 0; k < ((List<?>)stocks).size(); k++)
+                Object stock = (stocks == null || k < 0 || k >= ((List<?>)stocks).size() ? null : ((List<?>)stocks).get(k));
+                String stockConid = this.safeString(stock, "conid");
+                if (!java.util.Objects.equals(stockConid, null))
                 {
-                    Object stock = (stocks == null || k < 0 || k >= ((List<?>)stocks).size() ? null : ((List<?>)stocks).get(k));
-                    String stockConid = this.safeString(stock, "conid");
-                    if (!java.util.Objects.equals(stockConid, null))
-                    {
-                        entries.put(stockConid, stock);
-                    }
+                    entries.put(stockConid, stock);
                 }
             }
-            Object markets = (this.fetchSecWithDetails(entries)).join();
-            return this.parseMarkets(markets);
-        });
+        }
+        List<Object> markets = (this.fetchSecWithDetails(entries)).join();
+        return this.parseMarkets(markets);
 
     }
 
     public CompletableFuture<Object> marketsEndpointCall(Map<String, Object> request, String ep, Object defaultValue)
     {
+        return BaseExchange.supplyAsync(() -> this.marketsEndpointCallCore(request, ep, defaultValue));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object marketsEndpointCallCore(Map<String, Object> request, String ep, Object defaultValue)
+    {
 
-            Map<String, Object> opts = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
-            Long retries = this.safeInteger(opts, "endpointRetries", 3);
-            Object retryDelay = this.safeInteger(opts, "retryDelay", 1000);
-            for (var i = 0; (retries != null && i < retries); i++)
+        Map<String, Object> opts = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+        Long retries = this.safeInteger(opts, "endpointRetries", 3);
+        Object retryDelay = this.safeInteger(opts, "retryDelay", 1000);
+        for (var i = 0; (retries != null && i < retries); i++)
+        {
+            Boolean isLastRetry = (i >= (retries - 1L));
+            Object data = null;
+            try
             {
-                Boolean isLastRetry = (i >= (retries - 1L));
-                Object data = null;
-                try
+                if (java.util.Objects.equals(ep, "webapiGetV1ApiTrsrvSecdef"))
                 {
-                    if (java.util.Objects.equals(ep, "webapiGetV1ApiTrsrvSecdef"))
-                    {
-                        data = (this.webapiGetV1ApiTrsrvSecdef(request)).join();
-                    } else if (java.util.Objects.equals(ep, "webapiPostV1ApiIserverScannerRun"))
-                    {
-                        retryDelay = (retryDelay == null ? null : (((Number) retryDelay).doubleValue() > ((double) 1000) ? (Object) (retryDelay) : (Object) (1000)));
-                        data = (this.webapiPostV1ApiIserverScannerRun(request)).join();
-                    } else if (java.util.Objects.equals(ep, "webapiGetV1ApiTrsrvFutures"))
-                    {
-                        data = (this.webapiGetV1ApiTrsrvFutures(request)).join();
-                    } else if (java.util.Objects.equals(ep, "webapiPostV1ApiIserverSecdefSearch"))
-                    {
-                        data = (this.webapiPostV1ApiIserverSecdefSearch(request)).join();
-                    } else if (java.util.Objects.equals(ep, "webapiGetV1ApiTrsrvAllConids"))
-                    {
-                        data = (this.webapiGetV1ApiTrsrvAllConids(request)).join();
-                    } else if (java.util.Objects.equals(ep, "webapiGetV1ApiIserverCurrencyPairs"))
-                    {
-                        data = (this.webapiGetV1ApiIserverCurrencyPairs(request)).join();
-                    } else if (java.util.Objects.equals(ep, "webapiGetV1ApiIserverSecdefInfo"))
-                    {
-                        data = (this.webapiGetV1ApiIserverSecdefInfo(request)).join();
-                    }
-                } catch(Exception e)
+                    data = (this.webapiGetV1ApiTrsrvSecdef(request)).join();
+                } else if (java.util.Objects.equals(ep, "webapiPostV1ApiIserverScannerRun"))
                 {
-                    if (Helpers.isInstance(e, NullResponse.class))
-                    {
-                        data = defaultValue;
-                    }
-                    if (java.util.Objects.equals(data, null))
-                    {
-                        if (Boolean.TRUE.equals(isLastRetry))
-                        {
-                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                        }
-                        (this.sleep(retryDelay)).join();
-                    }
+                    retryDelay = (retryDelay == null ? null : (((Number) retryDelay).doubleValue() > ((double) 1000) ? (Object) (retryDelay) : (Object) (1000)));
+                    data = (this.webapiPostV1ApiIserverScannerRun(request)).join();
+                } else if (java.util.Objects.equals(ep, "webapiGetV1ApiTrsrvFutures"))
+                {
+                    data = (this.webapiGetV1ApiTrsrvFutures(request)).join();
+                } else if (java.util.Objects.equals(ep, "webapiPostV1ApiIserverSecdefSearch"))
+                {
+                    data = (this.webapiPostV1ApiIserverSecdefSearch(request)).join();
+                } else if (java.util.Objects.equals(ep, "webapiGetV1ApiTrsrvAllConids"))
+                {
+                    data = (this.webapiGetV1ApiTrsrvAllConids(request)).join();
+                } else if (java.util.Objects.equals(ep, "webapiGetV1ApiIserverCurrencyPairs"))
+                {
+                    data = (this.webapiGetV1ApiIserverCurrencyPairs(request)).join();
+                } else if (java.util.Objects.equals(ep, "webapiGetV1ApiIserverSecdefInfo"))
+                {
+                    data = (this.webapiGetV1ApiIserverSecdefInfo(request)).join();
                 }
-                if (!java.util.Objects.equals(data, null))
+            } catch(Exception e)
+            {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if ((eCause instanceof NullResponse))
                 {
-                    return data;
+                    data = defaultValue;
+                }
+                if (java.util.Objects.equals(data, null))
+                {
+                    if (Boolean.TRUE.equals(isLastRetry))
+                    {
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    }
+                    (this.sleep(retryDelay)).join();
                 }
             }
-            return null;
-        });
+            if (!java.util.Objects.equals(data, null))
+            {
+                return data;
+            }
+        }
+        return null;
 
     }
 
@@ -3055,7 +3129,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         Boolean isSpot = !Boolean.TRUE.equals(isContract);
         String id = this.safeString(market, "conid");
         String quoteId = this.safeString(market, "currency");
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         List<Object> incrementRules = this.safeList(market, "incrementRules", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstRule = this.safeDict(incrementRules, 0, new HashMap<String, Object>() {{}});
         String incrementTickSize = this.safeString(firstRule, "increment");
@@ -3080,7 +3154,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         Map<String, Object> cryptoCmeFutureSymbols = this.safeDict(options, "cryptoCmeFutureSymbols", new HashMap<String, Object>() {{}});
         Map<String, Object> cryptoCboeFutureSymbols = this.safeDict(options, "cryptoCboeFutureSymbols", new HashMap<String, Object>() {{}});
         String microNanoPrefix = "";
-        Object base = this.safeCurrencyCode(baseTickerId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseTickerId, null);
         String contractSize = null;
         Long expiry = null;
         if (Boolean.TRUE.equals(isFut))
@@ -3098,17 +3172,17 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         if (Boolean.TRUE.equals(isPerp) && !Boolean.TRUE.equals(isCfd))
         {
-            if ((nameLower.startsWith(((String)"nano "))))
+            if (nameLower.startsWith("nano "))
             {
                 microNanoPrefix = "NANO.";
             }
             contractSize = this.safeString(market, "multiplier"); // 0.01 BTC for BIP
         } else if (Boolean.TRUE.equals(isFuture))
         {
-            if ((nameLower.startsWith(((String)"nano "))))
+            if (nameLower.startsWith("nano "))
             {
                 microNanoPrefix = "NANO.";
-            } else if ((nameLower.startsWith(((String)"micro "))))
+            } else if (nameLower.startsWith("micro "))
             {
                 microNanoPrefix = "MICRO.";
             } else if ((((String)name).indexOf("New York Variant") != -1))
@@ -3158,10 +3232,10 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             settleId = quoteId;
             settle = quote;
-            symbol = ((symbol + ":") + settle);
+            symbol = (((((((base + ".") + microNanoPrefix) + listingExchange) + "/") + quote) + ":") + settle);
             if (Boolean.TRUE.equals(isFuture))
             {
-                symbol = ((symbol + "-") + this.yymmdd(expiry));
+                symbol = (((((((((base + ".") + microNanoPrefix) + listingExchange) + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry));
             }
         }
         String marketType = "spot";
@@ -3235,44 +3309,47 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbols, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchTickers() requires a symbols argument")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            var fieldsqueryVariable = this.handleOptionAndParams(parameters, "fetchTickers", "fields", (Object) null);
-            var fields = ((List<Object>) fieldsqueryVariable).get(0);
-            var query = ((List<Object>) fieldsqueryVariable).get(1);
-            String fieldsString = String.join(",", (List<String>)fields);
-            Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })), (Object) null)).join();
-            //
-            //     [
-            //         {
-            //             "31": "82838.50",
-            //             "70": "85639.25",
-            //             "71": "82209.75",
-            //             "84": "82836.00",
-            //             "85": "0.00018171",
-            //             "86": "82843.75",
-            //             "88": "0.27167244",
-            //             "6509": "R",
-            //             "7762": "78",
-            //             "conidEx": "479624278",
-            //             "_updated": 1791449398940,
-            //             "conid": 479624278
-            //         }
-            //     ]
-            //
-            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(symbols, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchTickers() requires a symbols argument")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        var fieldsqueryVariable = this.handleOptionAndParams(parameters, "fetchTickers", "fields", null);
+        var fields = ((List<Object>) fieldsqueryVariable).get(0);
+        var query = ((List<Object>) fieldsqueryVariable).get(1);
+        String fieldsString = String.join(",", (List<String>)(List<String>)(fields));
+        List<String> readyFields = new ArrayList<String>(Arrays.asList("31", "84", "86"));
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+        //
+        //     [
+        //         {
+        //             "31": "82838.50",
+        //             "70": "85639.25",
+        //             "71": "82209.75",
+        //             "84": "82836.00",
+        //             "85": "0.00018171",
+        //             "86": "82843.75",
+        //             "88": "0.27167244",
+        //             "6509": "R",
+        //             "7762": "78",
+        //             "conidEx": "479624278",
+        //             "_updated": 1791449398940,
+        //             "conid": 479624278
+        //         }
+        //     ]
+        //
+        return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3284,61 +3361,62 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
+     * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
      * @returns {object[]} the raw snapshot items
      */
-    public CompletableFuture<Object> ibkrFetchSnapshot(Object symbols, String fields, Map<String, Object> parameters, Object readyFields)
+    public CompletableFuture<Object> ibkrFetchSnapshot(Object symbols, String fields, List<?> readyFields, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.ibkrFetchSnapshotCore(symbols, fields, readyFields, parameters));
+    }
+
+    private Object ibkrFetchSnapshotCore(Object symbols, String fields, List<?> readyFields, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<String> conids = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        List<String> conids = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        {
+            Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+            conids.add(this.safeString(market, "id", ""));
+        }
+        Map<String, Object> options = this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
+        Long retries = this.safeInteger(options, "retries", 5);
+        Long retryDelay = this.safeInteger(options, "retryDelay", 500);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "conids", String.join(",", (List<String>)conids) );
+            put( "fields", fields );
+        }};
+        Object response = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; ((retries != null && i <= retries)); i++)
+        {
+            response = (this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters))).join();
+            if (this.ibkrSnapshotReady(response, readyFields))
             {
-                Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                conids.add(this.safeString(market, "id", ""));
+                break;
             }
-            Map<String, Object> options = this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
-            Long retries = this.safeInteger(options, "retries", 5);
-            Long retryDelay = this.safeInteger(options, "retryDelay", 500);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "conids", String.join(",", (List<String>)conids) );
-                put( "fields", fields );
-            }};
-            Object response = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; ((retries != null && i <= retries)); i++)
+            if ((retries != null && i < retries))
             {
-                response = ((Object)(this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters))).join());
-                if (this.ibkrSnapshotReady(response, readyFields))
-                {
-                    break;
-                }
-                if ((retries != null && i < retries))
-                {
-                    (this.sleep(retryDelay)).join();
-                }
+                (this.sleep(retryDelay)).join();
             }
-            return response;
-        });
+        }
+        return response;
 
     }
 
-    public Boolean ibkrSnapshotReady(Object response, Object readyFields)
+    public Boolean ibkrSnapshotReady(Object response, Object fieldIds)
     {
         Integer numItems = ((List<?>)response).size();
         if (java.util.Objects.equals(numItems, 0))
         {
             return false;
         }
-        List<Object> fieldIds = (List<Object>) ((((java.util.Objects.equals(readyFields, null)))) ? new ArrayList<Object>(Arrays.asList("31", "84", "86")) : readyFields);
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        Integer numFields = ((List<?>)fieldIds).size();
+        for (var i = 0; (numItems != null && i < numItems); i++)
         {
-            Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             Boolean found = false;
-            for (var j = 0; j < fieldIds.size(); j++)
+            for (var j = 0; (numFields != null && j < numFields); j++)
             {
-                if (!java.util.Objects.equals(this.safeString(item, (fieldIds == null || j < 0 || j >= fieldIds.size() ? null : fieldIds.get(j))), null))
+                if (!java.util.Objects.equals(this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (fieldIds == null || j < 0 || j >= ((List<?>)fieldIds).size() ? null : ((List<?>)fieldIds).get(j))), null))
                 {
                     found = true;
                     break;
@@ -3364,27 +3442,29 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBidsAsksCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbols, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchBidsAsks() requires a symbols argument")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String fields = this.safeString(parameters, "fields", "84,85,86,88");
-            Map<String, Object> query = this.omit(parameters, "fields");
-            Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fields, query, new ArrayList<Object>(Arrays.asList("84", "86")))).join();
-            //
-            //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
-            //
-            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(symbols, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchBidsAsks() requires a symbols argument")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        String fields = this.safeString(parameters, "fields", "84,85,86,88");
+        Map<String, Object> query = this.omit(parameters, "fields");
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fields, new ArrayList<Object>(Arrays.asList("84", "86")), query)).join();
+        //
+        //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
+        //
+        return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3399,32 +3479,34 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLastPricesCore(symbols, parameters)).thenApply(LastPrices::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLastPricesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbols, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchLastPrices() requires a symbols argument")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Object response = (this.ibkrFetchSnapshot(symbolsNormalized, "31", parameters, new ArrayList<Object>(Arrays.asList("31")))).join();
-            //
-            //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
-            //
-            return this.parseLastPrices(response, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(LastPrices::new);
+        if (java.util.Objects.equals(symbols, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchLastPrices() requires a symbols argument")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, "31", new ArrayList<Object>(Arrays.asList("31")), parameters)).join();
+        //
+        //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
+        //
+        return this.parseLastPrices(response, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
+    public Map<String, Object> parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
     {
         String marketId = this.safeString(entry, "conid");
-        Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(entry, "_updated");
         return new HashMap<String, Object>() {{
             put( "symbol", resolved.get("symbol") );
@@ -3447,25 +3529,27 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarkPricesCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarkPricesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbols, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchMarkPrices() requires a symbols argument")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Object response = (this.ibkrFetchSnapshot(symbolsNormalized, "7635", parameters, new ArrayList<Object>(Arrays.asList("7635")))).join();
-            //
-            //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
-            //
-            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(symbols, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchMarkPrices() requires a symbols argument")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, "7635", new ArrayList<Object>(Arrays.asList("7635")), parameters)).join();
+        //
+        //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
+        //
+        return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3480,44 +3564,46 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestsCore(symbols, parameters)).thenApply(OpenInterests::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbols, null))
+        if (java.util.Objects.equals(symbols, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchOpenInterests() requires a symbols argument")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        for (var i = 0; i < symbolsNormalized.size(); i++)
+        {
+            Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
+            if (!Boolean.TRUE.equals(market.get("contract")))
             {
-                throw new ArgumentsRequired((this.id + " fetchOpenInterests() requires a symbols argument")) ;
+                throw new BadRequest((((this.id + " fetchOpenInterests() supports contract markets only, ") + market.get("symbol")) + " is not a contract market")) ;
             }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            for (var i = 0; i < symbolsNormalized.size(); i++)
-            {
-                Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-                if (!Boolean.TRUE.equals(market.get("contract")))
-                {
-                    throw new BadRequest((((this.id + " fetchOpenInterests() supports contract markets only, ") + market.get("symbol")) + " is not a contract market")) ;
-                }
-            }
-            // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-            Object response = (this.ibkrFetchSnapshot(symbolsNormalized, "31,7697,7638", parameters, new ArrayList<Object>(Arrays.asList("7697", "7638")))).join();
-            //
-            //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
-            //
-            return this.parseOpenInterests(response, symbolsNormalized);
-        }).thenApply(OpenInterests::new);
+        }
+        // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, "31,7697,7638", new ArrayList<Object>(Arrays.asList("7697", "7638")), parameters)).join();
+        //
+        //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
+        //
+        return this.parseOpenInterests(this.toArray(response), symbolsNormalized);
 
     }
 
-    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         String marketId = this.safeString(interest, "conid");
-        Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(interest, "_updated");
-        Object openInterest = this.ibkrParseValue(this.safeString2(interest, "7697", "7638"));
-        Object last = this.ibkrParseValue(this.safeString(interest, "31"));
+        String openInterest = this.ibkrParseValue(this.safeString2(interest, "7697", "7638"));
+        String last = this.ibkrParseValue(this.safeString(interest, "31"));
         String contractSize = this.safeString(resolved, "contractSize");
         String openInterestValue = null;
         if ((!java.util.Objects.equals(openInterest, null)) && (!java.util.Objects.equals(last, null)) && (!java.util.Objects.equals(contractSize, null)))
@@ -3544,44 +3630,46 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchStatusCore(parameters)).thenApply(Status::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchStatusCore(Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> response = (this.webapiPostV1ApiIserverAuthStatus(parameters)).join();
-            //
-            //     {
-            //         "authenticated": true,
-            //         "competing": false,
-            //         "connected": true,
-            //         "message": "",
-            //         "MAC": "12:B:B3:23:BF:A0",
-            //         "serverInfo": { "serverName": "JifN19053", "serverVersion": "Build 10.25.0p, Dec 5, 2023 5:48:12 PM" },
-            //         "fail": ""
-            //     }
-            //
-            Boolean authenticated = (Boolean) this.safeBool(response, "authenticated", false);
-            Boolean connected = (Boolean) this.safeBool(response, "connected", false);
-            String status = (((Boolean.TRUE.equals(authenticated) && Boolean.TRUE.equals(connected)))) ? "ok" : "error";
-            return new HashMap<String, Object>() {{
-                put( "status", status );
-                put( "updated", null );
-                put( "eta", null );
-                put( "url", null );
-                put( "info", response );
-            }};
-        }).thenApply(Status::new);
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> response = (this.webapiPostV1ApiIserverAuthStatus(parameters)).join();
+        //
+        //     {
+        //         "authenticated": true,
+        //         "competing": false,
+        //         "connected": true,
+        //         "message": "",
+        //         "MAC": "12:B:B3:23:BF:A0",
+        //         "serverInfo": { "serverName": "JifN19053", "serverVersion": "Build 10.25.0p, Dec 5, 2023 5:48:12 PM" },
+        //         "fail": ""
+        //     }
+        //
+        Boolean authenticated = this.safeBool(response, "authenticated", false);
+        Boolean connected = this.safeBool(response, "connected", false);
+        String status = (((Boolean.TRUE.equals(authenticated) && Boolean.TRUE.equals(connected)))) ? "ok" : "error";
+        return new HashMap<String, Object>() {{
+            put( "status", status );
+            put( "updated", null );
+            put( "eta", null );
+            put( "url", null );
+            put( "info", response );
+        }};
 
     }
 
-    public Object ibkrParseValue(String value)
+    public String ibkrParseValue(String value)
     {
         // snapshot values are formatted strings: "C82838.50" (prior close), "H1.2" (halted), "+1.04", "1.5%", "1M", "1,234", "$11,000K" (bond sizes, the principal amount)
         if ((java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, "")) || (java.util.Objects.equals(value, "N/A")))
         {
             return null;
         }
-        List<String> valueParts = new ArrayList<String>(Arrays.asList(((String)value).split(java.util.regex.Pattern.quote(","))));
+        List<String> valueParts = new ArrayList<String>(Arrays.asList(value.split(java.util.regex.Pattern.quote(","))));
         Object result = String.join("", valueParts);
         if (((String)result).startsWith("C") || ((String)result).startsWith("H") || ((String)result).startsWith("+") || ((String)result).startsWith("$"))
         {
@@ -3604,26 +3692,21 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         if (!java.util.Objects.equals(multiplier, null))
         {
-            String scaled = Precise.stringMul((result == null ? null : ((String)result).substring(0, (int) Math.min(((((long) ((String)result).length()) - 1L)) < 0 ? ((String)result).length() + ((((long) ((String)result).length()) - 1L)) : ((((long) ((String)result).length()) - 1L)), ((String)result).length()))), multiplier);
-            if (java.util.Objects.equals(scaled, null))
-            {
-                return null;
-            }
-            result = scaled;
+            return Precise.stringMul((result == null ? null : ((String)result).substring(0, (int) Math.min(((((long) ((String)result).length()) - 1L)) < 0 ? ((String)result).length() + ((((long) ((String)result).length()) - 1L)) : ((((long) ((String)result).length()) - 1L)), ((String)result).length()))), multiplier);
         }
         if (java.util.Objects.equals(result, ""))
         {
             return null;
         }
-        return result;
+        return (String) (result);
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "conid");
-        Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(ticker, "_updated");
-        Object last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
+        String last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
         if (java.util.Objects.equals(last, null))
         {
             // if precise fields are not provided, use generic "last price" field
@@ -3671,72 +3754,89 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Long maxLimit = 1000L;
+        Long configuredLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}}), "limit");
+        if (!java.util.Objects.equals(configuredLimit, null))
+        {
+            maxLimit = configuredLimit;
+        }
+        Object requestLimit = maxLimit;
+        if (!java.util.Objects.equals(limit, null))
+        {
+            requestLimit = Math.min(limit, maxLimit);
+        }
+        int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "conid", market.get("id") );
+            put( "bar", Interactivebrokers.this.safeString(Interactivebrokers.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            // startTime is exclusive, the first returned bar opens strictly after it, so the request starts one bar earlier
+            // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
+            request.put("startTime", this.ibkrFormatTime((since - (((long) duration) * 1000L))));
+            request.put("direction", "1"); // forward from startTime, by default startTime is the end of the range
+            if (!java.util.Objects.equals(limit, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                if ((maxLimit != null && limit < maxLimit))
+                {
+                    requestLimit = (limit + 1L);
+                }
             }
-            Map<String, Object> market = this.market(symbol);
-            Long maxLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}}), "limit", 1000);
-            Object requestLimit = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "conid", market.get("id") );
-                put( "bar", Interactivebrokers.this.safeString(Interactivebrokers.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                // startTime is exclusive, the first returned bar opens strictly after it, so the request starts one bar earlier
-                // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
-                request.put("startTime", this.ibkrFormatTime((since - (((long) duration) * 1000L))));
-                request.put("direction", "1"); // forward from startTime, by default startTime is the end of the range
-                requestLimit = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(((Object) (switch ((Object) (requestLimit)) { case null -> (Object) null; case Long hx4J40v8 -> (Object) (hx4J40v8 + 1L); case Integer hx4J40v8 -> (Object) (hx4J40v8.longValue() + 1L); case Double hx4J40v8 -> (Object) (hx4J40v8 + ((double) 1L)); case String hx4J40v8 -> (Object) (hx4J40v8 + "1"); default -> (Object) null; })), maxLimit);
-            }
-            request.put("period", this.ibkrPeriod(duration, requestLimit));
-            Map<String, Object> response = (this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "points": 99,
-            //         "startTime": "20261007-18:20:00",
-            //         "data": [
-            //             { "o": 336.94, "c": 336.89, "h": 336.97, "l": 336.85, "v": 1164.625, "t": 1791397200000 }
-            //         ],
-            //         ...
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }
+        request.put("period", this.ibkrPeriod(((long) duration), (Long) (requestLimit)));
+        Map<String, Object> response = (this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "points": 99,
+        //         "startTime": "20261007-18:20:00",
+        //         "data": [
+        //             { "o": 336.94, "c": 336.89, "h": 336.97, "l": 336.85, "v": 1164.625, "t": 1791397200000 }
+        //         ],
+        //         ...
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
-    public String ibkrPeriod(Object duration, Object limit)
+    public String ibkrPeriod(Long duration, Long limit)
     {
         // duration of one bar in seconds, the period is expressed in the largest fitting unit
-        Object total = Helpers.multiply(duration, limit);
-        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(duration, 3600))
+        Long total = (duration * limit);
+        if (((duration == null || duration < 3600)))
         {
-            return (this.numberToString(this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(total, 60))) + "min");
-        } else if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(duration, 86400))
+            return (this.numberToString(this.parseToInt((((double) total) / ((double) 60)))) + "min");
+        } else if (((duration == null || duration < 86400)))
         {
-            return (this.numberToString(this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(total, 3600))) + "h");
-        } else if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(duration, 604800))
+            return (this.numberToString(this.parseToInt((((double) total) / ((double) 3600)))) + "h");
+        } else if (((duration == null || duration < 604800)))
         {
-            return (this.numberToString(this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(total, 86400))) + "d");
-        } else if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(duration, 2592000))
+            return (this.numberToString(this.parseToInt((((double) total) / ((double) 86400)))) + "d");
+        } else if (((duration == null || duration < 2592000)))
         {
-            return (this.numberToString(this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(total, 604800))) + "w");
+            return (this.numberToString(this.parseToInt((((double) total) / ((double) 604800)))) + "w");
         }
         // monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
-        Long months = this.parseToInt((total == null ? null : ((Number) total).doubleValue() / ((double) 2592000)));
+        Long months = this.parseToInt((((double) total) / ((double) 2592000)));
         if ((months == null || months <= 12))
         {
             return (this.numberToString(months) + "m");
         }
-        Object years = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.parseToInt((((double) ((months + 11L))) / ((double) 12))), 15); // 15y is the documented maximum period
+        Object years = Math.min(this.parseToInt((((double) ((months + 11L))) / ((double) 12))), 15); // 15y is the documented maximum period
         return (this.numberToString(years) + "y");
     }
 
@@ -3747,9 +3847,9 @@ public class Interactivebrokers extends InteractivebrokersApi
         return ((this.yyyymmdd(timestamp, "") + "-") + (iso == null ? null : ((String)iso).substring(Math.min(11, ((String)iso).length()), Math.min(19, ((String)iso).length()))));
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", null), this.safeNumber(ohlcv, "h", null), this.safeNumber(ohlcv, "l", null), this.safeNumber(ohlcv, "c", null), this.safeNumber(ohlcv, "v", null)));
     }
 
     /**
@@ -3763,38 +3863,41 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
 
-            // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
-            Object portfolioAccounts = (this.fetchPortfolioAccounts(parameters)).join();
-            List<String> accountIds = new ArrayList<String>(((Map<String, Object>)this.indexBy(portfolioAccounts, "accountId")).keySet());
-            Integer length = accountIds.size();
-            if (java.util.Objects.equals(length, 0))
+        // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
+        List<Object> portfolioAccounts = (this.fetchPortfolioAccounts(parameters)).join();
+        Map<String,Object> accountsById = this.indexBy(portfolioAccounts, "accountId");
+        List<String> accountIds = new ArrayList<String>(accountsById.keySet());
+        Integer length = accountIds.size();
+        if (java.util.Objects.equals(length, 0))
+        {
+            throw new ExchangeError("No tradingaccount IDs found for the user") ;
+        }
+        if (java.util.Objects.equals(this.safeString(this.options, "accountId"), null))
+        {
+            if (java.util.Objects.equals(length, 1))
             {
-                throw new ExchangeError("No tradingaccount IDs found for the user") ;
-            }
-            if (java.util.Objects.equals(this.safeString(this.options, "accountId"), null))
+                this.options.put("accountId", (accountIds == null || 0 >= ((List<?>)accountIds).size() ? null : ((List<?>)accountIds).get(0)));
+            } else
             {
-                if (java.util.Objects.equals(length, 1))
-                {
-                    this.options.put("accountId", (accountIds == null || 0 >= ((List<?>)accountIds).size() ? null : ((List<?>)accountIds).get(0)));
-                } else
-                {
-                    throw new ExchangeError(("Multiple account IDs found, please set .options[\"accountId\"] to desired one from: " + String.join(", ", (List<String>)accountIds))) ;
-                }
+                throw new ExchangeError(("Multiple account IDs found, please set .options[\"accountId\"] to desired one from: " + String.join(", ", (List<String>)accountIds))) ;
             }
-            List<Object> accounts = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)portfolioAccounts).size(); i++)
-            {
-                ((List<Object>)accounts).add(this.parseAccount((portfolioAccounts == null || i < 0 || i >= ((List<?>)portfolioAccounts).size() ? null : ((List<?>)portfolioAccounts).get(i))));
-            }
-            return accounts;
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        }
+        List<Object> accounts = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < portfolioAccounts.size(); i++)
+        {
+            accounts.add(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (portfolioAccounts == null || i < 0 || i >= portfolioAccounts.size() ? null : portfolioAccounts.get(i)))));
+        }
+        return accounts;
 
     }
 
-    public Object parseAccount(Object account)
+    public Map<String, Object> parseAccount(Map<String, Object> account)
     {
         //
         //     {
@@ -3815,7 +3918,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return new HashMap<String, Object>() {{
             put( "id", Interactivebrokers.this.safeString2(account, "accountId", "id") );
             put( "type", Interactivebrokers.this.safeStringLower(account, "type") );
-            put( "code", Interactivebrokers.this.safeCurrencyCode(currencyId, (Map<String, Object>) null) );
+            put( "code", Interactivebrokers.this.safeCurrencyCode(currencyId, null) );
             put( "info", account );
             put( "name", Interactivebrokers.this.safeString(account, "accountTitle") );
         }};
@@ -3832,85 +3935,87 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Map<String, Object>> fetchServiceAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchServiceAccountsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> fetchServiceAccountsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.webapiGetV1ApiIserverAccounts(parameters)).join();
-            //
-            //    {
-            //        "accounts": [
-            //            "U3448646"
-            //        ],
-            //        "acctProps": {
-            //            "U3448646": {
-            //                "hasChildAccounts": false,
-            //                "supportsCashQty": true,
-            //                "liteUnderPro": false,
-            //                "noFXConv": false,
-            //                "isProp": false,
-            //                "supportsFractions": true,
-            //                "allowCustomerTime": false,
-            //                "autoFx": false
-            //            }
-            //        },
-            //        "aliases": {
-            //            "U3448646": "U3448646"
-            //        },
-            //        "allowFeatures": {
-            //            "showGFIS": true,
-            //            "showEUCostReport": false,
-            //            "allowEventContract": true,
-            //            "allowFXConv": true,
-            //            "allowFinancialLens": false,
-            //            "allowMTA": true,
-            //            "allowTypeAhead": true,
-            //            "allowEventTrading": true,
-            //            "snapshotRefreshTimeout": 30,
-            //            "liteUser": false,
-            //            "showWebNews": true,
-            //            "research": true,
-            //            "debugPnl": true,
-            //            "showTaxOpt": true,
-            //            "showImpactDashboard": true,
-            //            "allowDynAccount": false,
-            //            "allowCrypto": false,
-            //            "allowFA": false,
-            //            "allowLiteUnderPro": false,
-            //            "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
-            //            "restrictTradeSubscription": false,
-            //            "showUkUserLabels": true,
-            //            "sideBySide": true
-            //        },
-            //        "chartPeriods": {
-            //            "STK": [ "*" ],
-            //            "CFD": [ "*" ],
-            //            "OPT": [ "2h", "1d", "2d", "1w", "1m" ],
-            //            "FOP": [ "2h", "1d", "2d", "1w", "1m" ],
-            //            "WAR": [ "*" ],
-            //            "IOPT": [ "*" ],
-            //            "FUT": [ "*" ],
-            //            "CASH": [ "*" ],
-            //            "IND": [ "*" ],
-            //            "BOND": [ "*" ],
-            //            "FUND": [ "*" ],
-            //            "CMDTY": [ "*" ],
-            //            "PHYSS": [ "*" ],
-            //            "CRYPTO": [ "*" ]
-            //        },
-            //        "groups": [],
-            //        "profiles": [],
-            //        "selectedAccount": "U3448646",
-            //        "serverInfo": {
-            //            "serverName": "JifZ26071",
-            //            "serverVersion": "Build 10.50.1a, Sep 23, 2026 1:23:38 PM"
-            //        },
-            //        "sessionId": "6ac5c713.0000037a",
-            //        "isFT": false,
-            //        "isPaper": false
-            //    }
-            //
-            return response;
-        });
+        Map<String, Object> response = (this.webapiGetV1ApiIserverAccounts(parameters)).join();
+        //
+        //    {
+        //        "accounts": [
+        //            "U3448646"
+        //        ],
+        //        "acctProps": {
+        //            "U3448646": {
+        //                "hasChildAccounts": false,
+        //                "supportsCashQty": true,
+        //                "liteUnderPro": false,
+        //                "noFXConv": false,
+        //                "isProp": false,
+        //                "supportsFractions": true,
+        //                "allowCustomerTime": false,
+        //                "autoFx": false
+        //            }
+        //        },
+        //        "aliases": {
+        //            "U3448646": "U3448646"
+        //        },
+        //        "allowFeatures": {
+        //            "showGFIS": true,
+        //            "showEUCostReport": false,
+        //            "allowEventContract": true,
+        //            "allowFXConv": true,
+        //            "allowFinancialLens": false,
+        //            "allowMTA": true,
+        //            "allowTypeAhead": true,
+        //            "allowEventTrading": true,
+        //            "snapshotRefreshTimeout": 30,
+        //            "liteUser": false,
+        //            "showWebNews": true,
+        //            "research": true,
+        //            "debugPnl": true,
+        //            "showTaxOpt": true,
+        //            "showImpactDashboard": true,
+        //            "allowDynAccount": false,
+        //            "allowCrypto": false,
+        //            "allowFA": false,
+        //            "allowLiteUnderPro": false,
+        //            "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+        //            "restrictTradeSubscription": false,
+        //            "showUkUserLabels": true,
+        //            "sideBySide": true
+        //        },
+        //        "chartPeriods": {
+        //            "STK": [ "*" ],
+        //            "CFD": [ "*" ],
+        //            "OPT": [ "2h", "1d", "2d", "1w", "1m" ],
+        //            "FOP": [ "2h", "1d", "2d", "1w", "1m" ],
+        //            "WAR": [ "*" ],
+        //            "IOPT": [ "*" ],
+        //            "FUT": [ "*" ],
+        //            "CASH": [ "*" ],
+        //            "IND": [ "*" ],
+        //            "BOND": [ "*" ],
+        //            "FUND": [ "*" ],
+        //            "CMDTY": [ "*" ],
+        //            "PHYSS": [ "*" ],
+        //            "CRYPTO": [ "*" ]
+        //        },
+        //        "groups": [],
+        //        "profiles": [],
+        //        "selectedAccount": "U3448646",
+        //        "serverInfo": {
+        //            "serverName": "JifZ26071",
+        //            "serverVersion": "Build 10.50.1a, Sep 23, 2026 1:23:38 PM"
+        //        },
+        //        "sessionId": "6ac5c713.0000037a",
+        //        "isFT": false,
+        //        "isPaper": false
+        //    }
+        //
+        return response;
 
     }
 
@@ -3925,25 +4030,61 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
      * @returns {object[]} the raw response from the exchange
      */
-    public CompletableFuture<Object> fetchPortfolioAccounts(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchPortfolioAccounts(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchPortfolioAccountsCore(parameters));
+    }
+
+    private List<Object> fetchPortfolioAccountsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            List<Object> methodqueryVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPortfolioAccounts", "method", "privateGetPortfolioAccounts");
-            var method = ((List<Object>) methodqueryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) methodqueryVariable).get(1);
-            List<Object> response = null;
-            if (java.util.Objects.equals(method, "privateGetPortfolioSubaccounts"))
-            {
-                response = (this.webapiGetV1ApiPortfolioSubaccounts(query)).join();
-            } else
-            {
-                response = (this.webapiGetV1ApiPortfolioAccounts(query)).join();
-            }
-            return response;
-        });
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        List<Object> methodqueryVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPortfolioAccounts", "method", "privateGetPortfolioAccounts");
+        var method = ((List<Object>) methodqueryVariable).get(0);
+        Map<String, Object> query = (Map<String, Object>) ((List<Object>) methodqueryVariable).get(1);
+        if (java.util.Objects.equals(method, "privateGetPortfolioSubaccounts"))
+        {
+            List<Object> subaccounts = (this.webapiGetV1ApiPortfolioSubaccounts(query)).join();
+            return subaccounts;
+        }
+        List<Object> response = (this.webapiGetV1ApiPortfolioAccounts(query)).join();
+        //
+        //    [
+        //        {
+        //            "id": "U3448646",
+        //            "PrepaidCrypto-Z": false,
+        //            "PrepaidCrypto-P": true,
+        //            "brokerageAccess": true,
+        //            "accountId": "U3448646",
+        //            "accountVan": "U3448646",
+        //            "accountTitle": "Toma Todua",
+        //            "displayName": "Toma Todua",
+        //            "accountAlias": null,
+        //            "accountStatus": 1646607600000,
+        //            "currency": "USD",
+        //            "type": "INDIVIDUAL",
+        //            "tradingType": "STKNOPT",
+        //            "businessType": "INDEPENDENT",
+        //            "category": "",
+        //            "ibEntity": "IBLLC-US",
+        //            "faclient": false,
+        //            "clearingStatus": "O",
+        //            "covestor": false,
+        //            "noClientTrading": false,
+        //            "trackVirtualFXPortfolio": true,
+        //            "acctCustType": "INDIVIDUAL",
+        //            "parent": {
+        //                "mmc": [],
+        //                "accountId": "",
+        //                "isMParent": false,
+        //                "isMChild": false,
+        //                "isMultiplex": false
+        //            },
+        //            "desc": "U3448646"
+        //        }
+        //    ]
+        //
+        return response;
 
     }
 
@@ -3959,28 +4100,30 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Map<String, Object>> switchToAccount(String accountId, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.switchToAccountCore(accountId, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> switchToAccountCore(String accountId, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(accountId, null))
-            {
-                throw new ArgumentsRequired((this.id + " switchToAccount() requires an accountId argument")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("acctId", accountId);
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> response = (this.webapiPostV1ApiIserverAccount(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "set": true,
-            //         "acctId": "U3449298"
-            //     }
-            //
-            // if the account is already selected, the gateway responds with http 501 instead
-            //
-            this.options.put("accountId", accountId);
-            return response;
-        });
+        if (java.util.Objects.equals(accountId, null))
+        {
+            throw new ArgumentsRequired((this.id + " switchToAccount() requires an accountId argument")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("acctId", accountId);
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> response = (this.webapiPostV1ApiIserverAccount(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "set": true,
+        //         "acctId": "U3449298"
+        //     }
+        //
+        // if the account is already selected, the gateway responds with http 501 instead
+        //
+        this.options.put("accountId", accountId);
+        return response;
 
     }
 
@@ -4005,69 +4148,73 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            var accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(0);
-            var paramsWithoutAccoundId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(1);
-            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
-            Helpers.addElementToObject(orderRequest, "acctId", accountId);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-                put( "orders", new ArrayList<Object>(Arrays.asList(orderRequest)) );
-            }};
-            Object response = (this.webapiPostV1ApiIserverAccountAccountIdOrders(request)).join();
-            Map<String, Object> result = (this.ibkrHandleOrderReplies(response, "createOrder")).join();
-            //
-            //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
-            //
-            return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdparamsWithoutAccoundIdVariable.first();
+        Map<String, Object> paramsWithoutAccoundId = accountIdparamsWithoutAccoundIdVariable.second();
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, paramsWithoutAccoundId);
+        orderRequest.put("acctId", accountId);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+            put( "orders", new ArrayList<Object>(Arrays.asList(orderRequest)) );
+        }};
+        Object response = (this.webapiPostV1ApiIserverAccountAccountIdOrders(request)).join();
+        Map<String, Object> result = (this.ibkrHandleOrderReplies(response, "createOrder")).join();
+        //
+        //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
+        //
+        return this.parseOrder(result, market);
 
     }
 
-    public CompletableFuture<Map<String, Object>> createTestOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createTestOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createTestOrderCore(symbol, type, side, amount, price, parameters));
+    }
+
+    private Map<String, Object> createTestOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            var accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(0);
-            var paramsWithoutAccoundId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(1);
-            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
-            Helpers.addElementToObject(orderRequest, "acctId", accountId);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-                put( "orders", new ArrayList<Object>(Arrays.asList(orderRequest)) );
-            }};
-            Map<String, Object> previewResponse = (this.webapiPostV1ApiIserverAccountAccountIdOrdersWhatif(request)).join();
-            //
-            //     {
-            //         "amount": { "amount": "23,000 USD (100 Shares)", "commission": "1 USD", "total": "23,001 USD" },
-            //         "equity": { "current": "50,000", "change": "-1", "after": "49,999" },
-            //         "initial": { "current": "0", "change": "11,500", "after": "11,500" },
-            //         "maintenance": { "current": "0", "change": "10,350", "after": "10,350" },
-            //         "position": { "current": "0", "change": "100", "after": "100" },
-            //         "warn": "21/You are trying to submit an order without having market data for this instrument.",
-            //         "error": null
-            //     }
-            //
-            return previewResponse;
-        });
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<String, Map<String, Object>> accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdparamsWithoutAccoundIdVariable.first();
+        Map<String, Object> paramsWithoutAccoundId = accountIdparamsWithoutAccoundIdVariable.second();
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, paramsWithoutAccoundId);
+        orderRequest.put("acctId", accountId);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+            put( "orders", new ArrayList<Object>(Arrays.asList(orderRequest)) );
+        }};
+        Map<String, Object> previewResponse = (this.webapiPostV1ApiIserverAccountAccountIdOrdersWhatif(request)).join();
+        //
+        //     {
+        //         "amount": { "amount": "23,000 USD (100 Shares)", "commission": "1 USD", "total": "23,001 USD" },
+        //         "equity": { "current": "50,000", "change": "-1", "after": "49,999" },
+        //         "initial": { "current": "0", "change": "11,500", "after": "11,500" },
+        //         "maintenance": { "current": "0", "change": "10,350", "after": "10,350" },
+        //         "position": { "current": "0", "change": "100", "after": "100" },
+        //         "warn": "21/You are trying to submit an order without having market data for this instrument.",
+        //         "error": null
+        //     }
+        //
+        return previewResponse;
 
     }
 
@@ -4084,7 +4231,7 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the order ticket
      */
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
@@ -4095,7 +4242,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         String assetClass = this.safeString(market.get("info"), "assetClass");
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("conid", this.parseToInt(market.get("id")));
-        request.put("side", ((String)side).toUpperCase());
+        request.put("side", side.toUpperCase());
         // a market order with params['cost'] is sent by cost (cashQty) without a quantity
         String cost = this.safeString2(parameters, "cost", "cashQty");
         Boolean isMarketByCost = Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(cost, null));
@@ -4165,8 +4312,13 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         request.put("cOID", clientOrderId);
         Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty")));
-        Map<String, Object> orderTicket = this.extend(request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        List<String> queryKeys = new ArrayList<String>(query.keySet());
+        for (var i = 0; i < queryKeys.size(); i++)
+        {
+            String key = (queryKeys == null || i < 0 || i >= queryKeys.size() ? null : queryKeys.get(i));
+            request.put(key, (query == null || key == null ? null : query.get(key)));
+        }
+        return request;
     }
 
     /**
@@ -4180,54 +4332,57 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Map<String, Object>> ibkrHandleOrderReplies(Object response, String methodName)
     {
+        return BaseExchange.supplyAsync(() -> this.ibkrHandleOrderRepliesCore(response, methodName));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> ibkrHandleOrderRepliesCore(Object response, String methodName)
+    {
 
-            Map<String, Object> options = this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-            Boolean autoConfirm = (Boolean) this.safeBool(options, "autoConfirmOrderReplies", true);
-            Long maxReplies = this.safeInteger(options, "maxReplies", 10);
-            Object current = response;
-            for (var i = 0; ((maxReplies != null && i <= maxReplies)); i++)
+        Map<String, Object> options = this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
+        Boolean autoConfirm = this.safeBool(options, "autoConfirmOrderReplies", true);
+        Long maxReplies = this.safeInteger(options, "maxReplies", 10);
+        String errorPrefix = (((this.id + " ") + methodName) + "() ");
+        Object current = response;
+        for (var i = 0; ((maxReplies != null && i <= maxReplies)); i++)
+        {
+            if (!(current instanceof List))
             {
-                if (!(current instanceof List))
-                {
-                    //
-                    // advanced order reject
-                    //
-                    //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
-                    //
-                    String text = this.safeString(current, "text");
-                    throw new InvalidOrder(((((this.id + " ") + methodName) + "() rejected: ") + text)) ;
-                }
-                Map<String, Object> first = this.safeDict(current, 0, new HashMap<String, Object>() {{}});
-                String orderId = this.safeString2(first, "order_id", "orderId");
-                if (!java.util.Objects.equals(orderId, null))
-                {
-                    return first;
-                }
                 //
-                // reply prompt
+                // advanced order reject
                 //
-                //     [ { "id": "99097238-...", "isSuppressed": false, "message": [ "You are submitting an order without market data..." ], "messageIds": [ "o354" ] } ]
+                //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 //
-                String replyId = this.safeString(first, "id");
-                List<String> messages = (List<String>) this.safeList(first, "message", new ArrayList<Object>(Arrays.asList()));
-                String message = String.join(" ", messages);
-                if (java.util.Objects.equals(replyId, null))
-                {
-                    throw new InvalidOrder(((((this.id + " ") + methodName) + "() unexpected response: ") + this.json(current))) ;
-                }
-                if (!Boolean.TRUE.equals(autoConfirm))
-                {
-                    throw new InvalidOrder(((((((this.id + " ") + methodName) + "() requires confirmation (reply id ") + replyId) + "): ") + message)) ;
-                }
-                Map<String, Object> replyRequest = new HashMap<String, Object>();
-                replyRequest.put("replyId", replyId);
-                replyRequest.put("confirmed", true);
-                current = (this.webapiPostV1ApiIserverReplyReplyId(replyRequest)).join();
+                String text = this.safeString(current, "text");
+                throw new InvalidOrder(((errorPrefix + "rejected: ") + text)) ;
             }
-            throw new InvalidOrder((((this.id + " ") + methodName) + "() exceeded options.createOrder.maxReplies order reply confirmations")) ;
-        });
+            Map<String, Object> first = this.safeDict(current, 0, new HashMap<String, Object>() {{}});
+            String orderId = this.safeString2(first, "order_id", "orderId");
+            if (!java.util.Objects.equals(orderId, null))
+            {
+                return first;
+            }
+            //
+            // reply prompt
+            //
+            //     [ { "id": "99097238-...", "isSuppressed": false, "message": [ "You are submitting an order without market data..." ], "messageIds": [ "o354" ] } ]
+            //
+            String replyId = this.safeString(first, "id");
+            List<String> messages = (List<String>) this.safeList(first, "message", new ArrayList<Object>(Arrays.asList()));
+            String message = String.join(" ", messages);
+            if (java.util.Objects.equals(replyId, null))
+            {
+                throw new InvalidOrder(((errorPrefix + "unexpected response: ") + this.json(current))) ;
+            }
+            if (!Boolean.TRUE.equals(autoConfirm))
+            {
+                throw new InvalidOrder(((((errorPrefix + "requires confirmation (reply id ") + replyId) + "): ") + message)) ;
+            }
+            Map<String, Object> replyRequest = new HashMap<String, Object>();
+            replyRequest.put("replyId", replyId);
+            replyRequest.put("confirmed", true);
+            current = (this.webapiPostV1ApiIserverReplyReplyId(replyRequest)).join();
+        }
+        throw new InvalidOrder((errorPrefix + "exceeded options.createOrder.maxReplies order reply confirmations")) ;
 
     }
 
@@ -4245,37 +4400,39 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(amount, null))
-            {
-                throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
-            Helpers.addElementToObject(orderRequest, "acctId", accountId);
-            Helpers.addElementToObject(orderRequest, "accountId", accountId);
-            orderRequest.put("orderId", id);
-            Object response = (this.webapiPostV1ApiIserverAccountAccountIdOrderOrderId(orderRequest)).join();
-            Map<String, Object> result = (this.ibkrHandleOrderReplies(response, "editOrder")).join();
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(result, market);
-            order.put("type", type);
-            order.put("side", side);
-            order.put("amount", amount);
-            order.put("price", price);
-            return order;
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(amount, null))
+        {
+            throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, query);
+        orderRequest.put("acctId", accountId);
+        orderRequest.put("accountId", accountId);
+        orderRequest.put("orderId", id);
+        Object response = (this.webapiPostV1ApiIserverAccountAccountIdOrderOrderId(orderRequest)).join();
+        Map<String, Object> result = (this.ibkrHandleOrderReplies(response, "editOrder")).join();
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(result, market);
+        order.put("type", type);
+        order.put("side", side);
+        order.put("amount", amount);
+        order.put("price", price);
+        return order;
 
     }
 
@@ -4292,32 +4449,34 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-                put( "orderId", id );
-            }};
-            Map<String, Object> response = (this.webapiDeleteV1ApiIserverAccountAccountIdOrderOrderId(this.extend(request, query))).join();
-            //
-            //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+            put( "orderId", id );
+        }};
+        Map<String, Object> response = (this.webapiDeleteV1ApiIserverAccountAccountIdOrderOrderId(this.extend(request, query))).join();
+        //
+        //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
+        //
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -4331,55 +4490,58 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
+
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "orderId", id );
+        }};
+        Map<String, Object> response = null;
+        try
+        {
+            response = (this.webapiGetV1ApiIserverAccountOrderStatusOrderId(this.extend(request, parameters))).join();
+        } catch(Exception ex)
+        {
+            Throwable exCause = (ex instanceof java.util.concurrent.CompletionException && ex.getCause() != null) ? ex.getCause() : ex;
+            if ((exCause instanceof InvalidProxySettings))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw (ex instanceof RuntimeException ? (RuntimeException)ex : new RuntimeException(ex));
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if ((exCause instanceof OperationFailed))
             {
-                market = this.market(symbol);
+                throw (ex instanceof RuntimeException ? (RuntimeException)ex : new RuntimeException(ex));
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", id );
-            }};
-            Map<String, Object> response = null;
-            try
+            String message = this.exceptionMessage(ex, true);
+            // eg:  {"error":"Order 54348392 is not found","statusCode":503}
+            if (((String)message).indexOf("is not found") >= 0)
             {
-                response = (this.webapiGetV1ApiIserverAccountOrderStatusOrderId(this.extend(request, parameters))).join();
-            } catch(Exception ex)
+                String newMessage = ((("Order with id " + id) + " is not found, however it might be just because the time threshold has been passed for that order retrieval. Original message: ") + message);
+                throw new OrderNotFound(newMessage) ;
+            } else
             {
-                if (Helpers.isInstance(ex, InvalidProxySettings.class))
-                {
-                    throw (ex instanceof RuntimeException ? (RuntimeException)ex : new RuntimeException(ex));
-                }
-                if (Helpers.isInstance(ex, OperationFailed.class))
-                {
-                    throw (ex instanceof RuntimeException ? (RuntimeException)ex : new RuntimeException(ex));
-                }
-                String message = this.exceptionMessage(ex, true);
-                // eg:  {"error":"Order 54348392 is not found","statusCode":503}
-                if (((String)message).indexOf("is not found") >= 0)
-                {
-                    String newMessage = ((("Order with id " + id) + " is not found, however it might be just because the time threshold has been passed for that order retrieval. Original message: ") + message);
-                    throw new OrderNotFound(newMessage) ;
-                } else
-                {
-                    throw new InvalidOrder(message) ;
-                }
+                throw new InvalidOrder(message) ;
             }
-            if (java.util.Objects.equals(response, null))
-            {
-                throw new NullResponse((this.id + " fetchOrder() returned empty response")) ;
-            }
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }
+        if (java.util.Objects.equals(response, null))
+        {
+            throw new NullResponse((this.id + " fetchOrder() returned empty response")) ;
+        }
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -4398,23 +4560,25 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Object orders = (this.fetchLiveOrdersRaw(parameters)).join();
-            List<Object> parsed = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(parsed, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        List<Object> orders = (this.fetchLiveOrdersRaw(parameters)).join();
+        List<Object> parsed = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
+        return this.filterBySymbolSinceLimit(parsed, symbol, since, limit, false);
 
     }
 
@@ -4433,11 +4597,13 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (this.fetchOrdersByStatusFilter("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return (this.fetchOrdersByStatusFilter("open", symbol, since, limit, parameters)).join();
 
     }
 
@@ -4456,11 +4622,13 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (this.fetchOrdersByStatusFilter("closed", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return (this.fetchOrdersByStatusFilter("closed", symbol, since, limit, parameters)).join();
 
     }
 
@@ -4479,11 +4647,13 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (this.fetchOrdersByStatusFilter("canceled", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return (this.fetchOrdersByStatusFilter("canceled", symbol, since, limit, parameters)).join();
 
     }
 
@@ -4502,33 +4672,34 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledAndClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledAndClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        List<Object> orders = (this.fetchLiveOrdersRaw(parameters)).join();
+        List<Object> parsed = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < parsed.size(); i++)
+        {
+            String status = this.safeString((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)), "status");
+            if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                result.add((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Object orders = (this.fetchLiveOrdersRaw(parameters)).join();
-            List<Object> parsed = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < parsed.size(); i++)
-            {
-                Map<String, Object> order = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-                Object status = order.get("status");
-                if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
-                {
-                    ((List<Object>)result).add(order);
-                }
-            }
-            return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
     }
 
@@ -4544,26 +4715,28 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatusFilter(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrdersByStatusFilter(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByStatusFilterCore(status, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchOrdersByStatusFilterCore(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Object orders = (this.fetchLiveOrdersRaw(parameters)).join();
-            List<Object> parsed = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            List<Object> filtered = this.filterBy(parsed, "status", status);
-            return this.filterBySymbolSinceLimit(filtered, symbol, since, limit, false);
-        });
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        List<Object> orders = (this.fetchLiveOrdersRaw(parameters)).join();
+        List<Object> parsed = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
+        List<Object> filtered = this.filterBy(parsed, "status", status);
+        return this.filterBySymbolSinceLimit(filtered, symbol, since, limit, false);
 
     }
 
@@ -4576,78 +4749,80 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw orders
      */
-    public CompletableFuture<Object> fetchLiveOrdersRaw(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchLiveOrdersRaw(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchLiveOrdersRawCore(parameters)).thenApply(res -> (List<Object>) res);
+    }
+
+    private Object fetchLiveOrdersRawCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> options = this.safeDict(this.options, "fetchOrders", new HashMap<String, Object>() {{}});
-            Long retryDelay = this.safeInteger(options, "retryDelay", 500);
-            Boolean force = (Boolean) this.safeBool(parameters, "force", this.safeBool(options, "force", true));
-            Map<String, Object> query = this.omit(parameters, "force");
-            if (Boolean.TRUE.equals(force))
-            {
-                // the order list is cached and misses the orders created after it was built,
-                // force = true clears the cache and returns an empty list, the next request returns the fresh list
-                Map<String, Object> forceRequest = new HashMap<String, Object>() {{
-                    put( "force", true );
-                }};
-                (this.webapiGetV1ApiIserverAccountOrders(forceRequest)).join();
-                (this.sleep(retryDelay)).join();
-            }
-            Map<String, Object> response = (this.webapiGetV1ApiIserverAccountOrders(query)).join();
-            if (!Boolean.TRUE.equals(this.safeBool(response, "snapshot", true)))
-            {
-                // the first request of a session only starts the order subscription
-                (this.sleep(retryDelay)).join();
-                response = (this.webapiGetV1ApiIserverAccountOrders(query)).join();
-            }
-            //
-            //    {
-            //        "orders": [
-            //            {
-            //                "acct": "U3448646",
-            //                "exchange": "PAXOS",
-            //                "conidex": "495759171@PAXOS",
-            //                "conid": 495759171,
-            //                "account": "U3448646",
-            //                "orderId": 2086144502,
-            //                "cashCcy": "USD",
-            //                "sizeAndFills": "0/0.01",
-            //                "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, Minutes",
-            //                "description1": "ETH",
-            //                "ticker": "ETH",
-            //                "secType": "CRYPTO",
-            //                "remainingQuantity": 0.01,
-            //                "filledQuantity": 0,
-            //                "totalSize": 0.01,
-            //                "companyName": "Ethereum cryptocurrency",
-            //                "status": "Cancelled",
-            //                "order_ccp_status": null,
-            //                "origOrderType": "LIMIT",
-            //                "supportsTaxOpt": "1",
-            //                "lastExecutionTime": "261021082714",
-            //                "orderType": "Limit",
-            //                "bgColor": "#FFFFFF",
-            //                "fgColor": "#AA0000",
-            //                "order_ref": "4649850",
-            //                "isEventTrading": "0",
-            //                "price": "2000.00",
-            //                "timeInForce": "PAX",
-            //                "lastExecutionTime_r": 1792571234000,
-            //                "side": "BUY"
-            //            }
-            //        ],
-            //        "snapshot": true
-            //    }
-            //
-            return this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-        });
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> options = this.safeDict(this.options, "fetchOrders", new HashMap<String, Object>() {{}});
+        Long retryDelay = this.safeInteger(options, "retryDelay", 500);
+        Boolean force = (Boolean) this.safeBool(parameters, "force", this.safeBool(options, "force", true));
+        Map<String, Object> query = this.omit(parameters, "force");
+        if (Boolean.TRUE.equals(force))
+        {
+            // the order list is cached and misses the orders created after it was built,
+            // force = true clears the cache and returns an empty list, the next request returns the fresh list
+            Map<String, Object> forceRequest = new HashMap<String, Object>() {{
+                put( "force", true );
+            }};
+            (this.webapiGetV1ApiIserverAccountOrders(forceRequest)).join();
+            (this.sleep(retryDelay)).join();
+        }
+        Map<String, Object> response = (this.webapiGetV1ApiIserverAccountOrders(query)).join();
+        if (!Boolean.TRUE.equals(this.safeBool(response, "snapshot", true)))
+        {
+            // the first request of a session only starts the order subscription
+            (this.sleep(retryDelay)).join();
+            response = (this.webapiGetV1ApiIserverAccountOrders(query)).join();
+        }
+        //
+        //    {
+        //        "orders": [
+        //            {
+        //                "acct": "U3448646",
+        //                "exchange": "PAXOS",
+        //                "conidex": "495759171@PAXOS",
+        //                "conid": 495759171,
+        //                "account": "U3448646",
+        //                "orderId": 2086144502,
+        //                "cashCcy": "USD",
+        //                "sizeAndFills": "0/0.01",
+        //                "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, Minutes",
+        //                "description1": "ETH",
+        //                "ticker": "ETH",
+        //                "secType": "CRYPTO",
+        //                "remainingQuantity": 0.01,
+        //                "filledQuantity": 0,
+        //                "totalSize": 0.01,
+        //                "companyName": "Ethereum cryptocurrency",
+        //                "status": "Cancelled",
+        //                "order_ccp_status": null,
+        //                "origOrderType": "LIMIT",
+        //                "supportsTaxOpt": "1",
+        //                "lastExecutionTime": "261021082714",
+        //                "orderType": "Limit",
+        //                "bgColor": "#FFFFFF",
+        //                "fgColor": "#AA0000",
+        //                "order_ref": "4649850",
+        //                "isEventTrading": "0",
+        //                "price": "2000.00",
+        //                "timeInForce": "PAX",
+        //                "lastExecutionTime_r": 1792571234000,
+        //                "side": "BUY"
+        //            }
+        //        ],
+        //        "snapshot": true
+        //    }
+        //
+        return this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
 
     }
 
@@ -4690,7 +4865,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             put( "TRAILING_STOP_LIMIT", "limit" );
             put( "MIDPRICE", "limit" );
         }};
-        return this.safeString(types, ((String)orderType).toUpperCase(), orderType);
+        return this.safeString(types, orderType.toUpperCase(), orderType);
     }
 
     public String parseOrderTimeInForce(String timeInForce)
@@ -4706,7 +4881,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // createOrder / editOrder
@@ -4733,7 +4908,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             marketId = null;
         }
-        Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolved = this.safeMarket(marketId, market, null, null);
         String orderTime = this.safeString(order, "order_time");
         Long timestamp = this.safeInteger(order, "lastExecutionTime_r");
         if ((java.util.Objects.equals(timestamp, null)) && (!java.util.Objects.equals(orderTime, null)))
@@ -4798,68 +4973,72 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> options = this.safeDict(this.options, "fetchMyTrades", new HashMap<String, Object>() {{}});
+        String defaultMethod = "privateGetIserverAccountTrades";
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> symbolMarket = this.market(symbol);
+            Map<String, Object> symbolInfo = this.safeDict(symbolMarket, "info", null);
+            String assetClass = this.safeString(symbolInfo, "assetClass");
+            if (java.util.Objects.equals(assetClass, "CRYPTO"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                defaultMethod = "privatePostPaTransactions";
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> options = this.safeDict(this.options, "fetchMyTrades", new HashMap<String, Object>() {{}});
-            String defaultMethod = "privateGetIserverAccountTrades";
-            if (!java.util.Objects.equals(market, null))
-            {
-                String assetClass = this.safeString(market.get("info"), "assetClass");
-                if (java.util.Objects.equals(assetClass, "CRYPTO"))
-                {
-                    defaultMethod = "privatePostPaTransactions";
-                }
-            }
-            String method = this.safeString(parameters, "method", defaultMethod);
-            Map<String, Object> query = this.omit(parameters, "method");
-            if (java.util.Objects.equals(method, "privatePostPaTransactions"))
-            {
-                return (this.fetchMyTradesFromTransactions(market, since, limit, query)).join();
-            }
-            Object days = this.safeInteger(options, "days", 7);
-            if (!java.util.Objects.equals(since, null))
-            {
-                Double daysPassed = (((double) ((this.milliseconds() - since))) / ((double) 86400000));
-                days = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(7, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(1, this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf(daysPassed))))));
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("days", days);
-            List<Object> response = (this.webapiGetV1ApiIserverAccountTrades(this.extend(request, query))).join();
-            //
-            //     [
-            //         {
-            //             "execution_id": "0000e0d5.6576fd38.01.01",
-            //             "symbol": "BTC",
-            //             "side": "B",
-            //             "order_description": "Bot 0.0001 @ 82000",
-            //             "trade_time_r": 1702319818000,
-            //             "size": 0.0001,
-            //             "price": "82000",
-            //             "order_ref": "my-id",
-            //             "exchange": "PAXOS",
-            //             "commission": "0.02",
-            //             "net_amount": 8.2,
-            //             "account": "U1234567",
-            //             "sec_type": "CRYPTO",
-            //             "conidex": "479624278",
-            //             "conid": 479624278,
-            //             "order_id": 1234567890
-            //         }
-            //     ]
-            //
-            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }
+        String method = this.safeString(parameters, "method", defaultMethod);
+        Map<String, Object> query = this.omit(parameters, "method");
+        if (java.util.Objects.equals(method, "privatePostPaTransactions"))
+        {
+            return (this.fetchMyTradesFromTransactions(market, since, limit, query)).join();
+        }
+        Object days = this.safeInteger(options, "days", 7);
+        if (!java.util.Objects.equals(since, null))
+        {
+            Double daysPassed = (((double) ((this.milliseconds() - since))) / ((double) 86400000));
+            days = Math.min(7, Math.max(1, this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf(daysPassed))))));
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("days", days);
+        List<Object> response = (this.webapiGetV1ApiIserverAccountTrades(this.extend(request, query))).join();
+        //
+        //     [
+        //         {
+        //             "execution_id": "0000e0d5.6576fd38.01.01",
+        //             "symbol": "BTC",
+        //             "side": "B",
+        //             "order_description": "Bot 0.0001 @ 82000",
+        //             "trade_time_r": 1702319818000,
+        //             "size": 0.0001,
+        //             "price": "82000",
+        //             "order_ref": "my-id",
+        //             "exchange": "PAXOS",
+        //             "commission": "0.02",
+        //             "net_amount": 8.2,
+        //             "account": "U1234567",
+        //             "sec_type": "CRYPTO",
+        //             "conidex": "479624278",
+        //             "conid": 479624278,
+        //             "order_id": 1234567890
+        //         }
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4877,61 +5056,63 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<Object> fetchMyTradesFromTransactions(Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesFromTransactionsCore(market, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesFromTransactionsCore(Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(market, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument when fetching trades from pa/transactions")) ;
-            }
-            Map<String, Object> options = this.safeDict(this.options, "fetchMyTrades", new HashMap<String, Object>() {{}});
-            var accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdaccountQueryVariable).get(0);
-            var accountQuery = ((List<Object>) accountIdaccountQueryVariable).get(1);
-            List<Object> currencyqueryVariable = (List<Object>) this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
-            var currency = ((List<Object>) currencyqueryVariable).get(0);
-            var query = ((List<Object>) currencyqueryVariable).get(1);
-            Object days = this.safeInteger(options, "transactionsDays", 90);
-            if (!java.util.Objects.equals(since, null))
-            {
-                Double daysPassed = (((double) ((this.milliseconds() - since))) / ((double) 86400000));
-                days = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(1, this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf(daysPassed)))));
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("acctIds", new ArrayList<Object>(Arrays.asList(accountId)));
-            request.put("conids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))));
-            request.put("currency", currency);
-            request.put("days", days);
-            Map<String, Object> response = (this.webapiPostV1ApiPaTransactions(this.extend(request, query))).join();
-            //
-            //     {
-            //         "rc": 0,
-            //         "nd": 4,
-            //         "rpnl": { "data": [ ... ], "amt": "12.2516" },
-            //         "currency": "USD",
-            //         "from": 1702270800000,
-            //         "id": "getTransactions",
-            //         "to": 1702530000000,
-            //         "includesRealTime": true,
-            //         "transactions": [
-            //             {
-            //                 "date": "Mon Dec 11 00:00:00 EST 2023",
-            //                 "cur": "USD",
-            //                 "fxRate": 1,
-            //                 "pr": 2428.04,
-            //                 "qty": -0.01,
-            //                 "acctid": "U1234567",
-            //                 "amt": 24.28,
-            //                 "conid": 495759171,
-            //                 "type": "Sell",
-            //                 "desc": "Ethereum"
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> transactions = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(transactions, market, since, limit, new HashMap<String, Object>() {{}});
-        });
+        if (java.util.Objects.equals(market, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument when fetching trades from pa/transactions")) ;
+        }
+        Map<String, Object> options = this.safeDict(this.options, "fetchMyTrades", new HashMap<String, Object>() {{}});
+        Pair<String, Map<String, Object>> accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdaccountQueryVariable.first();
+        Map<String, Object> accountQuery = accountIdaccountQueryVariable.second();
+        List<Object> currencyqueryVariable = (List<Object>) this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
+        var currency = ((List<Object>) currencyqueryVariable).get(0);
+        Map<String, Object> query = (Map<String, Object>) ((List<Object>) currencyqueryVariable).get(1);
+        Object days = this.safeInteger(options, "transactionsDays", 90);
+        if (!java.util.Objects.equals(since, null))
+        {
+            Double daysPassed = (((double) ((this.milliseconds() - since))) / ((double) 86400000));
+            days = Math.max(1, this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf(daysPassed)))));
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("acctIds", new ArrayList<Object>(Arrays.asList(accountId)));
+        request.put("conids", new ArrayList<Object>(Arrays.asList(this.parseToInt(this.safeString(market, "id")))));
+        request.put("currency", currency);
+        request.put("days", days);
+        Map<String, Object> response = (this.webapiPostV1ApiPaTransactions(this.extend(request, query))).join();
+        //
+        //     {
+        //         "rc": 0,
+        //         "nd": 4,
+        //         "rpnl": { "data": [ ... ], "amt": "12.2516" },
+        //         "currency": "USD",
+        //         "from": 1702270800000,
+        //         "id": "getTransactions",
+        //         "to": 1702530000000,
+        //         "includesRealTime": true,
+        //         "transactions": [
+        //             {
+        //                 "date": "Mon Dec 11 00:00:00 EST 2023",
+        //                 "cur": "USD",
+        //                 "fxRate": 1,
+        //                 "pr": 2428.04,
+        //                 "qty": -0.01,
+        //                 "acctid": "U1234567",
+        //                 "amt": 24.28,
+        //                 "conid": 495759171,
+        //                 "type": "Sell",
+        //                 "desc": "Ethereum"
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> transactions = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(transactions, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4942,7 +5123,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             return null;
         }
-        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)date).split(java.util.regex.Pattern.quote(" "))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(date.split(java.util.regex.Pattern.quote(" "))));
         Integer partsLength = parts.size();
         if (((partsLength == null || partsLength < 6)))
         {
@@ -4973,15 +5154,16 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             return null;
         }
-        String dayPart = (String) (parts == null || 2 >= parts.size() ? null : parts.get(2));
-        String day = (dayPart.length() >= 2 ? dayPart.substring(dayPart.length() - 2) : String.format("%" + (2 - dayPart.length()) + "s", "").replace(' ', '0') + dayPart);
+        String dayPart = this.safeString(parts, 2, "");
+        String day = (((String)dayPart).length() >= 2 ? ((String)dayPart).substring(((String)dayPart).length() - 2) : String.format("%" + (2 - ((String)dayPart).length()) + "s", "").replace(' ', '0') + ((String)dayPart));
         String offset = this.safeString(offsets, (parts == null || 4 >= parts.size() ? null : parts.get(4)), "+00:00");
         return this.parse8601(((((((((parts == null || 5 >= parts.size() ? null : parts.get(5)) + "-") + month) + "-") + day) + "T") + (parts == null || 3 >= parts.size() ? null : parts.get(3))) + offset));
     }
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
     {
-        if (((Map<?, ?>)trade).containsKey("qty"))
+        String transactionQty = this.safeString(trade, "qty");
+        if (!java.util.Objects.equals(transactionQty, null))
         {
             //
             // pa/transactions
@@ -5002,7 +5184,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             //    }
             //
             String transactionMarketId = this.safeString(trade, "conid");
-            Map<String, Object> transactionMarket = this.safeMarket(transactionMarketId, market, (String) null, (String) null);
+            Map<String, Object> transactionMarket = this.safeMarket(transactionMarketId, market, null, null);
             Object transactionTimestamp = this.parseTransactionDate(this.safeString(trade, "date"));
             String qty = this.safeString(trade, "qty");
             String typeId = this.safeStringLower(trade, "type");
@@ -5034,7 +5216,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             return this.safeTrade(mapLiteral8, transactionMarket);
         }
         String marketId = this.safeString(trade, "conid");
-        Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "trade_time_r");
         String sideId = this.safeString(trade, "side");
         String side = null;
@@ -5085,46 +5267,48 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-            }};
-            Object response = (this.webapiGetV1ApiPortfolio2AccountIdPositions(this.extend(request, query))).join();
-            //
-            //     [
-            //         {
-            //             "position": 12.0,
-            //             "conid": "265598",
-            //             "avgCost": 192.5,
-            //             "avgPrice": 192.5,
-            //             "currency": "USD",
-            //             "description": "AAPL",
-            //             "isLastToLoq": false,
-            //             "marketPrice": 193.12,
-            //             "marketValue": 2317.44,
-            //             "realizedPnl": 0.0,
-            //             "secType": "STK",
-            //             "timestamp": 1717444668,
-            //             "unrealizedPnl": 7.44,
-            //             "assetClass": "STK",
-            //             "sector": "Technology",
-            //             "group": "Computers",
-            //             "model": ""
-            //         }
-            //     ]
-            //
-            return this.parsePositions(response, symbols, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+        }};
+        Object response = (this.webapiGetV1ApiPortfolio2AccountIdPositions(this.extend(request, query))).join();
+        //
+        //     [
+        //         {
+        //             "position": 12.0,
+        //             "conid": "265598",
+        //             "avgCost": 192.5,
+        //             "avgPrice": 192.5,
+        //             "currency": "USD",
+        //             "description": "AAPL",
+        //             "isLastToLoq": false,
+        //             "marketPrice": 193.12,
+        //             "marketValue": 2317.44,
+        //             "realizedPnl": 0.0,
+        //             "secType": "STK",
+        //             "timestamp": 1717444668,
+        //             "unrealizedPnl": 7.44,
+        //             "assetClass": "STK",
+        //             "sector": "Technology",
+        //             "group": "Computers",
+        //             "model": ""
+        //         }
+        //     ]
+        //
+        return this.parsePositions(response, symbols, new HashMap<String, Object>() {{}});
 
     }
 
@@ -5138,63 +5322,65 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsForSymbol(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsForSymbolCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchPositionsForSymbolCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.markets, null))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", accountId );
+            put( "conid", market.get("id") );
+        }};
+        List<Object> response = (this.webapiGetV1ApiPortfolioAccountIdPositionConid(this.extend(request, query))).join();
+        //
+        //     [
+        //         {
+        //             "acctId": "U1234567",
+        //             "conid": 265598,
+        //             "contractDesc": "AAPL",
+        //             "position": 614.2639,
+        //             "mktPrice": 197.7639923,
+        //             "mktValue": 121479.28,
+        //             "currency": "USD",
+        //             "avgCost": 192.7477563,
+        //             "avgPrice": 192.7477563,
+        //             "realizedPnl": 0.0,
+        //             "unrealizedPnl": 3081.29,
+        //             "assetClass": "STK",
+        //             "model": ""
+        //         }
+        //     ]
+        //
+        List<Object> positions = (((response instanceof List))) ? response : new ArrayList<Object>(Arrays.asList());
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < positions.size(); i++)
+        {
+            Map<String, Object> position = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
+            if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                result.add(position);
             }
-            Map<String, Object> market = this.market(symbol);
-            var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-            var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-            var query = ((List<Object>) accountIdqueryVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-                put( "conid", market.get("id") );
-            }};
-            List<Object> response = (this.webapiGetV1ApiPortfolioAccountIdPositionConid(this.extend(request, query))).join();
-            //
-            //     [
-            //         {
-            //             "acctId": "U1234567",
-            //             "conid": 265598,
-            //             "contractDesc": "AAPL",
-            //             "position": 614.2639,
-            //             "mktPrice": 197.7639923,
-            //             "mktValue": 121479.28,
-            //             "currency": "USD",
-            //             "avgCost": 192.7477563,
-            //             "avgPrice": 192.7477563,
-            //             "realizedPnl": 0.0,
-            //             "unrealizedPnl": 3081.29,
-            //             "assetClass": "STK",
-            //             "model": ""
-            //         }
-            //     ]
-            //
-            List<Object> positions = (((response instanceof List))) ? response : new ArrayList<Object>(Arrays.asList());
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < positions.size(); i++)
-            {
-                Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market);
-                if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
-                {
-                    ((List<Object>)result).add(position);
-                }
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        }
+        return result;
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "conid");
-        Map<String, Object> resolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> resolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeTimestamp(position, "timestamp");
         String contracts = this.safeString(position, "position");
         String side = null;
@@ -5215,18 +5401,18 @@ public class Interactivebrokers extends InteractivebrokersApi
         mapLiteral10.put("hedged", null);
         mapLiteral10.put("side", side);
         mapLiteral10.put("contracts", this.parseNumber(Precise.stringAbs(contracts)));
-        mapLiteral10.put("contractSize", this.safeNumber(resolved, "contractSize", (Object) null));
-        mapLiteral10.put("entryPrice", this.safeNumber2(position, "avgPrice", "avgCost", (Object) null));
-        mapLiteral10.put("markPrice", this.safeNumber2(position, "marketPrice", "mktPrice", (Object) null));
-        mapLiteral10.put("notional", this.safeNumber2(position, "marketValue", "mktValue", (Object) null));
+        mapLiteral10.put("contractSize", this.safeNumber(resolved, "contractSize", null));
+        mapLiteral10.put("entryPrice", this.safeNumber2(position, "avgPrice", "avgCost", null));
+        mapLiteral10.put("markPrice", this.safeNumber2(position, "marketPrice", "mktPrice", null));
+        mapLiteral10.put("notional", this.safeNumber2(position, "marketValue", "mktValue", null));
         mapLiteral10.put("leverage", null);
         mapLiteral10.put("collateral", null);
         mapLiteral10.put("initialMargin", null);
         mapLiteral10.put("maintenanceMargin", null);
         mapLiteral10.put("initialMarginPercentage", null);
         mapLiteral10.put("maintenanceMarginPercentage", null);
-        mapLiteral10.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
-        mapLiteral10.put("realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null));
+        mapLiteral10.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", null));
+        mapLiteral10.put("realizedPnl", this.safeNumber(position, "realizedPnl", null));
         mapLiteral10.put("liquidationPrice", null);
         mapLiteral10.put("marginMode", null);
         mapLiteral10.put("marginRatio", null);
@@ -5237,7 +5423,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         return this.safePosition(mapLiteral10);
     }
 
-    public Object ibkrEncrypt(String value)
+    public String ibkrEncrypt(String value)
     {
         // RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string
         String encoded = this.urlencode(new HashMap<String, Object>() {{
@@ -5246,10 +5432,10 @@ public class Interactivebrokers extends InteractivebrokersApi
         return (encoded == null ? null : ((String)encoded).substring(Math.min(2, ((String)encoded).length())));  // strip the 'v=' prefix
     }
 
-    public String ibkrBaseString(String method, String url, Map<String, Object> parameters, Object prepend)
+    public String ibkrBaseString(String method, String url, Map<String, Object> parameters, String prepend)
     {
         String query = this.rawencode(this.keysort(parameters));
-        return ((((Helpers.add(java.util.Objects.requireNonNullElse(prepend, ""), method) + "&") + this.ibkrEncrypt((String) (url))) + "&") + this.ibkrEncrypt(query));
+        return (((((java.util.Objects.requireNonNullElse(prepend, "") + method) + "&") + this.ibkrEncrypt(url)) + "&") + this.ibkrEncrypt(query));
     }
 
     public String ibkrAuthHeader(Map<String, Object> parameters)
@@ -5260,9 +5446,11 @@ public class Interactivebrokers extends InteractivebrokersApi
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            ((List<Object>)parts).add((((key + "=\"") + (sorted == null || key == null ? null : sorted.get(key))) + "\""));
+            String value = this.safeString(sorted, key, "");
+            ((List<Object>)parts).add((((key + "=\"") + value) + "\""));
         }
-        return ((("OAuth realm=\"" + (this.options.get("realm"))) + "\", ") + String.join(", ", (List<String>)parts));
+        String realm = this.safeString(this.options, "realm", "");
+        return ((("OAuth realm=\"" + realm) + "\", ") + String.join(", ", (List<String>)parts));
     }
 
     public Map<String, Object> ibkrOauthBase(String consumerKey, String consumerAccessToken)
@@ -5282,23 +5470,49 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    public List<Object> ibkrImplodePath(String path, Map<String, Object> parameters)
+    public String ibkrImplodePath(String path, Map<String, Object> parameters)
     {
-        Object segments = new ArrayList<Object>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
-        List<Object> pathParams = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)segments).size(); i++)
+        List<Object> segments = new ArrayList<Object>(Arrays.asList(path.split(java.util.regex.Pattern.quote("/"))));
+        List<String> imploded = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < segments.size(); i++)
         {
-            String segment = (String) Helpers.GetValue(segments, i);
-            if ((segment.startsWith(((String)":"))))
+            String segment = (String) (segments == null || i < 0 || i >= segments.size() ? null : segments.get(i));
+            if (segment.startsWith(":"))
             {
                 String name = (segment == null ? null : ((String)segment).substring(Math.min(1, ((String)segment).length())));
-                ((List<Object>)pathParams).add(name);
-                Helpers.addElementToObject(segments, i, this.safeString(parameters, name, segment));
+                String value = this.safeString(parameters, name, segment);
+                imploded.add(value);
+            } else
+            {
+                imploded.add(segment);
             }
         }
-        return new ArrayList<Object>(Arrays.asList(String.join("/", (List<String>)segments), pathParams));
+        return String.join("/", (List<String>)imploded);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    public Object ibkrPathParams(String path)
+    {
+        List<Object> segments = new ArrayList<Object>(Arrays.asList(path.split(java.util.regex.Pattern.quote("/"))));
+        List<Object> pathParams = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < segments.size(); i++)
+        {
+            String segment = (String) (segments == null || i < 0 || i >= segments.size() ? null : segments.get(i));
+            if (segment.startsWith(":"))
+            {
+                pathParams.add((segment == null ? null : ((String)segment).substring(Math.min(1, ((String)segment).length()))));
+            }
+        }
+        return pathParams;
     }
 
     /**
@@ -5310,7 +5524,7 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} gatewayUrl options.gatewayUrl
      * @returns {string} the gateway base url
      */
-    public Object ibkrGatewayBaseUrl(String baseUrl, String gatewayUrl)
+    public String ibkrGatewayBaseUrl(String baseUrl, String gatewayUrl)
     {
         Object gateway = gatewayUrl;
         if (!((String)gateway).endsWith("/"))
@@ -5318,9 +5532,9 @@ public class Interactivebrokers extends InteractivebrokersApi
             gateway = (gateway + "/");
         }
         String prefix = "https://api.ibkr.com/";
-        if (((String)baseUrl).startsWith(prefix))
+        if (baseUrl.startsWith(((String)prefix)))
         {
-            String path = Helpers.replace(((String)baseUrl), prefix, "");
+            String path = (baseUrl == null ? null : ((String)baseUrl).replaceFirst(java.util.regex.Pattern.quote(prefix), ""));
             return (gateway + path);
         }
         return baseUrl;
@@ -5364,37 +5578,36 @@ public class Interactivebrokers extends InteractivebrokersApi
         // with the client portal gateway signIn () never sets a live session token, so besides options.useGateway
         // the requests are routed to the gateway when there is no live session token and oauth is not configured
         // (e.g. public calls like fetchOpenInterests made before any private call)
-        Boolean useGatewayOption = (Boolean) this.safeBool(this.options, "useGateway", false);
+        Boolean useGatewayOption = this.safeBool(this.options, "useGateway", false);
         Boolean hasLiveSessionToken = !java.util.Objects.equals(this.safeString(this.options, "liveSessionToken"), null);
         Boolean oauthConfigured = (!java.util.Objects.equals(this.safeString(this.options, "encryptionPemPath"), null)) && (!java.util.Objects.equals(this.safeString(this.options, "dhParamPemPath"), null));
-        Boolean isLiveSessionTokenRequest = ((String)path).endsWith("v1/api/oauth/live_session_token");
+        Boolean isLiveSessionTokenRequest = path.endsWith("v1/api/oauth/live_session_token");
         return Boolean.TRUE.equals(useGatewayOption) || (!Boolean.TRUE.equals(hasLiveSessionToken) && !Boolean.TRUE.equals(oauthConfigured) && !Boolean.TRUE.equals(isLiveSessionTokenRequest));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
-        var implodedPathpathParamsVariable = this.ibkrImplodePath((String) (path), (Map<String, Object>) (parameters));
-        var implodedPath = ((List<Object>) implodedPathpathParamsVariable).get(0);
-        var pathParams = ((List<Object>) implodedPathpathParamsVariable).get(1);
+        String implodedPath = this.ibkrImplodePath(path, (Map<String, Object>) (parameters));
         String apiBase = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Object baseUrl = Helpers.add((apiBase == null ? null : ((Map<String, Object>)this.urls.get("api")).get(apiBase)), implodedPath);
-        Object url = baseUrl;
-        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, pathParams);
+        String apiUrl = this.safeString(this.urls.get("api"), apiBase, "");
+        String baseUrl = (apiUrl + implodedPath);
+        String url = baseUrl;
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.ibkrPathParams(path));
         Boolean hasQuery = query.size() > 0;
         Boolean isGetOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        Boolean isLiveSessionTokenRequest = ((String)path).endsWith("v1/api/oauth/live_session_token");
-        if (this.ibkrIsGatewayRequest((String) (path)))
+        Boolean isLiveSessionTokenRequest = path.endsWith("v1/api/oauth/live_session_token");
+        if (this.ibkrIsGatewayRequest(path))
         {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             String gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            url = Helpers.add(this.ibkrGatewayBaseUrl((String) ((apiBase == null ? null : ((Map<String, Object>)this.urls.get("api")).get(apiBase))), gatewayUrl), implodedPath);
+            url = (this.ibkrGatewayBaseUrl(apiUrl, gatewayUrl) + implodedPath);
             if (Boolean.TRUE.equals(isGetOrDelete))
             {
                 if (Boolean.TRUE.equals(hasQuery))
                 {
-                    url = ((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + (("?" + this.urlencode(query)))); case Double hx4J40v1 -> (Object) (hx4J40v1 + 0.0); case Object hx4J40v1 -> (Object) (String.valueOf(hx4J40v1) + (("?" + this.urlencode(query)))); }));
+                    url = (url + ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -5424,7 +5637,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             Object signatureKey = ((String)this.readFile(this.options.get("signaturePemPath")));
             oauthParams.put("oauth_signature_method", "RSA-SHA256");
             Map<String, Object> authParams = this.extend(oauthParams, query);
-            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), (String) (baseUrl), authParams, accessTokenSecretHex);
+            String auth = this.ibkrBaseString(java.util.Objects.requireNonNullElse(method, "GET"), baseUrl, authParams, accessTokenSecretHex);
             String signature = rsa(auth, signatureKey, sha256());
             authParams.put("oauth_signature", this.ibkrEncrypt(signature));
             requestHeaders = new HashMap<String, Object>() {{
@@ -5445,7 +5658,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 if (Boolean.TRUE.equals(hasQuery))
                 {
-                    url = ((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + (("?" + this.urlencode(query)))); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + (("?" + this.urlencode(query)))); }));
+                    url = (url + ("?" + this.urlencode(query)));
                     // the query-string params are part of the signature base string too
                     signingParams = this.extend(oauthParams, query);
                 }
@@ -5453,8 +5666,8 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 requestBody = this.json(query);
             }
-            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), (String) (baseUrl), signingParams, "");
-            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(liveSessionToken), sha256(), "base64");
+            String auth = this.ibkrBaseString(java.util.Objects.requireNonNullElse(method, "GET"), baseUrl, signingParams, "");
+            String signature = this.hmac(this.encode(auth), this.base64ToBinary(liveSessionToken), sha256(), "base64");
             oauthParams.put("oauth_signature", this.ibkrEncrypt(signature));
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", Interactivebrokers.this.ibkrAuthHeader(oauthParams) );
@@ -5486,57 +5699,59 @@ public class Interactivebrokers extends InteractivebrokersApi
         return this.inArray(path, authPaths);
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
+    {
+        return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
+    }
+
+    private Object requestCore(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            // every non-auth call renews an expired live session token (or re-checks the gateway session) first,
-            // so methods that do not call authenticate () themselves never send a stale token
-            if (!Boolean.TRUE.equals(this.ibkrIsAuthRequest((String) (path))) && !Boolean.TRUE.equals(this.safeBool(this.options, "signInInProgress", false)))
+        // every non-auth call renews an expired live session token (or re-checks the gateway session) first,
+        // so methods that do not call authenticate () themselves never send a stale token
+        if (!Boolean.TRUE.equals(this.ibkrIsAuthRequest(path)) && !Boolean.TRUE.equals(this.safeBool(this.options, "signInInProgress", false)))
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        }
+        // right after a new brokerage session is opened, IBKR may still reject trading endpoints with
+        // {"error":"Please query /accounts first"} even though iserver/accounts was already called,
+        // so iserver/accounts is queried again and the request is retried
+        if (this.ibkrIsGatewayRequest(path) && (!java.util.Objects.equals(this.validateServerSsl, false)))
+        {
+            // the gateway serves a self-signed certificate, so its validation is disabled, only in gateway mode (oauth requests to api.ibkr.com are always verified)
+            // done here instead of sign (), which cannot change the instance in the statically typed ports
+            this.setValidateServerSsl(false);
+        }
+        Boolean isAccountsPath = (java.util.Objects.equals(path, "iserver/accounts")) || (java.util.Objects.equals(path, "v1/api/iserver/accounts"));
+        Map<String, Object> options = this.safeDict(this.options, "queryAccountsFirst", new HashMap<String, Object>() {{}});
+        Long retries = this.safeInteger(options, "retries", 3);
+        Long retryDelay = this.safeInteger(options, "retryDelay", 1000);
+        for (var i = 0; ((retries != null && i <= retries)); i++)
+        {
+            try
             {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            }
-            // right after a new brokerage session is opened, IBKR may still reject trading endpoints with
-            // {"error":"Please query /accounts first"} even though iserver/accounts was already called,
-            // so iserver/accounts is queried again and the request is retried
-            if (this.ibkrIsGatewayRequest((String) (path)) && (!java.util.Objects.equals(this.validateServerSsl, false)))
+                return (this.fetch2(path, api, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), parameters, config)).join();
+            } catch(Exception e)
             {
-                // the gateway serves a self-signed certificate, so its validation is disabled, only in gateway mode (oauth requests to api.ibkr.com are always verified)
-                // done here instead of sign (), which cannot change the instance in the statically typed ports
-                this.setValidateServerSsl(false);
-            }
-            Boolean isAccountsPath = (java.util.Objects.equals(path, "iserver/accounts")) || (java.util.Objects.equals(path, "v1/api/iserver/accounts"));
-            Map<String, Object> options = this.safeDict(this.options, "queryAccountsFirst", new HashMap<String, Object>() {{}});
-            Long retries = this.safeInteger(options, "retries", 3);
-            Long retryDelay = this.safeInteger(options, "retryDelay", 1000);
-            for (var i = 0; ((retries != null && i <= retries)); i++)
-            {
-                try
+                String message = this.exceptionMessage(e, false);
+                Boolean mustQueryAccounts = ((String)message).indexOf("query /accounts first") >= 0;
+                if (Boolean.TRUE.equals(isAccountsPath) || !Boolean.TRUE.equals(mustQueryAccounts) || ((retries == null || i >= retries)))
                 {
-                    return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
-                } catch(Exception e)
-                {
-                    String message = this.exceptionMessage(e, false);
-                    Boolean mustQueryAccounts = ((String)message).indexOf("query /accounts first") >= 0;
-                    if (Boolean.TRUE.equals(isAccountsPath) || !Boolean.TRUE.equals(mustQueryAccounts) || ((retries != null && i == retries)))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                    }
-                    this.options.put("serviceAccountsLoaded", false);
-                    (this.webapiGetV1ApiIserverAccounts(new HashMap<String, Object>() {{}})).join();
-                    this.options.put("serviceAccountsLoaded", true);
-                    (this.sleep(retryDelay)).join();
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
+                this.options.put("serviceAccountsLoaded", false);
+                (this.webapiGetV1ApiIserverAccounts(new HashMap<String, Object>() {{}})).join();
+                this.options.put("serviceAccountsLoaded", true);
+                (this.sleep(retryDelay)).join();
             }
-            return null;
-        });
+        }
+        return null;
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((code != null && ((Number) code).doubleValue() == 401)) && Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
+        if (((code != null && code == 401)) && Boolean.TRUE.equals(this.safeBool(this.options, "useGateway", false)))
         {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options.remove("gatewayAuthenticatedTimestamp");

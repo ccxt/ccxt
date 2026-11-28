@@ -273,7 +273,7 @@ public partial class BaseExchange
                     var body3 = body2 as dict;
                     var bodyList = body3.Keys;
                     foreach (string key in bodyList) {
-                        formdata.Add(new StringContent(getValue(body3, key).ToString(), Encoding.UTF8), key);
+                        formdata.Add(new StringContent(body3[key].ToString(), Encoding.UTF8), key);
                     }
                     request.Content = formdata;
                 } else {
@@ -381,7 +381,7 @@ public partial class BaseExchange
             responseBody = result; // if parsing fails, return the original result
         }
 
-        var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
+        var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders?.ToDictionary(x => x.Key, x => (object)x.Value), result, responseBody, headers, body);
         if (res == null)
             handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);
 
@@ -597,12 +597,12 @@ public partial class BaseExchange
 
     public virtual async Task<List<MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
-        return ToMarketInterfaceList(this.toArray(this.markets));
+        return ToMarketInterfaceList(this.markets == null ? null : new List<object>(this.markets.Values));
     }
 
     public virtual async Task<List<MarketInterface>> FetchMarketsWs(IDictionary<string, object> parameters = null)
     {
-        return ToMarketInterfaceList(this.toArray(this.markets));
+        return ToMarketInterfaceList(this.markets == null ? null : new List<object>(this.markets.Values));
     }
 
     public virtual async Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
@@ -642,17 +642,18 @@ public partial class BaseExchange
         return "";
     }
 
-    public List<string> unique(object obj)
+    // every path hands back distinct strings, boxed so list consumers bind without a re-box
+    public List<object> unique(object obj)
     {
         if (obj is List<string> stringList)
         {
-            return stringList.Distinct().ToList();
+            return stringList.Distinct().Select(x => (object)x).ToList();
         }
         if (obj is List<object> objectList)
         {
-             return objectList.Select(x => x.ToString()).Distinct().ToList();
+             return objectList.Select(x => x.ToString()).Distinct().Select(x => (object)x).ToList();
         }
-        return new List<string>();
+        return new List<object>();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -876,27 +877,48 @@ public partial class BaseExchange
         return value != null;
     }
 
-    public object arraySlice(object array, object first, object second = null)
+    // byte[] receivers (signing seeds) keep their byte[] / List<byte> slices
+    public object arraySlice(byte[] byteArray, object first, object second = null)
+    {
+        var firstInt = Convert.ToInt32(first);
+        if (second == null)
+        {
+            if (firstInt < 0)
+            {
+                var index = byteArray.Length + firstInt;
+                index = index < 0 ? 0 : index;
+                return byteArray[index..].ToList();
+            }
+            return byteArray[firstInt..].ToList();
+        }
+        var secondInt2 = Convert.ToInt32(second);
+        return byteArray[firstInt..secondInt2];
+    }
+
+    // typed lists keep their element type; same ranges, throws and fresh copy as the object overload
+    public List<T> arraySlice<T>(IList<T> array, object first, object second = null)
+    {
+        var count = array.Count; // a null array throws NullReferenceException, as the object overload does
+        var firstInt = Convert.ToInt32(first);
+        T[] items = (array is ccxt.pro.ArrayCache && array is ccxt.pro.SlimConcurrentList<T> cache) ? cache.ToArray() : array.ToArray();
+        if (second == null)
+        {
+            if (firstInt < 0)
+            {
+                var index = items.Length + firstInt;
+                index = index < 0 ? 0 : index;
+                return items[index..].ToList();
+            }
+            return items[firstInt..].ToList();
+        }
+        var secondInt = Convert.ToInt32(second);
+        return items[firstInt..secondInt].ToList();
+    }
+
+    public IList<object> arraySlice(object array, object first, object second = null)
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
-
-        if (array is byte[])
-        {
-            var byteArray = (byte[])array;
-            if (second == null)
-            {
-                if (firstInt < 0)
-                {
-                    var index = byteArray.Length + firstInt;
-                    index = index < 0 ? 0 : index;
-                    return byteArray[index..].ToList();
-                }
-                return byteArray[firstInt..].ToList();
-            }
-            var secondInt2 = Convert.ToInt32(second);
-            return byteArray[firstInt..secondInt2];
-        }
 
         // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
         // List<T> is invariant so none of those IS an IList<object> - re-box through the
@@ -1027,8 +1049,8 @@ public partial class BaseExchange
         );
         var account = createSafeDictionary();
         account["privateKey"] = privatekey.ToString("x");
-        account["publicKey"] = add("0x", publicKey.ToString("x"));
-        account["address"] = add("0x", accountAddress.ToString("x"));
+        account["publicKey"] = "0x" + publicKey.ToString("x");
+        account["address"] = "0x" + accountAddress.ToString("x");
         return account;
     }
 
@@ -1079,7 +1101,7 @@ public partial class BaseExchange
         return StarknetPoseidon.HashMany(data).ToString();
     }
 
-    public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
+    public string starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
     {
         var domain = domain2 as IDictionary<string, object>;
         var messageTypes = messageTypes2 as IDictionary<string, object>;
@@ -1535,9 +1557,20 @@ public partial class BaseExchange
         return isWs ? (IDictionary<string, object>)new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new dict();
     }
 
+    // typed-row twin for caches declared with a typed element (ohlcvs)
+    public IDictionary<string, V> createSafeDictionary<V>(bool isWs = false)
+    {
+        return isWs ? (IDictionary<string, V>)new System.Collections.Concurrent.ConcurrentDictionary<string, V>() : new Dictionary<string, V>();
+    }
+
     public IDictionary<string, object> mapToSafeMap(object obj)
     {
         return (IDictionary<string, object>)obj;
+    }
+
+    public IDictionary<string, List<object>> mapToSafeMap(IDictionary<string, List<object>> obj)
+    {
+        return obj;
     }
 
     public IDictionary<string, object> safeMapToMap(object obj)

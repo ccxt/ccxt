@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -690,8 +690,8 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
-        hasSymbolParam = ('symbol' in params)
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
+        hasSymbolParam = (self.safe_string(params, 'symbol') is not None)
         hasSymbolsParam = ('symbols' in params)
         limit = self.safe_integer(params, 'limit')
         if ('noSymbol' in config) and not hasSymbolParam:
@@ -949,7 +949,7 @@ class coinsph(Exchange, ImplicitAPI):
             ticker = self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
         else:
             ticker = self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(self.extend({}, ticker), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1265,13 +1265,12 @@ class coinsph(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string_2(trade, 'id', 'tradeId')
         orderId = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'time')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
-        type = None
         fee = {}
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
@@ -1297,7 +1296,7 @@ class coinsph(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -1434,7 +1433,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         paramsRequest = self.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = {}
+        response = None
         if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, paramsRequest))
         else:
@@ -1813,8 +1812,9 @@ class coinsph(Exchange, ImplicitAPI):
         result = {}
         fees = self.to_array(response)
         for i in range(0, len(fees)):
-            fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            feeRow = self.safe_dict(fees, i, {})
+            fee = self.parse_trading_fee(feeRow)
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -1829,7 +1829,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(fee, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return {
             'info': fee,
             'symbol': symbol,
@@ -2040,7 +2040,6 @@ class coinsph(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
-        updated = None
         type = None
         withdrawOrderId = self.safe_string(transaction, 'withdrawOrderId')
         depositOrderId = self.safe_string(transaction, 'depositOrderId')
@@ -2073,7 +2072,7 @@ class coinsph(Exchange, ImplicitAPI):
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': None,
             'internal': internal,
             'comment': None,
             'fee': fee,
@@ -2195,7 +2194,7 @@ class coinsph(Exchange, ImplicitAPI):
             url = apiUrl + '/' + endpoint + '?' + encodedQuery
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code')

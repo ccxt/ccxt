@@ -464,7 +464,7 @@ public partial class btcmarkets : Exchange
         return this.safeString(statuses, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         //    {
@@ -521,16 +521,16 @@ public partial class btcmarkets : Exchange
         IDictionary<string, object> cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new Dictionary<string, object>() {});
         string? txid = this.safeString(cryptoPaymentDetail, "txId");
         string? addressRaw = this.safeString(cryptoPaymentDetail, "address");
-        object address = null;
-        object tag = null;
+        string? address = null;
+        string? tag = null;
         if ((addressRaw != null))
         {
             List<object> addressParts = addressRaw.Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
             int numParts = addressParts.Count;
             if (numParts > 1)
             {
-                address = (addressParts != null && 0 < addressParts.Count ? addressParts[0] : null);
-                tag = (addressParts != null && 1 < addressParts.Count ? addressParts[1] : null);
+                address = ((string)(addressParts != null && 0 < addressParts.Count ? addressParts[0] : null));
+                tag = ((string)(addressParts != null && 1 < addressParts.Count ? addressParts[1] : null));
             } else
             {
                 address = addressRaw;
@@ -737,7 +737,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -794,7 +794,7 @@ public partial class btcmarkets : Exchange
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     /**
@@ -841,7 +841,7 @@ public partial class btcmarkets : Exchange
         return orderbook;
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -977,13 +977,13 @@ public partial class btcmarkets : Exchange
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? marketId = this.safeString(trade, "marketId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        object feeCurrencyCode = null;
+        string? feeCurrencyCode = null;
         if ((((marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) as string) == "AUD"))
         {
-            feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
+            feeCurrencyCode = this.safeString(marketResolved, "quote");
         } else
         {
-            feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
+            feeCurrencyCode = this.safeString(marketResolved, "base");
         }
         string? side = this.safeString(trade, "side");
         if (side == "Bid")
@@ -1138,7 +1138,7 @@ public partial class btcmarkets : Exchange
         IDictionary<string, object> paramsTriggerPrice = parameters;
         if (triggerPriceIsRequired)
         {
-            paramsTriggerPrice = this.omit(parameters, "triggerPrice");
+            paramsTriggerPrice = this.omit(paramsTriggerPrice, "triggerPrice");
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsTriggerPrice, "clientOrderId");
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, paramsOmitted));
@@ -1303,7 +1303,7 @@ public partial class btcmarkets : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1624,7 +1624,7 @@ public partial class btcmarkets : Exchange
                 requestBody = jsonBody;
                 auth = (((method + request) + nonce) + jsonBody);
             }
-            string signature = this.hmac(this.encode(auth), secret, sha512, "base64");
+            string signature = this.hmac(auth, secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "Accept-Charset", "UTF-8" },
@@ -1656,11 +1656,11 @@ public partial class btcmarkets : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"code":"UnAuthorized","message":"invalid access token"}
@@ -1670,12 +1670,12 @@ public partial class btcmarkets : Exchange
         string? message = this.safeString(response, "message");
         if ((errorCode != null))
         {
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

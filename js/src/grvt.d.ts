@@ -107,7 +107,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(rawItem: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(rawItem: Dict, market?: Market): FundingRateHistory;
     getSubAccountId(params: Dict): string;
     /**
      * @method
@@ -365,5 +365,5 @@ export default class grvt extends Exchange {
     handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: int): [Dict, Dict];
     requestId(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

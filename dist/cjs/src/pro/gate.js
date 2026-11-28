@@ -12,8 +12,7 @@ var Precise = require('../base/Precise.js');
 //  ---------------------------------------------------------------------------
 class gate extends gate$1["default"] {
     describe() {
-        const superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
     describeData() {
         return {
@@ -179,7 +178,7 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_place';
         const url = this.getUrlByMarket(market);
@@ -187,7 +186,7 @@ class gate extends gate$1["default"] {
         const request = this.createOrderRequest(symbolValue, type, side, amount, price, params);
         await this.authenticate(url, messageType);
         const rawOrder = await this.requestPrivate(url, request, channel);
-        const order = this.parseOrder(rawOrder, market);
+        const order = this.parseOrder(this.extend({}, rawOrder), market);
         return order;
     }
     /**
@@ -204,8 +203,13 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const request = this.createOrdersRequest(orders, params);
-        const firstOrder = orders[0];
-        const market = this.market(firstOrder['symbol']);
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            if (i === 0) {
+                symbol = this.safeString(orders[i], 'symbol');
+            }
+        }
+        const market = this.market(symbol);
         if (!this.safeBool(market, 'swap', false)) {
             throw new errors.NotSupported(this.id + ' createOrdersWs is not supported for swap markets');
         }
@@ -235,13 +239,7 @@ class gate extends gate$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        }
-        else {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_cancel_cp';
@@ -285,9 +283,9 @@ class gate extends gate$1["default"] {
         const channel = messageType + '.order_cancel';
         const url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
-        request['order_id'] = id.toString();
-        const res = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return this.parseOrder(res, market);
+        const orderRequest = this.extend(request, { 'order_id': id.toString() });
+        const res = await this.requestPrivate(url, this.extend(orderRequest, requestParams), channel);
+        return this.parseOrder(this.extend({}, res), market);
     }
     /**
      * @method
@@ -315,7 +313,7 @@ class gate extends gate$1["default"] {
         const url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         const rawOrder = await this.requestPrivate(url, extendedRequest, channel);
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend({}, rawOrder), market);
     }
     /**
      * @method
@@ -349,7 +347,7 @@ class gate extends gate$1["default"] {
         const url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         const rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return this.parseOrder(rawOrder, market);
+        return this.parseOrder(this.extend({}, rawOrder), market);
     }
     /**
      * @method
@@ -449,15 +447,17 @@ class gate extends gate$1["default"] {
         const messageType = this.getTypeByMarket(market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
-        let defaultLimit = 100;
+        let limitResolved = this.parseToInt(100);
         if ((this.safeBool(market, 'spot', false)) || (messageType === 'options')) {
-            defaultLimit = 50;
+            limitResolved = this.parseToInt(50);
         }
-        let limitResolved = (limit === undefined) ? defaultLimit : limit;
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt(limit);
+        }
         if (this.safeBool(market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
-            limitResolved = Math.min(limitResolved, maxSpotLimit);
+            limitResolved = this.parseToInt(Math.min(limitResolved, maxSpotLimit));
         }
         let payload = [];
         let channel = '';
@@ -511,12 +511,13 @@ class gate extends gate$1["default"] {
         const interval = intervalDefault;
         const [intervalOption, paramsInterval] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket(market);
-        let limit = this.safeInteger(paramsInterval, 'limit');
-        if (limit === undefined) {
-            limit = (this.safeBool(market, 'spot', false)) ? 50 : 100; // max 100 atm
-            if (messageType === 'options') {
-                limit = 50; // max 50 for options
-            }
+        const limitParam = this.safeInteger(paramsInterval, 'limit');
+        let limit = this.parseToInt((this.safeBool(market, 'spot', false)) ? 50 : 100); // max 100 atm
+        if (messageType === 'options') {
+            limit = this.parseToInt(50); // max 50 for options
+        }
+        if (limitParam !== undefined) {
+            limit = this.parseToInt(limitParam);
         }
         let payload = [];
         let channel = '';
@@ -900,10 +901,10 @@ class gate extends gate$1["default"] {
         if (rawMarketType === 'futures') {
             marketType = 'contract';
         }
-        const result = this.safeValue(message, 'result');
+        const resultList = this.safeList(message, 'result');
         let results = [];
-        if (Array.isArray(result)) {
-            results = this.safeList(message, 'result', []);
+        if (resultList !== undefined) {
+            results = resultList;
         }
         else {
             const rawTicker = this.safeDict(message, 'result', {});
@@ -911,10 +912,9 @@ class gate extends gate$1["default"] {
         }
         const isTicker = (objectName === 'ticker'); // whether ticker or bid-ask
         for (let i = 0; i < results.length; i++) {
-            const rawTicker = results[i];
-            const marketId = this.safeString(rawTicker, 's');
+            const marketId = this.safeString(results[i], 's');
             const market = this.safeMarket(marketId, undefined, '_', marketType);
-            const parsedItem = this.parseTicker(rawTicker, market);
+            const parsedItem = this.parseTicker(this.safeDict(results, i, {}), market);
             const symbol = parsedItem['symbol'];
             if (isTicker) {
                 if (symbol !== undefined) {
@@ -1041,9 +1041,10 @@ class gate extends gate$1["default"] {
         // }
         //
         const rawResult = this.safeValue(message, 'result');
+        const tradeRows = this.safeList(message, 'result');
         let result = [];
-        if (Array.isArray(rawResult)) {
-            result = this.safeList(message, 'result', []);
+        if (tradeRows !== undefined) {
+            result = tradeRows;
         }
         else {
             result = [rawResult];
@@ -1086,7 +1087,7 @@ class gate extends gate$1["default"] {
         // todo add options support
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.candlesticks';
@@ -1117,8 +1118,8 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const marketId = market['id'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.candlesticks';
@@ -1180,13 +1181,13 @@ class gate extends gate$1["default"] {
         if (rawMarketType === 'spot') {
             marketType = 'spot';
         }
-        const rawResult = this.safeValue(message, 'result');
+        const resultList = this.safeList(message, 'result');
         let result = [];
-        if (Array.isArray(rawResult)) {
+        if (resultList !== undefined) {
             result = this.safeList(message, 'result', []);
         }
         else {
-            result = [rawResult];
+            result = [this.safeValue(message, 'result')];
         }
         const marketIds = {};
         for (let i = 0; i < result.length; i++) {
@@ -1195,7 +1196,10 @@ class gate extends gate$1["default"] {
             const parts = subscription.split('_');
             const timeframeId = this.safeString(parts, 0);
             const timeframe = this.findTimeframe(timeframeId);
-            const prefix = timeframe + '_';
+            let prefix = '';
+            if (timeframe !== undefined) {
+                prefix = timeframe + '_';
+            }
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
             let parsed = this.parseOHLCV(ohlcv);
@@ -1210,7 +1214,7 @@ class gate extends gate$1["default"] {
                     this.safeNumber(ohlcv, 'a'),
                 ];
             }
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1225,7 +1229,7 @@ class gate extends gate$1["default"] {
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const timeframe = marketIds[symbol];
+            const timeframe = this.safeString(marketIds, symbol);
             const interval = this.findTimeframe(timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
             const symbolOhlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), interval);
@@ -1254,7 +1258,7 @@ class gate extends gate$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            marketId = this.safeString(market, 'id');
+            marketId = this.safeString(market, 'id', '');
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('watchMyTrades', market, paramsMarketType);
@@ -1319,7 +1323,7 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append(trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString(trade, 'symbol');
             if (symbol !== undefined) {
                 marketIds[symbol] = true;
             }
@@ -1431,8 +1435,10 @@ class gate extends gate$1["default"] {
         //
         const result = this.safeList(message, 'result', []);
         this.balance['info'] = result;
-        for (let i = 0; i < result.length; i++) {
-            const rawBalance = this.safeDict(result, i);
+        const rows = this.safeList(message, 'result', []);
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const rawBalance = this.safeDict(rows, i);
             const account = this.account();
             const currencyId = this.safeString(rawBalance, 'currency', 'USDT'); // when not present it is USDT
             const code = this.safeCurrencyCode(currencyId);
@@ -1481,10 +1487,14 @@ class gate extends gate$1["default"] {
         if (!this.isEmpty(symbolsNormalized)) {
             market = this.getMarketFromSymbols(symbolsNormalized);
         }
-        let type = undefined;
-        let query = undefined;
-        [type, query] = this.handleMarketTypeAndParams('watchPositions', market, params);
-        if (type === 'spot') {
+        const [marketType, marketQuery] = this.handleMarketTypeAndParams('watchPositions', market, params);
+        let query = marketQuery;
+        let type = marketType;
+        let messageHash = 'swap:positions';
+        if ((marketType !== undefined) && (marketType !== 'spot')) {
+            messageHash = marketType + ':positions';
+        }
+        if (marketType === 'spot') {
             type = 'swap';
         }
         const typeId = this.getSupportedMapping(type, {
@@ -1492,7 +1502,6 @@ class gate extends gate$1["default"] {
             'swap': 'futures',
             'option': 'options',
         });
-        let messageHash = type + ':positions';
         if (!this.isEmpty(symbolsNormalized)) {
             if (symbolsNormalized === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
@@ -1661,7 +1670,7 @@ class gate extends gate$1["default"] {
         if (symbol !== undefined) {
             const marketResolved = this.market(symbol);
             market = marketResolved;
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
         }
         let type = undefined;
         let query = undefined;
@@ -1691,9 +1700,9 @@ class gate extends gate$1["default"] {
         }
         let payload = ['!' + 'all'];
         if (market !== undefined) {
-            messageHash += ':' + market['id'];
-            const mid = market['id'];
+            const mid = this.safeString(market, 'id');
             if (mid !== undefined) {
+                messageHash += ':' + mid;
                 payload = [mid];
             }
         }
@@ -1769,25 +1778,27 @@ class gate extends gate$1["default"] {
         const marketIds = {};
         const parsedOrders = this.parseOrders(orders);
         for (let i = 0; i < parsedOrders.length; i++) {
-            const parsed = parsedOrders[i];
             // inject order status
-            const info = this.safeDict(parsed, 'info');
+            const info = this.safeDict(parsedOrders[i], 'info');
             const event = this.safeString(info, 'event');
+            const statusUpdate = {};
             if (event === 'put' || event === 'update') {
-                parsed['status'] = 'open';
+                statusUpdate['status'] = 'open';
             }
             else if (event === 'finish') {
-                const status = this.safeString(parsed, 'status');
+                const status = this.safeString(parsedOrders[i], 'status');
                 if (status === undefined) {
                     const left = this.safeString(info, 'left');
-                    parsed['status'] = Precise["default"].stringEquals(left, '0') ? 'closed' : 'canceled';
+                    statusUpdate['status'] = Precise["default"].stringEquals(left, '0') ? 'closed' : 'canceled';
                 }
             }
+            const parsed = this.extend(parsedOrders[i], statusUpdate);
             stored.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             const market = this.market(symbol);
-            if (market['id'] !== undefined) {
-                marketIds[market['id']] = true;
+            const marketId = this.safeString(market, 'id');
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
             }
         }
         const keys = Object.keys(marketIds);
@@ -1927,10 +1938,7 @@ class gate extends gate$1["default"] {
             newLiquidations.push(liquidation);
             const symbol = this.safeString(liquidation, 'symbol');
             if (symbol !== undefined) {
-                let symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
-                if (symbolLiquidations === undefined) {
-                    symbolLiquidations = [];
-                }
+                const symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, []);
                 symbolLiquidations.push(liquidation);
                 liquidationsBySymbol[symbol] = symbolLiquidations;
             }
@@ -2078,7 +2086,8 @@ class gate extends gate$1["default"] {
                             marketType = parsedChannel[0];
                         }
                         const symbol = this.safeSymbol(payload[i], undefined, '_', marketType);
-                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        const channelName = this.safeString(parsedChannel, 1, '');
+                        const messageHashSymbol = channelName + ':' + symbol;
                         if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
                             delete client.subscriptions[messageHashSymbol];
                         }
@@ -2152,12 +2161,14 @@ class gate extends gate$1["default"] {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList(subscription, 'messageHashes', []);
+                const messageHashes = this.safeStringList(subscription, ['messageHashes']);
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-                for (let j = 0; j < messageHashes.length; j++) {
-                    const unsubHash = messageHashes[j];
-                    const subHash = subMessageHashes[j];
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                if (messageHashes !== undefined) {
+                    for (let j = 0; j < messageHashes.length; j++) {
+                        const unsubHash = messageHashes[j];
+                        const subHash = subMessageHashes[j];
+                        this.cleanUnsubscription(client, subHash, unsubHash);
+                    }
                 }
                 this.cleanCache(subscription);
             }
@@ -2309,16 +2320,13 @@ class gate extends gate$1["default"] {
     getUrlByMarket(market) {
         if (this.safeBool(market, 'contract', false)) {
             const settleKey = (this.safeBool(market, 'linear', false)) ? 'usdt' : 'btc';
-            return this.safeString(this.urls['api'][market['type']], settleKey, '');
+            const contractUrl = this.safeString(this.urls['api'][market['type']], settleKey, '');
+            return contractUrl;
         }
-        else {
-            return this.safeString(this.urls['api'], market['type'], '');
-        }
+        const spotUrl = this.safeString(this.urls['api'], market['type'], '');
+        return spotUrl;
     }
     getTypeByMarket(market) {
-        if (market === undefined) {
-            return undefined;
-        }
         if (this.safeBool(market, 'spot', false)) {
             return 'spot';
         }
@@ -2339,20 +2347,21 @@ class gate extends gate$1["default"] {
         }
     }
     getMarketTypeByUrl(url) {
-        const findBy = {
-            'op-': 'option',
-            '/ws/options/': 'option',
-            'delivery': 'future',
-            'fx': 'swap',
-            '/ws/futures/': 'swap',
-        };
-        const keys = Object.keys(findBy);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = findBy[key];
-            if (url.indexOf(key) >= 0) {
-                return value;
-            }
+        // same order as the url table: delivery urls also contain 'fx'
+        if (url.indexOf('op-') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('/ws/options/') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('delivery') >= 0) {
+            return 'future';
+        }
+        if (url.indexOf('fx') >= 0) {
+            return 'swap';
+        }
+        if (url.indexOf('/ws/futures/') >= 0) {
+            return 'swap';
         }
         return 'spot';
     }
@@ -2474,11 +2483,8 @@ class gate extends gate$1["default"] {
             }
         }
         const idArray = [this.uid];
-        const payloadWithUid = (payload === undefined) ? idArray : this.arrayConcat(idArray, payload);
-        let payloadValue = payload;
-        if (requiresUid) {
-            payloadValue = payloadWithUid;
-        }
+        const noPayload = (payload === undefined);
+        const payloadWithUid = noPayload ? idArray : this.arrayConcat(idArray, payload);
         const time = this.seconds();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString();
@@ -2496,8 +2502,11 @@ class gate extends gate$1["default"] {
             'event': event,
             'auth': auth,
         };
-        if (payloadValue !== undefined) {
-            request['payload'] = payloadValue;
+        if (requiresUid) {
+            request['payload'] = payloadWithUid;
+        }
+        else if (!noPayload) {
+            request['payload'] = payload;
         }
         const client = this.client(url);
         if (!(messageHash in client.subscriptions)) {

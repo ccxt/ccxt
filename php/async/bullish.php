@@ -15,7 +15,6 @@ use ccxt\MarketClosed;
 use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use React\Async;
-use React\Promise;
 use React\Promise\PromiseInterface;
 
 use const ccxt\TICK_SIZE;
@@ -846,7 +845,7 @@ class bullish extends Exchange {
             $spot = true;
             $contract = false;
             $margin = $this->safe_bool($market, 'marginTradingEnabled');
-        } else {
+        } elseif ($settle !== null) {
             $contractSize = $this->safe_number($market, 'contractMultiplier');
             $symbol = $base . '/' . $quote . ':' . $settle;
             $linear = $settle === $quote;
@@ -858,14 +857,15 @@ class bullish extends Exchange {
                 $idParts = explode('-', $id);
                 $datePart = $this->safe_string($idParts, 2);
                 $dateYmd = mb_substr($datePart, 2);
-                $symbol .= '-' . $dateYmd;
+                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $dateYmd;
                 if ($type === 'future') {
                     $future = true;
                 } elseif ($type === 'option') {
                     $option = true;
                     $optionType = $this->safe_string_lower($market, 'optionType');
                     $strike = $this->parse_to_numeric($this->safe_string($market, 'optionStrikePrice'));
-                    $symbol .= '-' . $this->number_to_string($strike) . '-' . $this->safe_string($idParts, 4);
+                    $optionSide = $this->safe_string($idParts, 4, '');
+                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $dateYmd . '-' . $this->number_to_string($strike) . '-' . $optionSide;
                 }
             }
         }
@@ -1057,7 +1057,8 @@ class bullish extends Exchange {
          * @param {string} [$params->tradingAccountId] the trading account id to fetch trades for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -1369,10 +1370,16 @@ class bullish extends Exchange {
         while ($errors <= $maxRetries) {
             try {
                 if ($method === 'fetchOHLCV') {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
+                    }
                     return Async\await($this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $paramsOmitted));
                 } elseif ($method === 'fetchFundingRateHistory') {
                     return Async\await($this->fetch_funding_rate_history($symbol, $since, $limit, $paramsOmitted));
                 } else {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
+                    }
                     return Async\await($this->fetch_trades($symbol, $since, $limit, $paramsOmitted));
                 }
             } catch (Exception $e) {
@@ -1562,7 +1569,8 @@ class bullish extends Exchange {
          * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate) {
@@ -1645,7 +1653,7 @@ class bullish extends Exchange {
             $until = $untilParam;
         }
         $sinceFromUntil = ($since === null) && ($untilParam !== null);
-        $paramsResult = $sinceFromUntil ? $this->omit($params, 'until') : $params;
+        $timeParams = array();
         if (($since !== null) || ($untilParam !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             $sinceResolved = $since;
@@ -1661,9 +1669,11 @@ class bullish extends Exchange {
                     $until = $this->sum($since, $timeDelta);
                 }
             }
-            $paramsResult[$sinceKey] = $this->iso8601($sinceResolved);
-            $paramsResult[$untilKey] = $this->iso8601($until);
+            $timeParams[$sinceKey] = $this->iso8601($sinceResolved);
+            $timeParams[$untilKey] = $this->iso8601($until);
         }
+        $merged = $this->extend($params, $timeParams);
+        $paramsResult = $sinceFromUntil ? $this->omit($merged, 'until') : $merged;
         return $paramsResult;
     }
 
@@ -1793,7 +1803,8 @@ class bullish extends Exchange {
          * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $market = null;
         if ($symbol !== null) {
@@ -1858,7 +1869,8 @@ class bullish extends Exchange {
          * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $market = $this->market($symbol);
         $request = array(
@@ -1923,7 +1935,8 @@ class bullish extends Exchange {
          * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $market = $this->market($symbol);
         $request = array(
@@ -1970,7 +1983,8 @@ class bullish extends Exchange {
          * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
@@ -2009,7 +2023,8 @@ class bullish extends Exchange {
          * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -2171,7 +2186,8 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $request = array();
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
         $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
@@ -2244,7 +2260,8 @@ class bullish extends Exchange {
          * @param {string} $params->network network for withdraw (mandatory)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         // todo check this method properly
         $currency = $this->currency($code);
         $request = array(
@@ -2387,11 +2404,11 @@ class bullish extends Exchange {
                 }
             }
         }
-        if ($tradingAccountId === null) {
-            throw new ArgumentsRequired($this->id . ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
+        if ($tradingAccountId !== null) {
+            $this->options['tradingAccountId'] = $tradingAccountId;
+            return $this->safe_string($this->options, 'tradingAccountId');
         }
-        $this->options['tradingAccountId'] = $tradingAccountId;
-        return $this->safe_string($this->options, 'tradingAccountId');
+        throw new ArgumentsRequired($this->id . ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
@@ -2407,7 +2424,8 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
         //
         //     [
@@ -2515,7 +2533,8 @@ class bullish extends Exchange {
          * @param {string} [$params->network] $network for deposit address
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
@@ -2559,7 +2578,7 @@ class bullish extends Exchange {
                 }
             }
         }
-        return $this->parse_deposit_address($data, $currency);
+        return $this->parse_deposit_address($this->extend(array(), $data), $currency);
     }
 
     public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
@@ -2588,18 +2607,19 @@ class bullish extends Exchange {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-         * @param {string} [$params->code] unified currency $code, default is null
+         * @param {string} [$params->code] unified $currency $code, default is null
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $request = array(
             'tradingAccountId' => $tradingAccountId,
         );
-        $response = null;
         $code = $this->safe_string($params, 'code');
         if ($code !== null) {
-            $request['symbol'] = $this->currency($code)['id'];
+            $currency = $this->currency($code);
+            $request['symbol'] = $currency['id'];
             $response = Async\await($this->privateGetV1AccountsAssetSymbol($this->extend($request, $params)));
             return $this->parse_balance_for_single_currency($response, $code);
         } else {
@@ -2667,7 +2687,8 @@ class bullish extends Exchange {
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -2780,7 +2801,8 @@ class bullish extends Exchange {
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $maxLimit = 100;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
@@ -2844,7 +2866,8 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         // todo check this method properly
         $currency = $this->currency($code);
         $request = array(
@@ -2942,7 +2965,8 @@ class bullish extends Exchange {
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
          */
-        Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
+        Async\await($this->load_markets());
+        Async\await($this->handle_token());
         $tradingAccountId = Async\await($this->load_account($params));
         $currency = $this->currency($code);
         $request = array(
@@ -3223,7 +3247,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3243,7 +3267,7 @@ class bullish extends Exchange {
         $codeError = $this->safe_string($response, 'errorCode');
         $type = $this->safe_string($response, 'type');
         if (($codeError !== null && $codeError !== '0' && $codeError !== '1001') || ($type !== null && $type === 'HttpInvalidParameterException')) {
-            $message = '';
+            $message = null;
             $errorCodeName = $this->safe_string($response, 'errorCodeName');
             if ($errorCodeName !== null) {
                 $message = $errorCodeName;

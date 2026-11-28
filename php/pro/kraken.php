@@ -869,7 +869,7 @@ class kraken extends \ccxt\async\kraken {
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
         $unsubMessageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $unsubMessageHashes[] = 'unsubscribe:' . $this->get_message_hash('trade', null, $symbolsNormalized[$i]);
+            $unsubMessageHashes[] = 'unsubscribe:' . $this->get_message_hash('trade', null, $this->symbol($symbolsNormalized[$i]));
         }
         $request = array(
             'method' => 'unsubscribe',
@@ -1195,7 +1195,7 @@ class kraken extends \ccxt\async\kraken {
                     $currentAskLength = count($currentAsk);
                     $formattedAsk = '';
                     if ($currentAskLength > 1) {
-                        $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
+                        $formattedAsk = $this->format_number($this->safe_string($currentAsk, 0, '')) . $this->format_number($this->safe_string($currentAsk, 1, ''));
                     }
                     $payloadArray[] = $formattedAsk;
                 }
@@ -1204,7 +1204,7 @@ class kraken extends \ccxt\async\kraken {
                     $currentBidLength = count($currentBid);
                     $formattedBid = '';
                     if ($currentBidLength > 1) {
-                        $formattedBid = $this->format_number($currentBid[0]) . $this->format_number($currentBid[1]);
+                        $formattedBid = $this->format_number($this->safe_string($currentBid, 0, '')) . $this->format_number($this->safe_string($currentBid, 1, ''));
                     }
                     $payloadArray[] = $formattedBid;
                 }
@@ -1493,8 +1493,8 @@ class kraken extends \ccxt\async\kraken {
             $symbol = $this->safe_string($market, 'symbol');
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('fees' ?? '', $trade)) {
-            $fees = $this->safe_list($trade, 'fees', array());
+        $fees = $this->safe_list($trade, 'fees');
+        if ($fees !== null) {
             $firstFee = $this->safe_dict($fees, 0, array());
             $fee = array(
                 'cost' => $this->safe_number($firstFee, 'qty'),
@@ -1779,7 +1779,8 @@ class kraken extends \ccxt\async\kraken {
             $this->balance = array();
         }
         $this->balance[$type] = $this->safe_dict($this->balance, $type, array());
-        $this->balance[$type]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $type, array());
+        $balance['info'] = $message;
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $currencyId = $this->safe_string($data[$i], 'asset');
@@ -1787,9 +1788,9 @@ class kraken extends \ccxt\async\kraken {
             $account = $this->account();
             $eq = $this->safe_string($data[$i], 'balance');
             $account['total'] = $eq;
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($this->balance[$type], $channel);
     }
@@ -1875,7 +1876,7 @@ class kraken extends \ccxt\async\kraken {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1898,16 +1899,14 @@ class kraken extends \ccxt\async\kraken {
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
         if ($errorMessage !== null) {
             $requestId = $this->safe_string_2($message, 'reqid', 'req_id');
-            $broad = $this->exceptions['ws']['broad'];
-            $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
-            $exception = null;
-            if ($broadKey === null) {
-                $exception = new ExchangeError($errorMessage); // c# requirement to convert the errorMessage to string
-            } else {
-                $exception = new $broad[$broadKey]($errorMessage);
-            }
             if ($requestId !== null) {
-                $client->reject($exception, $requestId);
+                $broad = $this->exceptions['ws']['broad'];
+                try {
+                    $this->throw_broadly_matched_exception($broad, $errorMessage, $errorMessage);
+                    throw new ExchangeError($errorMessage);
+                } catch (Exception $e) {
+                    $client->reject($e, $requestId);
+                }
             }
             return false;
         }

@@ -1,5 +1,5 @@
 import apexRest from '../apex.js';
-import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class apex extends apexRest {
     describe(): Dict;
@@ -148,7 +148,7 @@ export default class apex extends apexRest {
     loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
     handlePositions(client: Client, lists: any[]): void;
     authenticate(url: string, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): {
         args: string[];

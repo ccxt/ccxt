@@ -27,7 +27,7 @@ partial class Examples
             {
                 while (true)
                 {
-                    var orders = await bybit.watchOrders(symbol);
+                    var orders = await bybit.WatchOrders(symbol);
                     Console.WriteLine($"[watchOrders] {JsonConvert.SerializeObject(orders)}");
                 }
             }
@@ -49,7 +49,7 @@ partial class Examples
 
         // 3. Create an order
         Console.WriteLine("Creating first order...");
-        var order1 = await bybit.createOrder(symbol, "market", "buy", 1);
+        var order1 = await bybit.CreateOrder(symbol, "market", "buy", 1);
         await Task.Delay(2000);
         Console.WriteLine($"[createOrder] {JsonConvert.SerializeObject(order1)}");
 
@@ -64,7 +64,7 @@ partial class Examples
 
         // 6. Create another order
         Console.WriteLine("Creating second order...");
-        var order2 = await bybit.createOrder(symbol, "market", "buy", 1);
+        var order2 = await bybit.CreateOrder(symbol, "market", "buy", 1);
         Console.WriteLine($"[createOrder] {JsonConvert.SerializeObject(order2)}");
 
         // Optionally, let the second watch run for a bit, then finish

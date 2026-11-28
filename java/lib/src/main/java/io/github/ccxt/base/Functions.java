@@ -22,7 +22,8 @@ public final class Functions {
     // reads size() then loops get(i); under concurrent mutation by the WsClient
     // messageExecutor those two reads disagree and throw IndexOutOfBoundsException.
     private static final ObjectMapper MAPPER = new ObjectMapper()
-            .registerModule(buildOrderBookSideModule());
+            .registerModule(buildOrderBookSideModule())
+            .registerModule(JsonHelper.jsNumberModule());
 
     private static com.fasterxml.jackson.databind.module.SimpleModule buildOrderBookSideModule() {
         com.fasterxml.jackson.databind.module.SimpleModule m =
@@ -223,7 +224,7 @@ public final class Functions {
     // -------------------------------------------------
     // arrayConcat
     // -------------------------------------------------
-    public static Object arrayConcat(Object aa, Object bb) {
+    public static List<Object> arrayConcat(Object aa, Object bb) {
         if (aa instanceof List<?> && bb instanceof List<?>) {
             List<?> a = (List<?>) aa;
             List<?> b = (List<?>) bb;
@@ -241,7 +242,7 @@ public final class Functions {
                 List<CompletableFuture<Object>> out = new ArrayList<>();
                 for (Object e : a) out.add((CompletableFuture<Object>) e);
                 for (Object e : b) out.add((CompletableFuture<Object>) e);
-                return out;
+                return (List<Object>) (List<?>) out;
             }
 
             // empty lists: default to List<Object>

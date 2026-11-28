@@ -84,6 +84,6 @@ def test_handle_http_status_code():
     # a derived handleErrors that wants to surface it must throw on its own
     skip = exchange.handle_errors(406, 'Not Acceptable', 'url', 'GET', {}, '{"success":false}', {
         'success': False,
-    }, {}, '')
+    }, {}, None)
     assert skip is None, 'the base handleErrors stub should return undefined'
     exchange.handle_http_status_code(406, 'Not Acceptable', 'url', 'GET', '{"success":false}')

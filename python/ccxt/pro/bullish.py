@@ -102,7 +102,7 @@ class bullish(ccxt.async_support.bullish):
             raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
         return await self.watch(wsUrl + url, messageHash, self.deep_extend(message, params), messageHash)
 
-    async def unsubscribe_public(self, url: str, topic: str, messageHash: str, symbol: str, request={}, params={}) -> object:
+    async def unsubscribe_public(self, url: str, topic: str, messageHash: str, symbol: str, request: dict = {}, params: dict = {}) -> object:
         """
  @ignore
         sends an unsubscribe command for one public topic and registers the pending unsubscription under the request id
@@ -138,7 +138,7 @@ class bullish(ccxt.async_support.bullish):
         }
         return await self.watch(wsUrl + url, unsubHash, self.deep_extend(message, params), requestId, subscription)
 
-    def handle_un_subscription(self, client: Client, subscription: dict):
+    def handle_un_subscription(self, client: Client, subscription: dict) -> None:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -165,7 +165,9 @@ class bullish(ccxt.async_support.bullish):
         cookies = {
             'JWT_COOKIE': token,
         }
-        self.options['ws']['cookies'] = cookies
+        wsDict = self.safe_dict(self.options, 'ws', {})
+        wsDict['cookies'] = cookies
+        self.options['ws'] = wsDict
         id = str(self.request_id())
         message = {
             'jsonrpc': '2.0',
@@ -177,7 +179,7 @@ class bullish(ccxt.async_support.bullish):
         result = await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash)
         return result
 
-    async def unsubscribe_private(self, topic: str, subscribeHash: str, request={}, params={}) -> object:
+    async def unsubscribe_private(self, topic: str, subscribeHash: str, request: dict = {}, params: dict = {}) -> object:
         """
  @ignore
         sends an unsubscribe command for one private topic and registers the pending unsubscription under the request id
@@ -193,7 +195,9 @@ class bullish(ccxt.async_support.bullish):
         cookies = {
             'JWT_COOKIE': token,
         }
-        self.options['ws']['cookies'] = cookies
+        wsDict = self.safe_dict(self.options, 'ws', {})
+        wsDict['cookies'] = cookies
+        self.options['ws'] = wsDict
         tradingAccountId = self.safe_string(params, 'tradingAccountId')
         paramsOmitted = params
         requestParams = request
@@ -387,7 +391,7 @@ class bullish(ccxt.async_support.bullish):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         parsed = self.parse_ticker(data, market)
         if updateType == 'update':
             ticker = self.safe_dict(self.tickers, symbol, {})
@@ -481,8 +485,9 @@ class bullish(ccxt.async_support.bullish):
         }
         parsed = self.parse_order_book(snapshot, symbol, timestamp)
         sequenceNumberRange = self.safe_list(data, 'sequenceNumberRange', [])
-        if len(sequenceNumberRange) > 0:
-            lastIndex = len(sequenceNumberRange) - 1
+        sequenceNumberRangeLength = len(sequenceNumberRange)
+        if sequenceNumberRangeLength > 0:
+            lastIndex = sequenceNumberRangeLength - 1
             parsed['nonce'] = self.safe_integer(sequenceNumberRange, lastIndex)
         orderbook.reset(parsed)
         self.orderbooks[symbol] = orderbook
@@ -613,7 +618,7 @@ class bullish(ccxt.async_support.bullish):
             orders = self.orders
             symbols = {}
             for i in range(0, len(rawOrders)):
-                parsedOrder = self.parse_order(rawOrders[i])
+                parsedOrder = self.parse_order(self.safe_dict(rawOrders, i, {}))
                 orders.append(parsedOrder)
                 symbol = self.safe_string(parsedOrder, 'symbol')
                 if symbol is not None:
@@ -731,7 +736,7 @@ class bullish(ccxt.async_support.bullish):
             trades = self.myTrades
             symbols = {}
             for i in range(0, len(rawTrades)):
-                parsedTrade = self.parse_trade(rawTrades[i])
+                parsedTrade = self.parse_trade(self.safe_dict(rawTrades, i, {}))
                 trades.append(parsedTrade)
                 symbol = self.safe_string(parsedTrade, 'symbol')
                 if symbol is not None:
@@ -819,10 +824,11 @@ class bullish(ccxt.async_support.bullish):
             data = self.safe_list(message, 'data', [])
             parsed = self.parseBalanceList(data)
             parsedKeys = list(parsed.keys())
+            balance = self.safe_dict(self.balance, tradingAccountId, {})
             for i in range(0, len(parsedKeys)):
                 parsedKey = parsedKeys[i]
-                self.balance[tradingAccountId][parsedKey] = parsed[parsedKey]
-            self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
+                balance[parsedKey] = parsed[parsedKey]
+            self.balance[tradingAccountId] = self.safe_balance(balance)
         else:
             data = self.safe_dict(message, 'data', {})
             assetId = self.safe_string(data, 'assetSymbol')
@@ -830,10 +836,11 @@ class bullish(ccxt.async_support.bullish):
             account['total'] = self.safe_string(data, 'availableQuantity')
             account['used'] = self.safe_string(data, 'lockedQuantity')
             code = self.safe_currency_code(assetId)
+            deltaBalance = self.safe_dict(self.balance, tradingAccountId, {})
+            deltaBalance['info'] = message
             if (tradingAccountId is not None) and (code is not None):
-                self.balance[tradingAccountId][code] = account
-            self.balance[tradingAccountId]['info'] = message
-            self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
+                deltaBalance[code] = account
+            self.balance[tradingAccountId] = self.safe_balance(deltaBalance)
         messageHash = 'balance'
         tradingAccountIdHash = '::' + tradingAccountId
         client.resolve(self.balance[tradingAccountId], messageHash)
@@ -859,7 +866,6 @@ class bullish(ccxt.async_support.bullish):
         symbolsNormalized = symbols
         if hasSymbols:
             symbolsNormalized = self.market_symbols(symbols)
-        if hasSymbols and (symbolsNormalized is not None):
             messageHash += '::' + ','.join(symbolsNormalized)
         request = {
             'topic': 'derivativesPositionsV2',
@@ -903,7 +909,7 @@ class bullish(ccxt.async_support.bullish):
         positions = self.positions
         newPositions = []
         for i in range(0, len(rawPositions)):
-            position = self.parse_position(rawPositions[i])
+            position = self.parse_position(self.safe_dict(rawPositions, i, {}))
             positions.append(position)
             newPositions.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
@@ -917,7 +923,7 @@ class bullish(ccxt.async_support.bullish):
                 client.resolve(symbolPositions, messageHash)
         client.resolve(positions, 'positions')
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "data": {
@@ -939,8 +945,9 @@ class bullish(ccxt.async_support.bullish):
             raise ExchangeError(feedback)  # unknown message
         except Exception as e:
             client.reject(e)
+        return False
 
-    def handle_un_subscription_error(self, client: Client, message: dict):
+    def handle_un_subscription_error(self, client: Client, message: dict) -> None:
         #
         #     {
         #         "jsonrpc": "2.0",

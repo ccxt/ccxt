@@ -690,8 +690,8 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
-        $hasSymbolParam = (is_array($params) && array_key_exists('symbol' ?? '', $params));
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
+        $hasSymbolParam = ($this->safe_string($params, 'symbol') !== null);
         $hasSymbolsParam = (is_array($params) && array_key_exists('symbols' ?? '', $params));
         $limit = $this->safe_integer($params, 'limit');
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !$hasSymbolParam) {
@@ -987,7 +987,7 @@ class coinsph extends Exchange {
         } else {
             $ticker = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr($this->extend($request, $params)));
         }
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker($this->extend(array(), $ticker), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1343,13 +1343,12 @@ class coinsph extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'time');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
-        $type = null;
         $fee = array();
         $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
@@ -1379,7 +1378,7 @@ class coinsph extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $priceString,
@@ -1539,7 +1538,7 @@ class coinsph extends Exchange {
         }
         $request['newOrderRespType'] = $newOrderRespType;
         $paramsRequest = $this->omit($paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        $response = array();
+        $response = null;
         if ($testOrder) {
             $response = Async\await($this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest)));
         } else {
@@ -1980,8 +1979,9 @@ class coinsph extends Exchange {
         $result = array();
         $fees = $this->to_array($response);
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
+            $feeRow = $this->safe_dict($fees, $i, array());
+            $fee = $this->parse_trading_fee($feeRow);
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -1999,7 +1999,7 @@ class coinsph extends Exchange {
         //
         $marketId = $this->safe_string($fee, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return array(
             'info' => $fee,
             'symbol' => $symbol,
@@ -2240,7 +2240,6 @@ class coinsph extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
-        $updated = null;
         $type = null;
         $withdrawOrderId = $this->safe_string($transaction, 'withdrawOrderId');
         $depositOrderId = $this->safe_string($transaction, 'depositOrderId');
@@ -2275,7 +2274,7 @@ class coinsph extends Exchange {
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'updated' => $updated,
+            'updated' => null,
             'internal' => $internal,
             'comment' => null,
             'fee' => $fee,
@@ -2420,7 +2419,7 @@ class coinsph extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

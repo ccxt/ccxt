@@ -463,8 +463,11 @@ class bittrade extends Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($symbolsResolved); $i++) {
-            $symbol = $symbolsResolved[$i];
-            $result[$symbol] = Async\await($this->fetch_trading_limits_by_id($this->market_id($symbol), $params));
+            $symbol = $this->safe_string($symbolsResolved, $i);
+            $limits = Async\await($this->fetch_trading_limits_by_id($this->market_id($symbol), $params));
+            if ($symbol !== null) {
+                $result[$symbol] = $limits;
+            }
         }
         return $result;
     }
@@ -873,8 +876,8 @@ class bittrade extends Exchange {
         for ($i = 0; $i < count($tickers); $i++) {
             $marketId = $this->safe_string($tickers[$i], 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
-            $ticker = $this->parse_ticker($tickers[$i], $market);
+            $symbol = $this->safe_string($market, 'symbol', '');
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()), $market);
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
             $result[$symbol] = $ticker;
@@ -1078,7 +1081,7 @@ class bittrade extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_list($data[$i], 'data', array());
             for ($j = 0; $j < count($trades); $j++) {
-                $trade = $this->parse_trade($trades[$j], $market);
+                $trade = $this->parse_trade($this->safe_dict($trades, $j, array()), $market);
                 $result[] = $trade;
             }
         }
@@ -1574,9 +1577,9 @@ class bittrade extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($side === 'sell') {
-                $feeCurrency = $marketResolved['quote'];
+                $feeCurrency = $this->safe_string($marketResolved, 'quote');
             } else {
-                $feeCurrency = $marketResolved['base'];
+                $feeCurrency = $this->safe_string($marketResolved, 'base');
             }
             $fee = array(
                 'cost' => $feeCost,
@@ -2154,7 +2157,8 @@ class bittrade extends Exchange {
         if ($network !== null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if ($network === 'erc20') {
-                $request['chain'] = $currency['id'] . $network;
+                $currencyId = $this->safe_string($currency, 'id', '');
+                $request['chain'] = $currencyId . $network;
             } else {
                 $request['chain'] = $network . $currency['id'];
             }
@@ -2230,7 +2234,7 @@ class bittrade extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -165,11 +165,8 @@ export default class poloniex extends poloniexRest {
                 name,
             ],
         };
-        let marketIds = [];
-        if (this.isEmpty(symbols)) {
-            marketIds.push('all');
-        }
-        else {
+        let marketIds = ['all'];
+        if (!this.isEmpty(symbols)) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }
@@ -253,6 +250,7 @@ export default class poloniex extends poloniexRest {
         }
         await this.authenticate();
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         let uppercaseType = type.toUpperCase();
         if (side === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrderWs() side is required');
@@ -294,7 +292,7 @@ export default class poloniex extends poloniexRest {
             request['amount'] = quoteAmount;
         }
         else {
-            request['quantity'] = this.amountToPrecision(market['symbol'], amount);
+            request['quantity'] = this.amountToPrecision(precisionSymbol, amount);
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
@@ -696,8 +694,8 @@ export default class poloniex extends poloniexRest {
         }
         if (!('info' in this.balance)) {
             this.balance['info'] = response['info'];
-            this.balance['timestamp'] = response['timestamp'];
-            this.balance['datetime'] = response['datetime'];
+            this.balance['timestamp'] = this.safeInteger(response, 'timestamp');
+            this.balance['datetime'] = this.safeString(response, 'datetime');
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
@@ -995,7 +993,7 @@ export default class poloniex extends poloniexRest {
         const orders = this.orders;
         const marketIds = [];
         for (let i = 0; i < data.length; i++) {
-            const order = this.safeDict(data, i);
+            const order = this.safeDict(data, i, {});
             const marketId = this.safeString(order, 'symbol');
             const eventType = this.safeString(order, 'eventType');
             if (marketId !== undefined) {
@@ -1022,7 +1020,7 @@ export default class poloniex extends poloniexRest {
                         previousOrder['trades'] = [];
                     }
                     previousOrder['trades'].push(trade);
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                    previousOrder['lastTradeTimestamp'] = this.safeInteger(trade, 'timestamp');
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = this.safeList(previousOrder, 'trades', []);
@@ -1037,12 +1035,14 @@ export default class poloniex extends poloniexRest {
                         previousOrder['average'] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                     }
                     previousOrder['cost'] = this.parseNumber(totalCost);
-                    if (previousOrder['filled'] !== undefined) {
+                    const previousOrderFilledRaw = this.safeString(previousOrder, 'filled');
+                    if (previousOrderFilledRaw !== undefined) {
                         const tradeAmount = this.numberToString(trade['amount']);
                         let previousOrderFilled = this.numberToString(previousOrder['filled']);
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder['filled'] = previousOrderFilled;
-                        if (previousOrder['amount'] !== undefined) {
+                        const previousOrderAmountRaw = this.safeString(previousOrder, 'amount');
+                        if (previousOrderAmountRaw !== undefined) {
                             const previousOrderAmount = this.numberToString(previousOrder['amount']);
                             previousOrder['remaining'] = this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled));
                         }
@@ -1054,8 +1054,8 @@ export default class poloniex extends poloniexRest {
                             'currency': this.safeString(trade['fee'], 'currency'),
                         };
                     }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
-                        const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
+                    if ((this.safeString(previousOrder['fee'], 'cost') !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                        const stringOrderCost = this.safeString(previousOrder['fee'], 'cost');
                         const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
@@ -1174,10 +1174,9 @@ export default class poloniex extends poloniexRest {
         const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marketId = this.safeString(item, 'symbol');
+            const marketId = this.safeString(data[i], 'symbol');
             if (marketId !== undefined) {
-                const ticker = this.parseTicker(item);
+                const ticker = this.parseTicker(this.safeDict(data, i, {}));
                 const symbol = this.safeString(ticker, 'symbol');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = ticker;
@@ -1263,8 +1262,8 @@ export default class poloniex extends poloniexRest {
             const subscription = this.safeDict(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const timestamp = this.safeInteger(item, 'ts');
-            const asks = this.safeList(item, 'asks');
-            const bids = this.safeList(item, 'bids');
+            const asks = this.safeList(item, 'asks', []);
+            const bids = this.safeList(item, 'bids', []);
             if (snapshot || update) {
                 let orderbook = this.safeValue(this.orderbooks, symbol);
                 if (snapshot && (orderbook === undefined)) {

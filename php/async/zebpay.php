@@ -602,8 +602,9 @@ class zebpay extends Exchange {
         $fees = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
+            $feeRow = $this->safe_dict($fees, $i, array());
+            $fee = $this->parse_trading_fee($feeRow);
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -1027,7 +1028,7 @@ class zebpay extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'tradeTime');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, '_');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'amount', 'quantity');
@@ -1138,7 +1139,7 @@ class zebpay extends Exchange {
             $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
             $formType = $this->safe_string_upper($query, 'formType', 'ORDER_FORM');
             $request['formType'] = $formType;
-            $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($market['id'], $amount));
+            $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($this->safe_string($market, 'id'), $amount));
             $request['marginAsset'] = $marginAsset;
             $hasTP = $takeProfitPrice !== null;
             $hasSL = $stopLossPrice !== null;
@@ -1432,7 +1433,7 @@ class zebpay extends Exchange {
         //
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_number($order, 'timestamp');
         $datetime = $this->iso8601($timestamp);
@@ -2132,7 +2133,7 @@ class zebpay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

@@ -413,7 +413,8 @@ public partial class BaseExchange
                 if (list.ElementAtOrDefault(keyInt) != null)
                 {
                     var returnValue = list[keyInt];
-                    return returnValue;
+                    // a Promise.all row of a typed core is List<Dictionary<..>>; rebox it so safeList can read it
+                    return FromDictList(returnValue);
                     // if ((returnValue.GetType() == typeof(dict)))
                     //     return (dict)returnValue;
                     // if ((returnValue.GetType() == typeof(List<object>)))

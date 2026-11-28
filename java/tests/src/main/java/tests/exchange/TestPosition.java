@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -22,7 +23,7 @@ public class TestPosition extends BaseTest {
         // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
         // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
         // leverage / margin / mark-price / liquidation / pnl fields that don't apply
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );
@@ -69,30 +70,30 @@ public class TestPosition extends BaseTest {
             put( "percentage", exchange.parseNumber("1.234") );
         }};
         List<String> emptyotAllowedFor = new ArrayList<String>(Arrays.asList("positionMargin", "liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyotAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry, now);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "marginMode", new ArrayList<Object>(Arrays.asList("cross", "isolated")));
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "leverage", "0");
-        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, (String) (method), entry, "leverage", "200");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "initialMargin", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "initialMarginPercentage", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "maintenanceMargin", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "maintenanceMarginPercentage", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "entryPrice", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "notional", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "contracts", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "contractSize", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "marginRatio", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "liquidationPrice", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "markPrice", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "collateral", "0");
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "marginMode", new ArrayList<Object>(Arrays.asList("cross", "isolated")));
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "leverage", "0");
+        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, method, entry, "leverage", "200");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "initialMargin", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "initialMarginPercentage", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "maintenanceMargin", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "maintenanceMarginPercentage", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "entryPrice", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "notional", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "contracts", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "contractSize", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "marginRatio", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "markPrice", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "collateral", "0");
         // TestSharedMethods.AssertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
         String marginMode = exchange.safeString(entry, "marginMode");
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
-            Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
+            Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
             String side = exchange.safeString(entry, "side");
             String entryPriceString = exchange.safeString(entry, "entryPrice");
             String liquidationPriceString = exchange.safeString(entry, "liquidationPrice");
@@ -106,10 +107,10 @@ public class TestPosition extends BaseTest {
             {
                 if (java.util.Objects.equals(side, "long"))
                 {
-                    TestSharedMethods.AssertLess(exchange, skippedProperties, (String) (method), entry, "liquidationPrice", entryPriceString);
+                    TestSharedMethods.AssertLess(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString);
                 } else if (java.util.Objects.equals(side, "short"))
                 {
-                    TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "liquidationPrice", entryPriceString);
+                    TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString);
                 }
             }
             String marginString = exchange.safeString(entry, "positionMargin");
@@ -149,7 +150,7 @@ public class TestPosition extends BaseTest {
                 {
                     market = exchange.market(symbolForMarket);
                 }
-                Boolean isInverse = (!java.util.Objects.equals(market, null)) && Helpers.isTrue(exchange.safeBool(market, "inverse", false));
+                Boolean isInverse = (!java.util.Objects.equals(market, null)) && TestHelpers.isTrue(exchange.safeBool(market, "inverse", false));
                 String priceDiff = null;
                 if (Boolean.TRUE.equals(isInverse))
                 {

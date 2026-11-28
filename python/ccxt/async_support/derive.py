@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
 import asyncio
-from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, FundingHistory, Greeks, Int, Market, Num, Option, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Greeks, Int, Market, Num, Option, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -1248,7 +1248,7 @@ class derive(Exchange, ImplicitAPI):
         settlements = self.safe_list(result, 'settlements', [])
         parsed = self.parse_settlements(settlements, market)
         sorted = self.sort_by(parsed, 'timestamp')
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
 
     def parse_settlement(self, settlement: dict, market: Market = None) -> dict:
@@ -1287,10 +1287,11 @@ class derive(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market = None) -> list:
+    def parse_settlements(self, settlements: list[dict], market: Market = None) -> list:
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1501,12 +1502,12 @@ class derive(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(tradesArray)):
             rawTrade = tradesArray[i]
-            isFetchTrades = not ('order_id' in rawTrade)
+            isFetchTrades = (self.safe_string(rawTrade, 'order_id') is None)
             liquidityRole = self.safe_string(rawTrade, 'liquidity_role')
             if isFetchTrades and (liquidityRole == 'maker'):
                 # skip maker trades
                 continue
-            parsed = self.parse_trade(rawTrade, market)
+            parsed = self.parse_trade(self.safe_dict(tradesArray, i, {}), market)
             trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
@@ -1840,7 +1841,7 @@ class derive(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def hash_order_message(self, order: object) -> str:
+    def hash_order_message(self, order: list) -> str:
         accountHash = self.hash(self.eth_abi_encode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
@@ -1853,7 +1854,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order: object, privateKey: str) -> str:
+    def sign_order(self, order: list, privateKey: str) -> str:
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder, privateKey)
 
@@ -3458,9 +3459,10 @@ class derive(Exchange, ImplicitAPI):
             used = usedUsd
             if Precise.string_gt(used, totalUsdc):
                 used = totalUsdc
-            usdcAccount['used'] = used
-            usdcAccount['free'] = Precise.string_sub(totalUsdc, used)
-            result['USDC'] = usdcAccount
+            result['USDC'] = self.extend(usdcAccount, {
+                'used': used,
+                'free': Precise.string_sub(totalUsdc, used),
+            })
         return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
@@ -3627,7 +3629,8 @@ class derive(Exchange, ImplicitAPI):
         transfers = self.safe_list(result, 'transfers', [])
         parsed = []
         for i in range(0, len(transfers)):
-            parsed.append(self.parse_transfer(self.safe_dict(transfers, i, {})))
+            transfer = self.extend(self.parse_transfer(self.safe_dict(transfers, i, {})), {})
+            parsed.append(transfer)
         sorted = self.sort_by(parsed, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
@@ -4075,7 +4078,7 @@ class derive(Exchange, ImplicitAPI):
             return [self.walletAddress, self.extend(paramsDeriveWalletAddress)]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')

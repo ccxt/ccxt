@@ -356,8 +356,14 @@ class predictfun extends predictfun$1["default"] {
         else {
             const request = {};
             const tags = this.safeList(paramsValue, 'tags', []);
-            if (tags.length > 0) {
-                request['tagIds'] = tags.join(',');
+            const tagsLength = tags.length;
+            if (tagsLength > 0) {
+                const tagIds = [];
+                for (let i = 0; i < tagsLength; i++) {
+                    const tagId = this.safeString(tags, i, '');
+                    tagIds.push(tagId);
+                }
+                request['tagIds'] = tagIds.join(',');
             }
             postOmitKeys.push('limit');
             const paramsCategories = this.omit(paramsValue, ['limit', 'tags']);
@@ -549,7 +555,7 @@ class predictfun extends predictfun$1["default"] {
         const rawTopicsLength = rawTopics.length;
         const result = [];
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent(rawTopics[i]);
+            const parsedEvent = this.parseEvent(this.extend({}, rawTopics[i]));
             result.push(parsedEvent);
             const parsedMarkets = this.safeList(parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
@@ -974,29 +980,37 @@ class predictfun extends predictfun$1["default"] {
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
     stripPriceFormatting(text) {
-        if (text === undefined) {
-            return undefined;
-        }
         const digits = '0123456789';
         const chars = this.stringToCharsArray(text);
         let stripped = '';
+        let prevCh = '';
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        let pendingComma = false;
         for (let i = 0; i < chars.length; i++) {
             const ch = chars[i];
-            let keep = true;
-            if (ch === '$') {
-                keep = false;
+            const isDigit = (digits.indexOf(ch) >= 0);
+            if (pendingComma && !isDigit) {
+                stripped = stripped + ',';
             }
-            else if (ch === ',') {
+            pendingComma = false;
+            if (ch === ',') {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                const prevIsDigit = (i > 0) && (digits.indexOf(chars[i - 1]) >= 0);
-                const nextIsDigit = ((i + 1) < chars.length) && (digits.indexOf(chars[i + 1]) >= 0);
-                keep = !(prevIsDigit && nextIsDigit);
+                if ((i > 0) && (digits.indexOf(prevCh) >= 0)) {
+                    pendingComma = true;
+                }
+                else {
+                    stripped = stripped + ch;
+                }
             }
-            if (keep) {
+            else if (ch !== '$') {
                 stripped = stripped + ch;
             }
+            prevCh = ch;
+        }
+        if (pendingComma) {
+            stripped = stripped + ',';
         }
         return stripped;
     }
@@ -1018,6 +1032,9 @@ class predictfun extends predictfun$1["default"] {
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if ((marketCount === 1) && (topicSlug !== undefined)) {
             return topicSlug;
+        }
+        if (title === undefined) {
+            return '';
         }
         return this.stripPriceFormatting(title);
     }
@@ -1153,7 +1170,7 @@ class predictfun extends predictfun$1["default"] {
             const rawOutcome = rawOutcomes[oi];
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            const rawLabel = this.safeStringUpper(rawOutcome, 'name');
+            const rawLabel = this.safeStringUpper(rawOutcome, 'name', '');
             const label = this.stripPriceFormatting(rawLabel);
             const tokenId = this.safeString(rawOutcome, 'onChainId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -1670,9 +1687,13 @@ class predictfun extends predictfun$1["default"] {
         if (rawFee !== undefined) {
             const feeType = this.safeString(rawFee, 'type');
             const feeCost = this.safeString(rawFee, 'amount');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let feeCurrency = undefined;
+            if (feeType === 'COLLATERAL') {
+                feeCurrency = 'USDT';
+            }
             fee = {
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'currency': feeCurrency,
                 'cost': this.parseNumber(Precise["default"].stringDiv(feeCost, '1000000000000000000')),
             };
         }
@@ -1759,8 +1780,8 @@ class predictfun extends predictfun$1["default"] {
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -2006,7 +2027,7 @@ class predictfun extends predictfun$1["default"] {
             'strategy': strategy,
         };
         const postOnly = this.safeBool(paramsTaker, 'isPostOnly', false);
-        const [postOnlyOption, paramsPostOnly] = this.handlePostOnly(isMarket, postOnly, paramsTaker);
+        const [postOnlyOption, paramsPostOnly] = this.handlePostOnly(isMarket, postOnly === true, paramsTaker);
         if (postOnlyOption) {
             data['isPostOnly'] = postOnlyOption;
         }
@@ -2758,10 +2779,8 @@ class predictfun extends predictfun$1["default"] {
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        rHex = this.padHexToEven(rHex);
-        sHex = this.padHexToEven(sHex);
+        const rHex = this.padHexToEven(this.safeString(signature, 'r', ''));
+        const sHex = this.padHexToEven(this.safeString(signature, 's', ''));
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = this.arrayConcat(fields, [this.rlpEncodeBytes(this.intToRlpHex(yParity)), this.rlpEncodeBytes(rHex), this.rlpEncodeBytes(sHex)]);
         return '0x02' + this.rlpEncodeList(signedFields);
@@ -3014,8 +3033,11 @@ class predictfun extends predictfun$1["default"] {
         if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
             delete client.subscriptions[subscribeHash];
         }
-        let messageHashes = this.safeList(subscription, 'messageHashes', []);
-        if (this.safeString(subscription, 'topic') === 'walletEvents') {
+        let messageHashes = [];
+        if (this.safeString(subscription, 'topic') !== 'walletEvents') {
+            messageHashes = this.safeList(subscription, 'messageHashes', []);
+        }
+        else {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be
@@ -3050,7 +3072,7 @@ class predictfun extends predictfun$1["default"] {
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         const isWalletTopic = (this.safeString(subscription, 'topic') === 'walletEvents');
         for (let i = 0; i < messageHashesLength; i++) {
-            this.cleanUnsubscription(client, subMessageHashes[i], messageHashes[i], isWalletTopic);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i], isWalletTopic);
         }
         this.cleanCache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
@@ -3594,7 +3616,8 @@ class predictfun extends predictfun$1["default"] {
         if (topicSlug !== undefined) {
             eventHandle = this.shortenSlug(topicSlug);
         }
-        const label = this.stripPriceFormatting(this.safeStringUpper(details, 'outcomeName'));
+        const rawOutcomeName = this.safeStringUpper(details, 'outcomeName');
+        const label = (rawOutcomeName !== undefined) ? this.stripPriceFormatting(rawOutcomeName) : undefined;
         return {
             'outcome': undefined,
             'outcomeId': undefined,
@@ -3740,9 +3763,13 @@ class predictfun extends predictfun$1["default"] {
         let fee = undefined;
         if (rawFee !== undefined) {
             const feeType = this.safeString(rawFee, 'type');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let feeCurrency = undefined;
+            if (feeType === 'COLLATERAL') {
+                feeCurrency = 'USDT';
+            }
             fee = {
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'currency': feeCurrency,
                 'cost': this.parseNumber(Precise["default"].stringDiv(this.safeString(rawFee, 'amountWei'), '1000000000000000000')),
             };
         }

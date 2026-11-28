@@ -135,7 +135,7 @@ export default class p2b extends p2bRest {
         const [nameOption, paramsName] = this.handleOptionStringAndParams(params, 'watchTicker', 'name', name);
         const market = this.market(symbol);
         this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        const tickerSubs = this.options['tickerSubs'];
+        const tickerSubs = this.safeDict(this.options, 'tickerSubs', {});
         const request = Object.keys(tickerSubs);
         return await this.subscribe(nameOption + '.subscribe', nameOption + '::' + this.safeString(market, 'symbol', ''), request, paramsName);
     }
@@ -285,7 +285,7 @@ export default class p2b extends p2bRest {
         const timeframe = this.findTimeframe(channel, timeframes);
         const symbol = this.safeString(market, 'symbol');
         const parsed = this.parseOHLCV(data, market);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
@@ -333,8 +333,7 @@ export default class p2b extends p2bRest {
             this.trades[symbol] = tradesArray;
         }
         for (let i = 0; i < trades.length; i++) {
-            const item = trades[i];
-            const trade = this.parseTrade(item, market);
+            const trade = this.parseTrade(this.safeDict(trades, i, {}), market);
             tradesArray.append(trade);
         }
         const messageHash = 'deals::' + symbol;

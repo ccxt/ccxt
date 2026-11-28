@@ -87,7 +87,8 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -124,7 +125,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -135,7 +136,7 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         int symbolsLength = ((symbolsNormalized == null)) ? 0 : (symbolsNormalized?.Count ?? 0);
         if (isGenerationTwo && ((symbolsLength == 0)))
         {
@@ -147,7 +148,8 @@ public partial class bithumb : ccxt.bithumb
             symbolsResolved = symbolsNormalized;
         }
         int symbolsLengthDefined = (symbolsResolved?.Count ?? 0);
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         List<object> streamMarketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -266,27 +268,18 @@ public partial class bithumb : ccxt.bithumb
         //
         IDictionary<string, object> content = this.safeDict(message, "content");
         bool isGenerationTwo = ((content == null));
-        object tickerMessage = null;
-        if (isGenerationTwo)
+        object tickerMessage = message;
+        if (!isGenerationTwo)
         {
-            tickerMessage = message;
-        } else
-        {
-            tickerMessage = content;
+            tickerMessage = this.safeDict(message, "content", new Dictionary<string, object>() {});
         }
         string? marketId = this.safeString2(tickerMessage, "symbol", "code");
         if ((marketId == null))
         {
             return;
         }
-        string? symbol = null;
-        if (isGenerationTwo)
-        {
-            symbol = this.safeSymbol(marketId, null, "-");
-        } else
-        {
-            symbol = this.safeSymbol(marketId, null, "_");
-        }
+        string delimiter = isGenerationTwo ? "-" : "_";
+        string? symbol = this.safeSymbol(marketId, null, delimiter);
         if ((symbol == null))
         {
             return;
@@ -360,8 +353,9 @@ public partial class bithumb : ccxt.bithumb
         string? code = this.safeString(ticker, "code");
         if ((code != null))
         {
-            ((IDictionary<string,object>)ticker)["market"] = this.safeString(ticker, "market", code);
-            return this.parseTicker(ticker, market);
+            return this.parseTicker(this.extend(ticker, new Dictionary<string, object>() {
+    { "market", this.safeString(ticker, "market", code) },
+}), market);
         }
         string date = this.safeString(ticker, "date", "");
         string time = this.safeString(ticker, "time", "");
@@ -421,10 +415,11 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("orderbook" + ":") + symbolValue);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
@@ -618,10 +613,11 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trade:" + symbolValue);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
@@ -644,7 +640,7 @@ public partial class bithumb : ccxt.bithumb
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -796,7 +792,7 @@ public partial class bithumb : ccxt.bithumb
         }, market);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -818,29 +814,29 @@ public partial class bithumb : ccxt.bithumb
                 addedMessage = "";
             }
             client.reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
-            return ((bool?)((object)(false)));
+            return false;
         }
-        if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("status"))))
+        if (!((message != null && message.ContainsKey("status"))))
         {
-            return ((bool?)((object)(true)));
+            return true;
         }
         string? errorCode = this.safeString(message, "status");
         try
         {
             if ((errorCode == "UP") || (errorCode == "0000"))
             {
-                return ((bool?)((object)(true)));
+                return true;
             }
             if (errorCode != "0000")
             {
                 string? msg = this.safeString(message, "resmsg");
                 throw new ExchangeError (((this.id + " ") + msg)) ;
             }
-            return ((bool?)((object)(true)));
+            return true;
         } catch(Exception e)
         {
             client.reject(e);
-            return ((bool?)((object)(false)));
+            return false;
         }
     }
 
@@ -867,7 +863,8 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = this.safeString(wsUrls, "privateGen2", "");
         string messageHash = "myAsset";
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
@@ -964,7 +961,7 @@ public partial class bithumb : ccxt.bithumb
                 { "nonce", this.uuid() },
                 { "timestamp", this.milliseconds() },
             };
-            string jwtToken = jwt(payload, this.encode(this.secret), sha256);
+            string jwtToken = jwt(payload, this.secret, sha256);
             wsOptions["token"] = jwtToken;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {
@@ -973,7 +970,8 @@ public partial class bithumb : ccxt.bithumb
             };
             this.options["ws"] = wsOptions;
         }
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = this.safeString(wsUrls, "privateGen2", "");
         var client = this.client(url);
         return client;
@@ -1006,7 +1004,8 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = this.safeString(wsUrls, "privateGen2", "");
         string messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});
@@ -1025,7 +1024,7 @@ public partial class bithumb : ccxt.bithumb
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -1174,9 +1173,9 @@ public partial class bithumb : ccxt.bithumb
         }, market);
     }
 
-    public override void handleTextMessage(WebSocketClient client, object message)
+    public override void handleTextMessage(WebSocketClient client, string message)
     {
-        string content = ((string)message).ToLower();
+        string content = message.ToLower();
         if (content == "pong")
         {
             this.handlePong(client, message);
@@ -1186,7 +1185,7 @@ public partial class bithumb : ccxt.bithumb
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? status = this.safeString(message, "status");
         if (status == "UP")
@@ -1194,17 +1193,17 @@ public partial class bithumb : ccxt.bithumb
             this.handlePong(client, message);
             return;
         }
-        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("pong"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("PINGPONG"))))
+        if (((message != null && message.ContainsKey("pong"))) || ((message != null && message.ContainsKey("PINGPONG"))))
         {
             this.handlePong(client, message);
             return;
         }
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ping")))
+        if ((message != null && message.ContainsKey("ping")))
         {
             this.handlePing(client, message);
             return;
         }
-        if (!(this.handleErrorMessage(client, message) == true))
+        if ((this.handleErrorMessage(client, message) != true))
         {
             return;
         }

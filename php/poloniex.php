@@ -674,17 +674,17 @@ class poloniex extends Exchange {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://api-docs.poloniex.com/spot/api/public/market-$data#$candles
+         * @see https://api-docs.poloniex.com/spot/api/public/market-$data#candles
          * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-$data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
@@ -763,11 +763,7 @@ class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function load_markets($reload = false, $params = array()) {
@@ -1339,11 +1335,12 @@ class poloniex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'symbol' => $market['id'],
         );
         if ($this->safe_bool($market, 'contract', false)) {
-            $tickers = $this->fetch_tickers(array( $market['symbol'] ), $params);
+            $tickers = $this->fetch_tickers(array( $marketSymbol ), $params);
             $contractTicker = $this->safe_dict($tickers, $symbol);
             return $contractTicker;
         }
@@ -2119,7 +2116,7 @@ class poloniex extends Exchange {
         //         "clientOrderId" : ""
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function create_orders(array $orders, $params = array()) {
@@ -2357,7 +2354,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'type' => $type,
         ));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -2415,7 +2412,7 @@ class poloniex extends Exchange {
         //       "message":""
         //   }
         //
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
@@ -2611,7 +2608,7 @@ class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        $order = $this->parse_order($response);
+        $order = $this->parse_order($this->extend(array(), $response));
         $order['id'] = $idValue;
         return $order;
     }
@@ -2997,8 +2994,11 @@ class poloniex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $paramsValue = $extraParams;
+        $prepared = $this->prepare_request_for_deposit_address($code, $params);
+        $request = $this->safe_dict($prepared, 'request');
+        $paramsValue = $this->safe_dict($prepared, 'query');
+        $currency = $this->currency($code);
+        $networkEntry = $this->safe_dict($prepared, 'networkEntry');
         $response = $this->privatePostWalletsAddress($this->extend($request, $paramsValue));
         //
         //     {
@@ -3019,8 +3019,11 @@ class poloniex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $paramsValue = $extraParams;
+        $prepared = $this->prepare_request_for_deposit_address($code, $params);
+        $request = $this->safe_dict($prepared, 'request');
+        $paramsValue = $this->safe_dict($prepared, 'query');
+        $currency = $this->currency($code);
+        $networkEntry = $this->safe_dict($prepared, 'networkEntry');
         $response = $this->privateGetWalletsAddresses($this->extend($request, $paramsValue));
         //
         //     {
@@ -3035,20 +3038,18 @@ class poloniex extends Exchange {
         return $this->parse_deposit_address_special($response, $currency, $networkEntry);
     }
 
-    public function prepare_request_for_deposit_address(string $code, $params = array()): mixed {
+    public function prepare_request_for_deposit_address(string $code, $params = array()): array {
         if (!(is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies))) {
             throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' currency, you might try using unified currency-code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
         $currency = $this->currency($code);
-        $networkCode = null;
-        $query = null;
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        if ($networkCode === null) {
+        list($networkCodeRaw, $query) = $this->handle_network_code_and_params($params);
+        if ($networkCodeRaw === null) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a network parameter for ' . $code . '.');
         }
         $exchangeNetworkId = null;
-        $networkCode = $this->network_id_to_code($networkCode, $code);
+        $networkCode = $this->network_id_to_code($networkCodeRaw, $code);
         $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
         if ($networkEntry !== null) {
             $exchangeNetworkId = $this->safe_string($networkEntry, 'id');
@@ -3058,10 +3059,15 @@ class poloniex extends Exchange {
         $request = array(
             'currency' => $exchangeNetworkId,
         );
-        return array( $request, $query, $currency, $networkEntry );
+        return array(
+            'request' => $request,
+            'query' => $query,
+            'currency' => $currency,
+            'networkEntry' => $networkEntry,
+        );
     }
 
-    public function parse_deposit_address_special(array $response, array $currency, array $networkEntry): array {
+    public function parse_deposit_address_special(array $response, array $currency, ?array $networkEntry): array {
         $address = $this->safe_string($response, 'address');
         if ($address === null) {
             $address = $this->safe_string($response, $this->safe_string($networkEntry, 'id'));
@@ -3493,11 +3499,12 @@ class poloniex extends Exchange {
         //
         $depositWithdrawFees = array();
         $codesValue = $this->market_codes($codes);
-        $responseKeys = is_array($response) ? array_keys($response) : array();
+        $feesById = $this->extend(array(), $response);
+        $responseKeys = is_array($feesById) ? array_keys($feesById) : array();
         for ($i = 0; $i < count($responseKeys); $i++) {
             $currencyId = $responseKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            $feeInfo = $this->safe_dict($response, $currencyId);
+            $feeInfo = $this->safe_dict($feesById, $currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
@@ -3509,15 +3516,16 @@ class poloniex extends Exchange {
                         $rawNetworkId = $this->safe_string($childChains, $j, '');
                         $networkId = str_replace($code, '', $rawNetworkId);
                         $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
-                        $networkInfo = $this->safe_dict($response, $networkId);
+                        $networkInfo = $this->safe_dict($feesById, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
+                        $withdrawObject = array( 'fee' => $withdrawFee, 'percentage' => null );
+                        if ($withdrawFee !== null) {
+                            $withdrawObject['percentage'] = false;
+                        }
                         if ($networkCode !== null) {
                             $networkObject[$networkCode] = array(
-                                'withdraw' => array(
-                                    'fee' => $withdrawFee,
-                                    'percentage' => ($withdrawFee !== null) ? false : null,
-                                ),
+                                'withdraw' => $withdrawObject,
                                 'deposit' => array(
                                     'fee' => null,
                                     'percentage' => null,
@@ -3843,7 +3851,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set $hedged to true or false for a market
          *
@@ -4086,7 +4094,7 @@ class poloniex extends Exchange {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
-            $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
+            $params['symbol'] = $this->encode_uri_component($this->safe_string($params, 'symbol')); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
@@ -4135,7 +4143,7 @@ class poloniex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

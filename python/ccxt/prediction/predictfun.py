@@ -6,7 +6,7 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.predictfun import ImplicitAPI
 from ccxt.async_support.base.ws.cache import ArrayCacheByOutcomeById
-from ccxt.base.types import Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -356,8 +356,13 @@ class predictfun(PredictionExchange, ImplicitAPI):
         else:
             request = {}
             tags = self.safe_list(paramsValue, 'tags', [])
-            if len(tags) > 0:
-                request['tagIds'] = ','.join(tags)
+            tagsLength = len(tags)
+            if tagsLength > 0:
+                tagIds = []
+                for i in range(0, tagsLength):
+                    tagId = self.safe_string(tags, i, '')
+                    tagIds.append(tagId)
+                request['tagIds'] = ','.join(tagIds)
             postOmitKeys.append('limit')
             paramsCategories = self.omit(paramsValue, ['limit', 'tags'])
             extendedRequest = self.extend(request, paramsCategories)
@@ -544,7 +549,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         rawTopicsLength = len(rawTopics)
         result = []
         for i in range(0, rawTopicsLength):
-            parsedEvent = self.parse_event(rawTopics[i])
+            parsedEvent = self.parse_event(self.extend({}, rawTopics[i]))
             result.append(parsedEvent)
             parsedMarkets = self.safe_list(parsedEvent, 'markets', [])
             parsedMarketsLength = len(parsedMarkets)
@@ -936,35 +941,41 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'info': rawTopic,
         }
 
-    def strip_price_formatting(self, text: Str) -> Str:
+    def strip_price_formatting(self, text: str) -> str:
         """
  @ignore
         drops the formatting the venue puts in a price but not in its slug - the currency sign, and a comma that sits between two digits
         :param str [text]: the raw title or outcome label
         :returns str: the same text with '$' removed and thousands separators closed up
         """
-        if text is None:
-            return None
         digits = '0123456789'
         chars = self.string_to_chars_array(text)
         stripped = ''
+        prevCh = ''
+        # a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        pendingComma = False
         for i in range(0, len(chars)):
             ch = chars[i]
-            keep = True
-            if ch == '$':
-                keep = False
-            elif ch == ',':
+            isDigit = (digits.find(ch) >= 0)
+            if pendingComma and not isDigit:
+                stripped = stripped + ','
+            pendingComma = False
+            if ch == ',':
                 # only a comma between two digits is a thousands separator: "1,500" has to close
                 # up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 # ordinary punctuation and stays, so it still separates words
-                prevIsDigit = (i > 0) and (digits.find(chars[i - 1]) >= 0)
-                nextIsDigit = ((i + 1) < len(chars)) and (digits.find(chars[i + 1]) >= 0)
-                keep = not (prevIsDigit and nextIsDigit)
-            if keep:
+                if (i > 0) and (digits.find(prevCh) >= 0):
+                    pendingComma = True
+                else:
+                    stripped = stripped + ch
+            elif ch != '$':
                 stripped = stripped + ch
+            prevCh = ch
+        if pendingComma:
+            stripped = stripped + ','
         return stripped
 
-    def title_for_market_symbol(self, topicSlug: Str, title: Str, marketCount: Int = None) -> Str:
+    def title_for_market_symbol(self, topicSlug: Str, title: Str, marketCount: Int = None) -> str:
         """
  @ignore
         decides what of a market title belongs in the unified symbol, given how many markets its topic holds
@@ -980,6 +991,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # inside a multi-market topic the title is what keeps the handles apart, so it stays
         if (marketCount == 1) and (topicSlug is not None):
             return topicSlug
+        if title is None:
+            return ''
         return self.strip_price_formatting(title)
 
     def parse_topic_market(self, rawMarket: dict, rawTopic: dict) -> Market:
@@ -1110,7 +1123,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             rawOutcome = rawOutcomes[oi]
             # a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             # handle verbatim - strip the same formatting the title gets
-            rawLabel = self.safe_string_upper(rawOutcome, 'name')
+            rawLabel = self.safe_string_upper(rawOutcome, 'name', '')
             label = self.strip_price_formatting(rawLabel)
             tokenId = self.safe_string(rawOutcome, 'onChainId')
             outcomeHandle = marketSymbol + ':' + label
@@ -1597,9 +1610,12 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if rawFee is not None:
             feeType = self.safe_string(rawFee, 'type')
             feeCost = self.safe_string(rawFee, 'amount')
+            # a SHARES fee is charged in outcome tokens rather than in collateral
+            feeCurrency = None
+            if feeType == 'COLLATERAL':
+                feeCurrency = 'USDT'
             fee = {
-                # a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': 'USDT' if (feeType == 'COLLATERAL') else None,
+                'currency': feeCurrency,
                 'cost': self.parse_number(Precise.string_div(feeCost, '1000000000000000000')),
             }
         timestamp = self.parse8601(self.safe_string(trade, 'executedAt'))
@@ -1676,8 +1692,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         # ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -1906,7 +1922,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'strategy': strategy,
         }
         postOnly = self.safe_bool(paramsTaker, 'isPostOnly', False)
-        postOnlyOption, paramsPostOnly = self.handle_post_only(isMarket, postOnly, paramsTaker)
+        postOnlyOption, paramsPostOnly = self.handle_post_only(isMarket, postOnly is True, paramsTaker)
         if postOnlyOption:
             data['isPostOnly'] = postOnlyOption
         timeInForce = self.safe_string_upper(paramsPostOnly, 'timeInForce')
@@ -2485,7 +2501,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         """
  @ignore
         maps the venue's error slugs and messages onto the unified exceptions
@@ -2604,10 +2620,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         payload = '02' + self.rlp_encode_list(fields)
         hashHex = self.hash(self.base16_to_binary(payload), 'keccak', 'hex')
         signature = self.ecdsa(hashHex, self.remove0x_prefix(privateKey), 'secp256k1', None)
-        rHex = self.safe_string(signature, 'r')
-        sHex = self.safe_string(signature, 's')
-        rHex = self.pad_hex_to_even(rHex)
-        sHex = self.pad_hex_to_even(sHex)
+        rHex = self.pad_hex_to_even(self.safe_string(signature, 'r', ''))
+        sHex = self.pad_hex_to_even(self.safe_string(signature, 's', ''))
         yParity = self.safe_integer(signature, 'v')
         signedFields = self.array_concat(fields, [self.rlp_encode_bytes(self.int_to_rlp_hex(yParity)), self.rlp_encode_bytes(rHex), self.rlp_encode_bytes(sHex)])
         return '0x02' + self.rlp_encode_list(signedFields)
@@ -2833,8 +2847,10 @@ class predictfun(PredictionExchange, ImplicitAPI):
         subscribeHash = self.safe_string(subscription, 'subscribeHash')
         if (subscribeHash is not None) and (subscribeHash in client.subscriptions):
             del client.subscriptions[subscribeHash]
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
-        if self.safe_string(subscription, 'topic') == 'walletEvents':
+        messageHashes = []
+        if self.safe_string(subscription, 'topic') != 'walletEvents':
+            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        else:
             # watch () registers the wallet subscription once, for whichever watcher came first, so
             # its list is a snapshot of that moment - a narrowed watcher that joined later is known
             # only to the client. read the live waiters now, or those later callers would never be
@@ -2864,7 +2880,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # every outcome of the market, and an exact match is what keeps a sibling market out of it
         isWalletTopic = (self.safe_string(subscription, 'topic') == 'walletEvents')
         for i in range(0, messageHashesLength):
-            self.clean_unsubscription(client, subMessageHashes[i], messageHashes[i], isWalletTopic)
+            self.clean_unsubscription(client, self.safe_string(subMessageHashes, i), messageHashes[i], isWalletTopic)
         self.clean_cache(subscription)
         # the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         # leaving it behind would make a later watch believe it is still subscribed
@@ -3112,7 +3128,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             return self.safe_outcome(tokenId, market)
         return self.safe_outcome(tokenId)
 
-    def outcomes_by_market_id(self, marketId: Str) -> list[object]:
+    def outcomes_by_market_id(self, marketId: Str) -> list[dict]:
         """
  @ignore
         the cached outcomes that belong to one venue market id
@@ -3349,7 +3365,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         eventHandle = None
         if topicSlug is not None:
             eventHandle = self.shorten_slug(topicSlug)
-        label = self.strip_price_formatting(self.safe_string_upper(details, 'outcomeName'))
+        rawOutcomeName = self.safe_string_upper(details, 'outcomeName')
+        label = self.strip_price_formatting(rawOutcomeName) if (rawOutcomeName is not None) else None
         return {
             'outcome': None,
             'outcomeId': None,
@@ -3481,9 +3498,12 @@ class predictfun(PredictionExchange, ImplicitAPI):
         fee = None
         if rawFee is not None:
             feeType = self.safe_string(rawFee, 'type')
+            # a SHARES fee is charged in outcome tokens rather than in collateral
+            feeCurrency = None
+            if feeType == 'COLLATERAL':
+                feeCurrency = 'USDT'
             fee = {
-                # a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': 'USDT' if (feeType == 'COLLATERAL') else None,
+                'currency': feeCurrency,
                 'cost': self.parse_number(Precise.string_div(self.safe_string(rawFee, 'amountWei'), '1000000000000000000')),
             }
         timestamp = self.safe_integer(event, 'timestamp')

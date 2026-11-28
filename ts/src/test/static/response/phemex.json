@@ -9623,6 +9623,57 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "public linear perp trades (string list rows)",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "error": null,
+                    "id": 0,
+                    "result": {
+                        "sequence": 72234196955,
+                        "symbol": "BTCUSDT",
+                        "trades_p": [
+                            [
+                                1795408833304435462,
+                                "Sell",
+                                "61100.9",
+                                "0.001"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": [
+                            1795408833304435462,
+                            "Sell",
+                            "61100.9",
+                            "0.001"
+                        ],
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1795408833304,
+                        "datetime": "2026-11-23T04:40:33.304Z",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 61100.9,
+                        "amount": 0.001,
+                        "cost": 61.1009,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchTicker": [

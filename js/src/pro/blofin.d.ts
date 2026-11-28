@@ -95,7 +95,6 @@ export default class blofin extends blofinRest {
      */
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
-    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name blofin#watchBidsAsks
@@ -208,7 +207,6 @@ export default class blofin extends blofinRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name blofin#watchFundingRate

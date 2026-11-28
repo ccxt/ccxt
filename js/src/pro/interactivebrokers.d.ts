@@ -70,7 +70,7 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    ibkrMarketDataRequest(marketId: Str, params?: Dict): any[];
+    ibkrMarketDataRequest(marketId: string, params?: Dict): [string, Dict];
     /**
      * @method
      * @name interactivebrokers#watchTickers

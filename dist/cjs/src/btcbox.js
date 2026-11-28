@@ -384,10 +384,11 @@ class btcbox extends btcbox$1["default"] {
             const currency = this.currency(code);
             const currencyId = this.safeString(currency, 'id', '');
             const free = currencyId + '_balance';
-            if (free in response) {
+            const freeValue = this.safeString(response, free);
+            if (freeValue !== undefined) {
                 const account = this.account();
                 const used = currencyId + '_lock';
-                account['free'] = this.safeString(response, free);
+                account['free'] = freeValue;
                 account['used'] = this.safeString(response, used);
                 result[code] = account;
             }
@@ -512,7 +513,6 @@ class btcbox extends btcbox$1["default"] {
         const id = this.safeString(trade, 'tid');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
-        const type = undefined;
         const side = this.safeString(trade, 'type');
         return this.safeTrade({
             'info': trade,
@@ -521,7 +521,7 @@ class btcbox extends btcbox$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,

@@ -51,35 +51,14 @@ export default class phemex extends phemexRest {
         });
     }
 
-    override fromEn (en: any, scale: any): Str {
+    override fromEn (en: Str, scale: Int): Str {
         if (en === undefined) {
             return undefined;
         }
         const precise = new Precise (en);
-        precise.decimals = this.sum (precise.decimals, scale);
+        precise.decimals = this.sum (precise.decimals, this.safeInteger ([ scale ], 0, 0));
         precise.reduce ();
         return precise.toString ();
-    }
-
-    override fromEp (ep: Str, market: Market = undefined): Str {
-        if ((ep === undefined) || (market === undefined)) {
-            return ep;
-        }
-        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
-    }
-
-    override fromEv (ev: Str, market: Market = undefined): Str {
-        if ((ev === undefined) || (market === undefined)) {
-            return ev;
-        }
-        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
-    }
-
-    override fromEr (er: Str, market: Market = undefined): Str {
-        if ((er === undefined) || (market === undefined)) {
-            return er;
-        }
-        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
     requestId (): int {
@@ -110,7 +89,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved = this.safeMarket (marketId, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp (this.safeString (ticker, 'close'), marketValue);
         const last = this.parseNumber (lastString);
@@ -172,7 +151,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (ticker, 0);
         const marketResolved = this.safeMarket (marketId, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const lastString = this.fromEp (this.safeString (ticker, 4), marketValue);
         const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 6), marketValue));
@@ -301,12 +280,10 @@ export default class phemex extends phemexRest {
             }
         }
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const symbol = this.safeString (ticker, 'symbol', '');
+            const symbol = this.safeString (tickers[i], 'symbol', '');
             const messageHash = 'ticker:' + symbol;
             const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601 (timestamp);
+            const ticker = this.extend (tickers[i], { 'timestamp': timestamp, 'datetime': this.iso8601 (timestamp) });
             this.tickers[symbol] = ticker;
             client.resolve (ticker, messageHash);
         }
@@ -330,13 +307,13 @@ export default class phemex extends phemexRest {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (paramsMarketType, 'settle') === 'USDT';
         let messageHash = 'perpetual:balance';
-        if (!usePerpetualApi) {
+        if (!usePerpetualApi && (type !== undefined)) {
             messageHash = type + ':balance';
         }
         return await this.subscribePrivate (type, messageHash, paramsMarketType);
     }
 
-    handleBalance (type: string, client: Client, message: any[]) {
+    handleBalance (client: Client, message: any[], type: string) {
         // spot
         //    [
         //       {
@@ -387,8 +364,9 @@ export default class phemex extends phemexRest {
             const currency = this.safeDict (this.currencies, code, {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
-            let used = this.safeString (balance, 'totalUsedBalanceRv');
-            if (used === undefined) {
+            const usedRv = this.safeString (balance, 'totalUsedBalanceRv');
+            let used: Str = usedRv;
+            if (usedRv === undefined) {
                 let usedEv = this.safeString (balance, 'totalUsedBalanceEv');
                 if (usedEv === undefined) {
                     const lockedTradingBalanceEv = this.safeString (balance, 'lockedTradingBalanceEv');
@@ -397,8 +375,9 @@ export default class phemex extends phemexRest {
                 }
                 used = this.fromEn (usedEv, scale);
             }
-            let total = this.safeString (balance, 'accountBalanceRv');
-            if (total === undefined) {
+            const totalRv = this.safeString (balance, 'accountBalanceRv');
+            let total: Str = totalRv;
+            if (totalRv === undefined) {
                 const totalEv = this.safeString2 (balance, 'accountBalanceEv', 'balanceEv');
                 total = this.fromEn (totalEv, scale);
             }
@@ -443,7 +422,7 @@ export default class phemex extends phemexRest {
         const name = 'trade';
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = name + ':' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -493,7 +472,7 @@ export default class phemex extends phemexRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const candles = this.safeList2 (message, 'kline', 'kline_p', []);
         const first = this.safeList (candles, 0, []);
         const interval = this.safeString (first, 1);
@@ -509,8 +488,7 @@ export default class phemex extends phemexRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < ohlcvs.length; i++) {
-                const candle = ohlcvs[i];
-                stored.append (candle);
+                stored.append (ohlcvs[i]);
             }
             client.resolve (stored, messageHash);
         }
@@ -532,7 +510,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
@@ -620,7 +598,8 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -636,7 +615,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         };
         const request = this.deepExtend (subscribe, params);
@@ -666,7 +645,8 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -682,7 +662,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         };
         const request = this.deepExtend (subscribe, params);
@@ -709,7 +689,8 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -725,7 +706,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
                 this.safeInteger (this.timeframes, timeframe),
             ],
         };
@@ -770,8 +751,10 @@ export default class phemex extends phemexRest {
     override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
+        const isSwap = market['swap'];
+        const isUsdtSwap = (isSwap === true) && (market['settle'] === 'USDT');
         let name: Str = 'trade';
         if (isUsdtSwap) {
             name = 'trade_p';
@@ -780,7 +763,7 @@ export default class phemex extends phemexRest {
             'topic': 'trades',
             'symbols': [ symbolValue ],
         };
-        return await this.unSubscribePublic (name + '.unsubscribe', 'trade:' + symbolValue, [ market['id'] ], subscription, params);
+        return await this.unSubscribePublic (name + '.unsubscribe', 'trade:' + symbolValue, [ marketId ], subscription, params);
     }
 
     /**
@@ -798,8 +781,10 @@ export default class phemex extends phemexRest {
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
+        const isSwap = market['swap'];
+        const isUsdtSwap = (isSwap === true) && (market['settle'] === 'USDT');
         let name: Str = 'kline';
         if (isUsdtSwap) {
             name = 'kline_p';
@@ -809,7 +794,7 @@ export default class phemex extends phemexRest {
             'symbolsAndTimeframes': [ [ symbolValue, timeframe ] ],
         };
         // phemex drops only the given interval when it is sent along with the symbol
-        const marketParams: List = [ market['id'], this.safeInteger (this.timeframes, timeframe) ];
+        const marketParams: List = [ marketId, this.safeInteger (this.timeframes, timeframe) ];
         return await this.unSubscribePublic (name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params);
     }
 
@@ -901,7 +886,7 @@ export default class phemex extends phemexRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const type = this.safeString (message, 'type');
         const depth = this.safeInteger (message, 'depth');
         const name = 'orderbook';
@@ -969,11 +954,11 @@ export default class phemex extends phemexRest {
             const settle = this.safeString (paramsType, 'settle');
             if (settle === 'USDT') {
                 messageHash = 'trades:perpetual';
-            } else {
+            } else if (type !== undefined) {
                 messageHash = 'trades:' + type;
             }
         }
-        const trades = await this.subscribePrivate (type, messageHash, paramsType);
+        const trades: ArrayCacheBySymbolById = await this.subscribePrivate (type, messageHash, paramsType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1093,10 +1078,14 @@ export default class phemex extends phemexRest {
             const market = this.safeMarket (marketId);
             const parsed = this.parseTrade (rawTrade);
             cachedTrades.append (parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString (parsed, 'symbol');
             if (type === undefined) {
                 const marketSettle = this.safeString (market, 'settle');
-                type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
+                if (marketSettle === 'USDT') {
+                    type = 'perpetual';
+                } else {
+                    type = this.safeString (market, 'type');
+                }
             }
             if (symbol !== undefined) {
                 marketIds[symbol] = true;
@@ -1144,11 +1133,11 @@ export default class phemex extends phemexRest {
         if (symbol === undefined) {
             if (isUSDTSettled) {
                 messageHash = 'orders:perpetual';
-            } else {
+            } else if (type !== undefined) {
                 messageHash = 'orders:' + type;
             }
         }
-        const orders = await this.subscribePrivate (type, messageHash, paramsType);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (type, messageHash, paramsType);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -1156,7 +1145,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict) {
         // spot update
         // {
         //        "closed":[
@@ -1315,29 +1304,31 @@ export default class phemex extends phemexRest {
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         let trades: List = [];
         const parsedOrders: Dict[] = [];
-        if (('closed' in message) || ('fills' in message) || ('open' in message)) {
-            const closed = this.safeList (message, 'closed', []);
-            const open = this.safeList (message, 'open', []);
+        const ordersDict: Dict = this.safeDict2 (message, 'orders', 'orders_p', {});
+        if (('closed' in ordersDict) || ('fills' in ordersDict) || ('open' in ordersDict)) {
+            const closed = this.safeList (ordersDict, 'closed', []);
+            const open = this.safeList (ordersDict, 'open', []);
             const orders: Dict[] = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;
             }
-            trades = this.safeList (message, 'fills', []);
+            trades = this.safeList (ordersDict, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
-                const rawOrder = orders[i];
-                const parsedOrder = this.parseOrder (rawOrder);
+                const parsedOrder = this.parseOrder (this.safeDict (orders, i, {}));
                 parsedOrders.push (parsedOrder);
             }
         } else {
-            const messageLength = message.length;
-            if (messageLength === 0) {
+            const updates = this.safeList (message, 'orders_p', []);
+            const updatesLength = updates.length;
+            if (updatesLength === 0) {
                 return;
             }
-            for (let i = 0; i < messageLength; i++) {
-                const update = message[i];
+            for (let i = 0; i < updatesLength; i++) {
+                const update = updates[i];
                 const action = this.safeString (update, 'action');
                 if ((action !== undefined) && (action !== 'Cancel')) {
                     // order + trade info together
@@ -1358,11 +1349,15 @@ export default class phemex extends phemexRest {
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
             stored.append (parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString (parsed, 'symbol', '');
             const market = this.market (symbol);
             if (type === undefined) {
                 const isUsdt = market['settle'] === 'USDT';
-                type = isUsdt ? 'perpetual' : market['type'];
+                if (isUsdt) {
+                    type = 'perpetual';
+                } else {
+                    type = this.safeString (market, 'type');
+                }
             }
             marketIds[symbol] = true;
         }
@@ -1507,7 +1502,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (order, 'symbol');
         const marketResolved = this.safeMarket (marketId, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
@@ -1651,7 +1646,7 @@ export default class phemex extends phemexRest {
             const method = this.safeValue (client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
-                method.call (this, client, message);
+                this.handleAuthenticate (client, message);
                 return;
             }
         }
@@ -1674,8 +1669,7 @@ export default class phemex extends phemexRest {
             return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
-            const orders = this.safeDict2 (message, 'orders', 'orders_p', {});
-            this.handleOrders (client, orders);
+            this.handleOrders (client, message);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {
             let type: Str = 'spot';
@@ -1686,7 +1680,7 @@ export default class phemex extends phemexRest {
                 type = 'perpetual';
             }
             const accounts = this.safeListN (message, [ 'accounts', 'accounts_p', 'wallets' ], []);
-            this.handleBalance (type, client, accounts);
+            this.handleBalance (client, accounts, type);
         }
     }
 

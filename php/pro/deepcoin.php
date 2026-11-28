@@ -109,7 +109,6 @@ class deepcoin extends \ccxt\async\deepcoin {
 
     public function handle_pong(Client $client, string $message) {
         $client->lastPong = $this->milliseconds();
-        return $message;
     }
 
     public function request_id(): int {
@@ -188,7 +187,8 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     private function do_watch_private(string $messageHash, $params = array()) {
-        $listenKey = Async\await($this->authenticate());
+        Async\await($this->authenticate());
+        $listenKey = $this->safe_string($this->options, 'listenKey', '');
         return Async\await($this->watch($this->safe_string($this->urls['api']['ws'], 'private', '') . '?listenKey=' . $listenKey, $messageHash, null, 'private', $params));
     }
 
@@ -832,7 +832,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
         $orderbook = $this->orderbooks[$symbol];
         $type = $this->safe_string($message, 't');
-        if ($orderbook['timestamp'] === null) {
+        if ($this->safe_integer($orderbook, 'timestamp') === null) {
             if ($type === 'f') {
                 // snapshot
                 $this->handle_order_book_snapshot($client, $message);
@@ -880,7 +880,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $orderbook->reset($snapshot);
         $cachedMessages = $orderbook->cache;
         for ($j = 0; $j < count($cachedMessages); $j++) {
-            $cachedMessage = $cachedMessages[$j];
+            $cachedMessage = $this->safe_dict($cachedMessages, $j, array());
             $this->handle_order_book_message($client, $cachedMessage, $orderbook);
         }
         $orderbook->cache = array();
@@ -1182,7 +1182,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $listenKey = Async\await($this->authenticate());
+        Async\await($this->authenticate());
+        $listenKey = $this->safe_string($this->options, 'listenKey', '');
         $symbolsNormalized = $this->market_symbols($symbols);
         $messageHash = 'positions';
         $messageHashes = array();
@@ -1390,7 +1391,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1424,5 +1425,6 @@ class deepcoin extends \ccxt\async\deepcoin {
         } catch (Exception $e) {
             $client->reject($e, $messageHash);
         }
+        return false;
     }
 }

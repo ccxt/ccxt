@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -386,7 +386,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             outcomeSymbol = outcomeSymbols[i]
             if outcomeSymbol.find(':') >= 0:
                 continue
-            baseTicker = outcomeSymbol
+            tickerText = self.safe_string(outcomeSymbols, i, '')
+            baseTicker = tickerText
             if outcomeSymbol.endswith('-NO'):
                 baseTicker = outcomeSymbol[0:-3]
             if not (baseTicker in seen):
@@ -418,11 +419,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
         for i in range(0, outcomeSymbolsLength):
-            if not self.has_outcome(outcomeSymbols[i]):
-                await self.fetch_outcome(outcomeSymbols[i])
+            pendingSymbol = self.safe_string(outcomeSymbols, i, '')
+            if not self.has_outcome(pendingSymbol):
+                await self.fetch_outcome(pendingSymbol)
         return self.outcomes
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         # errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         # outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -529,7 +531,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
             eventParts = eventTicker.split('-')
             eventPartsLength = len(eventParts)
             if eventPartsLength > 1:
-                seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
+                seriesParts = []
+                for si in range(0, eventPartsLength - 1):
+                    seriesPart = self.safe_string(eventParts, si, '')
+                    seriesParts.append(seriesPart)
                 seriesTicker = '-'.join(seriesParts)
         # market symbol (no outcome suffix)
         subtitleOrTicker = ticker
@@ -551,16 +556,16 @@ class kalshi(PredictionExchange, ImplicitAPI):
         }
         # Build outcomes
         outcomeLabels = ['YES', 'NO']
-        outcomeIds = [ticker, ticker + '-NO']
         outcomes = []
         resolvedOutcome = None
+        resultText = self.safe_string_lower(raw, 'result', '')
         for oi in range(0, len(outcomeLabels)):
             label = outcomeLabels[oi]
             outcomeHandle = self.slug_to_outcome_symbol(eventTicker, subtitleOrTicker, label)
             winnerRaw = None
             settleFractionRaw = None
             if resolved and (result is not None) and (result != ''):
-                winnerRaw = (label.lower() == result)
+                winnerRaw = (label.lower() == resultText)
                 settleFractionRaw = 1 if (winnerRaw) else 0
                 if winnerRaw:
                     resolvedOutcome = outcomeHandle
@@ -568,9 +573,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # reassigned local into the anonymous inner class it emits for a map literal)
             winner = winnerRaw
             settleFraction = settleFractionRaw
+            outcomeSuffix = ''
+            if oi > 0:
+                outcomeSuffix = '-NO'
+            outcomeId = ticker + outcomeSuffix
             outcomes.append({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': outcomeId,
+                'outcomeId': outcomeId,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -717,7 +726,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #         }
         #     }
         #
-        raw = self.safe_dict(response, 'market', response)
+        raw = self.extend({}, self.safe_dict(response, 'market', response))
         return self.parse_prediction_ticker(raw, outcomeObj)
 
     async def fetch_status(self, params: dict = {}) -> object:
@@ -844,7 +853,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #     }
         #
         outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
-        outcomeLabel = self.safe_string_upper(market, 'label', self.safe_string_upper(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
+        outcomeLabel = self.safe_string_upper(market, 'label', self.safe_string_upper(self.safe_dict(market, 'info'), 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel == 'NO'
         timestamp = self.parse8601(self.safe_string(raw, 'updated_time'))
         outcome = self.safe_string(outcomeObj, 'outcome')
@@ -960,7 +969,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             response = await self.kalshiPublicGetMarkets(self.extend(request, params))
             rawMarkets = self.safe_list(response, 'markets', [])
             for i in range(0, len(rawMarkets)):
-                raw = rawMarkets[i]
+                raw = self.safe_dict(rawMarkets, i, {})
                 marketTicker = self.safe_string(raw, 'ticker')
                 if (marketTicker is None) or not (marketTicker in outcomesByTicker):
                     continue
@@ -1485,7 +1494,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         rawSettlementsLength = len(rawSettlements)
         parsed = []
         for i in range(0, rawSettlementsLength):
-            parsed.append(self.parse_settlement(rawSettlements[i]))
+            parsed.append(self.parse_settlement(self.extend({}, rawSettlements[i])))
         wantedOutcomeObj = self.outcome(outcome) if (outcome is not None) else {}
         wantedOutcome = self.safe_string(wantedOutcomeObj, 'outcome')
         result = []
@@ -1698,7 +1707,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
         response = await self.kalshiPrivateGetPortfolioOrdersOrderId(self.extend({'order_id': id}, params))
-        return self.parse_prediction_order(self.safe_dict(response, 'order', response))
+        return self.parse_prediction_order(self.extend({}, self.safe_dict(response, 'order', response)))
 
     def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
@@ -1919,7 +1928,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
         # the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         # the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        order = self.parse_prediction_order(self.safe_dict(response, 'order', response), outcomeObj)
+        order = self.parse_prediction_order(self.extend({}, self.safe_dict(response, 'order', response)), outcomeObj)
         if self.safe_string(order, 'id') is None:
             order['id'] = id
         if self.safe_string(order, 'status') is None:
@@ -1950,13 +1959,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         restingOrdersLength = len(restingOrders)
         canceledOrders = []
         for i in range(0, restingOrdersLength):
-            restingOrder = restingOrders[i]
-            orderId = self.safe_string(restingOrder, 'order_id')
+            orderId = self.safe_string(restingOrders[i], 'order_id')
             if orderId is not None:
                 await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': orderId}, params))
                 # the DELETE body is minimal — parse the already-fetched resting order instead, which
                 # carries the true side/outcome/price/count, then mark it canceled
-                parsed = self.parse_prediction_order(restingOrder)
+                parsed = self.parse_prediction_order(self.safe_dict(restingOrders, i, {}))
                 parsed['status'] = 'canceled'
                 canceledOrders.append(parsed)
         return canceledOrders
@@ -2022,14 +2030,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
         rawEventsLength = len(rawEvents)
         result = []
         for di in range(0, rawEventsLength):
-            parsedEvent = self.parse_event(rawEvents[di])
+            parsedEvent = self.parse_event(self.extend({}, rawEvents[di]))
             result.append(parsedEvent)
             # register the parsed markets so populateOutcomes can index their outcomes
             parsedMarkets = parsedEvent['markets']
             parsedMarketsLength = len(parsedMarkets)
             for mi in range(0, parsedMarketsLength):
-                m = parsedMarkets[mi]
-                self.markets[m['market']] = m
+                marketKey = self.safe_string(parsedMarkets[mi], 'market')
+                if marketKey is not None:
+                    self.markets[marketKey] = parsedMarkets[mi]
         self.populate_outcomes()
         # scoping already happened server-side, so strip the resolved scopes before the client-side
         # pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
@@ -2173,7 +2182,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             cursor = None
             for page in range(0, maxPages):
                 reqLimit = pageLimit
-                if hasLimit and (limitValue is not None):
+                if hasLimit:
                     collectedSoFar = len(rawEvents)
                     remaining = self.parse_to_int(limitValue - collectedSoFar)
                     if remaining < reqLimit:
@@ -2181,7 +2190,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     if reqLimit <= 0:
                         break
                 request = {
-                    'series_ticker': seriesTickers[si],
+                    'series_ticker': self.safe_string(seriesTickers, si),
                     'status': status,
                     'with_nested_markets': True,
                     'limit': reqLimit,
@@ -2212,7 +2221,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
         fullEvent = await self.fetch_raw_event_by_ticker(id, params)
-        event = self.parse_event(fullEvent)
+        event = self.parse_event(self.extend({}, fullEvent))
         self.index_event_outcomes(event)
         return event
 
@@ -2375,7 +2384,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         apiGroup = api[0]
         access = api[1]
         baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, self.safe_string(baseUrls, 'kalshi', ''))
+        baseUrlDefault = self.safe_string(baseUrls, 'kalshi', '')
+        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrlDefault)
         implodedPath = self.implode_params(path, params)
         url = baseUrl + '/' + implodedPath
         query = self.omit(params, self.extract_params(path))

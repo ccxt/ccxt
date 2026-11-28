@@ -970,9 +970,9 @@ class ndax extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         if ($this->markets === null) {
@@ -1007,11 +1007,7 @@ class ndax extends Exchange {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade(mixed $trade, ?array $market = null): array {
@@ -2379,7 +2375,7 @@ class ndax extends Exchange {
         //    ]"
         //
         if (gettype($response) === 'string') {
-            return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
+            return $this->parse_transactions($this->to_array(json_decode($response, $as_associative_array = true)), $currency, $since, $limit);
         }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -2666,7 +2662,7 @@ class ndax extends Exchange {
         if ($template === null) {
             throw new ExchangeError($this->id . ' withdraw() could not find a withdraw template for ' . $currency['code']);
         }
-        $withdrawTemplate = json_decode($template, $as_associative_array = true);
+        $withdrawTemplate = $this->extend(array(), json_decode($template, $as_associative_array = true));
         $withdrawTemplate['ExternalAddress'] = $address;
         if ($tagWithdrawTag !== null) {
             if (is_array($withdrawTemplate) && array_key_exists('Memo' ?? '', $withdrawTemplate)) {
@@ -2771,7 +2767,7 @@ class ndax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($code === 404) {
             throw new AuthenticationError($this->id . ' ' . $body);
         }

@@ -407,7 +407,7 @@ class bithumb extends bithumb$1["default"] {
     }
     amountToPrecision(symbol, amount) {
         const market = this.market(symbol);
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeValue(market['precision'], 'amount'), number.DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeInteger(market['precision'], 'amount'), number.DECIMAL_PLACES);
     }
     getGen2MarketId(market) {
         const marketId = this.safeString(market, 'id');
@@ -461,8 +461,8 @@ class bithumb extends bithumb$1["default"] {
                 if (marketId !== undefined) {
                     const parts = marketId.split('-');
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = parts[1];
-                    quoteId = parts[0];
+                    baseId = this.safeString(parts, 1);
+                    quoteId = this.safeString(parts, 0);
                     base = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);
                 }
@@ -764,12 +764,11 @@ class bithumb extends bithumb$1["default"] {
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'fetchOrderBook', 'generation', 2);
         const market = this.market(symbol);
         const request = {};
-        let response = undefined;
         let data = undefined;
         let timestamp = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -815,7 +814,7 @@ class bithumb extends bithumb$1["default"] {
             if (limit !== undefined) {
                 request['count'] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1002,18 +1001,26 @@ class bithumb extends bithumb$1["default"] {
             if (marketIdsLength === 0) {
                 return result;
             }
-            const marketIdsChunks = [];
+            const singleMarketIds = [];
             const promises = [];
             // the exchange rejects more than 200 market ids per request
             const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
-            const maxMarketIdsPerRequest = this.parseToInt(((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let maxMarketIdsPerRequest = 200;
+            if ((maxMarketIdsOption !== undefined) && (maxMarketIdsOption >= 1)) {
+                maxMarketIdsPerRequest = this.parseToInt(maxMarketIdsOption);
+            }
             let marketIdsChunk = [];
             for (let i = 0; i < marketIdsLength; i++) {
                 marketIdsChunk.push(marketIds[i]);
                 const marketIdsChunkLength = marketIdsChunk.length;
                 const isLastMarketId = (i === (marketIdsLength - 1));
                 if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
-                    marketIdsChunks.push(marketIdsChunk);
+                    if (marketIdsChunkLength === 1) {
+                        singleMarketIds.push(marketIds[i]);
+                    }
+                    else {
+                        singleMarketIds.push('');
+                    }
                     request['markets'] = marketIdsChunk.join(',');
                     promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = [];
@@ -1058,22 +1065,18 @@ class bithumb extends bithumb$1["default"] {
                 if (this.isDictionary(response) && (this.safeValue(response, 'data') !== undefined)) {
                     response = this.safeValue(response, 'data');
                 }
-                let expectedMarketId = undefined;
-                const requestedMarketIds = this.safeList(marketIdsChunks, i, []);
-                const firstMarketId = this.safeString(requestedMarketIds, 0);
-                if ((firstMarketId !== undefined) && (this.safeString(requestedMarketIds, 1) === undefined)) {
-                    expectedMarketId = firstMarketId;
-                }
+                const expectedMarketId = this.safeString(singleMarketIds, i);
                 let tickers = [];
                 if (Array.isArray(response)) {
                     tickers = response;
                 }
                 else if (this.isDictionary(response)) {
-                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                    if ((this.safeString(response, 'market') !== undefined) || (this.safeString(response, 'trade_date') !== undefined) || (this.safeString(response, 'trade_timestamp') !== undefined)) {
                         tickers = [response];
                     }
                     else {
-                        const ids = Object.keys(response);
+                        const responseDict = this.extend({}, response);
+                        const ids = Object.keys(responseDict);
                         for (let j = 0; j < ids.length; j++) {
                             const id = ids[j];
                             const ticker = this.safeDict(response, id);
@@ -1095,7 +1098,7 @@ class bithumb extends bithumb$1["default"] {
                     if (symbol === undefined) {
                         continue;
                     }
-                    result[symbol] = this.parseTicker(entry, market);
+                    result[symbol] = this.parseTicker(this.safeDict(tickers, j, {}), market);
                 }
             }
         }
@@ -1154,15 +1157,14 @@ class bithumb extends bithumb$1["default"] {
                 const currencyIds = Object.keys(tickers);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const ticker = data[currencyId];
+                    const ticker = this.extend({}, data[currencyId]);
                     const base = this.safeCurrencyCode(currencyId);
                     if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
                     const market = this.safeMarket(symbol);
-                    ticker['date'] = timestamp;
-                    result[symbol] = this.parseTicker(ticker, market);
+                    result[symbol] = this.parseTicker(this.extend(ticker, { 'date': timestamp }), market);
                 }
             }
         }
@@ -1186,11 +1188,10 @@ class bithumb extends bithumb$1["default"] {
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'fetchTicker', 'generation', 2);
         const market = this.market(symbol);
         const request = {};
-        let response = undefined;
         let data = {};
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1228,7 +1229,7 @@ class bithumb extends bithumb$1["default"] {
         else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1250,7 +1251,7 @@ class bithumb extends bithumb$1["default"] {
             //
             data = this.safeDict(response, 'data', {});
         }
-        return this.parseTicker(data, market);
+        return this.parseTicker(this.extend({}, data), market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1326,7 +1327,7 @@ class bithumb extends bithumb$1["default"] {
         let response = undefined;
         let data = [];
         if (generation === 2) {
-            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
             if (paginate) {
                 return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
             }
@@ -1524,7 +1525,6 @@ class bithumb extends bithumb$1["default"] {
                 }
             }
         }
-        const type = undefined;
         let side = this.safeStringLower2(trade, 'ask_bid', 'type');
         if (side === 'bid') {
             side = 'buy';
@@ -1559,7 +1559,7 @@ class bithumb extends bithumb$1["default"] {
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,
@@ -1591,11 +1591,10 @@ class bithumb extends bithumb$1["default"] {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response = undefined;
         let data = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1617,7 +1616,7 @@ class bithumb extends bithumb$1["default"] {
         else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1678,8 +1677,8 @@ class bithumb extends bithumb$1["default"] {
             if (side === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires each order to have a side');
             }
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -2442,10 +2441,9 @@ class bithumb extends bithumb$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2473,7 +2471,7 @@ class bithumb extends bithumb$1["default"] {
             data = this.safeList(response, 'orders', []);
         }
         else {
-            response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
             //
             //     [
             //         {
@@ -3319,7 +3317,8 @@ class bithumb extends bithumb$1["default"] {
         return this.milliseconds();
     }
     urlencodeWithArrayBrackets(query) {
-        const keys = Object.keys(query);
+        const queryCopy = this.extend({}, query);
+        const keys = Object.keys(queryCopy);
         let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

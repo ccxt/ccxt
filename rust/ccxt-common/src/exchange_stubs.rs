@@ -18,17 +18,43 @@
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
 use crate::{ExchangeError, Value};
+use crate::value::ScalarRef;
 use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
 /// The needle of `in_array`: a `Value` (as before), or a typed string / integer local lent as is, so the transpiled
-/// code passes it without boxing or copying it. Each answers exactly `is_equal(element, &boxed_needle)`.
+/// code passes it without boxing or copying it. Same kind compares the payload, otherwise both sides are read as a number.
 pub trait InArrayNeedle {
     fn needle_eq(&self, x: &Value) -> bool;
 }
 impl InArrayNeedle for Value {
-    fn needle_eq(&self, x: &Value) -> bool { crate::runtime::is_equal(x, self) }
+    fn needle_eq(&self, x: &Value) -> bool {
+        match self {
+            Value::Null => matches!(x, Value::Null),
+            Value::Bool(b) => b.needle_eq(x),
+            Value::Int(n) => n.needle_eq(x),
+            Value::Float(f) => f.needle_eq(x),
+            Value::Str(s) => (**s).needle_eq(x),
+            _ => false,
+        }
+    }
+}
+impl InArrayNeedle for bool {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Bool(y) => y == self,
+            _ => crate::runtime::value_as_f64(x) == Some(if *self { 1.0 } else { 0.0 }),
+        }
+    }
+}
+impl InArrayNeedle for f64 {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Float(y) => y == self,
+            _ => crate::runtime::value_as_f64(x) == Some(*self),
+        }
+    }
 }
 impl InArrayNeedle for str {
     fn needle_eq(&self, x: &Value) -> bool {
@@ -57,6 +83,49 @@ impl InArrayNeedle for Option<i64> {
 }
 impl<T: InArrayNeedle + ?Sized> InArrayNeedle for &T {
     fn needle_eq(&self, x: &Value) -> bool { (**self).needle_eq(x) }
+}
+
+/// The container `in_array` / `is_empty` only read: a `Value` or a typed list/map, by value or lent.
+/// `any_item` tests list items (anything else holds none); `container_empty` is Null or an empty list/map.
+pub trait ContainerArg {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool;
+    fn container_empty(&self) -> bool;
+}
+impl ContainerArg for Value {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { matches!(self, Value::Arr(a) if a.iter().any(|x| f(x))) }
+    fn container_empty(&self) -> bool { self.is_null() || self.as_array().is_some_and(Vec::is_empty) || self.as_map().is_some_and(HashMap::is_empty) }
+}
+impl ContainerArg for Vec<Value> {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for [Value] {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for crate::value::List {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for crate::value::Dict {
+    fn any_item(&self, _f: &mut dyn FnMut(&Value) -> bool) -> bool { false }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for HashMap<String, Value> {
+    fn any_item(&self, _f: &mut dyn FnMut(&Value) -> bool) -> bool { false }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for Vec<String> {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|s| f(&Value::from(s.as_str()))) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl<T: ContainerArg> ContainerArg for Option<T> {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.as_ref().is_some_and(|c| c.any_item(f)) }
+    fn container_empty(&self) -> bool { self.as_ref().map_or(true, |c| c.container_empty()) }
+}
+impl<T: ContainerArg + ?Sized> ContainerArg for &T {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { (**self).any_item(f) }
+    fn container_empty(&self) -> bool { (**self).container_empty() }
 }
 
 /// Coerces `&Exchange` to `&mut Exchange`. The lint that warns about
@@ -553,6 +622,17 @@ fn cased_or_default(found: Option<String>, upper: bool, optional_args: &[Value])
     }
 }
 
+/// The lent default of the `safe_string*_opt` readers: only a string default is answered (as `arg_default`'s
+/// `Value::Str` arm did); a number, null or missing default is `None`.
+fn lent_str_default(opt: &[&dyn crate::value::ScalarArg]) -> Option<String> {
+    match opt.first().map(|d| d.scalar()) { Some(ScalarRef::Str(d)) => Some(d.to_owned()), _ => None }
+}
+
+/// A lent scalar key as the `Value` key `safe_value` reads (`safe_value` reads every key by its text).
+fn scalar_key(key: &impl crate::value::ScalarArg) -> Value {
+    match key.scalar() { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::Str(s.to_owned().into()), ScalarRef::Other(v) => Value::Str(key_str(v).into()) }
+}
+
 fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
@@ -739,29 +819,23 @@ impl Exchange {
     /// `safe_string_k` without the box: same lookup, empty-string and default
     /// rules, `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[&dyn crate::value::ScalarArg]) -> Option<String> {
         match self.safe_value_k(obj, key, &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
             Value::Float(f) => Some(f.to_string()),
-            _ => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
+            _ => lent_str_default(optional_args),
         }
     }
 
     /// `safe_string` without the box (Value key): same lookup and default rules.
     #[inline]
-    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
-        match self.safe_value(obj, key, &[]) {
+    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[&dyn crate::value::ScalarArg]) -> Option<String> {
+        match self.safe_value(obj, scalar_key(&key), &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
             Value::Float(f) => Some(f.to_string()),
-            _ => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
+            _ => lent_str_default(optional_args),
         }
     }
 
@@ -822,7 +896,7 @@ impl Exchange {
     /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
     #[inline]
     pub fn safe_bool2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
-        if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
+        if let Value::Bool(b) = self.safe_value(&obj, k1, &[]) {
             return Some(b);
         }
         match self.safe_value(obj, k2, &[]) {
@@ -843,13 +917,10 @@ impl Exchange {
     /// `safe_string2` without the box: first key whose `safe_string` is non-null, then the
     /// default; `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
-        self.safe_string_opt(obj.clone(), k1, &[])
+    pub fn safe_string2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[&dyn crate::value::ScalarArg]) -> Option<String> {
+        self.safe_string_opt(&obj, k1, &[])
             .or_else(|| self.safe_string_opt(obj, k2, &[]))
-            .or_else(|| match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            })
+            .or_else(|| lent_str_default(optional_args))
     }
 
     /// `safe_string_n` without the box: first key whose `safe_string` is non-null, then the
@@ -858,7 +929,7 @@ impl Exchange {
     pub fn safe_string_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                if let Some(s) = self.safe_string_opt(obj.clone(), k, &[]) {
+                if let Some(s) = self.safe_string_opt(&obj, k, &[]) {
                     return Some(s);
                 }
             }
@@ -869,13 +940,6 @@ impl Exchange {
         }
     }
 
-    /// `safe_number2` without the box (no default): first key whose string form parses as f64.
-    pub fn safe_number2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
-        match self.safe_string2(obj, k1, k2, &[]) {
-            Value::Str(s) => s.parse::<f64>().ok(),
-            _ => None,
-        }
-    }
 
     #[inline]
     pub fn safe_bool_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
@@ -912,12 +976,42 @@ impl Exchange {
         }
     }
 
-    pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
+    /// Typed twins of `safe_dict*` / `safe_list*` with no or an empty default: the member when it is a map / list,
+    /// else the empty one (`_t`) or `None` (`_o`), exactly what the boxed reader's `.into_*()` answered.
+    pub fn safe_dict_k_t(&self, obj: impl crate::value::KeyRead, key: &str) -> crate::value::Dict { self.safe_dict_k_o(obj, key).unwrap_or_default() }
+    pub fn safe_dict_k_o(&self, obj: impl crate::value::KeyRead, key: &str) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value_k(obj, key, &[]) { Some(m) } else { None } }
+    pub fn safe_list_k_t(&self, obj: impl crate::value::KeyRead, key: &str) -> crate::value::List { self.safe_list_k_o(obj, key).unwrap_or_default() }
+    pub fn safe_list_k_o(&self, obj: impl crate::value::KeyRead, key: &str) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value_k(obj, key, &[]) { Some(a) } else { None } }
+    pub fn safe_dict_t(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> crate::value::Dict { self.safe_dict_o(obj, key).unwrap_or_default() }
+    pub fn safe_dict_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value(obj, scalar_key(&key), &[]) { Some(m) } else { None } }
+    pub fn safe_list_t(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> crate::value::List { self.safe_list_o(obj, key).unwrap_or_default() }
+    pub fn safe_list_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value(obj, scalar_key(&key), &[]) { Some(a) } else { None } }
+    /// Twins of the readers above with a one-value default: the member when it is a map / list, else what the
+    /// default converts to (`Dict`/`List`: the default's container or the empty one; `_o`: `None` for a non-container).
+    pub fn safe_dict_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> crate::value::Dict { self.safe_dict_k_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_dict_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::Dict> { self.safe_dict_k_o(obj, key).or_else(|| if let Value::Dict(m) = d.borrow() { Some(m.clone()) } else { None }) }
+    pub fn safe_list_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> crate::value::List { self.safe_list_k_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_list_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::List> { self.safe_list_k_o(obj, key).or_else(|| if let Value::Arr(a) = d.borrow() { Some(a.clone()) } else { None }) }
+    pub fn safe_dict_or(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> crate::value::Dict { self.safe_dict_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_dict_or_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::Dict> { self.safe_dict_o(obj, key).or_else(|| if let Value::Dict(m) = d.borrow() { Some(m.clone()) } else { None }) }
+    pub fn safe_list_or(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> crate::value::List { self.safe_list_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_list_or_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::List> { self.safe_list_o(obj, key).or_else(|| if let Value::Arr(a) = d.borrow() { Some(a.clone()) } else { None }) }
+
+    /// Twins of `safe_dict2` / `safe_list2`: the first key's member that is a map / list, else the second's, else the
+    /// default's container (`_t`/`_or`: the empty one; `_o`: `None`), exactly what the boxed reader's `.into_*()` answered.
+    pub fn safe_dict2_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> Option<crate::value::Dict> { let r = |k: Value| obj.read(&Value::Str(key_str(&k).into())); if let Value::Dict(m) = r(k1) { Some(m) } else if let Value::Dict(m) = r(k2) { Some(m) } else { None } }
+    pub fn safe_dict2_t(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> crate::value::Dict { self.safe_dict2_o(obj, k1, k2).unwrap_or_default() }
+    pub fn safe_list2_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> Option<crate::value::List> { let r = |k: Value| obj.read(&Value::Str(key_str(&k).into())); if let Value::Arr(a) = r(k1) { Some(a) } else if let Value::Arr(a) = r(k2) { Some(a) } else { None } }
+    pub fn safe_list2_t(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> crate::value::List { self.safe_list2_o(obj, k1, k2).unwrap_or_default() }
+    pub fn safe_list2_or_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> Option<crate::value::List> { match (self.safe_list2_o(obj, k1, k2), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
+    pub fn safe_list2_or(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> crate::value::List { self.safe_list2_or_o(obj, k1, k2, d).unwrap_or_default() }
+
+    pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges
         // that signal end-of-pagination with `cursor: ""` loop forever
-        // because `is_equal(&Value::Str(""), &Value::Null)` is false.
-        let v = obj.read(&Value::Str(key_str(&key).into()));
+        // because an empty string never compares equal to `Value::Null`.
+        let v = obj.read(&Value::Str(key_str(&scalar_key(&key)).into()));
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
             arg_default(optional_args)
@@ -926,8 +1020,8 @@ impl Exchange {
         }
     }
 
-    pub fn safe_value2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_value(obj.clone(), k1, &[]);
+    pub fn safe_value2(&self, obj: impl crate::value::KeyRead, k1: impl crate::value::ScalarArg, k2: Value, optional_args: &[Value]) -> Value {
+        let v = self.safe_value(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -942,7 +1036,7 @@ impl Exchange {
     pub fn safe_value_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_value(obj.clone(), k, &[]);
+                let v = self.safe_value(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -951,8 +1045,8 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    pub fn safe_string(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_value(obj, key, &[]);
+    pub fn safe_string(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
+        let v = self.safe_value(obj, scalar_key(&key), &[]);
         match v {
             Value::Str(_) => v,
             Value::Int(n) => Value::Str(n.to_string().into()),
@@ -966,7 +1060,7 @@ impl Exchange {
     }
 
     pub fn safe_string2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_string(obj.clone(), k1, &[]);
+        let v = self.safe_string(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -981,7 +1075,7 @@ impl Exchange {
     pub fn safe_string_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_string(obj.clone(), k, &[]);
+                let v = self.safe_string(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -1030,7 +1124,7 @@ impl Exchange {
     pub fn safe_string_lower_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_string(obj.clone(), k, &[]);
+                let v = self.safe_string(&obj, k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
                         return Value::Str(s.to_lowercase().into());
@@ -1045,7 +1139,7 @@ impl Exchange {
     pub fn safe_string_upper_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_string(obj.clone(), k, &[]);
+                let v = self.safe_string(&obj, k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
                         return Value::Str(s.to_uppercase().into());
@@ -1069,7 +1163,7 @@ impl Exchange {
     }
 
     /// `safe_string_lower` with a `&str` key — the `safe_*_k` twin of the
-    /// lookup above (same `get_value_k` path as the rest of the family).
+    /// lookup above (same `key_read` path as the rest of the family).
     #[inline]
     pub fn safe_string_lower_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_string_k(obj, key, &[]);
@@ -1162,7 +1256,7 @@ impl Exchange {
     /// `super.X(...)` from derived exchanges — routes back to the base
     /// Exchange impl. These stubs return Value::Null; they exist so
     /// transpiled `self.super_X()` calls type-check.
-    pub fn super_currency(&self, _code: Value) -> Value {
+    pub fn super_currency(&self, _code: Option<&str>) -> Value {
         Value::Null
     }
     pub fn super_handle_errors(
@@ -1194,9 +1288,9 @@ impl Exchange {
     pub fn set_last_request(&self, request: Value) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
         me.last_request_headers =
-            crate::runtime::get_value(&request, &Value::Str("headers".into()));
-        me.last_request_body = crate::runtime::get_value(&request, &Value::Str("body".into()));
-        me.last_request_url = crate::runtime::get_value(&request, &Value::Str("url".into()));
+            request.at("headers").to_owned();
+        me.last_request_body = request.at("body").to_owned();
+        me.last_request_url = request.at("url").to_owned();
     }
 
     pub fn get_fetch_cache(&self) -> Value {
@@ -1205,14 +1299,13 @@ impl Exchange {
 
     pub fn add_fetch_cache(&self, data: Value) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
-        if crate::runtime::is_less_than_or_equal(&me.fetchHistoryCacheSize, &Value::Int(0)) {
+        // the size is only ever an Int / Float and the cache a list (constructor + apply_config)
+        let size = me.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN);
+        if size <= 0.0 {
             return;
         }
-        while crate::runtime::is_greater_than_or_equal(
-            &crate::runtime::get_array_length(&me.fetchHistoryCache),
-            &me.fetchHistoryCacheSize,
-        ) {
-            crate::runtime::remove(&mut me.fetchHistoryCache, &Value::Int(0));
+        while (me.fetchHistoryCache.len() as f64) >= size {
+            if let Value::Arr(a) = &mut me.fetchHistoryCache { Arc::make_mut(a).remove(0); }
         }
         crate::runtime::append_to_array(&mut me.fetchHistoryCache, data);
     }
@@ -1361,14 +1454,13 @@ impl Exchange {
     /// `httpExceptions` class for the status; a status outside the table passes.
     pub fn handle_http_status_code(&self, code: Value, reason: Value, url: Value, method: Value, body: Value) {
         let code_as_string = Value::Str(stringify_param(&code).into());
-        if crate::runtime::in_op(&self.httpExceptions, &code_as_string) {
-            let error_class = crate::runtime::get_value(&self.httpExceptions, &code_as_string);
+        if let Some(error_class) = self.httpExceptions.get(code_as_string.as_str().unwrap_or_default()) {
             let message = [&self.id, &method, &url, &code_as_string, &reason, &body]
                 .iter()
                 .map(|part| stringify_param(part))
                 .collect::<Vec<_>>()
                 .join(" ");
-            panic!("{}", crate::exchange_errors::create_error(&stringify_param(&error_class), message));
+            panic!("{}", crate::exchange_errors::create_error(&stringify_param(error_class), message));
         }
     }
 
@@ -1787,8 +1879,9 @@ impl Exchange {
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
-    pub fn urlencode_with_array_repeat(&self, params: impl Into<Value>) -> String {
-        let Value::Dict(m) = Into::<Value>::into(params) else {
+    pub fn urlencode_with_array_repeat(&self, params: impl crate::value::EncodeOperand) -> String {
+        params.with_operand(|params| {
+        let Value::Dict(m) = params else {
             return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
@@ -1814,9 +1907,10 @@ impl Exchange {
             }
         }
         pairs.join("&")
+        })
     }
 
-    pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
         let v = self.safe_value(obj, key, &[]);
         match v {
             Value::Int(_) => v,
@@ -1842,7 +1936,7 @@ impl Exchange {
         k2: Value,
         optional_args: &[Value],
     ) -> Value {
-        let v = self.safe_integer(obj.clone(), k1, &[]);
+        let v = self.safe_integer(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -1857,7 +1951,7 @@ impl Exchange {
     pub fn safe_integer_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_integer(obj.clone(), k, &[]);
+                let v = self.safe_integer(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -1866,16 +1960,7 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    /// `safe_integer2` without the box (no default): first key yielding an integer.
-    pub fn safe_integer2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
-        self.safe_integer(obj.clone(), k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
-    }
 
-    /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
-    pub fn safe_integer_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, _optional_args: &[Value]) -> Option<i64> {
-        let Value::Arr(ks) = keys else { return None };
-        ks.iter().find_map(|k| self.safe_integer(obj.clone(), k.clone(), &[]).as_i64())
-    }
 
     /// Reads `obj[key]` as a number, multiplies by `factor`, and casts
     /// to i64. Used to convert seconds → milliseconds for timestamps.
@@ -1939,7 +2024,7 @@ impl Exchange {
         factor: Value,
         optional_args: &[Value],
     ) -> Value {
-        let v = self.safe_integer_product(obj.clone(), k1, factor.clone(), &[]);
+        let v = self.safe_integer_product(&obj, k1, factor.clone(), &[]);
         if !v.is_null() {
             return v;
         }
@@ -1960,7 +2045,7 @@ impl Exchange {
     ) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_integer_product(obj.clone(), k, factor.clone(), &[]);
+                let v = self.safe_integer_product(&obj, k, factor.clone(), &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -2020,14 +2105,8 @@ impl Exchange {
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
-    pub fn is_empty(&self, v: impl Into<Value>) -> Value {
-        let empty = match &Into::<Value>::into(v) {
-            Value::Null => true,
-            Value::Arr(a) => a.is_empty(),
-            Value::Dict(m) => m.is_empty(),
-            _ => false,
-        };
-        Value::Bool(empty)
+    pub fn is_empty(&self, v: impl ContainerArg) -> Value {
+        Value::Bool(v.container_empty())
     }
 
     pub fn value_is_defined(&self, v: Value) -> bool {
@@ -2063,6 +2142,21 @@ impl Exchange {
             }
             other => other,
         }
+    }
+
+    /// Typed twins of `extend` / `deep_extend` / `omit`: the map the boxed result holds (`extend` always builds one),
+    /// else the empty map (`_o`: `None`), exactly what `.into_dict()` / `.into_opt_dict()` answered for a pass-through.
+    pub fn extend_t(&self, a: impl crate::value::ExtendHead, optional_args: impl crate::value::MergeOperands) -> crate::value::Dict {
+        if let Value::Dict(m) = self.extend(a, optional_args) { m } else { crate::value::Dict::default() }
+    }
+    pub fn deep_extend_t(&self, a: impl Into<Value>, optional_args: impl crate::value::MergeOperands) -> crate::value::Dict {
+        if let Value::Dict(m) = self.deep_extend(a, optional_args) { m } else { crate::value::Dict::default() }
+    }
+    pub fn omit_t(&self, obj: impl crate::value::OmitSource, keys: impl crate::value::OmitKeys, optional_args: &[Value]) -> crate::value::Dict {
+        self.omit_o(obj, keys, optional_args).unwrap_or_default()
+    }
+    pub fn omit_o(&self, obj: impl crate::value::OmitSource, keys: impl crate::value::OmitKeys, optional_args: &[Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.omit(obj, keys, optional_args) { Some(m) } else { None }
     }
 
     pub fn omit_zero(&self, v: Value) -> Option<String> {
@@ -2107,12 +2201,48 @@ impl Exchange {
     }
 
     pub fn array_concat(&self, a: impl Into<Value>, b: impl Into<Value>) -> Value {
-        crate::runtime::concat_arrays(&a.into(), &b.into())
+        match (a.into(), b.into()) {
+            (Value::Arr(x), Value::Arr(y)) => {
+                let mut out = (*x).clone();
+                out.extend(y.iter().cloned());
+                Value::Array(out)
+            }
+            _ => Value::Array(vec![]),
+        }
     }
 
-    pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> Value {
-        let Value::Arr(a) = v else {
-            return Value::Array(vec![]);
+    /// Typed twins of `to_array` / `array_concat` / `sort_by`: the list the boxed result holds, else the empty list,
+    /// exactly what `.into_list()` answered (a non-list `sort_by` input passes through and converts to empty).
+    pub fn to_array_t(&self, v: impl Into<Value>) -> crate::value::List {
+        if let Value::Arr(a) = self.to_array(v) { a } else { crate::value::List::default() }
+    }
+    pub fn array_concat_t(&self, a: impl Into<Value>, b: impl Into<Value>) -> crate::value::List {
+        if let Value::Arr(l) = self.array_concat(a, b) { l } else { crate::value::List::default() }
+    }
+    pub fn sort_by_t(&self, arr: impl crate::value::Rows, key: Value, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(l) = self.sort_by(arr, key, optional_args) { l } else { crate::value::List::default() }
+    }
+
+    /// Typed twins of `filter_by_array` with a literal `indexed`: the list (`false`) / map (`true`) the boxed result holds.
+    pub fn filter_by_array_list(&self, objects: impl crate::value::Rows, key: Value, values: impl Into<Value>) -> crate::value::List {
+        self.filter_rows_by(objects, &key, &Into::<Value>::into(values))
+    }
+    pub fn filter_by_array_dict(&self, objects: impl crate::value::Rows, key: Value, values: impl Into<Value>) -> crate::value::Dict {
+        let rows = self.filter_rows_by(objects, &key, &Into::<Value>::into(values));
+        self.index_by(&rows, key)
+    }
+    fn filter_rows_by(&self, objects: impl crate::value::Rows, key: &Value, values: &Value) -> crate::value::List {
+        let rows: crate::value::List = self.to_array_t(crate::value::Rows::rows(objects));
+        let num = values.as_f64().or_else(|| values.as_str().and_then(|s| s.parse::<f64>().ok())).or_else(|| values.as_bool().map(|b| if b { 1.0 } else { 0.0 }));
+        if values.is_null() || num == Some(0.0) || values.as_str() == Some("") {
+            return rows;
+        }
+        Arc::new(rows.iter().filter(|row| values.any_item(&mut |x| crate::value::KeyRead::read(*row, key).needle_eq(x))).cloned().collect())
+    }
+
+    pub fn array_slice(&self, v: impl crate::value::Rows, start: Value, optional_args: &[Value]) -> crate::value::List {
+        let Value::Arr(a) = crate::value::Rows::rows(v) else {
+            return crate::value::List::default();
         };
         let len = a.len() as i64;
         let s = match start {
@@ -2136,25 +2266,21 @@ impl Exchange {
             _ => a.len(),
         };
         if s <= e {
-            Value::Array(a[s..e].to_vec())
+            Arc::new(a[s..e].to_vec())
         } else {
-            Value::Array(vec![])
+            crate::value::List::default()
         }
     }
 
-    pub fn in_array(&self, needle: impl InArrayNeedle, haystack: impl Into<Value>) -> bool {
-        if let Value::Arr(a) = haystack.into() {
-            a.iter().any(|x| needle.needle_eq(x))
-        } else {
-            false
-        }
+    pub fn in_array(&self, needle: impl InArrayNeedle, haystack: impl ContainerArg) -> bool {
+        haystack.any_item(&mut |x| needle.needle_eq(x))
     }
 
     pub fn unique(&self, v: Value) -> Value {
         if let Value::Arr(a) = v {
             let mut out: Vec<Value> = vec![];
             for item in a.iter().cloned() {
-                if !out.iter().any(|x| crate::runtime::is_equal(x, &item)) {
+                if !out.iter().any(|x| item.needle_eq(x)) {
                     out.push(item);
                 }
             }
@@ -2164,7 +2290,7 @@ impl Exchange {
         }
     }
 
-    pub fn index_by(&self, arr: Value, key: Value) -> Value {
+    pub fn index_by(&self, arr: impl crate::value::Rows, key: Value) -> crate::value::Dict {
         let k = key_str(&key);
         let mut out: HashMap<String, Value> = HashMap::new();
         // TS `indexBy` accepts an array OR an object — for an object it
@@ -2172,34 +2298,34 @@ impl Exchange {
         // this: `indexBy(currency['networks'], 'id')` where `networks` is
         // a dict keyed by network code. Array-only would return {} and
         // collapse every parsed address to a null network.
-        let items: Vec<Value> = match arr {
+        let items: Vec<Value> = match crate::value::Rows::rows(arr) {
             Value::Arr(items) => Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone()),
             Value::Dict(m) => m.values().cloned().collect(),
-            _ => return Value::Map(out),
+            _ => return Arc::new(out),
         };
         for item in items {
             if let Some(kv) = crate::value::safe_string(&item, &k, None) {
                 out.insert(kv, item);
             }
         }
-        Value::Map(out)
+        Arc::new(out)
     }
 
-    pub fn index_by_safe(&self, arr: Value, key: Value) -> Value {
-        self.index_by(arr, key)
+    pub fn index_by_safe(&self, arr: impl crate::value::Rows, key: Value) -> Value {
+        Value::Dict(self.index_by(arr, key))
     }
 
-    pub fn group_by(&self, arr: Value, key: Value, _optional_args: &[Value]) -> Value {
+    pub fn group_by(&self, arr: impl crate::value::Rows, key: Value, _optional_args: &[Value]) -> crate::value::Dict {
         let k = key_str(&key);
         let mut out: HashMap<String, Vec<Value>> = HashMap::new();
-        if let Value::Arr(items) = arr {
+        if let Value::Arr(items) = crate::value::Rows::rows(arr) {
             for item in items.iter().cloned() {
                 if let Some(kv) = crate::value::safe_string(&item, &k, None) {
                     out.entry(kv).or_default().push(item);
                 }
             }
         }
-        Value::Map(out.into_iter().map(|(k, v)| (k, Value::Array(v))).collect())
+        Arc::new(out.into_iter().map(|(k, v)| (k, Value::Array(v))).collect())
     }
 
     pub fn filter_by(
@@ -2208,7 +2334,7 @@ impl Exchange {
         key: Value,
         value: Value,
         _optional_args: &[Value],
-    ) -> Value {
+    ) -> crate::value::List {
         let k = key_str(&key);
         if let Value::Arr(items) = arr {
             let items = Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone());
@@ -2216,19 +2342,19 @@ impl Exchange {
                 .into_iter()
                 .filter(|it| {
                     let v = crate::get_value(it, &Value::Str(k.clone().into()));
-                    crate::runtime::is_equal(&v, &value)
+                    value.needle_eq(&v)
                 })
                 .collect();
-            Value::Array(out)
+            Arc::new(out)
         } else {
-            Value::Array(vec![])
+            Arc::new(Vec::new())
         }
     }
 
     /// `sortBy(array, key, descending=false)` — stable sort of an array
     /// of objects by `obj[key]`. Mirrors `functions/generic.ts`.
-    pub fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value {
-        let mut items = match arr {
+    pub fn sort_by(&self, arr: impl crate::value::Rows, key: Value, optional_args: &[Value]) -> Value {
+        let mut items = match crate::value::Rows::rows(arr) {
             Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()),
             other => return other,
         };
@@ -2249,10 +2375,11 @@ impl Exchange {
 
     /// `sortBy2(array, key1, key2, descending=false)` — sort by `key1`,
     /// then `key2` as a tiebreaker. Mirrors `functions/generic.ts`.
-    pub fn sort_by2(&self, arr: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let mut items = match arr {
+    pub fn sort_by2(&self, arr: impl crate::value::Rows, k1: Value, k2: Value, optional_args: &[Value]) -> crate::value::List {
+        // a non-list input answers the empty list (TS `sortBy2` throws on it)
+        let mut items = match crate::value::Rows::rows(arr) {
             Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()),
-            other => return other,
+            _ => return crate::value::List::default(),
         };
         let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
         let k1 = Value::Str(stringify_param(&k1).into());
@@ -2267,7 +2394,7 @@ impl Exchange {
                 ord
             }
         });
-        Value::Array(items)
+        Arc::new(items)
     }
 
     pub fn keysort(&self, obj: Value, _optional_args: &[Value]) -> Value {
@@ -2282,6 +2409,10 @@ impl Exchange {
         } else {
             obj
         }
+    }
+    /// Typed twin of `keysort`: the sorted map, else the empty map (what `.into_dict()` answered for a pass-through).
+    pub fn keysort_t(&self, obj: Value, optional_args: &[Value]) -> crate::value::Dict {
+        if let Value::Dict(m) = self.keysort(obj, optional_args) { m } else { crate::value::Dict::default() }
     }
 
     /// `aggregate(bidasks)` — groups `[price, volume]` rows by price,
@@ -2307,10 +2438,13 @@ impl Exchange {
             let volume = value_as_f64(row.get(1));
             if volume > 0.0 {
                 let bits = price.to_bits();
-                let entry = buckets.entry(bits).or_insert_with(|| {
-                    order.push(bits);
-                    (price, 0.0)
-                });
+                let entry = match buckets.entry(bits) {
+                    indexmap::map::Entry::Occupied(o) => o.into_mut(),
+                    indexmap::map::Entry::Vacant(slot) => {
+                        order.push(bits);
+                        slot.insert((price, 0.0))
+                    }
+                };
                 entry.1 += volume;
             }
         }
@@ -2511,9 +2645,13 @@ impl Exchange {
     pub fn sum(&self, optional_args: &[Value]) -> Value {
         let mut acc: Option<Value> = None;
         for x in optional_args {
-            acc = Some(match acc {
-                None => x.clone(),
-                Some(a) => crate::runtime::add(&a, x),
+            acc = Some(match (acc, x) {
+                (None, v) => v.clone(),
+                (Some(Value::Int(a)), Value::Int(b)) => Value::Int(a + b),
+                (Some(a), b) => match (a.as_f64(), b.as_f64()) {
+                    (Some(x), Some(y)) => Value::Float(x + y),
+                    _ => Value::Null,
+                },
             });
         }
         acc.unwrap_or(Value::Null)
@@ -2626,26 +2764,26 @@ impl Exchange {
         put("wss_proxy", &self.wss_proxy);
         put("wsSocksProxy", &self.wsSocksProxy);
         put("ws_socks_proxy", &self.ws_socks_proxy);
-        put("markets", &self.markets);
-        put("markets_by_id", &self.markets_by_id);
-        put("currencies", &self.currencies);
-        put("currencies_by_id", &self.currencies_by_id);
+        put("markets", &Value::from(&self.markets));
+        put("markets_by_id", &Value::from(&self.markets_by_id));
+        put("currencies", &Value::from(&self.currencies));
+        put("currencies_by_id", &Value::from(&self.currencies_by_id));
         put("commonCurrencies", &self.commonCurrencies);
         put("baseCurrencies", &self.baseCurrencies);
         put("quoteCurrencies", &self.quoteCurrencies);
         put("symbols", &Value::from(&self.symbols));
         put("ids", &self.ids);
         put("codes", &self.codes);
-        put("timeframes", &self.timeframes);
+        put("timeframes", &Value::from(&self.timeframes));
         put("precision", &self.precision);
         put("limits", &self.limits);
-        put("fees", &self.fees);
+        put("fees", &Value::Dict(self.fees.clone()));
         put("features", &self.features);
-        put("has", &self.has);
+        put("has", &Value::Dict(self.has.clone()));
         put("exceptions", &self.exceptions);
-        put("urls", &self.urls);
+        put("urls", &Value::Dict(self.urls.clone()));
         put("api", &self.api);
-        put("options", &self.options);
+        put("options", &Value::Dict(self.options.clone()));
         put("headers", &self.headers);
         put("accounts", &self.accounts);
         put("accountsById", &self.accountsById);
@@ -2655,11 +2793,10 @@ impl Exchange {
         put("myTrades", &Value::from(&self.myTrades));
         put("positions", &Value::from(&self.positions));
         put("positionsByType", &Value::from(&self.positionsByType));
-        put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
         put("ohlcvs", &Value::from(&self.ohlcvs));
         put("clients", &self.clients);
-        put("balance", &self.balance);
+        put("balance", &Value::from(&self.balance));
         put("liquidations", &Value::from(&self.liquidations));
         put("myLiquidations", &Value::from(&self.myLiquidations));
         put("transactions", &self.transactions);
@@ -2680,14 +2817,16 @@ impl Exchange {
         );
         put("reduceFees", &self.reduceFees);
         put("minFundingAddressLength", &self.minFundingAddressLength);
-        put("networkAliases", &self.networkAliases);
+        put("networkAliases", &Value::from(&self.networkAliases));
         put("MAX_VALUE", &self.MAX_VALUE);
         put("returnResponseHeaders", &self.returnResponseHeaders);
-        put("httpExceptions", &self.httpExceptions);
+        put("httpExceptions", &Value::Dict(self.httpExceptions.clone()));
         put("status", &self.status);
         put("userAgent", &self.userAgent);
         put("user_agent", &self.user_agent);
-        put("userAgents", &self.userAgents);
+        put("userAgents", &Value::Dict(self.userAgents.clone()));
+        // Typed `Dict` field: one Arc share straight into the map, not a temporary `Value` cloned again by `put`.
+        m.insert("tickers".to_string(), Value::from(&self.tickers));
         Value::Map(m)
     }
 
@@ -2763,9 +2902,6 @@ impl Exchange {
         }
         Value::Null
     }
-    pub fn is_binary_message_var(&self, v: Value, _optional_args: &[Value]) -> Value {
-        Value::Bool(is_byte_array(&v))
-    }
     /// `ymd(timestamp, infix='')` — like `yyyymmdd` but the infix
     /// defaults to empty (TS `functions/time.ts`).
     pub fn ymd(&self, ts: Value, optional_args: &[Value]) -> Value {
@@ -2778,7 +2914,7 @@ impl Exchange {
     pub fn safe_float_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_float(obj.clone(), k, &[]);
+                let v = self.safe_float(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -2787,7 +2923,7 @@ impl Exchange {
         arg_default(optional_args)
     }
     pub fn safe_float2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_float(obj.clone(), k1, &[]);
+        let v = self.safe_float(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -2840,8 +2976,9 @@ impl Exchange {
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
-    pub fn urlencode_nested(&self, v: impl Into<Value>, _optional_args: &[Value]) -> String {
-        let Value::Dict(m) = Into::<Value>::into(v) else {
+    pub fn urlencode_nested(&self, v: impl crate::value::EncodeOperand, _optional_args: &[Value]) -> String {
+        v.with_operand(|v| {
+        let Value::Dict(m) = v else {
             return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
@@ -2849,6 +2986,7 @@ impl Exchange {
             urlencode_nested_walk(k, val, &mut pairs);
         }
         pairs.join("&")
+        })
     }
     pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> bool {
         match optional_args.get(0) {
@@ -2951,24 +3089,24 @@ impl Exchange {
     }
     /// `ethGetAddressFromPrivateKey(pk)` — derive the Ethereum address
     /// (keccak256 of the uncompressed secp256k1 public key, last 20 bytes).
-    pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> Value {
+    pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> String {
         use k256::ecdsa::SigningKey;
         let pk_s = match &pk {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
-            _ => return Value::Str(String::new().into()),
+            _ => return String::new(),
         };
         let pk_bytes = match crate::exchange::hex_decode(&pk_s) {
             Some(b) => b,
-            None => return Value::Str(String::new().into()),
+            None => return String::new(),
         };
         let sk = match SigningKey::from_slice(&pk_bytes) {
             Ok(k) => k,
-            Err(_) => return Value::Str(String::new().into()),
+            Err(_) => return String::new(),
         };
         let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
         let pubkey = &point.as_bytes()[1..]; // 64 bytes
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
-        Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
+        format!("0x{}", crate::exchange::hex_encode(&hash[12..32]))
     }
     /// ensures the file path has a whitelisted extension, so users are safeguarded from arbitrary file access
     pub fn ensure_whitelisted_file(&self, p: &Value) {
@@ -3072,8 +3210,9 @@ impl Exchange {
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
-    pub fn rawencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
-        let Value::Dict(m) = Into::<Value>::into(params) else {
+    pub fn rawencode(&self, params: impl crate::value::EncodeOperand, _optional_args: &[Value]) -> String {
+        params.with_operand(|params| {
+        let Value::Dict(m) = params else {
             return String::new();
         };
         let pairs: Vec<String> = m
@@ -3081,6 +3220,7 @@ impl Exchange {
             .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
             .collect();
         pairs.join("&")
+        })
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
@@ -3107,7 +3247,7 @@ impl Exchange {
     /// packed bytes of an action. Returning empty bytes here is enough
     /// to make the call compile; live signing won't be correct.
     /// `packb(value)` — MessagePack-encode a Value into a byte array.
-    pub fn packb(&self, action: Value, _optional_args: &[Value]) -> Value {
+    pub fn packb(&self, action: Value, _optional_args: &[Value]) -> crate::value::Bytes {
         // Narrowest-form MessagePack: non-negative ints as uint, negative as int, floats as f64.
         fn head(buf: &mut Vec<u8>, fix: u8, fix_max: u64, tags: [u8; 4], n: u64) {
             match n {
@@ -3139,7 +3279,7 @@ impl Exchange {
         }
         let mut buf: Vec<u8> = Vec::new();
         enc(&mut buf, &action);
-        Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect())
+        crate::value::Bytes::of(&buf)
     }
 
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
@@ -3176,18 +3316,18 @@ impl Exchange {
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
-    pub fn urlencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
-        self.urlencode_kv(&params.into())
+    pub fn urlencode(&self, params: impl crate::value::EncodeOperand, _optional_args: &[Value]) -> String {
+        params.with_operand(|params| self.urlencode_kv(params))
     }
 
     /// `json(value)` — JSON-stringify.
-    pub fn json(&self, v: Value) -> Value {
-        Value::Str(self.json_str(&v).into())
+    pub fn json(&self, v: impl crate::value::EncodeOperand) -> Value {
+        v.with_operand(|v| Value::Str(self.json_str(v).into()))
     }
 
     /// `encode(s)` — UTF-8 encode string to bytes (as Value::Array of ints).
-    pub fn encode(&self, s: Value) -> crate::value::Bytes {
-        match s {
+    pub fn encode(&self, s: impl std::borrow::Borrow<Value>) -> crate::value::Bytes {
+        match s.borrow() {
             Value::Str(s) => crate::value::Bytes::of(s.as_bytes()),
             _ => crate::value::Bytes::default(),
         }
@@ -3224,19 +3364,21 @@ impl Exchange {
 
     // ── string / number formatting ──────────────────────────────────────────
 
-    pub fn number_to_string(&self, n: Value) -> Option<String> {
+    pub fn number_to_string(&self, n: impl crate::value::ScalarArg) -> Option<String> {
         // TS `numberToString(undefined)` returns undefined — don't
         // stringify a missing value into the literal "null".
-        if matches!(n, Value::Null) {
-            return None;
+        match n.scalar() {
+            ScalarRef::Null => None,
+            ScalarRef::Num(v) => Some(stringify_param(&v)),
+            ScalarRef::Str(s) => Some(s.to_string()),
+            ScalarRef::Other(v) => Some(stringify_param(v)),
         }
-        Some(stringify_param(&n))
     }
 
-    pub fn parse_number(&self, v: Value, optional_args: &[Value]) -> Value {
-        match v {
-            Value::Float(_) | Value::Int(_) => v,
-            Value::Str(ref s) => match s.parse::<f64>() {
+    pub fn parse_number(&self, v: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
+        match v.scalar() {
+            ScalarRef::Num(v) => v,
+            ScalarRef::Str(s) => match s.parse::<f64>() {
                 Ok(n) => Value::Float(n),
                 Err(_) => arg_default(optional_args),
             },
@@ -3244,8 +3386,8 @@ impl Exchange {
         }
     }
 
-    pub fn parse_timeframe(&self, tf: Value) -> i64 {
-        let s = stringify_param(&tf);
+    pub fn parse_timeframe(&self, tf: impl crate::value::ScalarArg) -> i64 {
+        let s = match tf.scalar() { ScalarRef::Str(s) => s.to_string(), ScalarRef::Null => stringify_param(&Value::Null), ScalarRef::Num(v) => stringify_param(&v), ScalarRef::Other(v) => stringify_param(v) };
         let last = s.chars().last().unwrap_or('m');
         let num: i64 = s[..s.len().saturating_sub(1)].parse().unwrap_or(0);
         match last {
@@ -3478,16 +3620,10 @@ impl Exchange {
             return Value::Null;
         }
         let tb = |key: &str| -> Option<f64> {
-            crate::get_value(&self.tokenBucket, &Value::Str(key.to_string().into())).as_f64()
+            self.tokenBucket.at(key).as_f64()
         };
         let rate_limit = self.rateLimit.as_f64().unwrap_or(0.0);
-        let refill_rate = tb("refillRate").unwrap_or_else(|| {
-            if rate_limit > 0.0 {
-                1.0 / rate_limit
-            } else {
-                f64::MAX
-            }
-        });
+        let refill_rate = tb("refillRate").unwrap_or(if rate_limit > 0.0 { 1.0 / rate_limit } else { f64::MAX });
         if !(refill_rate.is_finite() && refill_rate > 0.0) {
             return Value::Null; // effectively unlimited
         }
@@ -3558,41 +3694,38 @@ pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode
     // dedupe by code, keeping the most-precise instance.
     let mut by_code: HashMap<String, HashMap<String, Value>> = HashMap::new();
     for market in market_list {
-        let market_precision = crate::get_value(market, &Value::Str("precision".into()));
+        let market_precision = market.at("precision");
         // base side
         for (id_key, code_key, prec_keys) in [
             ("baseId", "base", ["base", "amount"]),
             ("quoteId", "quote", ["quote", "price"]),
         ] {
-            let code = crate::get_value(market, &Value::Str(code_key.to_string().into()));
-            let code_s = match &code {
+            let code_s = match market.at(code_key) {
                 Value::Str(s) if !s.is_empty() => s.clone(),
                 _ => continue,
             };
-            let id = crate::get_value(market, &Value::Str(id_key.to_string().into()));
-            let id_v = match &id {
+            let id_v = match market.at(id_key) {
                 Value::Null => Value::Str(code_s.clone()),
                 other => other.clone(),
             };
-            let mut precision =
-                crate::get_value(&market_precision, &Value::Str(prec_keys[0].to_string().into()));
+            let mut precision = market_precision.at(prec_keys[0]);
             if matches!(precision, Value::Null) {
-                precision =
-                    crate::get_value(&market_precision, &Value::Str(prec_keys[1].to_string().into()));
+                precision = market_precision.at(prec_keys[1]);
             }
             if matches!(precision, Value::Null) {
-                precision = default_precision.clone();
+                precision = &default_precision;
             }
-            let entry = by_code.entry(code_s.to_string()).or_insert_with(|| {
-                let mut m = HashMap::new();
-                m.insert("id".to_string(), id_v.clone());
-                m.insert("numericId".to_string(), Value::Null);
-                m.insert("code".to_string(), Value::Str(code_s.clone()));
-                m.insert("precision".to_string(), precision.clone());
-                m
-            });
+            let entry = match by_code.entry(code_s.to_string()) {
+                indexmap::map::Entry::Occupied(o) => o.into_mut(),
+                indexmap::map::Entry::Vacant(slot) => slot.insert(HashMap::from([
+                    ("id".to_string(), id_v),
+                    ("numericId".to_string(), Value::Null),
+                    ("code".to_string(), Value::Str(code_s)),
+                    ("precision".to_string(), precision.clone()),
+                ])),
+            };
             let existing_precision = entry.get("precision").cloned().unwrap_or(Value::Null);
-            if more_precise(&precision, &existing_precision) {
+            if more_precise(precision, &existing_precision) {
                 entry.insert("precision".to_string(), precision.clone());
             }
         }
@@ -3626,14 +3759,14 @@ mod built_list_sort_parity_tests {
     fn native_list_sort_matches_boxed_sort() {
         let ex = Exchange::default();
         let sort: fn(&Exchange, Value, Value, &[Value]) -> Value = Exchange::sort_by;
-        let sort2: fn(&Exchange, Value, Value, Value, &[Value]) -> Value = Exchange::sort_by2;
+        let sort2: fn(&Exchange, crate::value::List, Value, Value, &[Value]) -> crate::value::List = Exchange::sort_by2;
         for desc in [false, true] {
             let native: crate::value::List = Arc::new(rows());
             let native = sort(&ex, Value::Arr(native), Value::Str("timestamp".into()), &[Value::Bool(desc)]).into_list();
             assert_eq!(Value::Arr(native), sort(&ex, Value::Array(rows()), Value::Str("timestamp".into()), &[Value::Bool(desc)]));
             let native2: crate::value::List = Arc::new(rows());
-            let native2 = sort2(&ex, Value::Arr(native2), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]).into_list();
-            assert_eq!(Value::Arr(native2), sort2(&ex, Value::Array(rows()), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]));
+            let native2 = sort2(&ex, native2, Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]);
+            assert_eq!(native2, ex.sort_by2(Value::Array(rows()), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]));
         }
     }
 }
@@ -3802,10 +3935,7 @@ mod packb_tests {
     use sha2::{Digest, Sha256};
 
     fn packb_bytes(v: Value) -> Vec<u8> {
-        match Exchange::new(None).packb(v, &[]) {
-            Value::Arr(a) => a.iter().map(|b| match b { Value::Int(i) => *i as u8, _ => panic!("non-int byte") }).collect(),
-            other => panic!("packb returned {:?}", other),
-        }
+        Exchange::new(None).packb(v, &[]).0.iter().map(|b| b.as_i64().expect("non-int byte") as u8).collect()
     }
     fn hex(b: &[u8]) -> String { b.iter().map(|x| format!("{:02x}", x)).collect() }
     fn pack_json(j: &str) -> String { hex(&packb_bytes(Value::from_json(&serde_json::from_str(j).unwrap()))) }

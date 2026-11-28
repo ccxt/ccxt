@@ -12,7 +12,7 @@ function testModPow () {
     // intToBase16 emits uppercase hex in some target languages, assign before toLowerCase (php transpiler)
     // small values
     const small = exchange.modPow (exchange.convertToBigInt ('4'), exchange.convertToBigInt ('13'), exchange.convertToBigInt ('497'));
-    const smallHexRaw = exchange.intToBase16 (small);
+    const smallHexRaw: string = exchange.intToBase16 (small);
     const smallHex = smallHexRaw.toLowerCase ();
     assert (smallHex === '1bd', 'modPow small failed, expected: 1bd, got: ' + smallHex);
 
@@ -20,14 +20,14 @@ function testModPow () {
     // 2 ^ 100 mod (2 ^ 127 - 1) = 2 ^ 100
     const modulus = exchange.convertToBigInt ('0x7fffffffffffffffffffffffffffffff');
     const big = exchange.modPow (exchange.convertToBigInt ('2'), exchange.convertToBigInt ('100'), modulus);
-    const bigHexRaw = exchange.intToBase16 (big);
+    const bigHexRaw: string = exchange.intToBase16 (big);
     const bigHex = bigHexRaw.toLowerCase ();
     assert (bigHex === '10000000000000000000000000', 'modPow big failed, expected: 10000000000000000000000000, got: ' + bigHex);
 
     // 0xffffffffffffffffffff ^ 3 mod (2 ^ 127 - 1)
     const base = exchange.convertToBigInt ('0xffffffffffffffffffff');
     const cubed = exchange.modPow (base, exchange.convertToBigInt ('3'), modulus);
-    const cubedHexRaw = exchange.intToBase16 (cubed);
+    const cubedHexRaw: string = exchange.intToBase16 (cubed);
     const cubedHex = cubedHexRaw.toLowerCase ();
     assert (cubedHex === '200000002fffffffffff9ffffffff', 'modPow cubed failed, expected: 200000002fffffffffff9ffffffff, got: ' + cubedHex);
 }

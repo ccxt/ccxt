@@ -497,7 +497,7 @@ class btcturk extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'pair');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open');
@@ -732,9 +732,8 @@ class btcturk extends Exchange {
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $limitResolved = null;
+        $limitResolved = $limit;
         if ($limit !== null) {
-            $limitResolved = $limit;
             if ($limit > 11000) {
                 $limitResolved = 11000; // max 11000 candles diapason can be covered
             }
@@ -747,7 +746,7 @@ class btcturk extends Exchange {
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitCount = ($limit === null) ? 100 : min($limit, 11000);
-            $limitSeconds = $this->parse_to_int($seconds * ($limitCount - 1));
+            $limitSeconds = $seconds * ($limitCount - 1);
             if ($since !== null) {
                 $sinceSeconds = $this->parse_to_int($since / 1000);
                 $to = $sinceSeconds . $limitSeconds;
@@ -1136,7 +1135,7 @@ class btcturk extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
         $feedback = $this->id . ' ' . $body;

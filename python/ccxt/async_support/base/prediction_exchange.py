@@ -91,7 +91,16 @@ class PredictionExchange(BaseExchange):
         singleQuery = self.safe_string(params, 'query')
         if singleQuery is not None:
             return [singleQuery]
-        return self.safe_list(params, 'queries', [])
+        # every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        rawQueries = self.to_array(self.safe_list(params, 'queries', []))
+        rawQueriesLength = len(rawQueries)
+        queries = []
+        for i in range(0, rawQueriesLength):
+            query = self.safe_string(rawQueries, i)
+            if query is None:
+                raise BadRequest(self.id + ' params.queries must be a list of strings')
+            queries.append(query)
+        return queries
 
     def require_event_query(self, params: dict = {}):
         # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -114,7 +123,7 @@ class PredictionExchange(BaseExchange):
             scopeKey = extraScopeParams[i]
             if scopeKey in params:
                 return None
-            extraNames = extraNames + ', ' + scopeKey
+            extraNames = extraNames + ', ' + self.safe_string(extraScopeParams, i, '')
         raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search')
 
     def apply_event_fetch_params(self, events: list[object], params: dict = {}, queries: Strings = None):
@@ -146,14 +155,14 @@ class PredictionExchange(BaseExchange):
             result = self.filter_events_by_search_in(result, queries, self.safe_string(params, 'searchIn'))
         sort = self.safe_string(params, 'sort')
         if sort is not None:
-            sortKey = None
+            sortKey = ''
             if sort == 'volume':
                 sortKey = 'volume'
             elif sort == 'liquidity':
                 sortKey = 'liquidity'
             elif sort == 'newest':
                 sortKey = 'created'
-            if sortKey is not None:
+            if sortKey != '':
                 # normalize the sort key on every row first — sortBy reads it with a raw
                 # subscript, which raises KeyError/undefined-index in Python/PHP when a
                 # venue's parsed event omits the field (JS alone tolerates the miss)
@@ -165,9 +174,10 @@ class PredictionExchange(BaseExchange):
             # clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             # via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             resultLength = len(result)
-            sliceEnd = limit
-            if sliceEnd > resultLength:
-                sliceEnd = resultLength
+            limitValue = self.safe_integer(params, 'limit', 0)
+            sliceEnd = resultLength
+            if limitValue < resultLength:
+                sliceEnd = limitValue
             result = self.array_slice(result, 0, sliceEnd)
         return result
 
@@ -203,13 +213,9 @@ class PredictionExchange(BaseExchange):
             matched = False
             for qi in range(0, queriesLength):
                 q = self.safe_string(queries, qi, '').lower()
-                if title is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing title')
                 if checkTitle and (title.find(q) >= 0):
                     matched = True
                     break
-                if description is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing description')
                 if checkDescription and (description.find(q) >= 0):
                     matched = True
                     break
@@ -260,13 +266,14 @@ class PredictionExchange(BaseExchange):
             matched = False
             for ti in range(0, len(eventTags)):
                 tag = eventTags[ti]
-                tagLabel = None
+                # a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                tagLabel = ''
                 if isinstance(tag, str):
-                    tagLabel = tag
+                    tagLabel = self.safe_string(eventTags, ti, '')
                 else:
-                    tagLabel = self.safe_string_2(tag, 'slug', 'title')
-                if tagLabel is not None:
-                    tagKey = self.normalize_tag_key(tagLabel)
+                    tagLabel = self.safe_string_2(tag, 'slug', 'title', '')
+                tagKey = self.normalize_tag_key(tagLabel)
+                if tagKey != '':
                     for wi in range(0, len(wanted)):
                         if tagKey.find(wanted[wi]) >= 0:
                             matched = True
@@ -525,7 +532,9 @@ class PredictionExchange(BaseExchange):
             self.outcomes_by_id = {}
         outcomesList = self.safe_list(market, 'outcomes', [])
         for j in range(0, len(outcomesList)):
-            oc = outcomesList[j]
+            oc = self.safe_dict(outcomesList, j)
+            if oc is None:
+                continue
             ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol')
             ocId = self.safe_string_2(oc, 'outcomeId', 'id')
             # assign unconditionally — safeString2 keeps the canonical key when present
@@ -595,23 +604,22 @@ class PredictionExchange(BaseExchange):
         # loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         # override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if outcomes is not None:
+            wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
+            loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
+            if loadAll and not wasWarm and not reload:
+                # same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                # request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                coldMiss = False
+                for i in range(0, len(outcomes)):
+                    if not self.has_outcome(outcomes[i]):
+                        coldMiss = True
+                if coldMiss:
+                    await self.load_outcomes()
             missing = []
             for i in range(0, len(outcomes)):
                 if reload or not self.has_outcome(outcomes[i]):
                     missing.append(outcomes[i])
             missingLength = len(missing)
-            wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
-            loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if (missingLength > 0) and (loadAll) and not wasWarm and not reload:
-                # same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                # request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                await self.load_outcomes()
-                stillMissing = []
-                for i in range(0, missingLength):
-                    if not self.has_outcome(missing[i]):
-                        stillMissing.append(missing[i])
-                missing = stillMissing
-                missingLength = len(missing)
             if missingLength > 0:
                 await self.fetch_outcomes(missing)
             return self.outcomes
@@ -629,7 +637,7 @@ class PredictionExchange(BaseExchange):
         :returns dict: the outcome cache
         """
         for i in range(0, len(outcomeSymbols)):
-            await self.fetch_outcome(outcomeSymbols[i])
+            await self.fetch_outcome(self.safe_string(outcomeSymbols, i, ''))
         return self.outcomes
 
     async def load_outcome(self, outcomeSymbol: Str, reload=False):
@@ -683,8 +691,6 @@ class PredictionExchange(BaseExchange):
         letters = 'abcdefghijklmnopqrstuvwxyz'
         for i in range(0, len(rawWords)):
             word = rawWords[i]
-            # inline .length so the php transpiler emits strlen() — the standalone
-            # `const n = str.length;` statement form wrongly becomes count() (array)
             if len(word) == 0:
                 continue
             wordHasLetters = False
@@ -1022,7 +1028,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchSettlements() is not supported yet')
 
-    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj: dict | None = None):
+    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj: Market = None):
         # build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         # ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         # never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1273,7 +1279,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePredictionOpenInterest() is not supported yet')
 
-    def parse_prediction_trades(self, trades: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def parse_prediction_trades(self, trades: list[object], outcomeObj: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
  @ignore
         parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
@@ -1291,14 +1297,14 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(trades)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_prediction_trade(rows[i], outcomeObj)
+            parsed = self.parse_prediction_trade(self.safe_dict(rows, i, {}), outcomeObj)
             trade = self.extend(parsed, params)
             results.append(trade)
         results = self.sort_by_2(results, 'timestamp', 'id')
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(results, 'outcome', outcomeHandle, since, limit, 'timestamp', False)
 
-    def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def parse_prediction_orders(self, orders: list[object], outcomeObj: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
  @ignore
         parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
@@ -1313,7 +1319,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(orders)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_prediction_order(rows[i], outcomeObj)
+            parsed = self.parse_prediction_order(self.safe_dict(rows, i, {}), outcomeObj)
             order = self.extend(parsed, params)
             results.append(order)
         results = self.sort_by(results, 'timestamp')
@@ -1335,7 +1341,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(positions)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_prediction_position(rows[i])
+            parsed = self.parse_prediction_position(self.safe_dict(rows, i, {}))
             position = self.extend(parsed, params)
             results.append(position)
         return results
@@ -1362,8 +1368,8 @@ class PredictionExchange(BaseExchange):
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.cost_to_precision(marketSymbol, cost)
 
-    def pad_hex_to_even(self, hex: Str):
-        if hex is None:
+    def pad_hex_to_even(self, hex: str):
+        if hex == '':
             return ''
         # prepend a nibble so the hex has an even number of characters (whole bytes)
         hexLength = len(hex)
@@ -1378,11 +1384,11 @@ class PredictionExchange(BaseExchange):
         stripped = self.remove0x_prefix(address)
         return '000000000000000000000000' + stripped
 
-    def rlp_encode_bytes(self, hex: Str):
-        if hex is None:
-            return ''
+    def rlp_encode_bytes(self, hex: str):
         # RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         byteLength = self.parse_to_int(len(hex) / 2)
+        if byteLength is None:
+            return ''
         if byteLength == 0:
             return '80'
         if (byteLength == 1) and (hex < '80'):
@@ -1390,7 +1396,9 @@ class PredictionExchange(BaseExchange):
         if byteLength < 56:
             return self.int_to_base16(128 + byteLength) + hex
         lengthHex = self.int_to_base16(byteLength)
-        lengthHex = self.pad_hex_to_even(lengthHex)
+        lengthHexLength = len(lengthHex)
+        if (lengthHexLength % 2) != 0:
+            lengthHex = '0' + lengthHex
         lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
         return self.int_to_base16(183 + lengthOfLength) + lengthHex + hex
 
@@ -1399,10 +1407,14 @@ class PredictionExchange(BaseExchange):
         for i in range(0, len(items)):
             concatenated = concatenated + self.safe_string(items, i, '')
         byteLength = self.parse_to_int(len(concatenated) / 2)
+        if byteLength is None:
+            return ''
         if byteLength < 56:
             return self.int_to_base16(192 + byteLength) + concatenated
         lengthHex = self.int_to_base16(byteLength)
-        lengthHex = self.pad_hex_to_even(lengthHex)
+        lengthHexLength = len(lengthHex)
+        if (lengthHexLength % 2) != 0:
+            lengthHex = '0' + lengthHex
         lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
         return self.int_to_base16(247 + lengthOfLength) + lengthHex + concatenated
 
@@ -1413,7 +1425,9 @@ class PredictionExchange(BaseExchange):
         if value == 0:
             return ''
         hex = self.int_to_base16(value)
-        hex = self.pad_hex_to_even(hex)
+        hexLength = len(hex)
+        if (hexLength % 2) != 0:
+            hex = '0' + hex
         return hex
 
     def hex_to_rlp_bytes(self, hexValue: Str):
@@ -1461,7 +1475,7 @@ class PredictionExchange(BaseExchange):
         signed = self.sign_evm_transaction(tx, self.privateKey)
         return await self.eth_rpc(rpcUrl, 'eth_sendRawTransaction', [signed])
 
-    async def wait_for_transaction_receipt(self, rpcUrl: Str, txHash: Str, timeout=60000):
+    async def wait_for_transaction_receipt(self, rpcUrl: Str, txHash: Str, timeout: Int = 60000):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])

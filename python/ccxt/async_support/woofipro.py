@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -745,7 +745,8 @@ class woofipro(Exchange, ImplicitAPI):
             parsed = self.parse_currency({'_token': token, '_indexedChains': indexedChains})
             if parsed is None:
                 raise ExchangeError(self.id + ' fetchCurrencies() could not resolve parsed')
-            result[parsed['code']] = parsed
+            parsedCode = self.safe_string(parsed, 'code', '')
+            result[parsedCode] = parsed
         return result
 
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
@@ -805,7 +806,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': token,
         })
 
-    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str) -> dict:
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -845,15 +846,15 @@ class woofipro(Exchange, ImplicitAPI):
         #         "is_maker": "1"
         #     }
         #
-        isFromFetchOrder = ('id' in trade)
+        isFromFetchOrder = (self.safe_string(trade, 'id') is not None)
         timestamp = self.safe_integer(trade, 'executed_timestamp')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string(trade, 'executed_price')
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
-        fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
+        fee = self.parse_token_and_fee_temp(self.extend({}, trade), 'fee_asset', 'fee')
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
         takerOrMaker = None
@@ -1657,7 +1658,7 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(order, 'order_price', 'price')
         amount = self.safe_string_2(order, 'order_quantity', 'quantity')  # This is base amount
         cost = self.safe_string_2(order, 'order_amount', 'amount')  # This is quote amount
@@ -1669,7 +1670,7 @@ class woofipro(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         filled = self.safe_string_n(order, ['total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed'])
         average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
-        fee = self.safe_value_2(order, 'total_fee', 'totalFee')
+        fee = self.safe_number_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_list(order, 'Transactions')
         triggerPrice = self.safe_number(order, 'triggerPrice')
@@ -1785,7 +1786,7 @@ class woofipro(Exchange, ImplicitAPI):
         isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, params)
+        postOnly = self.is_post_only(isMarket, False, params)
         orderQtyKey = 'quantity' if isConditional else 'order_quantity'
         priceKey = 'price' if isConditional else 'order_price'
         typeKey = 'type' if isConditional else 'order_type'
@@ -1933,8 +1934,8 @@ class woofipro(Exchange, ImplicitAPI):
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
@@ -2017,7 +2018,7 @@ class woofipro(Exchange, ImplicitAPI):
             orderType = type.upper()
             timeInForce = self.safe_string_lower(paramsOmitted, 'timeInForce')
             isMarket = orderType == 'MARKET'
-            postOnly = self.is_post_only(isMarket, None, paramsOmitted)
+            postOnly = self.is_post_only(isMarket, False, paramsOmitted)
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -2274,7 +2275,7 @@ class woofipro(Exchange, ImplicitAPI):
         parsedOrders = self.safe_dict(response, 'data', response)
         if parsedOrders is None:
             parsedOrders = {}
-        return self.parse_order(parsedOrders, market)
+        return self.parse_order(self.extend({}, parsedOrders), market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2927,7 +2928,8 @@ class woofipro(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marginModes = await self.fetch_margin_modes([market['symbol']], params)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        marginModes = await self.fetch_margin_modes([marketSymbol], params)
         marginMode = self.safe_dict(marginModes, market['symbol'])
         if marginMode is None:
             raise BadSymbol(self.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol'])
@@ -3314,8 +3316,14 @@ class woofipro(Exchange, ImplicitAPI):
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
                     if path == 'batch-order':
                         ordersList = self.safe_list(requestParams, 'orders', [])
+                        taggedOrders = []
+                        hasOrders = False
                         for i in range(0, len(ordersList)):
-                            requestParams['orders'][i]['order_tag'] = brokerId
+                            orderRow = self.extend(ordersList[i], {'order_tag': brokerId})
+                            taggedOrders.append(orderRow)
+                            hasOrders = True
+                        if hasOrders:
+                            requestParams['orders'] = taggedOrders
                     else:
                         requestParams['order_tag'] = brokerId
                 requestParams = self.keysort(requestParams)
@@ -3350,7 +3358,7 @@ class woofipro(Exchange, ImplicitAPI):
             requestHeaders = authHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

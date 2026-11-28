@@ -327,7 +327,7 @@ export default class predictfun extends Exchange {
         if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
         }
-        const queries = this.parseSearchQueries (params);
+        const queries: string[] = this.parseSearchQueries (params);
         const queriesLength = queries.length;
         const paramsValue: fetchEventsParams = this.omit (params, [ 'query', 'queries' ]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -342,10 +342,10 @@ export default class predictfun extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        let rawTopics: any[] = [];
+        let rawTopics: Dict[] = [];
         if (slug !== undefined) {
             const response = await this.predictfunGetV1CategoriesSlug (this.extend ({ 'slug': slug }, rest));
-            const data = this.safeDict (response, 'data');
+            const data: any = this.safeDict (response, 'data');
             rawTopics = [ data ];
         } else if (queriesLength > 0) {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
@@ -355,8 +355,14 @@ export default class predictfun extends Exchange {
         } else {
             const request: Dict = {};
             const tags = this.safeList (paramsValue, 'tags', []);
-            if (tags.length > 0) {
-                request['tagIds'] = tags.join (',');
+            const tagsLength = tags.length;
+            if (tagsLength > 0) {
+                const tagIds: string[] = [];
+                for (let i = 0; i < tagsLength; i++) {
+                    const tagId: string = this.safeString (tags, i, '');
+                    tagIds.push (tagId);
+                }
+                request['tagIds'] = tagIds.join (',');
             }
             postOmitKeys.push ('limit');
             const paramsCategories: Dict = this.omit (paramsValue, [ 'limit', 'tags' ]);
@@ -548,7 +554,7 @@ export default class predictfun extends Exchange {
         const rawTopicsLength = rawTopics.length;
         const result: any[] = [];
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent (rawTopics[i]);
+            const parsedEvent = this.parseEvent (this.extend ({}, rawTopics[i]));
             result.push (parsedEvent);
             const parsedMarkets: Dict[] = this.safeList (parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
@@ -666,7 +672,7 @@ export default class predictfun extends Exchange {
             //     }
             //
             const data: Dict = this.safeDict (response, 'data', {});
-            const categories = this.safeList (data, 'categories', []) as any[];
+            const categories: Dict[] = this.safeList (data, 'categories', []);
             const categoriesLength = categories.length;
             for (let ci = 0; ci < categoriesLength; ci++) {
                 const category = this.safeDict (categories, ci);
@@ -971,29 +977,36 @@ export default class predictfun extends Exchange {
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    stripPriceFormatting (text: Str): Str {
-        if (text === undefined) {
-            return undefined;
-        }
+    stripPriceFormatting (text: string): string {
         const digits = '0123456789';
         const chars = this.stringToCharsArray (text);
         let stripped = '';
+        let prevCh = '';
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        let pendingComma = false;
         for (let i = 0; i < chars.length; i++) {
             const ch = chars[i];
-            let keep = true;
-            if (ch === '$') {
-                keep = false;
-            } else if (ch === ',') {
+            const isDigit = (digits.indexOf (ch) >= 0);
+            if (pendingComma && !isDigit) {
+                stripped = stripped + ',';
+            }
+            pendingComma = false;
+            if (ch === ',') {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                const prevIsDigit = (i > 0) && (digits.indexOf (chars[i - 1]) >= 0);
-                const nextIsDigit = ((i + 1) < chars.length) && (digits.indexOf (chars[i + 1]) >= 0);
-                keep = !(prevIsDigit && nextIsDigit);
-            }
-            if (keep) {
+                if ((i > 0) && (digits.indexOf (prevCh) >= 0)) {
+                    pendingComma = true;
+                } else {
+                    stripped = stripped + ch;
+                }
+            } else if (ch !== '$') {
                 stripped = stripped + ch;
             }
+            prevCh = ch;
+        }
+        if (pendingComma) {
+            stripped = stripped + ',';
         }
         return stripped;
     }
@@ -1008,7 +1021,7 @@ export default class predictfun extends Exchange {
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    titleForMarketSymbol (topicSlug: Str, title: Str, marketCount: Int = undefined): Str {
+    titleForMarketSymbol (topicSlug: Str, title: Str, marketCount: Int = undefined): string {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
@@ -1016,6 +1029,9 @@ export default class predictfun extends Exchange {
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if ((marketCount === 1) && (topicSlug !== undefined)) {
             return topicSlug;
+        }
+        if (title === undefined) {
+            return '';
         }
         return this.stripPriceFormatting (title);
     }
@@ -1152,7 +1168,7 @@ export default class predictfun extends Exchange {
             const rawOutcome = rawOutcomes[oi];
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            const rawLabel = this.safeStringUpper (rawOutcome, 'name');
+            const rawLabel = this.safeStringUpper (rawOutcome, 'name', '');
             const label = this.stripPriceFormatting (rawLabel);
             const tokenId = this.safeString (rawOutcome, 'onChainId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -1671,9 +1687,13 @@ export default class predictfun extends Exchange {
         if (rawFee !== undefined) {
             const feeType = this.safeString (rawFee, 'type');
             const feeCost = this.safeString (rawFee, 'amount');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let feeCurrency: Str = undefined;
+            if (feeType === 'COLLATERAL') {
+                feeCurrency = 'USDT';
+            }
             fee = {
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'currency': feeCurrency,
                 'cost': this.parseNumber (Precise.stringDiv (feeCost, '1000000000000000000')),
             };
         }
@@ -1762,8 +1782,8 @@ export default class predictfun extends Exchange {
     signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -2011,7 +2031,7 @@ export default class predictfun extends Exchange {
             'strategy': strategy,
         };
         const postOnly = this.safeBool (paramsTaker, 'isPostOnly', false);
-        const [ postOnlyOption, paramsPostOnly ] = this.handlePostOnly (isMarket, postOnly, paramsTaker);
+        const [ postOnlyOption, paramsPostOnly ] = this.handlePostOnly (isMarket, postOnly === true, paramsTaker);
         if (postOnlyOption) {
             data['isPostOnly'] = postOnlyOption;
         }
@@ -2649,7 +2669,7 @@ export default class predictfun extends Exchange {
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }
@@ -2773,10 +2793,8 @@ export default class predictfun extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        let rHex = this.safeString (signature, 'r');
-        let sHex = this.safeString (signature, 's');
-        rHex = this.padHexToEven (rHex);
-        sHex = this.padHexToEven (sHex);
+        const rHex: string = this.padHexToEven (this.safeString (signature, 'r', ''));
+        const sHex: string = this.padHexToEven (this.safeString (signature, 's', ''));
         const yParity = this.safeInteger (signature, 'v');
         const signedFields: string[] = this.arrayConcat (fields, [ this.rlpEncodeBytes (this.intToRlpHex (yParity)), this.rlpEncodeBytes (rHex), this.rlpEncodeBytes (sHex) ]);
         return '0x02' + this.rlpEncodeList (signedFields);
@@ -3032,8 +3050,10 @@ export default class predictfun extends Exchange {
         if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
             delete client.subscriptions[subscribeHash];
         }
-        let messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
-        if (this.safeString (subscription, 'topic') === 'walletEvents') {
+        let messageHashes: string[] = [];
+        if (this.safeString (subscription, 'topic') !== 'walletEvents') {
+            messageHashes = this.safeList (subscription, 'messageHashes', []);
+        } else {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be
@@ -3069,7 +3089,7 @@ export default class predictfun extends Exchange {
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         const isWalletTopic = (this.safeString (subscription, 'topic') === 'walletEvents');
         for (let i = 0; i < messageHashesLength; i++) {
-            this.cleanUnsubscription (client, subMessageHashes[i], messageHashes[i], isWalletTopic);
+            this.cleanUnsubscription (client, this.safeString (subMessageHashes, i), messageHashes[i], isWalletTopic);
         }
         this.cleanCache (subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
@@ -3365,8 +3385,8 @@ export default class predictfun extends Exchange {
      * @param {string} [marketId] the venue market id
      * @returns {object[]} the outcome objects
      */
-    outcomesByMarketId (marketId: Str): any[] {
-        const result: any[] = [];
+    outcomesByMarketId (marketId: Str): Dict[] {
+        const result: Dict[] = [];
         if ((marketId === undefined) || (this.outcomes === undefined)) {
             return result;
         }
@@ -3628,7 +3648,8 @@ export default class predictfun extends Exchange {
         if (topicSlug !== undefined) {
             eventHandle = this.shortenSlug (topicSlug);
         }
-        const label = this.stripPriceFormatting (this.safeStringUpper (details, 'outcomeName'));
+        const rawOutcomeName = this.safeStringUpper (details, 'outcomeName');
+        const label = (rawOutcomeName !== undefined) ? this.stripPriceFormatting (rawOutcomeName) : undefined;
         return {
             'outcome': undefined,
             'outcomeId': undefined,
@@ -3771,9 +3792,13 @@ export default class predictfun extends Exchange {
         let fee: Fee = undefined;
         if (rawFee !== undefined) {
             const feeType = this.safeString (rawFee, 'type');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let feeCurrency: Str = undefined;
+            if (feeType === 'COLLATERAL') {
+                feeCurrency = 'USDT';
+            }
             fee = {
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'currency': feeCurrency,
                 'cost': this.parseNumber (Precise.stringDiv (this.safeString (rawFee, 'amountWei'), '1000000000000000000')),
             };
         }

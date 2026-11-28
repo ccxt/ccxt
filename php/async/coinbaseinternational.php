@@ -586,7 +586,7 @@ class coinbaseinternational extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $instrumentName = $this->safe_string($market, 'instrument_name');
+        $instrumentName = $this->safe_string($market, 'instrument_name', '');
         $lowercaseId = $this->safe_string_lower($market, 'instrument_name');
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'counter_currency');
@@ -637,7 +637,7 @@ class coinbaseinternational extends Exchange {
             if ($optionType === 'call') {
                 $optionTypeLetter = 'C';
             }
-            $strikeString = $this->number_to_string($strike);
+            $strikeString = $this->safe_string($market, 'strike', '');
             $symbol = $symbol . '-' . $strikeString . '-' . $optionTypeLetter;
         }
         $marketStructure = array(
@@ -927,7 +927,14 @@ class coinbaseinternational extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         $isArray = (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)));
         if ($isArray) {
-            return $ohlcv;
+            return array(
+                $this->safe_integer($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
         }
         return array(
             $this->parse8601($this->safe_string_2($ohlcv, 'start', 'time')),
@@ -1021,8 +1028,8 @@ class coinbaseinternational extends Exchange {
         return $this->parse_funding_rate_histories($rawRates, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
-        $fundingRate = $this->parse_funding_rate($info, $market);
+    public function parse_funding_rate_history(array $info, ?array $market = null): array {
+        $fundingRate = $this->parse_funding_rate($this->extend(array(), $info), $market);
         return array(
             'info' => $info,
             'symbol' => $fundingRate['symbol'],
@@ -1092,8 +1099,8 @@ class coinbaseinternational extends Exchange {
         }
         $tickers = array();
         for ($i = 0; $i < count($symbolsResolved); $i++) {
-            $symbol = $this->safe_string($symbolsResolved, $i);
-            if ($symbol === null) {
+            $symbol = $this->safe_string($symbolsResolved, $i, '');
+            if ($symbol === '') {
                 continue;
             }
             $ticker = Async\await($this->fetch_ticker($symbol, $paramsResolved));
@@ -1337,7 +1344,7 @@ class coinbaseinternational extends Exchange {
         }
         Async\await($this->authenticate_v2());
         $code = $this->safe_string($paramsResolved, 'code');
-        $paramsOmitted = $paramsResolved;
+        $paramsOmitted = $this->extend(array(), $paramsResolved);
         if ($this->is_native_deribit_credentials()) {
             $paramsOmitted = $this->omit($paramsResolved, 'code');
         }
@@ -1593,23 +1600,18 @@ class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             $summaries = $this->safe_list($result, 'summaries');
             if ($summaries !== null) {
-                return $this->parse_balance_list($summaries);
+                return $this->parse_balance_list($summaries, $summaries);
             }
-            return $this->parse_balance_list($this->safe_dict($result, 'summaries', array()));
+            // a missing summary row has no currency, so the loop skips it
+            return $this->parse_balance_list($this->safe_dict($result, 'summaries', array()), array( $this->safe_dict($result, 'summaries', array()) ));
         }
-        return $this->parse_balance_list($result);
+        return $this->parse_balance_list($result, $this->safe_list($result, 'summaries', array( $result )));
     }
 
-    public function parse_balance_list(mixed $response): array {
+    public function parse_balance_list(mixed $response, array $summaries): array {
         $result = array(
             'info' => $response,
         );
-        $summaries = array( $response );
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $summaries = $response;
-        } elseif ($this->is_native_deribit_credentials()) {
-            $summaries = $this->safe_list($response, 'summaries', array( $response ));
-        }
         for ($i = 0; $i < count($summaries); $i++) {
             $data = $this->safe_dict($summaries, $i);
             $currencyId = $this->safe_string($data, 'currency');
@@ -2208,7 +2210,7 @@ class coinbaseinternational extends Exchange {
         if ($this->is_native_deribit_credentials() && ($this->safe_bool($market, 'contract', false))) {
             $exchangeAmount = Precise::string_mul($exchangeAmount, $this->safe_string($market, 'contractSize'));
         }
-        return $this->amount_to_precision($market['symbol'], $exchangeAmount);
+        return $this->amount_to_precision($this->safe_string($market, 'symbol'), $exchangeAmount);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -2868,12 +2870,13 @@ class coinbaseinternational extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $paramsResolved = $this->handle_route_and_params('fetchOpenOrders', $params);
+        list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchOpenOrders', 'paginate', false);
+        $nativeDeribit = $this->is_native_deribit_credentials();
+        if ($nativeDeribit && $paginate) {
+            throw new NotSupported($this->id . ' fetchOpenOrders() does not support pagination');
+        }
         $paramsPaginate = $paramsResolved;
-        if ($this->is_native_deribit_credentials()) {
-            list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchOpenOrders', 'paginate', false);
-            if ($paginate) {
-                throw new NotSupported($this->id . ' fetchOpenOrders() does not support pagination');
-            }
+        if ($nativeDeribit) {
             $paramsPaginate = $paramsFinal;
         }
         if ($this->markets === null) {
@@ -2947,12 +2950,13 @@ class coinbaseinternational extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $paramsResolved = $this->handle_route_and_params('fetchMyTrades', $params);
+        list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchMyTrades', 'paginate', false);
+        $nativeDeribit = $this->is_native_deribit_credentials();
+        if ($nativeDeribit && $paginate) {
+            throw new NotSupported($this->id . ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
+        }
         $paramsPaginate = $paramsResolved;
-        if ($this->is_native_deribit_credentials()) {
-            list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchMyTrades', 'paginate', false);
-            if ($paginate) {
-                throw new NotSupported($this->id . ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
-            }
+        if ($nativeDeribit) {
             $paramsPaginate = $paramsFinal;
         }
         if ($this->markets === null) {
@@ -3270,10 +3274,12 @@ class coinbaseinternational extends Exchange {
          */
         $uri = null;
         if (($url !== null) && ($method !== null)) {
-            $uri = $method . ' ' . str_replace('https://', '', $url);
-            $quesPos = mb_strpos($uri, '?');
+            $fullUri = $method . ' ' . str_replace('https://', '', $url);
+            $quesPos = mb_strpos($fullUri, '?');
             if ($quesPos > 0) {
-                $uri = mb_substr($uri, 0, $quesPos - 0);
+                $uri = mb_substr($fullUri, 0, $quesPos - 0);
+            } else {
+                $uri = $fullUri;
             }
         }
         $nonce = $this->random_bytes(16);
@@ -3530,7 +3536,7 @@ class coinbaseinternational extends Exchange {
         return (strlen($this->apiKey) === 8) && (strlen($this->secret) === 43);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //

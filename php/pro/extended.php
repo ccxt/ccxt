@@ -168,7 +168,7 @@ class extended extends \ccxt\async\extended {
                 ),
             );
             $this->extend_exchange_options($defaultOptions);
-            $originalOptions = $this->options['ws']['options'];
+            $originalOptions = $this->safe_dict($this->options['ws'], 'options');
             $originalHeaders = $this->safe_dict($originalOptions, 'headers', array());
             $this->options['ws']['options'] = $this->extend($this->extend(array(), $originalOptions), array(
                 'headers' => $this->extend($this->extend(array(
@@ -473,12 +473,11 @@ class extended extends \ccxt\async\extended {
             return;
         }
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
-            $marketId = $this->safe_string($rawPosition, 'market');
+            $marketId = $this->safe_string($rawPositions[$i], 'market');
             if ($marketId === null) {
                 continue;
             }
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_position($this->safe_dict($rawPositions, $i, array()));
             $newPositions[] = $position;
             $stored->append($position);
         }
@@ -533,13 +532,13 @@ class extended extends \ccxt\async\extended {
         }
         $orders = $this->orders;
         $data = $this->safe_dict($message, 'data', array());
-        $rawOrders = $this->safe_list($data, 'orders');
+        $rawOrders = $this->safe_list($data, 'orders', array());
         $symbols = array();
         $first = $this->safe_dict($rawOrders, 0);
         if ($first === null) {
             return;
         }
-        for ($i = 0; $i < count(($rawOrders)); $i++) {
+        for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->parse_order($this->safe_dict($rawOrders, $i, array()));
             $symbol = $this->safe_string($order, 'symbol');
             $symbols[$symbol] = true;
@@ -784,7 +783,7 @@ class extended extends \ccxt\async\extended {
         }
         $subscription['nonce'] = $nonce;
         for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_trade($data[$i], $market);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()), $market);
             $stored->append($trade);
         }
         $client->resolve($stored, $messageHash);
@@ -869,11 +868,9 @@ class extended extends \ccxt\async\extended {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe', '');
         $candleType = $this->safe_string($subscription, 'candleType', '');
-        $cacheKey = null;
-        if ($candleType === 'trades') {
-            $cacheKey = $timeframe;
-        } else {
-            $cacheKey = $timeframe . ':' . $candleType;
+        $cacheKey = $timeframe;
+        if ($candleType !== 'trades') {
+            $cacheKey = $cacheKey . ':' . $candleType;
         }
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
@@ -911,7 +908,7 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //

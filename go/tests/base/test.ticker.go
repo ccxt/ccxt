@@ -56,15 +56,15 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var market any = nil
 	var isUnrecognizedSymbol bool = false
 	var isFetchTickerCalled bool = (method == "fetchTicker")
-	var symbolForMarket any = func() any {
-		if symbol != nil {
-			return symbol
-		}
-		return exchange.SafeString(entry, "symbol")
-	}()
+	var symbolForMarket any
+	if symbol != nil {
+		symbolForMarket = symbol
+	} else {
+		symbolForMarket = exchange.SafeString(entry, "symbol")
+	}
 	if symbolForMarket != nil {
 		if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
-			market = exchange.Market(symbolForMarket)
+			market = exchange.Market(SafeStringPtr(symbolForMarket))
 		} else {
 			isUnrecognizedSymbol = true
 		}
@@ -149,7 +149,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// each side - big enough to forgive rounding, far too small to
 			// hide a real bug like mismatched units or a wrong-field parse
 			var quoteVolumeDecimals int = exchange.PrecisionFromString(quoteVolume)
-			var quoteQuantum any = exchange.ParsePrecision(exchange.NumberToString(quoteVolumeDecimals))
+			var quoteQuantum *string = exchange.ParsePrecision(SafeStringPtr(exchange.NumberToString(quoteVolumeDecimals)))
 			baseLow = ccxt.Precise.StringSub(baseLow, quoteQuantum)
 			baseHigh = ccxt.Precise.StringAdd(baseHigh, quoteQuantum)
 			Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
@@ -175,7 +175,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// instead of letting it widen the window
 		var changeWindow *string = pricePart
 		if changeDecimals >= 0 {
-			var changeQuantum any = exchange.ParsePrecision(exchange.NumberToString(changeDecimals))
+			var changeQuantum *string = exchange.ParsePrecision(SafeStringPtr(exchange.NumberToString(changeDecimals)))
 			// a change of "0" prints no decimals, so its apparent step is a whole unit
 			// and accepts anything on a micro-priced asset. a per cent of the price
 			// caps it, and covers whole units on a price in the tens of thousands

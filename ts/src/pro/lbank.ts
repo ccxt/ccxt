@@ -215,7 +215,8 @@ export default class lbank extends lbankRest {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
         };
-        return await this.unSubscribe ('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        return await this.unSubscribe ('ohlcv:' + symbolValue + ':' + timeframeId, request, subscription, params);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -544,7 +545,8 @@ export default class lbank extends lbankRest {
             'topic': 'trades',
             'symbols': [ market['symbol'] ],
         };
-        return await this.unSubscribe ('trades:' + market['symbol'], request, subscription, params);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        return await this.unSubscribe ('trades:' + symbolValue, request, subscription, params);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -684,7 +686,7 @@ export default class lbank extends lbankRest {
             message['pair'] = market['id'];
         }
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        const orders: ArrayCacheBySymbolById = await this.watch (url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limit, true);
     }
 
@@ -995,7 +997,7 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId);
-        const orderBook = this.safeDict (message, 'depth', message);
+        const orderBook: Dict = this.safeDict (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -1011,7 +1013,7 @@ export default class lbank extends lbankRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        SERVER: 'V2',
@@ -1023,6 +1025,7 @@ export default class lbank extends lbankRest {
         const errMsg = this.safeString (message, 'message', '');
         const error = new ExchangeError (this.id + ' ' + errMsg);
         client.reject (error);
+        return false;
     }
 
     async handlePing (client: Client, message: Dict) {

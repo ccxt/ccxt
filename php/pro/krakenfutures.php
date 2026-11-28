@@ -151,7 +151,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $length = count($symbolsValue);
         if ($length === 1) {
-            $market = $this->market($marketIds[0]);
+            $market = $this->market($symbolsValue[0]);
             $messageHash .= ':' . $market['symbol'];
         }
         $subscribe['product_ids'] = $marketIds;
@@ -860,7 +860,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $previousOrder['trades'] = array();
                 }
                 $previousOrder['trades'][] = $trade;
-                $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
+                $previousOrder['lastTradeTimestamp'] = $this->safe_integer($trade, 'timestamp');
                 $totalCost = '0';
                 $totalAmount = '0';
                 $trades = $this->safe_list($previousOrder, 'trades', array());
@@ -891,7 +891,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 if (($previousFee['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
                     $stringOrderCost = $this->number_to_string($previousFee['cost']);
                     $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
-                    $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
+                    $previousFee['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
+                    $previousOrder['fee'] = $previousFee;
                 }
                 // update the newUpdates count
                 $orders->append($this->safe_order($previousOrder));
@@ -1533,13 +1534,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->balance === null) {
             $this->balance = array();
         }
-        $updatedBalance = null;
         if ($holding !== null) {
             $holdingKeys = is_array($holding) ? array_keys($holding) : array();                  // cashAccount
             $this->balance['cash'] = $this->safe_dict($this->balance, 'cash', array());
-            $this->balance['cash']['info'] = $message;
-            $this->balance['cash']['timestamp'] = $timestamp;
-            $this->balance['cash']['datetime'] = $this->iso8601($timestamp);
+            $cashBalance = $this->safe_dict($this->balance, 'cash', array());
+            $cashBalance['info'] = $message;
+            $cashBalance['timestamp'] = $timestamp;
+            $cashBalance['datetime'] = $this->iso8601($timestamp);
             $holdingCodes = array();
             for ($i = 0; $i < count($holdingKeys); $i++) {
                 $key = $holdingKeys[$i];
@@ -1548,19 +1549,18 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['total'] = $this->safe_string($holding, $key);
                 if ($code !== null) {
                     $holdingCodes[$code] = true;
-                    $this->balance['cash'][$code] = $newAccount;
+                    $cashBalance[$code] = $newAccount;
                 }
             }
-            $this->balance['cash'] = $this->prune_stale_balance_keys($this->balance['cash'], $holdingCodes);
-            $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
-            $updatedBalance = $this->balance['cash'];
+            $this->balance['cash'] = $this->safe_balance($this->prune_stale_balance_keys($cashBalance, $holdingCodes));
         }
         if ($futures !== null) {
             $futuresKeys = is_array($futures) ? array_keys($futures) : array();                  // marginAccount
             $this->balance['margin'] = $this->safe_dict($this->balance, 'margin', array());
-            $this->balance['margin']['info'] = $message;
-            $this->balance['margin']['timestamp'] = $timestamp;
-            $this->balance['margin']['datetime'] = $this->iso8601($timestamp);
+            $marginBalance = $this->safe_dict($this->balance, 'margin', array());
+            $marginBalance['info'] = $message;
+            $marginBalance['timestamp'] = $timestamp;
+            $marginBalance['datetime'] = $this->iso8601($timestamp);
             $futuresSymbols = array();
             for ($i = 0; $i < count($futuresKeys); $i++) {
                 $key = $futuresKeys[$i];
@@ -1577,22 +1577,19 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $futuresSymbols[$symbol] = true;
                     $symbolAccounts[$code] = $newAccount;
                 }
-                $this->balance['margin'][$symbol] = $symbolAccounts;
+                $marginBalance[$symbol] = $symbolAccounts;
             }
-            $this->balance['margin'] = $this->prune_stale_balance_keys($this->balance['margin'], $futuresSymbols);
-            $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
+            $this->balance['margin'] = $this->safe_balance($this->prune_stale_balance_keys($marginBalance, $futuresSymbols));
             $client->resolve($this->balance['margin'], $messageHash . ':futures');
-            if ($updatedBalance === null) {
-                $updatedBalance = $this->balance['margin'];
-            }
         }
         if ($flexFutures !== null) {
             $flexFutureCurrencies = $this->safe_dict($flexFutures, 'currencies', array());
             $flexFuturesKeys = is_array($flexFutureCurrencies) ? array_keys($flexFutureCurrencies) : array(); // multi-collateral margin account
             $this->balance['flex'] = $this->safe_dict($this->balance, 'flex', array());
-            $this->balance['flex']['info'] = $message;
-            $this->balance['flex']['timestamp'] = $timestamp;
-            $this->balance['flex']['datetime'] = $this->iso8601($timestamp);
+            $flexBalance = $this->safe_dict($this->balance, 'flex', array());
+            $flexBalance['info'] = $message;
+            $flexBalance['timestamp'] = $timestamp;
+            $flexBalance['datetime'] = $this->iso8601($timestamp);
             $flexCodes = array();
             for ($i = 0; $i < count($flexFuturesKeys); $i++) {
                 $key = $flexFuturesKeys[$i];
@@ -1604,22 +1601,22 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['total'] = $this->safe_string($flexFuture, 'quantity');
                 if ($code !== null) {
                     $flexCodes[$code] = true;
-                    $this->balance['flex'][$code] = $newAccount;
+                    $flexBalance[$code] = $newAccount;
                 }
             }
-            $this->balance['flex'] = $this->prune_stale_balance_keys($this->balance['flex'], $flexCodes);
-            $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
+            $this->balance['flex'] = $this->safe_balance($this->prune_stale_balance_keys($flexBalance, $flexCodes));
             $client->resolve($this->balance['flex'], $messageHash . ':flex_futures');
-            if ($updatedBalance === null) {
-                $updatedBalance = $this->balance['flex'];
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if ($updatedBalance !== null) {
-            $client->resolve($updatedBalance, $messageHash);
+        if ($holding !== null) {
+            $client->resolve($this->balance['cash'], $messageHash);
+        } elseif ($futures !== null) {
+            $client->resolve($this->balance['margin'], $messageHash);
+        } elseif ($flexFutures !== null) {
+            $client->resolve($this->balance['flex'], $messageHash);
         }
     }
 
@@ -1739,11 +1736,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function watch_multi_helper(string $unifiedName, string $channelName, mixed $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
+    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
         return Async\async(self::do_watch_multi_helper(...))($unifiedName, $channelName, $symbols, $subscriptionArgs, $params);
     }
 
-    private function do_watch_multi_helper(string $unifiedName, string $channelName, mixed $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
+    private function do_watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1793,7 +1790,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $messageHash;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        event: 'alert',
@@ -1856,7 +1853,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_authenticate(Client $client, array $message): array {
+    public function handle_authenticate(Client $client, array $message) {
         /**
          * @ignore
          * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
@@ -1870,7 +1867,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $event = $this->safe_string($message, 'event');
         $messageHash = 'challenge';
         if ($event !== 'error') {
-            $challenge = $this->safe_value($message, 'message');
+            $challenge = $this->safe_string($message, 'message', '');
             $hashedChallenge = $this->hash($this->encode($challenge), 'sha256', 'binary');
             $base64Secret = base64_decode($this->secret);
             $signature = $this->hmac($hashedChallenge, $base64Secret, 'sha512', 'base64');
@@ -1885,6 +1882,5 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 unset($client->subscriptions[$messageHash]);
             }
         }
-        return $message;
     }
 }

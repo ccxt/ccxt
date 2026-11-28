@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 
 import io.github.ccxt.base.Precise;
 
@@ -54,7 +55,7 @@ public class TestPrecise extends BaseTest
             Assert(Helpers.isEqual(Precise.stringMul(y, a), "6969690000000000000"));
             Assert(Helpers.isEqual(Precise.stringMul(a, y), "6969690000000000000"));
             Assert(Helpers.isEqual(Precise.stringDiv(y, a), "696.969"));
-            Assert(Helpers.isEqual(Precise.stringDiv(y, a, Helpers.opNeg(1)), "690"));
+            Assert(Helpers.isEqual(Precise.stringDiv(y, a, TestHelpers.opNeg(1)), "690"));
             Assert(Helpers.isEqual(Precise.stringDiv(y, a, 0), "696"));
             Assert(Helpers.isEqual(Precise.stringDiv(y, a, 1), "696.9"));
             Assert(Helpers.isEqual(Precise.stringDiv(y, a, 2), "696.96"));
@@ -86,27 +87,27 @@ public class TestPrecise extends BaseTest
             Assert(Helpers.isEqual(Precise.stringMax("3.1415", "-2"), "3.1415"));
             Assert(Helpers.isEqual(Precise.stringMax("-3.1415", "-2"), "-2"));
             Assert(Helpers.isEqual(Precise.stringMax("0.000", "-0.0"), "0"));
-            Assert(!Helpers.isTrue(Precise.stringGt("1.0000", "2")));
+            Assert(!TestHelpers.isTrue(Precise.stringGt("1.0000", "2")));
             Assert(Precise.stringGt("2", "1.2345"));
             Assert(Precise.stringGt("3.1415", "-2"));
-            Assert(!Helpers.isTrue(Precise.stringGt("-3.1415", "-2")));
-            Assert(!Helpers.isTrue(Precise.stringGt("3.1415", "3.1415")));
+            Assert(!TestHelpers.isTrue(Precise.stringGt("-3.1415", "-2")));
+            Assert(!TestHelpers.isTrue(Precise.stringGt("3.1415", "3.1415")));
             Assert(Precise.stringGt("3.14150000000000000000001", "3.1415"));
-            Assert(!Helpers.isTrue(Precise.stringGe("1.0000", "2")));
+            Assert(!TestHelpers.isTrue(Precise.stringGe("1.0000", "2")));
             Assert(Precise.stringGe("2", "1.2345"));
             Assert(Precise.stringGe("3.1415", "-2"));
-            Assert(!Helpers.isTrue(Precise.stringGe("-3.1415", "-2")));
+            Assert(!TestHelpers.isTrue(Precise.stringGe("-3.1415", "-2")));
             Assert(Precise.stringGe("3.1415", "3.1415"));
             Assert(Precise.stringGe("3.14150000000000000000001", "3.1415"));
             Assert(Precise.stringLt("1.0000", "2"));
-            Assert(!Helpers.isTrue(Precise.stringLt("2", "1.2345")));
-            Assert(!Helpers.isTrue(Precise.stringLt("3.1415", "-2")));
+            Assert(!TestHelpers.isTrue(Precise.stringLt("2", "1.2345")));
+            Assert(!TestHelpers.isTrue(Precise.stringLt("3.1415", "-2")));
             Assert(Precise.stringLt("-3.1415", "-2"));
-            Assert(!Helpers.isTrue(Precise.stringLt("3.1415", "3.1415")));
+            Assert(!TestHelpers.isTrue(Precise.stringLt("3.1415", "3.1415")));
             Assert(Precise.stringLt("3.1415", "3.14150000000000000000001"));
             Assert(Precise.stringLe("1.0000", "2"));
-            Assert(!Helpers.isTrue(Precise.stringLe("2", "1.2345")));
-            Assert(!Helpers.isTrue(Precise.stringLe("3.1415", "-2")));
+            Assert(!TestHelpers.isTrue(Precise.stringLe("2", "1.2345")));
+            Assert(!TestHelpers.isTrue(Precise.stringLe("3.1415", "-2")));
             Assert(Precise.stringLe("-3.1415", "-2"));
             Assert(Precise.stringLe("3.1415", "3.1415"));
             Assert(Precise.stringLe("3.1415", "3.14150000000000000000001"));

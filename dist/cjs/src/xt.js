@@ -1783,7 +1783,7 @@ class xt extends xt$1["default"] {
         //
         if (this.safeBool(market, 'spot', false)) {
             const tickers = this.safeList(response, 'result', []);
-            return this.parseTicker(tickers[0], market);
+            return this.parseTicker(this.safeDict(tickers, 0, {}), market);
         }
         const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
@@ -1805,7 +1805,10 @@ class xt extends xt$1["default"] {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const request = {};
         let response = undefined;
@@ -1871,8 +1874,8 @@ class xt extends xt$1["default"] {
         const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker(tickers[i], market);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker(this.safeDict(tickers, i, {}), market);
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1897,7 +1900,10 @@ class xt extends xt$1["default"] {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchBidsAsks', market, paramsMarketType);
@@ -1954,17 +1960,16 @@ class xt extends xt$1["default"] {
         const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const rawTicker = tickers[i];
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            const marketId = this.safeString(rawTicker, 's');
+            const marketId = this.safeString(tickers[i], 's');
             let marketType = 'spot';
             if (isContract) {
                 marketType = 'contract';
             }
             const marketInner = this.safeMarket(marketId, market, '_', marketType);
-            const ticker = this.parseTicker(rawTicker, marketInner);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker(this.safeDict(tickers, i, {}), marketInner);
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -2024,7 +2029,7 @@ class xt extends xt$1["default"] {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, '_', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 't');
         const open = this.safeString(ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -2509,7 +2514,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        let balances = undefined;
+        let balances = [];
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeList(response, 'result', []);
         }
@@ -2748,7 +2753,7 @@ class xt extends xt$1["default"] {
             }
             request['positionSide'] = requestType;
         }
-        let response = {};
+        let response = undefined;
         const triggerPrice = this.safeNumber2(paramsOmitted4, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2(paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2(paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
@@ -2846,7 +2851,7 @@ class xt extends xt$1["default"] {
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -3744,8 +3749,10 @@ class xt extends xt$1["default"] {
         //     }
         //
         const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
-        const order = isContractResponse ? response : this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        if (isContractResponse) {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, 'result', {}), market);
     }
     /**
      * @method
@@ -4018,7 +4025,9 @@ class xt extends xt$1["default"] {
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        const marketType = ('result' in order) || ('positionSide' in order) ? 'contract' : 'spot';
+        const resultId = this.safeString(order, 'result');
+        const orderPositionSide = this.safeString(order, 'positionSide');
+        const marketType = (resultId !== undefined) || (orderPositionSide !== undefined) ? 'contract' : 'spot';
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = this.safeSymbol(marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2(order, 'time', 'createdTime');
@@ -5281,7 +5290,8 @@ class xt extends xt$1["default"] {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[this.safeString(breakEntry, 'symbol', '') + '_' + this.safeString(breakEntry, 'positionSide', '')] = breakEntry;
+            const breakKey = this.safeString(breakEntry, 'symbol', '') + '_' + this.safeString(breakEntry, 'positionSide', '');
+            breakBySymbolSide[breakKey] = breakEntry;
         }
         return breakBySymbolSide;
     }
@@ -5293,13 +5303,12 @@ class xt extends xt$1["default"] {
      */
     mergePositionBreakInfo(entry, breakBySymbolSide) {
         const breakEntry = this.safeDict(breakBySymbolSide, this.safeString(entry, 'symbol', '') + '_' + this.safeString(entry, 'positionSide', ''));
-        if (breakEntry === undefined) {
-            return entry;
+        const extra = {};
+        if (breakEntry !== undefined) {
+            extra['breakPrice'] = this.safeString(breakEntry, 'breakPrice');
+            extra['calMarkPrice'] = this.safeString(breakEntry, 'calMarkPrice');
         }
-        return this.extend(entry, {
-            'breakPrice': this.safeString(breakEntry, 'breakPrice'),
-            'calMarkPrice': this.safeString(breakEntry, 'calMarkPrice'),
-        });
+        return this.extend(entry, extra);
     }
     /**
      * @method
@@ -5853,8 +5862,10 @@ class xt extends xt$1["default"] {
             //     }
             //
         }
-        const result = (this.safeBool(market, 'swap', false)) ? response : this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        if (this.safeBool(market, 'swap', false)) {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, 'result', {}), market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

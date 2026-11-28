@@ -2388,7 +2388,7 @@ public partial class okx : Exchange
         });
     }
 
-    public override List<object> handleMarketTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
+    public override List<object> handleMarketTypeAndParams(string? methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? instType = this.safeString(parameters, "instType");
@@ -2469,12 +2469,12 @@ public partial class okx : Exchange
         };
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         bool isOption = false;
         if ((marketId != null))
         {
-            List<object> parts = ((string)marketId).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             int partsLength = parts.Count;
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
@@ -2482,14 +2482,14 @@ public partial class okx : Exchange
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = (partsLength > 3) && (((string)marketId).EndsWith("-C") || ((string)marketId).EndsWith("-P"));
+            isOption = (partsLength > 3) && (marketId.EndsWith("-C") || marketId.EndsWith("-P"));
         }
-        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2)))))
+        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
-        return base.safeMarket(marketId, market, delimiter, marketType);
+        return base.safeMarket(marketId, market, delimiter,marketType);
     }
 
     /**
@@ -2833,6 +2833,10 @@ public partial class okx : Exchange
         string? maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         double? maxSpotCost = this.safeNumber(market, "maxMktSz");
+        if (contract)
+        {
+            maxSpotCost = null;
+        }
         bool leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         bool quoteEqualSettle = ((quoteId == settleId));
         bool baseEqualSettle = ((baseId == settleId));
@@ -2883,7 +2887,7 @@ public partial class okx : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", contract ? null : maxSpotCost },
+                    { "max", maxSpotCost },
                 } },
             } },
             { "info", market },
@@ -2902,8 +2906,7 @@ public partial class okx : Exchange
             List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (optionsUnderlying?.Count ?? 0); i++)
             {
-                object underlying = optionsUnderlying[i];
-                request["uly"] = underlying;
+                request["uly"] = this.safeString(optionsUnderlying, i);
                 promises.Add(this.publicGetPublicInstruments(this.extend(request, parameters)));
             }
             List<object> promisesResult = new List<object>(await Task.WhenAll(promises));
@@ -2954,7 +2957,7 @@ public partial class okx : Exchange
         List<object> marketsWithoutTest = new List<object>() {};
         for (int i = 0; i < (dataResponse?.Count ?? 0); i++)
         {
-            object data = dataResponse[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)dataResponse[i]);
             string? instId = this.safeString(data, "instId", "");
             if (instId == "")
             {
@@ -3068,7 +3071,7 @@ public partial class okx : Exchange
                 type = "fiat";
             }
             List<object> idParts = networkId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            List<object> parts = ((List<object>)this.arraySlice(idParts, 1));
+            IList<object> parts = this.arraySlice(idParts, 1);
             string chainPart = String.Join("-", parts.ToArray());
             string? networkCode = this.networkIdToCode(chainPart, code);
             if ((networkCode != null))
@@ -3148,7 +3151,7 @@ public partial class okx : Exchange
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
         bool isFullBook = ((method == "publicGetMarketBooksFull"));
-        bool largeLimit = (((limit == null)) && isFullBook) || (((limit != null)) && ((limit > 400)));
+        bool largeLimit = (((limit == null)) && isFullBook) || (((limit != null)) && (limit > 400));
         Int64? limitResolved = ((rpi == true) && largeLimit) ? 400 : requestedLimit;
         request["sz"] = limitResolved; // max 400
         Dictionary<string, object> response = null;
@@ -3193,7 +3196,7 @@ public partial class okx : Exchange
         return this.parseOrderBook(first, symbol, timestamp);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3234,8 +3237,8 @@ public partial class okx : Exchange
         }
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-", marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-",marketType);
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
@@ -3337,7 +3340,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3424,7 +3427,7 @@ public partial class okx : Exchange
         // }
         //
         List<object> data = this.safeList(response, "data");
-        return this.parseTicker(this.safeDict(data, 0), market);
+        return this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -3443,7 +3446,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3522,7 +3525,7 @@ public partial class okx : Exchange
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "fillPx", "px");
         string? amount = this.safeString2(trade, "fillSz", "sz");
@@ -3657,7 +3660,7 @@ public partial class okx : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -3672,8 +3675,9 @@ public partial class okx : Exchange
         //         "0" // candlestick state
         //     ]
         //
-        string? type = ((string)this.handleMarketTypeAndParams("fetchOHLCV", market, null)[0]);
-        int volumeIndex = (type == "spot") ? 5 : 6;
+        IList<object> typeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOHLCV", market, null);
+        string? type = (string)typeVariable[0];
+        int volumeIndex = ((type == "spot")) ? 5 : 6;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
 
@@ -3729,10 +3733,10 @@ public partial class okx : Exchange
         {
             requestMaxLimit = 100;
         }
-        object limitResolved = 100;
+        Int64? limitResolved = this.parseToInt(100);
         if ((limit != null))
         {
-            limitResolved = Math.Min(limit.Value, requestMaxLimit);
+            limitResolved = this.parseToInt(Math.Min(limit.Value, requestMaxLimit));
         }
         int duration = this.parseTimeframe(timeframeVar);
         string? bar = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -3752,14 +3756,14 @@ public partial class okx : Exchange
             Int64 durationInMilliseconds = (duration * 1000L);
             // switch to history candles if since is past the cutoff for current candles
             Int64 historyBorder = (now - ((1439 * durationInMilliseconds)));
-            if ((since < historyBorder))
+            if (since.Value < historyBorder)
             {
                 // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = "HistoryCandles";
             }
-            object startTime = ((since > 1)) ? ((since - 1)) : 0;
+            object startTime = (since > 1) ? ((since - 1)) : 0;
             request["before"] = startTime;
-            request["after"] = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(durationInMilliseconds, limitResolved));
+            request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
         }
         Int64? until = this.safeInteger(paramsPrice, "until");
         if ((until != null))
@@ -3800,9 +3804,9 @@ public partial class okx : Exchange
         {
             if (isHistoryCandles)
             {
-                if (limitIsUndefined && (isEqual(limitResolved, 100)))
+                if (limitIsUndefined && ((limitResolved == 100)))
                 {
-                    limitResolved = 300;
+                    limitResolved = this.parseToInt(300);
                     request["limit"] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, paramsType));
@@ -3902,7 +3906,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rate = data[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
@@ -4031,7 +4035,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instType", this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null)) },
+            { "instType", this.convertToInstrumentType(this.safeString(market, "type")) },
         };
         if ((this.safeBool(market, "spot", false) == true))
         {
@@ -4259,7 +4263,7 @@ public partial class okx : Exchange
         return await this.CreateOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -4288,7 +4292,7 @@ public partial class okx : Exchange
         }
         bool? spot = this.safeBool(market, "spot", false);
         bool? contract = this.safeBool(market, "contract");
-        object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         double? tpOrdPx = this.safeNumber(parameters, "tpOrdPx", price);
@@ -4390,7 +4394,7 @@ public partial class okx : Exchange
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(orderParams, "tgtCcy", defaultTgtCcy);
         // conditional sell orders must not carry tgtCcy
-        if (((contract != true)) && (!margin) && (trigger || (!conditional) || (!(side == "sell"))))
+        if (((contract != true)) && (!margin) && (trigger || (!conditional) || ((side != "sell"))))
         {
             request["tgtCcy"] = tgtCcy;
         }
@@ -4407,26 +4411,27 @@ public partial class okx : Exchange
                     (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(orderParams, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
                     IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
-                    object notional = this.safeNumber2(paramsRequiresPrice, "cost", "sz");
+                    double? notionalParam = this.safeNumber2(paramsRequiresPrice, "cost", "sz");
+                    object notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, new List<object>() {"cost", "sz"});
                     if ((createMarketBuyOrderRequiresPrice == true))
                     {
                         if ((price != null))
                         {
-                            if ((notional == null))
+                            if ((notionalParam == null))
                             {
                                 string? amountString = this.numberToString(amount);
                                 string? priceString = this.numberToString(price);
                                 string? quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
-                        } else if ((notional == null))
+                        } else if ((notionalParam == null))
                         {
                             throw new InvalidOrder ((this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
-                        notional = ((notional == null)) ? amount : notional;
+                        notional = ((notionalParam == null)) ? amount : notionalParam;
                     }
                     request["sz"] = this.costToPrecision(symbol, notional);
                 }
@@ -4466,7 +4471,7 @@ public partial class okx : Exchange
             Dictionary<string, object> attachAlgoOrd = new Dictionary<string, object>() {};
             if (hasStopLoss)
             {
-                object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
+                string? stopLossTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
                 if ((stopLossTriggerPrice == null))
                 {
                     throw new InvalidOrder ((this.id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
@@ -4474,7 +4479,7 @@ public partial class okx : Exchange
                 string? slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 Dictionary<string, object> slOrder = new Dictionary<string, object>() {};
                 slOrder["slTriggerPx"] = slTriggerPx;
-                object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
+                string? stopLossLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 string? stopLossOrderType = this.safeString(stopLoss, "type");
                 if ((stopLossOrderType != null))
                 {
@@ -4516,14 +4521,14 @@ public partial class okx : Exchange
             }
             if (hasTakeProfit)
             {
-                object takeProfitTriggerPrice = this.safeValueN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "tpTriggerPx"});
+                string? takeProfitTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "tpTriggerPx"});
                 if ((takeProfitTriggerPrice == null))
                 {
                     throw new InvalidOrder ((this.id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
                 Dictionary<string, object> tpOrder = new Dictionary<string, object>() {};
                 tpOrder["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
+                string? takeProfitLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
                 string? takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if ((takeProfitOrderType != null))
                 {
@@ -4763,12 +4768,18 @@ public partial class okx : Exchange
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
-            if ((marketId == null))
-            {
-                throw new ArgumentsRequired ((this.id + " createOrders() requires a symbol for each order")) ;
-            }
             string? type = this.safeString(rawOrder, "type", "");
             string? side = this.safeString(rawOrder, "side");
+            if (((marketId == null)) || ((side == null)))
+            {
+                // a missing side is the createOrderRequest () error
+                string reason = " requires a side argument";
+                if ((marketId == null))
+                {
+                    reason = " createOrders() requires a symbol for each order";
+                }
+                throw new ArgumentsRequired ((this.id + reason)) ;
+            }
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -4803,7 +4814,7 @@ public partial class okx : Exchange
         return this.parseOrders(data);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -5119,11 +5130,10 @@ public partial class okx : Exchange
         Dictionary<string, object> response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
-    public virtual object parseIds(object ids)
+    public virtual List<object> parseIds(object ids)
     {
         /**
          * @ignore
@@ -5137,7 +5147,7 @@ public partial class okx : Exchange
             return ((string)ids).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
         } else
         {
-            return ids;
+            return this.safeStringList(new List<object>() {ids}, new List<object>() {0});
         }
     }
 
@@ -5170,8 +5180,8 @@ public partial class okx : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
-        object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
+        List<object> clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
+        List<object> algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = ((trigger == true));
@@ -5181,10 +5191,10 @@ public partial class okx : Exchange
         }
         if ((clientOrderIds == null))
         {
-            object orderIds = this.parseIds(ids);
+            List<object> orderIds = this.parseIds(ids);
             if ((algoIds != null))
             {
-                for (int i = 0; i < getArrayLength(algoIds); i++)
+                for (int i = 0; i < (algoIds?.Count ?? 0); i++)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "algoId", this.safeString(algoIds, i) },
@@ -5192,25 +5202,28 @@ public partial class okx : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(orderIds); i++)
+            if ((orderIds != null))
             {
-                if ((trailing == true) || isTrigger)
+                for (int i = 0; i < (orderIds?.Count ?? 0); i++)
                 {
-                    request.Add(new Dictionary<string, object>() {
-                        { "algoId", this.safeString(orderIds, i) },
-                        { "instId", (market.ContainsKey("id") ? market["id"] : null) },
-                    });
-                } else
-                {
-                    request.Add(new Dictionary<string, object>() {
-                        { "ordId", this.safeString(orderIds, i) },
-                        { "instId", (market.ContainsKey("id") ? market["id"] : null) },
-                    });
+                    if ((trailing == true) || isTrigger)
+                    {
+                        request.Add(new Dictionary<string, object>() {
+                            { "algoId", this.safeString(orderIds, i) },
+                            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+                        });
+                    } else
+                    {
+                        request.Add(new Dictionary<string, object>() {
+                            { "ordId", this.safeString(orderIds, i) },
+                            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+                        });
+                    }
                 }
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(clientOrderIds); i++)
+            for (int i = 0; i < (clientOrderIds?.Count ?? 0); i++)
             {
                 if ((trailing == true) || isTrigger)
                 {
@@ -5384,7 +5397,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Int64? timeOut = 0;
-        if (((timeout != null)) && ((timeout > 0)))
+        if (((timeout != null)) && (timeout > 0))
         {
             timeOut = this.parseToInt(((double?)timeout / 1000));
         }
@@ -5426,7 +5439,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -5693,7 +5706,7 @@ public partial class okx : Exchange
         List<object> attachAlgoOrds = this.safeList(order, "attachAlgoOrds", new List<object>() {});
         for (int i = 0; i < attachAlgoOrds.Count; i++)
         {
-            object attached = attachAlgoOrds[i];
+            IDictionary<string, object> attached = ((IDictionary<string, object>)attachAlgoOrds[i]);
             if ((stopLossPrice == null))
             {
                 stopLossPrice = this.safeNumber(attached, "slTriggerPx");
@@ -5897,8 +5910,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -6630,7 +6642,8 @@ public partial class okx : Exchange
             currency = this.currency(code);
             request["ccy"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        Dictionary<string, object> requestUntil = ((Dictionary<string, object>)getValue(this.handleUntilOption("end", request, paramsMarginMode), 0));
+        IList<object> requestUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsMarginMode);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilVariable[0];
         Dictionary<string, object> response = null;
         if (method == "privateGetAccountBillsArchive")
         {
@@ -6712,7 +6725,7 @@ public partial class okx : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -6784,7 +6797,7 @@ public partial class okx : Exchange
         }, currencyResolved);
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -6823,7 +6836,7 @@ public partial class okx : Exchange
         }
         string? currencyId = this.safeString(depositAddress, "ccy");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
+        string? code = this.safeString(currencyResolved, "code");
         string? chain = this.safeString(depositAddress, "chain");
         IDictionary<string, object> networks = this.safeDict(currencyResolved, "networks", new Dictionary<string, object>() {});
         Dictionary<string, object> networksById = this.indexBy(networks, "id");
@@ -6929,7 +6942,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> filtered = this.filterBy(data, "selected", true);
-        List<object> parsed = ((List<object>)this.parseDepositAddresses(filtered, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(filtered, new List<object> {this.safeString(currency, "code", "")}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -6971,7 +6984,8 @@ public partial class okx : Exchange
             return ccxt.BaseExchange.ToDepositAddress(this.safeDict(response, codeNetwork));
         }
         // if the network is not specified, return the first address
-        List<object> keys = new List<object>(response.Keys);
+        Dictionary<string, object> responseDict = this.extend(new Dictionary<string, object>() {}, response);
+        List<object> keys = new List<object>(responseDict.Keys);
         string? first = this.safeString(keys, 0, "");
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(response, first));
     }
@@ -7000,7 +7014,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        bool hasTag = ((tagWithdrawTag != null)) && (tagWithdrawTag.Length > 0);
+        bool hasTag = ((tagWithdrawTag != null)) && (!(tagWithdrawTag == ""));
         string addressWithTag = address;
         if (hasTag)
         {
@@ -7019,7 +7033,7 @@ public partial class okx : Exchange
             string networkUpper = network.ToUpper();
             string? networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
             network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
-            request["chain"] = add(add((currency.ContainsKey("id") ? currency["id"] : null), "-"), network);
+            request["chain"] = ((this.safeString(currency, "id", "") + "-") + network);
         }
         List<object> omitKeys = new List<object>() {"fee"};
         if ((network != null))
@@ -7362,7 +7376,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -7434,7 +7448,7 @@ public partial class okx : Exchange
         if ((chain != null))
         {
             List<object> chainParts = chain.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            List<object> networkParts = ((List<object>)this.arraySlice(chainParts, 1));
+            IList<object> networkParts = this.arraySlice(chainParts, 1);
             string networkId = String.Join("-", networkParts.ToArray());
             network = this.networkIdToCode(networkId, code);
         }
@@ -7525,32 +7539,44 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
-    }
-
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
-    {
         string? marketId = null;
-        string? marginMode = null;
+        string? rowMarginMode = null;
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
-        for (int i = 0; i < getArrayLength(leverage); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            IDictionary<string, object> entry = this.safeDict(leverage, i);
-            marginMode = this.safeStringLower(entry, "mgnMode");
+            IDictionary<string, object> entry = this.safeDict(data, i);
+            rowMarginMode = this.safeStringLower(entry, "mgnMode");
             marketId = this.safeString(entry, "instId");
             string? positionSide = this.safeStringLower(entry, "posSide");
-            if (positionSide == "long")
+            Int64? lever = this.safeInteger(entry, "lever");
+            if (positionSide != "short")
             {
-                longLeverage = this.safeInteger(entry, "lever");
-            } else if (positionSide == "short")
-            {
-                shortLeverage = this.safeInteger(entry, "lever");
-            } else
-            {
-                longLeverage = this.safeInteger(entry, "lever");
-                shortLeverage = this.safeInteger(entry, "lever");
+                longLeverage = lever;
             }
+            if (positionSide != "long")
+            {
+                shortLeverage = lever;
+            }
+        }
+        return ccxt.BaseExchange.ToLeverage(new Dictionary<string, object>() {             { "info", data },             { "symbol", this.safeSymbol(marketId, market) },             { "marginMode", rowMarginMode },             { "longLeverage", longLeverage },             { "shortLeverage", shortLeverage },         });
+    }
+
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
+    {
+        string? marketId = this.safeString(leverage, "instId");
+        string? positionSide = this.safeStringLower(leverage, "posSide");
+        Int64? lever = this.safeInteger(leverage, "lever");
+        string? marginMode = this.safeStringLower(leverage, "mgnMode");
+        Int64? longLeverage = null;
+        Int64? shortLeverage = null;
+        if (positionSide != "short")
+        {
+            longLeverage = lever;
+        }
+        if (positionSide != "long")
+        {
+            shortLeverage = lever;
         }
         return new Dictionary<string, object>() {
             { "info", leverage },
@@ -7671,7 +7697,8 @@ public partial class okx : Exchange
             {
                 string? entry = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(entry);
-                marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+                string? marketId = this.safeString(market, "id", "");
+                marketIds.Add(marketId);
             }
             int marketIdsLength = (marketIds?.Count ?? 0);
             if (marketIdsLength > 0)
@@ -7739,9 +7766,10 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            result.Add(this.parsePosition(positions[i]));
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}));
+            result.Add(parsedPosition);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(this.toArray(symbols))));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols)));
     }
 
     /**
@@ -7760,7 +7788,7 @@ public partial class okx : Exchange
         return await this.FetchPositions(new List<object>() {symbol}, parameters);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -7829,8 +7857,8 @@ public partial class okx : Exchange
         //    }
         //
         string? marketId = this.safeString(position, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "contract");
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString2(position, "posSide", "direction");
@@ -7845,7 +7873,7 @@ public partial class okx : Exchange
                 string? parsedCurrency = this.safeCurrencyCode(posCcy);
                 if ((parsedCurrency != null))
                 {
-                    side = (isEqual((marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null), parsedCurrency)) ? "long" : "short";
+                    side = ((this.safeString(marketResolved, "base") == parsedCurrency)) ? "long" : "short";
                 }
             }
             if ((side == null))
@@ -8026,7 +8054,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(rawTransfer, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer
@@ -8242,7 +8270,7 @@ public partial class okx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArray = ((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         string request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
@@ -8268,7 +8296,7 @@ public partial class okx : Exchange
             if ((method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")))
             {
                 string brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
-                if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if (((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     for (int i = 0; i < getArrayLength(parameters); i++)
                     {
@@ -8276,9 +8304,10 @@ public partial class okx : Exchange
                         string? clientOrderId = this.safeString(entry, "clOrdId");
                         if ((clientOrderId == null))
                         {
-                            ((IDictionary<string,object>)entry)["clOrdId"] = (brokerId + this.uuid16());
-                            ((IDictionary<string,object>)entry)["tag"] = brokerId;
-                            ((List<object>)parameters)[Convert.ToInt32(i)] = entry;
+                            Dictionary<string, object> taggedEntry = this.extend(new Dictionary<string, object>() {}, entry);
+                            taggedEntry["clOrdId"] = (brokerId + this.uuid16());
+                            taggedEntry["tag"] = brokerId;
+                            ((List<object>)parameters)[Convert.ToInt32(i)] = taggedEntry;
                         }
                     }
                 } else
@@ -8316,7 +8345,7 @@ public partial class okx : Exchange
                 }
                 privateHeaders["Content-Type"] = "application/json";
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(auth, this.secret, sha256, "base64");
             privateHeaders["OK-ACCESS-SIGN"] = signature;
         }
         string? requestBody = null;
@@ -8333,7 +8362,7 @@ public partial class okx : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -8616,7 +8645,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "ts");
             string? instId = this.safeString(entry, "instId");
             Dictionary<string, object> marketInner = this.safeMarket(instId);
@@ -8738,7 +8767,11 @@ public partial class okx : Exchange
             string? accountId = this.safeString(parameters, "accountId");
             if ((accountId == null))
             {
-                List<object> accountIds = this.getListFromObjectValues(accounts, "id");
+                List<object> accountIds = new List<object>() {};
+                for (int i = 0; i < length; i++)
+                {
+                    accountIds.Add(this.safeString(this.safeDict(accounts, i), "id", ""));
+                }
                 throw new ExchangeError (((this.id + " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ") + String.Join(", ", accountIds.ToArray()))) ;
             } else
             {
@@ -8825,7 +8858,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? lever = this.safeInteger2(parameters, "lever", "leverage");
-        if (((lever == null)) || (((lever == null || lever < 1))) || ((lever > 125)))
+        if (((lever == null)) || (((lever == null || lever < 1))) || (lever > 125))
         {
             throw new BadRequest ((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
         }
@@ -8957,7 +8990,7 @@ public partial class okx : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseBorrowRateHistories(IList<object> response, object codes, Int64? since, Int64? limit)
+    public virtual Dictionary<string, object> parseBorrowRateHistories(IList<object> response, IList<object> codes, Int64? since, Int64? limit)
     {
         //
         //    [
@@ -9008,7 +9041,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(IList<object>? codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9089,10 +9122,10 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(data,code, since, limit));
+        return this.parseBorrowRateHistory(data,code, since, limit);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double amount, string? type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9131,7 +9164,7 @@ public partial class okx : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         // addMargin/reduceMargin
@@ -9193,7 +9226,7 @@ public partial class okx : Exchange
         }
         string? amount = Precise.stringAbs(amountRaw);
         string? marketId = this.safeString(data, "instId");
-        Dictionary<string, object> responseMarket = this.safeMarket(marketId, market);
+        Dictionary<string, object> responseMarket = this.safeMarket(marketId,((IDictionary<string, object>)market));
         object code = (this.safeBool(responseMarket, "inverse", false) == true) ? (responseMarket != null && responseMarket.ContainsKey("base") ? responseMarket["base"] : null) : (responseMarket != null && responseMarket.ContainsKey("quote") ? responseMarket["quote"] : null);
         Int64? timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
@@ -9260,7 +9293,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? type = (this.safeBool(market, "spot", false) == true) ? "MARGIN" : this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
+        string? type = (this.safeBool(market, "spot", false) == true) ? "MARGIN" : this.convertToInstrumentType(this.safeString(market, "type"));
         string? instFamily = this.safeString((market.ContainsKey("info") ? market["info"] : null), "instFamily");
         if (((instFamily == null)) || (instFamily == ""))
         {
@@ -9368,7 +9401,7 @@ public partial class okx : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9427,10 +9460,10 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         string? instId = this.safeString(info, "instId");
-        object marketResolved = ((instId != null)) ? this.safeMarket(instId, market) : market;
+        object marketResolved = ((instId != null)) ? this.safeMarket(instId,((IDictionary<string, object>)market)) : market;
         Int64? timestamp = this.safeInteger(info, "ts");
         return new Dictionary<string, object>() {
             { "info", info },
@@ -9587,7 +9620,7 @@ public partial class okx : Exchange
         {
             throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
-        string? type = this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
+        string? type = this.convertToInstrumentType(this.safeString(market, "type"));
         string? uly = this.safeString((market.ContainsKey("info") ? market["info"] : null), "uly");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", type },
@@ -9637,7 +9670,11 @@ public partial class okx : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         string? marketType = null;
         object paramsSubType = new Dictionary<string, object>() {};
@@ -9723,7 +9760,7 @@ public partial class okx : Exchange
         // handle unified currency code or symbol
         string? currencyId = null;
         IDictionary<string, object> market = null;
-        if ((((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && symbol is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1)))))
+        if ((((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(symbol)))))
         {
             market = this.market(symbol);
             currencyId = this.safeString(market, "baseId");
@@ -9748,7 +9785,7 @@ public partial class okx : Exchange
             };
             IList<object> instrumentRequestWindowparamsWindowVariable = (IList<object>)this.handleTradingStatisticsWindow(instrumentRequest, timeframeValue, since, limit, paramsMarketType);
             var instrumentRequestWindow = instrumentRequestWindowparamsWindowVariable[0];
-            var paramsWindow = instrumentRequestWindowparamsWindowVariable[1];
+            IDictionary<string, object> paramsWindow = ((IDictionary<string, object>)instrumentRequestWindowparamsWindowVariable[1]);
             response = await this.publicGetRubikStatContractsOpenInterestHistory(this.extend(instrumentRequestWindow, paramsWindow));
             //
             //    {
@@ -9766,7 +9803,12 @@ public partial class okx : Exchange
             //    }
             //
             List<object> instrumentData = this.safeList(response, "data", new List<object>() {});
-            return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(instrumentData, market, since, limit));
+            List<object> instrumentInterests = new List<object>() {};
+            for (int i = 0; i < (instrumentData?.Count ?? 0); i++)
+            {
+                instrumentInterests.Add(this.parseOpenInterestRow(this.safeList(instrumentData, i, new List<object>() {}), market));
+            }
+            return ccxt.BaseExchange.ToOpenInterestList(this.filterBySymbolSinceLimit(this.sortBy(instrumentInterests, "timestamp"), this.safeString(market, "symbol"), since, limit));
         }
         if ((type == "option"))
         {
@@ -9800,76 +9842,15 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(data, null, since, limit));
+        List<object> interests = new List<object>() {};
+        for (int i = 0; i < (data?.Count ?? 0); i++)
+        {
+            interests.Add(this.parseOpenInterestRow(this.safeList(data, i, new List<object>() {}), null));
+        }
+        return ccxt.BaseExchange.ToOpenInterestList(this.filterBySymbolSinceLimit(this.sortBy(interests, "timestamp"), null, since, limit));
     }
 
-    /**
-     * @ignore
-     * @method
-     * @name okx#handleTradingStatisticsWindow
-     * @description sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on
-     * @param {object} request the request of the history endpoint
-     * @param {string} period the okx period of the request, e.g. 5m, 1H, 2D, 1M or 6Hutc
-     * @param {int} [since] the earliest time in ms of the entries to fetch
-     * @param {int} [limit] the maximum number of entries to fetch, at most 100
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms of the entries to fetch
-     * @returns {object[]} the request and the remaining params
-     */
-    public virtual List<object> handleTradingStatisticsWindow(IDictionary<string, object> request, object period, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        int maxLimit = 100;
-        Int64? effectiveLimit = 100;
-        if (((limit != null)) && ((100 > limit)))
-        {
-            effectiveLimit = this.parseToInt(limit);
-        }
-        if ((limit != null))
-        {
-            request["limit"] = effectiveLimit;
-        }
-        if ((since != null))
-        {
-            request["begin"] = (since - 1);
-        }
-        Int64? until = this.safeInteger(parameters, "until");
-        Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
-        object end = null;
-        if ((until != null))
-        {
-            end = this.sum(until, 1);
-        }
-        if ((since != null))
-        {
-            // end the window after limit periods, so that the earliest entries from since on come back
-            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-            string? unitPeriod = ((string)(((string)period).EndsWith("utc") ? ((period == null) ? null : ((string)period).Substring(0, Math.Max(((string)period).Length - 3, 0))) : period));
-            string? unit = ((unitPeriod == null) ? null : unitPeriod.Substring(Math.Max(unitPeriod.Length - 1, 0)));
-            object windowDuration = null;
-            if (unit == "M")
-            {
-                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
-                // all entries in it are requested and the caller keeps the earliest limit of them
-                Int64? months = this.parseToInt(((unitPeriod == null) ? null : unitPeriod.Substring(0, Math.Max(unitPeriod.Length - 1, 0))));
-                int day = 86400000;
-                windowDuration = mathMin((((effectiveLimit * months) * 31) * day), (((maxLimit * months) * 28) * day));
-                request["limit"] = maxLimit;
-            } else
-            {
-                windowDuration = ((effectiveLimit * this.parseTimeframe(unitPeriod.ToLower())) * 1000);
-            }
-            object windowEnd = this.sum(since, windowDuration);
-            end = ((end == null)) ? windowEnd : mathMin(end, windowEnd);
-        }
-        if (!(end == null))
-        {
-            request["end"] = end;
-        }
-        return new List<object>() {request, paramsOmitted};
-    }
-
-    public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseOpenInterestRow(IList<object> interest, IDictionary<string, object>? market = null)
     {
         //
         // fetchOpenInterestHistory
@@ -9889,6 +9870,109 @@ public partial class okx : Exchange
         //        "2360916466.88",  // open interest (USD)
         //    ]
         //
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
+        Int64? timestamp = this.safeInteger(interest, 0);
+        double? baseVolume = null;
+        double? quoteVolume = null;
+        double? openInterestAmount = null;
+        double? openInterestValue = null;
+        string? type = this.safeString(this.options, "defaultType");
+        int numFields = interest?.Count ?? 0;
+        if (numFields > 3)
+        {
+            openInterestAmount = this.safeNumber(interest, 1);
+            baseVolume = this.safeNumber(interest, 2);
+            openInterestValue = this.safeNumber(interest, 3);
+        } else if (type == "option")
+        {
+            openInterestAmount = this.safeNumber(interest, 1);
+            baseVolume = this.safeNumber(interest, 2);
+        } else
+        {
+            openInterestValue = this.safeNumber(interest, 1);
+            quoteVolume = this.safeNumber(interest, 2);
+        }
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", this.safeSymbol(null) },
+            { "baseVolume", baseVolume },
+            { "quoteVolume", quoteVolume },
+            { "openInterestAmount", openInterestAmount },
+            { "openInterestValue", openInterestValue },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, marketResolved);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name okx#handleTradingStatisticsWindow
+     * @description sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on
+     * @param {object} request the request of the history endpoint
+     * @param {string} period the okx period of the request, e.g. 5m, 1H, 2D, 1M or 6Hutc
+     * @param {int} [since] the earliest time in ms of the entries to fetch
+     * @param {int} [limit] the maximum number of entries to fetch, at most 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms of the entries to fetch
+     * @returns {object[]} the request and the remaining params
+     */
+    public virtual List<object> handleTradingStatisticsWindow(IDictionary<string, object> request, string period, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        int maxLimit = 100;
+        Int64? effectiveLimit = 100;
+        if (((limit != null)) && (100 > limit.Value))
+        {
+            effectiveLimit = this.parseToInt(limit);
+        }
+        if ((limit != null))
+        {
+            request["limit"] = effectiveLimit;
+        }
+        if ((since != null))
+        {
+            request["begin"] = (since - 1);
+        }
+        Int64? until = this.safeInteger(parameters, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
+        Int64? end = null;
+        if ((until != null))
+        {
+            end = this.parseToInt(this.sum(until, 1));
+        }
+        if ((since != null))
+        {
+            // end the window after limit periods, so that the earliest entries from since on come back
+            // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
+            string? unitPeriod = period.EndsWith("utc") ? ((period == null) ? null : period.Substring(0, Math.Max(period.Length - 3, 0))) : period;
+            string? unit = ((unitPeriod == null) ? null : unitPeriod.Substring(Math.Max(unitPeriod.Length - 1, 0)));
+            object windowDuration = null;
+            if (unit == "M")
+            {
+                // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
+                // all entries in it are requested and the caller keeps the earliest limit of them
+                Int64? months = this.parseToInt(((unitPeriod == null) ? null : unitPeriod.Substring(0, Math.Max(unitPeriod.Length - 1, 0))));
+                int day = 86400000;
+                windowDuration = ((months != null) ? (Int64?)Math.Min((((effectiveLimit.GetValueOrDefault() * months.Value) * 31) * day), (((maxLimit * months.Value) * 28) * day)) : null);
+                request["limit"] = maxLimit;
+            } else
+            {
+                windowDuration = ((effectiveLimit * this.parseTimeframe(unitPeriod.ToLower())) * 1000);
+            }
+            Int64? windowEnd = this.parseToInt(this.sum(since, windowDuration));
+            end = ((end == null)) ? windowEnd : this.parseToInt(((windowEnd != null) ? (Int64?)Math.Min(end.Value, windowEnd.Value) : null));
+        }
+        if ((end != null))
+        {
+            request["end"] = end;
+        }
+        return new List<object>() {request, paramsOmitted};
+    }
+
+    public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
+    {
+        //
         // fetchOpenInterest
         //
         //     {
@@ -9901,43 +9985,14 @@ public partial class okx : Exchange
         //     }
         //
         string? id = this.safeString(interest, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(id, market);
-        Int64? time = this.safeInteger(interest, "ts");
-        Int64? timestamp = this.safeInteger(interest, 0, time);
-        double? baseVolume = null;
-        double? quoteVolume = null;
-        double? openInterestAmount = null;
-        double? openInterestValue = null;
-        string? type = this.safeString(this.options, "defaultType");
-        if (((interest is IList<object>) || (interest.GetType().IsGenericType && interest.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            int numFields = getArrayLength(interest);
-            if (numFields > 3)
-            {
-                openInterestAmount = this.safeNumber(interest, 1);
-                baseVolume = this.safeNumber(interest, 2);
-                openInterestValue = this.safeNumber(interest, 3);
-            } else if (type == "option")
-            {
-                openInterestAmount = this.safeNumber(interest, 1);
-                baseVolume = this.safeNumber(interest, 2);
-            } else
-            {
-                openInterestValue = this.safeNumber(interest, 1);
-                quoteVolume = this.safeNumber(interest, 2);
-            }
-        } else
-        {
-            baseVolume = this.safeNumber(interest, "oiCcy");
-            openInterestAmount = this.safeNumber(interest, "oi");
-            openInterestValue = this.safeNumber(interest, "oiUsd");
-        }
+        Dictionary<string, object> marketResolved = this.safeMarket(id,((IDictionary<string, object>)market));
+        Int64? timestamp = this.safeInteger(interest, "ts");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(id) },
-            { "baseVolume", baseVolume },
-            { "quoteVolume", quoteVolume },
-            { "openInterestAmount", openInterestAmount },
-            { "openInterestValue", openInterestValue },
+            { "baseVolume", this.safeNumber(interest, "oiCcy") },
+            { "quoteVolume", null },
+            { "openInterestAmount", this.safeNumber(interest, "oi") },
+            { "openInterestValue", this.safeNumber(interest, "oiUsd") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", interest },
@@ -10064,10 +10119,14 @@ public partial class okx : Exchange
                 {
                     depositWithdrawFees[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
+                IDictionary<string, object> feeEntry = this.safeDict(depositWithdrawFees, code, new Dictionary<string, object>() {});
                 if ((currencyId != null))
                 {
-                    ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info"))[(string)currencyId] = feeInfo;
+                    IDictionary<string, object> feeEntryInfo = this.safeDict(feeEntry, "info", new Dictionary<string, object>() {});
+                    feeEntryInfo[(string)currencyId] = feeInfo;
+                    feeEntry["info"] = feeEntryInfo;
                 }
+                depositWithdrawFees[(string)code] = feeEntry;
                 string? chain = this.safeString(feeInfo, "chain");
                 if ((chain == null))
                 {
@@ -10087,10 +10146,13 @@ public partial class okx : Exchange
                 string? networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    IDictionary<string, object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new Dictionary<string, object>() {});
+                    feeEntryNetworks[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", withdrawResult },
                         { "deposit", depositResult },
                     };
+                    feeEntry["networks"] = feeEntryNetworks;
+                    depositWithdrawFees[(string)code] = feeEntry;
                 }
             }
         }
@@ -10167,9 +10229,9 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         // rows cover every contract of the instrument family, including expired ids missing from markets
-        List<object> settlements = this.parseSettlements(data, null);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySinceLimit(sorted, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(data, null);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySinceLimit(sorted, since, limit);
     }
 
     /**
@@ -10202,7 +10264,7 @@ public partial class okx : Exchange
             Dictionary<string, object> symbolMarket = this.market(symbol);
             market = symbolMarket;
             request["instId"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
-            request["instType"] = this.convertToInstrumentType((symbolMarket != null && symbolMarket.ContainsKey("type") ? symbolMarket["type"] : null));
+            request["instType"] = this.convertToInstrumentType(this.safeString(symbolMarket, "type"));
         }
         if ((since != null))
         {
@@ -10230,16 +10292,16 @@ public partial class okx : Exchange
             response = await this.privateGetAccountBillsArchive(this.extend(request, query));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parseSettlement(data[i], market));
+            result.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, data[i]), market));
         }
-        List<object> sorted = this.sortBy(result, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
+        List<Dictionary<string, object>> sorted = this.sortBy(result, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object> market)
     {
         //
         //     {
@@ -10274,7 +10336,7 @@ public partial class okx : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
     {
         //
         //     {
@@ -10288,7 +10350,7 @@ public partial class okx : Exchange
         //         "ts":"1684656000000"
         //     }
         //
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(settlements, i);
@@ -10296,7 +10358,7 @@ public partial class okx : Exchange
             List<object> details = this.safeList(entry, "details", new List<object>() {});
             for (int j = 0; j < (details?.Count ?? 0); j++)
             {
-                Dictionary<string, object> settlement = this.parseSettlement(details[j], market);
+                Dictionary<string, object> settlement = this.parseSettlement(this.extend(new Dictionary<string, object>() {}, details[j]), market);
                 result.Add(this.extend(settlement, new Dictionary<string, object>() {
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
@@ -10352,7 +10414,17 @@ public partial class okx : Exchange
         //     }
         //
         List<object> underlyings = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToStringList(this.toArray(this.safeList(underlyings, 0, new List<object>() {})));
+        List<object> first = this.safeList(underlyings, 0, new List<object>() {});
+        List<string> result = new List<string>() {};
+        for (int i = 0; i < first.Count; i++)
+        {
+            string? item = this.safeString(first, i);
+            if ((item != null))
+            {
+                result.Add(item);
+            }
+        }
+        return result;
     }
 
     /**
@@ -10413,7 +10485,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             string? entryMarketId = this.safeString(entry, "instId");
             if ((entryMarketId == marketId))
             {
@@ -10510,7 +10582,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(data, symbolsNormalized));
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(IDictionary<string, object> greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10636,8 +10708,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -10711,7 +10782,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "uly", add((currency.ContainsKey("code") ? currency["code"] : null), "-USD") },
+            { "uly", (this.safeString(currency, "code", "") + "-USD") },
             { "instType", "OPTION" },
         };
         Dictionary<string, object> response = await this.publicGetMarketTickers(this.extend(request, parameters));
@@ -10745,7 +10816,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(result, null, "instId"));
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(IDictionary<string, object> chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10768,7 +10839,7 @@ public partial class okx : Exchange
         //     }
         //
         string? marketId = this.safeString(chain, "instId");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeInteger(chain, "ts");
         return new Dictionary<string, object>() {
             { "info", chain },
@@ -10802,7 +10873,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10810,9 +10881,9 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "baseCcy", ((string)fromCode).ToUpper() },
-            { "quoteCcy", ((string)toCode).ToUpper() },
-            { "rfqSzCcy", ((string)fromCode).ToUpper() },
+            { "baseCcy", fromCode.ToUpper() },
+            { "quoteCcy", toCode.ToUpper() },
+            { "rfqSzCcy", fromCode.ToUpper() },
             { "rfqSz", this.numberToString(amount) },
             { "side", "sell" },
         };
@@ -10861,7 +10932,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, IDictionary<string, object> parameters = null)
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11020,11 +11091,10 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        List<object> rows = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "baseCcy", "quoteCcy", since, limit));
+        return ccxt.BaseExchange.ToConversionList(this.parseConversions(this.safeList(response, "data", new List<object>() {}),code, "baseCcy", "quoteCcy", since, limit));
     }
 
-    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
+    public override Dictionary<string, object> parseConversion(IDictionary<string, object> conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -11130,7 +11200,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
@@ -11168,11 +11238,11 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToCurrencies(result);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //    {
@@ -11197,20 +11267,20 @@ public partial class okx : Exchange
         string? codeError = this.safeString(response, "code");
         if ((codeError != "0") && (codeError != "2"))
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             List<object> data = this.safeList(response, "data", new List<object>() {});
             for (int i = 0; i < (data?.Count ?? 0); i++)
             {
                 IDictionary<string, object> error = this.safeDict(data, i);
                 string? errorCode = this.safeString(error, "sCode");
                 string? message = this.safeString(error, "sMsg");
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             }
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**
@@ -11273,10 +11343,10 @@ public partial class okx : Exchange
         Int64 now = this.milliseconds();
         Int64 oneWeekAgo = (now - 604800000);
         Int64 threeMonthsAgo = (now - 7776000000);
-        if (((since == null)) || ((since != null && since > oneWeekAgo)))
+        if (((since == null)) || (since > oneWeekAgo))
         {
             response = await this.privateGetAccountBills(this.extend(request, paramsOmitted));
-        } else if ((since > threeMonthsAgo))
+        } else if (since > threeMonthsAgo)
         {
             response = await this.privateGetAccountBillsArchive(this.extend(request, paramsOmitted));
         } else
@@ -11415,7 +11485,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, this.toArray(symbols), paramsOmitted);
+        IList<object> positions = this.parsePositions(data, symbols, paramsOmitted);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limitResolved));
     }
 
@@ -11455,7 +11525,7 @@ public partial class okx : Exchange
         }
         IList<object> requestWindowparamsWindowVariable = (IList<object>)this.handleTradingStatisticsWindow(request, period, since, limit, parameters);
         var requestWindow = requestWindowparamsWindowVariable[0];
-        var paramsWindow = requestWindowparamsWindowVariable[1];
+        IDictionary<string, object> paramsWindow = ((IDictionary<string, object>)requestWindowparamsWindowVariable[1]);
         Dictionary<string, object> response = await this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(requestWindow, paramsWindow));
         //
         //     {
@@ -11481,13 +11551,13 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(result, market, since, limit));
     }
 
-    public override object parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLongShortRatio(Dictionary<string, object> info, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(info, "timestamp");
         string? symbol = null;
         if ((market != null))
         {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         return new Dictionary<string, object>() {
             { "info", info },

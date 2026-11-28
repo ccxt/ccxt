@@ -941,11 +941,11 @@ export default class bitbns extends Exchange {
             amountString = this.safeString(trade, 'base_volume');
             costString = this.safeString(trade, 'quote_volume');
         }
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = marketResolved['quote'];
+            const feeCurrencyCode = this.safeString(marketResolved, 'quote');
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,

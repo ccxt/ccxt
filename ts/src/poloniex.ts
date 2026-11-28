@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint, FundingRate } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint, Bool, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -769,11 +769,7 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        let candles: List = [];
-        if (Array.isArray (response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     override async loadMarkets (reload = false, params: Dict = {}) {
@@ -1345,11 +1341,12 @@ export default class poloniex extends Exchange {
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'symbol': market['id'],
         };
         if (this.safeBool (market, 'contract', false)) {
-            const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+            const tickers = await this.fetchTickers ([ marketSymbol ], params);
             const contractTicker = this.safeDict (tickers, symbol);
             return contractTicker as Ticker;
         }
@@ -2125,7 +2122,7 @@ export default class poloniex extends Exchange {
         //         "clientOrderId" : ""
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**
@@ -2363,7 +2360,7 @@ export default class poloniex extends Exchange {
             'side': side,
             'type': type,
         });
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -2421,7 +2418,7 @@ export default class poloniex extends Exchange {
         //       "message":""
         //   }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**
@@ -2617,7 +2614,7 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        const order = this.parseOrder (response);
+        const order = this.parseOrder (this.extend ({}, response));
         order['id'] = idValue;
         return order;
     }
@@ -3003,8 +3000,11 @@ export default class poloniex extends Exchange {
      */
     override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
-        const paramsValue: Dict = extraParams;
+        const prepared: Dict = this.prepareRequestForDepositAddress (code, params);
+        const request = this.safeDict (prepared, 'request');
+        const paramsValue = this.safeDict (prepared, 'query');
+        const currency = this.currency (code);
+        const networkEntry = this.safeDict (prepared, 'networkEntry');
         const response = await this.privatePostWalletsAddress (this.extend (request, paramsValue));
         //
         //     {
@@ -3025,8 +3025,11 @@ export default class poloniex extends Exchange {
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
-        const paramsValue: Dict = extraParams;
+        const prepared: Dict = this.prepareRequestForDepositAddress (code, params);
+        const request = this.safeDict (prepared, 'request');
+        const paramsValue = this.safeDict (prepared, 'query');
+        const currency = this.currency (code);
+        const networkEntry = this.safeDict (prepared, 'networkEntry');
         const response = await this.privateGetWalletsAddresses (this.extend (request, paramsValue));
         //
         //     {
@@ -3041,20 +3044,18 @@ export default class poloniex extends Exchange {
         return this.parseDepositAddressSpecial (response, currency, networkEntry);
     }
 
-    prepareRequestForDepositAddress (code: string, params: Dict = {}): any {
+    prepareRequestForDepositAddress (code: string, params: Dict = {}): Dict {
         if (!(code in this.currencies)) {
             throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
         }
         const currency = this.currency (code);
-        let networkCode: Str = undefined;
-        let query: NullableDict = undefined;
-        [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode === undefined) {
+        const [ networkCodeRaw, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCodeRaw === undefined) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
         }
         let exchangeNetworkId: Str = undefined;
-        networkCode = this.networkIdToCode (networkCode, code);
+        const networkCode = this.networkIdToCode (networkCodeRaw, code);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = this.safeString (networkEntry, 'id');
@@ -3064,10 +3065,15 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'currency': exchangeNetworkId,
         };
-        return [ request, query, currency, networkEntry ];
+        return {
+            'request': request,
+            'query': query,
+            'currency': currency,
+            'networkEntry': networkEntry,
+        };
     }
 
-    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: Dict): DepositAddress {
+    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: NullableDict): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
             address = this.safeString (response, this.safeString (networkEntry, 'id'));
@@ -3499,11 +3505,12 @@ export default class poloniex extends Exchange {
         //
         const depositWithdrawFees: Dict = {};
         const codesValue: Strings = this.marketCodes (codes);
-        const responseKeys = Object.keys (response);
+        const feesById: Dict = this.extend ({}, response);
+        const responseKeys = Object.keys (feesById);
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            const feeInfo = this.safeDict (response, currencyId);
+            const feeInfo = this.safeDict (feesById, currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
@@ -3515,15 +3522,16 @@ export default class poloniex extends Exchange {
                         const rawNetworkId = this.safeString (childChains, j, '');
                         const networkId = rawNetworkId.replace (code, '');
                         const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-                        const networkInfo = this.safeDict (response, networkId);
+                        const networkInfo = this.safeDict (feesById, networkId);
                         const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
+                        const withdrawObject: Dict = { 'fee': withdrawFee, 'percentage': undefined };
+                        if (withdrawFee !== undefined) {
+                            withdrawObject['percentage'] = false;
+                        }
                         if (networkCode !== undefined) {
                             networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                                },
+                                'withdraw': withdrawObject,
                                 'deposit': {
                                     'fee': undefined,
                                     'percentage': undefined,
@@ -3859,7 +3867,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         let mode: Str = 'ONE_WAY';
         if (hedged) {
             mode = 'HEDGE';
@@ -4096,7 +4104,7 @@ export default class poloniex extends Exchange {
         const apiName = api[0];
         const isArray = Array.isArray (params);
         if (method === 'GET' && ('symbol' in params)) {
-            params['symbol'] = this.encodeURIComponent (params['symbol']); // handle symbols like 索拉拉/USDT'
+            params['symbol'] = this.encodeURIComponent (this.safeString (params, 'symbol')); // handle symbols like 索拉拉/USDT'
         }
         const query: Dict = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
@@ -4145,7 +4153,7 @@ export default class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

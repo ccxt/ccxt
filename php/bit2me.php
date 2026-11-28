@@ -424,7 +424,7 @@ class bit2me extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $status = $this->safe_string($market, 'marketEnabled');
-        $fees = $this->fees;
+        $tradingFees = $this->safe_value($this->fees, 'trading');
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -449,8 +449,8 @@ class bit2me extends Exchange {
             'expiryDatetime' => null,
             'strike' => null,
             'optionType' => null,
-            'taker' => $fees['trading']['taker'],
-            'maker' => $fees['trading']['maker'],
+            'taker' => $this->safe_number($tradingFees, 'taker'),
+            'maker' => $this->safe_number($tradingFees, 'maker'),
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
                 'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
@@ -925,8 +925,11 @@ class bit2me extends Exchange {
         } else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $end = ($until !== null) ? $until : $this->milliseconds();
-            $request['startTime'] = $end - $requestLimit * $duration;
+            if ($until !== null) {
+                $request['startTime'] = $until - $requestLimit * $duration;
+            } else {
+                $request['startTime'] = $this->milliseconds() - $requestLimit * $duration;
+            }
         }
         if ($until !== null) {
             $request['endTime'] = $until;
@@ -1067,7 +1070,7 @@ class bit2me extends Exchange {
         //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1121,21 +1124,23 @@ class bit2me extends Exchange {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             $stopLossLimit = $stopLimitPrice;
             if ($stopLossLimit === null) {
-                $stopLossLimit = ($price !== null) ? $this->number_to_string($price) : $stopLossPrice;
+                if ($price !== null) {
+                    $stopLossLimit = $this->number_to_string($price);
+                } else {
+                    $stopLossLimit = $stopLossPrice;
+                }
             }
             $request['stopLimitPrice'] = $this->price_to_precision($symbol, $stopLossLimit);
         } elseif ($isMarketOrder) {
             if ($triggerPrice !== null) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
             }
-            $quoteAmount = null;
             if ($cost !== null) {
-                $quoteAmount = $cost;
+                $request['amount'] = $this->cost_to_precision($symbol, $cost);
+                $request['amountInQuote'] = true;
             } elseif (($side === 'buy') && ($price !== null)) {
                 // the unified convention for market buy orders, the cost to spend is amount * price
                 $quoteAmount = Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price));
-            }
-            if ($quoteAmount !== null) {
                 $request['amount'] = $this->cost_to_precision($symbol, $quoteAmount);
                 $request['amountInQuote'] = true;
             } else {
@@ -1336,9 +1341,12 @@ class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if (($since !== null) || ($until !== null)) {
             $start = ($since !== null) ? $since : 0;
-            $end = ($until !== null) ? $until : $this->milliseconds();
             $request['startTime'] = $this->iso8601($start);
-            $request['endTime'] = $this->iso8601($end);
+            if ($until !== null) {
+                $request['endTime'] = $this->iso8601($until);
+            } else {
+                $request['endTime'] = $this->iso8601($this->milliseconds());
+            }
         }
         $response = $this->privateGetV1TradingOrder($this->extend($request, $query));
         //
@@ -1560,9 +1568,12 @@ class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if (($since !== null) || ($until !== null)) {
             $start = ($since !== null) ? $since : 0;
-            $end = ($until !== null) ? $until : $this->milliseconds();
             $request['startTime'] = $this->iso8601($start);
-            $request['endTime'] = $this->iso8601($end);
+            if ($until !== null) {
+                $request['endTime'] = $this->iso8601($until);
+            } else {
+                $request['endTime'] = $this->iso8601($this->milliseconds());
+            }
         }
         $response = $this->privateGetV1TradingTrade($this->extend($request, $query));
         //
@@ -1868,7 +1879,7 @@ class bit2me extends Exchange {
         return array( 'url' => $fullUrl, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

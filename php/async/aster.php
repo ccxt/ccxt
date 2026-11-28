@@ -1291,7 +1291,7 @@ class aster extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'a');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = 'spot';
-        if (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'positionSide') !== null) {
             $marketType = 'swap';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
@@ -1371,15 +1371,16 @@ class aster extends Exchange {
         if ($sinceDefined) {
             $request['startTime'] = $since;
         }
+        $paramsUntil = $params;
         if ($untilDefined) {
-            $request = $this->handle_until_option('endTime', $request, $params);
+            list($request, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         }
         // use historical endpoint for targeted requests
         if ($sinceDefined) {
             if ($this->safe_bool($market, 'swap', false)) {
-                $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
+                $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $paramsUntil)));
             } else {
-                $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $params)));
+                $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $paramsUntil)));
             }
             //
             // both FAPI and SAPI have same response format
@@ -1398,9 +1399,9 @@ class aster extends Exchange {
             //
         } else {
             if ($this->safe_bool($market, 'swap', false)) {
-                $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $params)));
+                $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $paramsUntil)));
             } else {
-                $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $params)));
+                $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $paramsUntil)));
             }
             //
             // SAPI & FAPI have only one field difference
@@ -1591,12 +1592,12 @@ class aster extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
-        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange' ?? '', $ticker));
+        $isTickerResponse = ($this->safe_string($ticker, 'priceChange') !== null);
         $marketType = null;
         if ($isTickerResponse) {
-            $marketType = (is_array($ticker) && array_key_exists('baseAsset' ?? '', $ticker)) ? 'spot' : 'swap';
+            $marketType = ($this->safe_string($ticker, 'baseAsset') !== null) ? 'spot' : 'swap';
         } else {
-            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId' ?? '', $ticker)) ? 'swap' : 'spot';
+            $marketType = ($this->safe_integer($ticker, 'lastUpdateId') !== null) ? 'swap' : 'spot';
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
@@ -1681,7 +1682,7 @@ class aster extends Exchange {
         //        "askQty": "0.32399"            // only in SPOT
         //    }
         //
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1792,7 +1793,7 @@ class aster extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $marketId = $this->safe_string($rows[$i], 'symbol');
             $safeMarket = $this->safe_market($marketId, null, null, $marketType);
-            $priceData = $this->extend($this->parse_last_price($rows[$i], $safeMarket), $paramsMarketType);
+            $priceData = $this->extend($this->parse_last_price($this->extend(array(), $rows[$i]), $safeMarket), $paramsMarketType);
             $results[] = $priceData;
         }
         $symbolsNormalized2 = $this->market_symbols($symbolsNormalized);
@@ -1958,7 +1959,7 @@ class aster extends Exchange {
         //         "time": 1750146970000
         //     }
         //
-        return $this->parse_funding_rate($response, $market);
+        return $this->parse_funding_rate($this->extend(array(), $response), $market);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2077,7 +2078,7 @@ class aster extends Exchange {
         return $this->parse_funding_rate_histories($response, $market);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -2227,7 +2228,7 @@ class aster extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
@@ -2919,7 +2920,7 @@ class aster extends Exchange {
                 $uppercaseType = 'TAKE_PROFIT';
             }
         }
-        $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         if ($postOnly) {
             $request['timeInForce'] = 'GTX';
         }
@@ -3376,11 +3377,11 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): PromiseInterface {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_margin_adjustment_history(...))($symbol, $type, $since, $limit, $params);
     }
 
-    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()) {
+    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *
@@ -3472,11 +3473,11 @@ class aster extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, float $addOrReduce, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, float $amount, float $addOrReduce, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $addOrReduce, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, float $addOrReduce, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, float $amount, float $addOrReduce, $params = array()) {
         Async\await($this->load_markets_and_sign_in());
         $market = $this->market($symbol);
         $amountValue = $this->amount_to_precision($symbol, $amount);
@@ -3485,7 +3486,7 @@ class aster extends Exchange {
             'symbol' => $market['id'],
             'amount' => $amountValue,
         );
-        $code = $market['quote'];
+        $code = $this->safe_string($market, 'quote');
         $response = Async\await($this->fapiPrivatePostV3PositionMargin($this->extend($request, $params)));
         //
         //     {
@@ -3738,11 +3739,10 @@ class aster extends Exchange {
         $notionalStringAbs = Precise::string_abs($notionalString);
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
-            $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($leverageBracket[$i], 0))) {
                 break;
             }
-            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
+            $maintenanceMarginPercentageString = $this->safe_string($leverageBracket[$i], 1);
         }
         $notional = $this->parse_number($notionalStringAbs);
         $contractsAbs = Precise::string_abs($this->safe_string($position, 'positionAmt'));
@@ -3767,7 +3767,7 @@ class aster extends Exchange {
         $contractSize = $this->safe_number($marketResolved, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         // as oppose to notionalValue
-        $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
+        $linear = ($this->safe_string($position, 'notional') !== null);
         if ($marginMode === 'cross') {
             // calculate collateral
             $precision = $this->safe_dict($marketResolved, 'precision', array());
@@ -4051,11 +4051,10 @@ class aster extends Exchange {
         $leverageBracket = $this->safe_list($leverageBrackets, $symbol, array());
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
-            $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($leverageBracket[$i], 0))) {
                 break;
             }
-            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
+            $maintenanceMarginPercentageString = $this->safe_string($leverageBracket[$i], 1);
         }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');
@@ -4263,7 +4262,9 @@ class aster extends Exchange {
                     $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
                     $result[] = array( $floorValue, $maintenanceMarginPercentage );
                 }
-                $this->options['leverageBrackets'][$symbol] = $result;
+                $leverageBracketsDict = $this->safe_dict($this->options, 'leverageBrackets', array());
+                $leverageBracketsDict[$symbol] = $result;
+                $this->options['leverageBrackets'] = $leverageBracketsDict;
             }
         }
         return $this->options['leverageBrackets'];
@@ -4477,8 +4478,8 @@ class aster extends Exchange {
     public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -4688,7 +4689,7 @@ class aster extends Exchange {
         return null; // just c#
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

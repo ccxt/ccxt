@@ -57,6 +57,7 @@ type BaseExchange struct {
 	requestIds           map[string]int64
 	lastNonce            int64
 	lastNonceSet         bool
+	requestBook          requestBookMu
 	RequiredCredentials  map[string]any
 	HttpExceptions       map[string]any
 	Timeframes           map[string]any
@@ -99,7 +100,7 @@ type BaseExchange struct {
 	ReduceFees           bool
 
 	AccountsById any
-	Accounts     any
+	Accounts     []any
 
 	// timestamps
 	LastRestRequestTimestamp int64
@@ -108,28 +109,28 @@ type BaseExchange struct {
 	Last_request_headers  any
 	Last_response_headers any
 	LastResponseHeaders   any
-	Last_http_response    any
+	Last_http_response    *string
 	LastRequestBody       any
 	Last_request_body     any
 	Last_request_url      any
 	LastRequestUrl        string
-	Headers               any
+	Headers               map[string]any
 	ReturnResponseHeaders bool
 
 	// type check this
 	Number any
 	// keys: plain strings, so `this.ApiKey + ":" + this.Secret` is a native Go concat and an
-	// absent key is "" rather than a nil box. Token/Login/Twofa stay boxed (SetToken writes raw).
+	// absent key is "" rather than a nil box. Token stays boxed (SetToken writes raw).
 	Secret        string
 	ApiKey        string
 	Password      string
 	Uid           string
 	AccountId     string
 	Token         interface{}
-	Login         interface{}
+	Login         string
 	PrivateKey    string
 	WalletAddress string
-	Twofa         interface{}
+	Twofa         string
 
 	httpClient   *http.Client
 	lastProxyURL string
@@ -203,7 +204,7 @@ type BaseExchange struct {
 	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
-	WsClients map[string]any // one websocket client per URL
+	WsClients map[string]*WSClient // one websocket client per URL
 	// the venue frame handler, resolved on the first frame
 	wsHandler func(client any, message any)
 	// ownersStarted guards startOwners (markets load and aux tables only); it is set in the
@@ -214,7 +215,7 @@ type BaseExchange struct {
 	Positions       WsArrayCache            // one cache object, nil until a handler creates it
 	PositionsByType map[string]WsArrayCache // one cache per account type / subaccount
 	// the ws client registry, a plain map keyed by url
-	Clients    map[string]any
+	Clients    map[string]*WSClient
 	newUpdates bool
 	streaming  map[string]any
 
@@ -223,6 +224,12 @@ type BaseExchange struct {
 	// re-derives them after every write) and a read is the dictionary's own map index.
 	UrlsApi         map[string]any            // urls["api"], exactly as stored
 	UrlsApiSections map[string]map[string]any // urls["api"] entries that are dictionaries
+	// the string leaves of UrlsApi / UrlsApiSections, as *string (an absent or non-string entry reads nil)
+	UrlsApiStrings        map[string]*string
+	UrlsApiSectionStrings map[string]map[string]*string
+
+	// exceptions["ws"], exactly as stored (exceptions is written once, at options init)
+	ExceptionsWs map[string]any
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
@@ -283,7 +290,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// the liquidation caches start empty: every reader creates the ArrayCache on nil
 	this.Liquidations = nil
 	this.MyLiquidations = nil
-	this.Clients = make(map[string]any)
+	this.Clients = make(map[string]*WSClient)
 	this.Balance = map[string]any{}
 
 	// beforeNs := time.Now().UnixNano()
@@ -509,7 +516,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
+		if has, isBool := derefScalar(hasFetchCurrencies).(bool); isBool && has {
 			// a nil currencies map stays untyped nil: SetMarkets reads it as "not fetched"
 			if fetchedCurrencies := (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value; fetchedCurrencies != nil {
 				currencies = fetchedCurrencies
@@ -584,7 +591,7 @@ func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 
 	// Type assertion to handle various types for milliseconds
 	ch := make(chan bool)
-	go func() any {
+	go func() {
 		// derefScalar: generated callers may pass typed pointers (SafeInteger's *int64)
 		switch v := derefScalar(milliseconds).(type) {
 		case int:
@@ -599,13 +606,12 @@ func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 		default:
 			// never leave the channel unserved: a silent return deadlocks the caller
 			close(ch)
-			return false
+			return
 		}
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
 		ch <- true
-		return true
 	}()
 	return ch
 }
@@ -673,8 +679,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("[ccxtError]::[%s]::[%s]", e.Type, e.Message)
 }
 
-func NewError(errType any, message ...any) error {
-	typeErr := ToString(errType)
+func NewError(errType string, message ...any) error {
 	msg := ""
 	stack := ""
 	if len(message) > 0 {
@@ -692,7 +697,7 @@ func NewError(errType any, message ...any) error {
 			stack = ToString(message[1])
 		}
 	}
-	return &Error{Type: ErrorType(string(typeErr)), Message: msg, Stack: stack}
+	return &Error{Type: ErrorType(errType), Message: msg, Stack: stack}
 }
 
 func Exception(v ...any) error {
@@ -866,17 +871,17 @@ func (this *BaseExchange) BigToBytes(value any) []byte {
 }
 
 // a present option value of another type is a user error: panic instead of coercing
-func (this *BaseExchange) CheckOptionString(methodName any, optionName any, value any) *string {
+func (this *BaseExchange) CheckOptionString(methodName any, optionName string, value any) *string {
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
 	if s, ok := value.(string); ok {
 		return &s
 	}
-	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a string"))
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + optionName + " must be a string"))
 }
 
-func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value any) *bool {
+func (this *BaseExchange) CheckOptionBool(methodName any, optionName string, value any) *bool {
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
@@ -890,18 +895,30 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 		} else if v == "false" {
 			return &f
 		}
-	case int, int64, float64:
-		if n := ToFloat64(v); n == 1 {
+	case int:
+		if v == 1 {
 			return &t
-		} else if n == 0 {
+		} else if v == 0 {
+			return &f
+		}
+	case int64:
+		if v == 1 {
+			return &t
+		} else if v == 0 {
+			return &f
+		}
+	case float64:
+		if v == 1 {
+			return &t
+		} else if v == 0 {
 			return &f
 		}
 	}
-	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + optionName + " must be a boolean"))
 }
 
 // any JS number box (int, int64, float64) with an integral value reads as int64; fractions, strings and others panic
-func (this *BaseExchange) CheckOptionInteger(methodName any, optionName any, value any) *int64 {
+func (this *BaseExchange) CheckOptionInteger(methodName any, optionName string, value any) *int64 {
 	switch v := derefScalar(value).(type) {
 	case nil:
 		return nil
@@ -916,7 +933,7 @@ func (this *BaseExchange) CheckOptionInteger(methodName any, optionName any, val
 			return &n
 		}
 	}
-	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be an integer"))
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + optionName + " must be an integer"))
 }
 
 func optionMethodLabel(methodName any) string {
@@ -930,18 +947,35 @@ func optionMethodLabel(methodName any) string {
 // entries (options init, SetSandboxMode, EnableDemoTrading). urls is written at config time
 // only, so the generated reads are plain map indexes on these views.
 func (this *BaseExchange) RefreshUrlsViews() {
-	this.UrlsApi = MapTyped(this.Urls["api"])
+	this.UrlsApi, _ = this.Urls["api"].(map[string]any)
 	this.UrlsApiSections = nil
+	this.UrlsApiStrings = nil
+	this.UrlsApiSectionStrings = nil
 	if this.UrlsApi == nil {
 		return
 	}
 	sections := make(map[string]map[string]any, len(this.UrlsApi))
+	leaves := make(map[string]*string, len(this.UrlsApi))
+	sectionLeaves := make(map[string]map[string]*string, len(this.UrlsApi))
 	for key, value := range this.UrlsApi {
-		if section := MapTyped(value); section != nil {
+		leaves[key] = nil
+		if leaf, ok := value.(string); ok {
+			leaves[key] = &leaf
+		}
+		if section, _ := value.(map[string]any); section != nil {
 			sections[key] = section
+			sectionLeaves[key] = make(map[string]*string, len(section))
+			for entry, leaf := range section {
+				sectionLeaves[key][entry] = nil
+				if text, ok := leaf.(string); ok {
+					sectionLeaves[key][entry] = &text
+				}
+			}
 		}
 	}
 	this.UrlsApiSections = sections
+	this.UrlsApiStrings = leaves
+	this.UrlsApiSectionStrings = sectionLeaves
 }
 
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan AsyncResult[any] {
@@ -1381,7 +1415,7 @@ func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 	if markets == nil {
 		panic("Markets not loaded, please call LoadMarkets() first")
 	}
-	market, ok := markets[symbol]
+	market, ok := markets[symbol].(map[string]any)
 	if !ok {
 		return NewMarketInterface(nil)
 	}
@@ -1390,8 +1424,9 @@ func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 
 func (this *BaseExchange) GetMarketsList() []MarketInterface {
 	var markets []MarketInterface
-	for _, market := range this.Markets {
-		markets = append(markets, NewMarketInterface(market))
+	for key := range this.Markets {
+		marketMap, _ := this.Markets[key].(map[string]any)
+		markets = append(markets, NewMarketInterface(marketMap))
 	}
 	return markets
 }
@@ -1401,13 +1436,15 @@ func (this *BaseExchange) GetCurrency(currencyId string) Currency {
 	if !ok {
 		return NewCurrency(nil)
 	}
-	return NewCurrency(currency)
+	row, _ := currency.(map[string]any)
+	return NewCurrency(row)
 }
 
 func (this *BaseExchange) GetCurrenciesList() []Currency {
 	var currencies []Currency
 	for _, currency := range this.Currencies {
-		currencies = append(currencies, NewCurrency(currency))
+		row, _ := currency.(map[string]any)
+		currencies = append(currencies, NewCurrency(row))
 	}
 	return currencies
 }
@@ -1532,29 +1569,29 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	msgHash := parseStarknetBigInt(a)
 	privateKey := parseStarknetBigInt(b)
 	if msgHash == nil || privateKey == nil {
-		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
+		panic(AuthenticationError(this.Id + " extendedStarknetSign() invalid msgHash or privateKey"))
 	}
 	r, s, err := starknetSign(msgHash, privateKey)
 	if err != nil {
-		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
+		panic(AuthenticationError(this.Id + " extendedStarknetSign() failed: " + err.Error()))
 	}
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
-	return starknetGetSelectorFromName(ToString(a)).String()
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a string) string {
+	return starknetGetSelectorFromName(a).String()
 }
 
 func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
 	values, ok := derefScalar(a).([]any)
 	if !ok {
-		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
+		panic(ExchangeError(this.Id + " extendedStarknetComputePoseidonHashOnElements() requires an array"))
 	}
 	felts := make([]*starkfelt.Felt, 0, len(values))
 	for _, value := range values {
 		bigValue := parseStarknetBigInt(value)
 		if bigValue == nil {
-			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
+			panic(ExchangeError(this.Id + " extendedStarknetComputePoseidonHashOnElements() invalid felt value"))
 		}
 		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
 	}
@@ -1670,8 +1707,8 @@ func (this *BaseExchange) EncodeDydxTxForSigning(
 	chainId any,
 	account any,
 	authenticators any,
-	fee any) any {
-	return nil
+	fee any) (string, map[string]any) {
+	return "", nil
 }
 
 func (this *BaseExchange) EncodeDydxTxRaw(signDoc any, signature any) any {
@@ -1719,7 +1756,14 @@ func (this *BaseExchange) UpdateProxySettings() {
 	socksProxy := this.SafeString(proxies, 2)
 
 	hasHttProxyDefined := (httProxy != nil) || (httpsProxy != nil) || (socksProxy != nil)
-	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
+	// same pick as the ts fetch path: the first non-empty agent proxy, else socksProxy
+	anyProxySet := socksProxy
+	if httProxy != nil && *httProxy != "" {
+		anyProxySet = httProxy
+	} else if httpsProxy != nil && *httpsProxy != "" {
+		anyProxySet = httpsProxy
+	}
+	this.CheckConflictingProxies(anyProxySet, proxyUrl)
 
 	if hasHttProxyDefined {
 		proxyUrlStr := ""
@@ -1972,29 +2016,29 @@ func (this *BaseExchange) GetHttpAgentIfNeeded(url string) (any, error) {
 	return nil, nil // no agent needed
 }
 
-func (this *BaseExchange) Ping(client any) any {
+func (this *BaseExchange) Ping(client ClientInterface) any {
 	return nil
 }
 
-func (this *BaseExchange) HandleMessage(client any, message any) {
+func (this *BaseExchange) HandleMessage(client ClientInterface, message any) {
 	// stub to override
 }
 
-func (this *BaseExchange) OnConnected(client any, message any) {
+func (this *BaseExchange) OnConnected(client ClientInterface, message any) {
 	// for user hooks
 	// fmt.Println('Connected to', client.url)
 }
 
-func (this *BaseExchange) OnError(client any, err any) {
-	this.wsClientDeleteIfErrored(client.(ClientInterface).GetUrl())
-	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+func (this *BaseExchange) OnError(client ClientInterface, err any) {
+	this.wsClientDeleteIfErrored(client.GetUrl())
+	client.SetError(fmt.Errorf("%v", err))
 }
 
-func (this *BaseExchange) OnClose(client any, err any) {
-	if client.(ClientInterface).GetError() != nil {
+func (this *BaseExchange) OnClose(client ClientInterface, err any) {
+	if client.GetError() != nil {
 		// connection closed due to an error, do nothing
 	} else {
-		this.wsClientDelete(client.(ClientInterface).GetUrl())
+		this.wsClientDelete(client.GetUrl())
 	}
 }
 
@@ -2004,11 +2048,7 @@ func (this *BaseExchange) Client(url any) *WSClient {
 	// pointer-carried string; normalize once so the assertions below hold
 	url = derefScalar(url)
 	// get-or-create: one client per URL
-	created := this.wsClientGetOrCreate(url.(string), func() any { return this.newWsClient(url) })
-	if client, ok := created.(*WSClient); ok {
-		return client
-	}
-	return nil
+	return this.wsClientGetOrCreate(url.(string), func() *WSClient { return this.newWsClient(url) })
 }
 
 // newWsClient builds one ws client for url.
@@ -2365,7 +2405,7 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
 // synchronous: it returns a nil channel (nothing to await, Spawn resolves nil); failures panic into Spawn
-func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[bool] {
+func (this *Exchange) LoadOrderBookAsync(client ClientInterface, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[bool] {
 	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
 	// `.(string)` assertions below need the plain values, and a panic here would be
 	// swallowed by Spawn and leave the watch future unresolved
@@ -2378,32 +2418,32 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 	symbolKey, _ := symbol.(string)
 	if stored, exists := this.Orderbooks[symbolKey]; exists {
 		for tries < maxRetries.(int) {
-			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
+			fetched := <-this.FetchRestOrderBookSafeAsync(symbolKey, limit, params)
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
 			orderBook := StructBox(fetched.Value, OrderBookToMap)
 			if this.ApplyOrderBookSnapshot(stored, orderBook) {
-				client.(ClientInterface).Resolve(stored, messageHash)
+				client.Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
 		err := ExchangeError(errorMsg)
-		client.(ClientInterface).Reject(err, messageHash)
+		client.Reject(err, messageHash)
 		// close the dropped connection, otherwise its read and ping loops keep running
-		if client.(ClientInterface).GetError() == nil {
-			client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+		if client.GetError() == nil {
+			client.SetError(fmt.Errorf("%v", err))
 		}
 		if wsClient, ok := client.(*WSClient); ok {
 			wsClient.Close()
 		}
-		this.wsClientDeleteIfSame(client.(ClientInterface).GetUrl(), client)
+		this.wsClientDeleteIfSame(client.GetUrl(), client)
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.Orderbooks[symbolKey] = this.OrderBook()
 	} else {
-		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
+		client.Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
 	// TODO: don't know where this fits
@@ -2485,13 +2525,13 @@ func (this *BaseExchange) IsBinaryMessage(message any) bool {
 	return false
 }
 
-func (this *BaseExchange) DecodeProtoMsg(message any) any {
+func (this *BaseExchange) DecodeProtoMsg(message any) map[string]any {
 	var msg pb.PushDataV3ApiWrapper
 	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
 	}
 	jsonBytes, _ := protojson.Marshal(&msg)
-	var v any
+	var v map[string]any
 	_ = json.Unmarshal(jsonBytes, &v)
 	return v
 }
@@ -2502,13 +2542,13 @@ func (this *BaseExchange) Uuid5(namespace any, name any) string {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol string) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome])
-	go func() any {
+	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbol
-		panic(NotSupported(Add(this.Id, " fetchOutcome() is not supported yet")))
+		panic(NotSupported(this.Id + " fetchOutcome() is not supported yet"))
 	}()
 	return ch
 }
@@ -2516,37 +2556,37 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]PredictionOutcome] {
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols []string) <-chan AsyncResult[map[string]PredictionOutcome] {
 	ch := make(chan AsyncResult[map[string]PredictionOutcome])
-	go func() any {
+	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbols
-		panic(NotSupported(Add(this.Id, " fetchOutcomes() is not supported yet")))
+		panic(NotSupported(this.Id + " fetchOutcomes() is not supported yet"))
 	}()
 	return ch
 }
 
 // SignEvmTransaction is a default stub so every exchange satisfies IDerivedExchange.
 // EVM prediction exchanges (limitless, myriad) override it — it needs the noble crypto imports.
-func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
+func (this *BaseExchange) SignEvmTransaction(tx map[string]any, privateKey string) string {
 	_ = tx
 	_ = privateKey
-	panic(NotSupported(Add(this.Id, " signEvmTransaction() is not supported yet")))
+	panic(NotSupported(this.Id + " signEvmTransaction() is not supported yet"))
 }
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
 func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent] {
 	ch := make(chan AsyncResult[[]PredictionEvent])
-	go func() any {
+	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		queries := GetArg(optionalArgs, 0, nil)
 		_ = queries
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+		panic(NotSupported(this.Id + " fetchEvents() is not supported yet"))
 	}()
 	return ch
 }
@@ -2621,10 +2661,10 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 	}
 	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
 	backoff := SafeValue(wsOptions, "backoff", map[string]interface{}{})
-	base := ParseInt(SafeInteger(backoff, "base", 1000))
-	factor := ParseInt(SafeInteger(backoff, "factor", 2))
-	maxDelay := ParseInt(SafeInteger(backoff, "max", 60000))
-	stableAfter := ParseInt(SafeInteger(backoff, "stableAfter", 30000))
+	base := *this.SafeInteger(backoff, "base", 1000)
+	factor := *this.SafeInteger(backoff, "factor", 2)
+	maxDelay := *this.SafeInteger(backoff, "max", 60000)
+	stableAfter := *this.SafeInteger(backoff, "stableAfter", 30000)
 	now := this.Milliseconds()
 	state, ok := this.wsBackoffState[url]
 	if !ok {
@@ -2718,22 +2758,22 @@ func (this *BaseExchange) auxTablesEdit(edit func(*auxTables) any) any {
 }
 
 // the table is handed to the owner, which then holds the only copy of record
-func (this *BaseExchange) publishAuxTable(slot func(*auxTables, map[string]any), table any) {
+func (this *BaseExchange) publishAuxTable(slot func(*auxTables, map[string]any), table map[string]any) {
 	this.auxTablesEdit(func(next *auxTables) any {
-		slot(next, MapTyped(table))
+		slot(next, table)
 		return nil
 	})
 }
 
-func (this *BaseExchange) PublishBaseCurrencies(table any) {
+func (this *BaseExchange) PublishBaseCurrencies(table map[string]any) {
 	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.baseCurrencies = published }, table)
 }
 
-func (this *BaseExchange) PublishQuoteCurrencies(table any) {
+func (this *BaseExchange) PublishQuoteCurrencies(table map[string]any) {
 	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.quoteCurrencies = published }, table)
 }
 
-func (this *BaseExchange) PublishTransactions(table any) {
+func (this *BaseExchange) PublishTransactions(table map[string]any) {
 	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.transactions = published }, table)
 }
 

@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -16,7 +17,7 @@ pub fn testUrlencodeNested() {
     }));
     // todo: add nulls
     // todo: add key sort (for different langs)
-    let mut dict2: Value = Value::Map({
+    let dict2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("b".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -27,10 +28,10 @@ pub fn testUrlencodeNested() {
             m.insert("d".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
         m
     });
-    let mut expected2a: String = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".to_string();
-    let mut expected2c: String = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".to_string();
-    let mut expected2b: String = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string();
-    let mut expected2d: String = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string();
-    let mut result2: String = exchange.urlencode_nested(dict2, &[]);
-    assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b) || (result2 == expected2c) || (result2 == expected2d)))));
+    let expected2a: String = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".to_string();
+    let expected2c: String = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".to_string();
+    let expected2b: String = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string();
+    let expected2d: String = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string();
+    let result2: String = exchange.urlencode_nested(dict2, &[]);
+    assert!(crate::test_helpers::is_true(&(((result2 == expected2a) || (result2 == expected2b) || (result2 == expected2c) || (result2 == expected2d)))));
 }

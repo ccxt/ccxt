@@ -67,14 +67,16 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
      */
     public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBidsAsksCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "futuresPublicGetAllTickers" );
-            }};
-            return (this.fetchTickers(symbols, this.extend(request, parameters))).join();
-        }).thenApply(Tickers::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "futuresPublicGetAllTickers" );
+        }};
+        return (this.fetchTickers(symbols, this.extend(request, parameters))).join();
 
     }
 
@@ -89,42 +91,44 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
+    }
+
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Kucoinfutures.this.safeString(currency, "id") );
-                put( "amount", amountToPrecision );
-            }};
-            String toAccountString = this.parseTransferType((String) (toAccount));
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(toAccountString, "TRADE") || java.util.Objects.equals(toAccountString, "MAIN"))
-            {
-                request.put("recAccountType", toAccountString);
-                response = (this.futuresPrivatePostTransferOut(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(toAccount, "future") || java.util.Objects.equals(toAccount, "swap") || java.util.Objects.equals(toAccount, "contract"))
-            {
-                request.put("payAccountType", this.parseTransferType((String) (fromAccount)));
-                response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
-            } else
-            {
-                throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
-            }
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseTransfer(data, currency), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("amount", this.parseNumber(amountToPrecision));
-                j39v1.put("fromAccount", fromAccount);
-                j39v1.put("toAccount", toAccount);
-                yield j39v1; } }));
-        }).thenApply(TransferEntry::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Object amountToPrecision = this.currencyToPrecision(code, amount, null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", Kucoinfutures.this.safeString(currency, "id") );
+            put( "amount", amountToPrecision );
+        }};
+        String toAccountString = this.parseTransferType(toAccount);
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(toAccountString, "TRADE") || java.util.Objects.equals(toAccountString, "MAIN"))
+        {
+            request.put("recAccountType", toAccountString);
+            response = (this.futuresPrivatePostTransferOut(this.extend(request, parameters))).join();
+        } else if (java.util.Objects.equals(toAccount, "future") || java.util.Objects.equals(toAccount, "swap") || java.util.Objects.equals(toAccount, "contract"))
+        {
+            request.put("payAccountType", this.parseTransferType(fromAccount));
+            response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
+        } else
+        {
+            throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+        }
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("amount", this.parseNumber(amountToPrecision));
+        j39v1.put("fromAccount", fromAccount);
+        j39v1.put("toAccount", toAccount);
+        return this.extend(this.parseTransfer(data, currency), j39v1);
 
     }
 

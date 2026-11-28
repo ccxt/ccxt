@@ -559,7 +559,10 @@ class extended extends Exchange {
         $maxCost = $this->safe_number($tradingConfig, 'maxLimitOrderValue');
         $created = $this->safe_integer($market, 'createdAt');
         $category = $this->safe_string_lower($market, 'category');
-        $takerFees = ($category === 'rwa') ? $this->safe_dict($this->fees, 'rwa', array()) : $this->fees;
+        $takerFees = $this->fees;
+        if ($category === 'rwa') {
+            $takerFees = $this->safe_dict($this->fees, 'rwa', array());
+        }
         $settleId = null;
         $settle = null;
         $symbol = $base . '/' . $quote;
@@ -826,7 +829,7 @@ class extended extends Exchange {
             $market = $this->safe_market($marketId);
             $stats = $this->safe_dict($marketData, 'marketStats', array());
             $ticker = $this->parse_ticker($stats, $market);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $tickers[$symbol] = $ticker;
             }
@@ -1122,7 +1125,7 @@ class extended extends Exchange {
         return $this->parse_funding_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_history(array $history, ?array $market = null) {
+    public function parse_funding_history(array $history, ?array $market = null): array {
         //
         //     {
         //         "id": 8341,
@@ -1202,10 +1205,17 @@ class extended extends Exchange {
         $sideRaw = $this->safe_string_2($trade, 'S', 'side');
         $side = ($sideRaw !== null) ? strtolower($sideRaw) : null;
         $feeCost = $this->safe_string($trade, 'fee');
-        $fee = ($feeCost === null) ? null : array(
-            'cost' => $feeCost,
-            'currency' => ($marketResolved === null) ? null : $marketResolved['settle'],
-        );
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeDict = array(
+                'cost' => $feeCost,
+                'currency' => null,
+            );
+            if ($marketResolved !== null) {
+                $feeDict['currency'] = $marketResolved['settle'];
+            }
+            $fee = $feeDict;
+        }
         $isTaker = $this->safe_bool($trade, 'isTaker');
         $takerOrMaker = null;
         if ($isTaker !== null) {
@@ -1382,7 +1392,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbolValue, $sinceResolved, $limitResolved);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate_history(array $info, ?array $market = null): array {
         //
         //     {
         //       "m": "BTC-USD",
@@ -2372,9 +2382,6 @@ class extended extends Exchange {
          */
         $this->load_markets();
         $symbolsList = $symbols;
-        if (gettype($symbols) === 'string') {
-            $symbolsList = array( $symbols );
-        }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchPositionsHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchPositionsHistory', $symbolsList, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000);
@@ -2523,10 +2530,8 @@ class extended extends Exchange {
         $syntheticResolution = $this->safe_integer($params, 'syntheticResolution');
         $collateralResolution = $this->safe_integer($params, 'collateralResolution');
         $quoteAmount = Precise::string_mul($amountString, $priceString);
-        $baseRoundUp = $isBuy;
-        $quoteRoundUp = $isBuy;
-        $baseAmount = $this->get_extended_stark_amount($amountString, $syntheticResolution, $baseRoundUp);
-        $collateralAmount = $this->get_extended_stark_amount($quoteAmount, $collateralResolution, $quoteRoundUp);
+        $baseAmount = $this->get_extended_stark_amount($amountString, $syntheticResolution, $isBuy);
+        $collateralAmount = $this->get_extended_stark_amount($quoteAmount, $collateralResolution, $isBuy);
         if ($isBuy) {
             $collateralAmount = Precise::string_neg($collateralAmount);
         } else {
@@ -2641,7 +2646,7 @@ class extended extends Exchange {
         }
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
-        $postOnly = $this->is_post_only($uppercaseType === 'MARKET', null, $params);
+        $postOnly = $this->is_post_only($uppercaseType === 'MARKET', false, $params);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($timeInForce === null) {
@@ -3130,8 +3135,6 @@ class extended extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = null;
-        $order = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         if ($clientOrderId !== null) {
@@ -3140,7 +3143,7 @@ class extended extends Exchange {
             );
             $response = $this->v1PrivateGetUserOrdersExternalExternalId($this->extend($request, $paramsOmitted));
             $data = $this->safe_list($response, 'data', array());
-            $order = $this->safe_dict($data, 0, array());
+            return $this->parse_order($this->safe_dict($data, 0, array()), $market);
         } else {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument');
@@ -3150,8 +3153,8 @@ class extended extends Exchange {
             );
             $response = $this->v1PrivateGetUserOrdersId($this->extend($request, $paramsOmitted));
             $order = $this->safe_dict($response, 'data', array());
+            return $this->parse_order($order, $market);
         }
-        return $this->parse_order($order, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3559,7 +3562,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

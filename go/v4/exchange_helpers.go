@@ -10,33 +10,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 // These helpers lock nothing: every map they touch is goroutine-local or owned by one
 // goroutine (the markets book owner or the ws dispatch loop), and no writer anywhere
 // takes a helper lock, so a read-side mutex was never a synchronization edge.
-
-func UnWrapType(value any) any {
-	// converts from wrapped types to basic types
-	// like OrderBook, Ticker, Trade, etc to map[string]any or []any
-	// also if value is a string, it panics with that string (error message)
-	if value == nil {
-		return nil
-	}
-	switch v := value.(type) {
-	case OrderBookInterface:
-		return v.ToMap()
-	case ArrayCacheByTimestamp:
-		return v.ToArray()
-	case ArrayCache:
-		return v.ToArray()
-	case string:
-		panic(v)
-	default:
-		return value
-	}
-}
 
 func Add(a any, b any) any {
 	a = derefScalar(a)
@@ -55,7 +33,7 @@ func Add(a any, b any) any {
 		res := aFloat + bFloat
 
 		if IsInteger(res) {
-			return ParseInt(res)
+			return int64(res)
 		}
 		return res
 	case int64:
@@ -68,7 +46,7 @@ func Add(a any, b any) any {
 		res := aFloat + bFloat
 
 		if IsInteger(res) {
-			return ParseInt(res)
+			return int64(res)
 		}
 		return res
 
@@ -79,7 +57,7 @@ func Add(a any, b any) any {
 		}
 		res := aType + bType
 		if IsInteger(res) {
-			return ParseInt(res)
+			return int64(res)
 		}
 		return res
 	case string:
@@ -90,79 +68,6 @@ func Add(a any, b any) any {
 
 	return nil
 }
-
-func IsTrue(a any) bool {
-	return EvalTruthy(a)
-}
-
-// EvalTruthy determines if a single interface value is truthy.
-func EvalTruthy(val any) bool {
-	val = derefScalar(val)
-	if val == nil {
-		return false
-	}
-
-	// Check types of val
-
-	switch v := val.(type) {
-	// one type per case: in a multi-type case v stays boxed and never equals the untyped constant
-	case int:
-		return v != 0
-	case int32:
-		return v != 0
-	case int64:
-		return v != 0
-	case uint:
-		return v != 0
-	case uint32:
-		return v != 0
-	case uint64:
-		return v != 0
-	case float32:
-		return v != 0 && v == v
-	case float64:
-		return v != 0 && v == v
-	case string:
-		return v != ""
-	case bool:
-		return v // bool is already truthy or falsy
-	case []any:
-		return len(v) > 0
-	case map[string]any:
-		return len(v) > 0
-	case []string:
-		return len(v) > 0
-	case []int64:
-		return len(v) > 0
-	case []float64:
-		return len(v) > 0
-	case []bool:
-		return len(v) > 0
-	case []int:
-		return len(v) > 0
-	default:
-		return true
-		// Use reflection for other complex types (slices, maps, pointers, etc.)
-		// valType := reflect.TypeOf(val)
-		// switch valType.Kind() {
-		// case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Chan, reflect.Func:
-		// 	return !reflect.ValueOf(val).IsNil()
-		// }
-	}
-
-	// return true // Consider non-nil complex types as truthy
-}
-
-// func IsInteger(value any) bool {
-// 	switch value.(type) {
-// 	case int, int8, int16, int32, int64:
-// 		return true
-// 	case uint, uint8, uint16, uint32, uint64:
-// 		return true
-// 	default:
-// 		return false
-// 	}
-// }
 
 func IsInteger(value any) bool {
 	value = derefScalar(value)
@@ -435,100 +340,6 @@ func getValue(collection any, key any) any {
 	}
 }
 
-func Multiply(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if (a == nil) || (b == nil) {
-		return nil
-	}
-
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	// Ensure both values are numeric
-	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
-		return nil
-	}
-
-	// Convert a to the type of b to simplify multiplication
-	aValConverted := aVal.Convert(bVal.Type())
-
-	// Perform multiplication based on the kind of b
-	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return aValConverted.Int() * bVal.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return aValConverted.Uint() * bVal.Uint()
-	case reflect.Float32, reflect.Float64:
-		aFloat := ToFloat64(a)
-		bFloat := ToFloat64(b)
-		res := aFloat * bFloat
-		if IsInteger(res) {
-			return ParseInt(res)
-		}
-		return res
-	default:
-		return nil
-	}
-}
-
-func Divide(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if a == nil || b == nil {
-		return nil
-	}
-
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
-		return nil
-	}
-
-	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		// JS number division: always float64, an integral result boxes as int64
-		aFloat := aVal.Convert(reflect.TypeOf(float64(0))).Float()
-		bFloat := bVal.Convert(reflect.TypeOf(float64(0))).Float()
-		if bFloat == 0.0 {
-			return nil // Avoid division by zero
-		}
-		res := aFloat / bFloat
-		if IsInteger(res) {
-			return ParseInt(res)
-		}
-		return res
-	default:
-		return nil
-	}
-}
-
-func Subtract(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if a == nil || b == nil {
-		return nil
-	}
-
-	// aVal := reflect.ValueOf(a)
-	// bVal := reflect.ValueOf(b)
-
-	aFloat := ToFloat64(a)
-	bFloat := ToFloat64(b)
-	res := aFloat - bFloat
-	if IsInteger(res) {
-		return ParseInt(res)
-	}
-	return res
-
-}
-
 type Dict map[string]any
 
 // GetArrayLength returns the length of various array or slice types or string length.
@@ -606,51 +417,6 @@ func GetArrayLength(value any) int {
 	return 0
 }
 
-func IsGreaterThan(a, b any) bool {
-	a = derefScalar(a)
-	b = derefScalar(b)
-	if a != nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-
-	// Handle int, int64, float64 comparisons
-	switch aVal := a.(type) {
-	case int:
-		switch bVal := b.(type) {
-		case int:
-			return aVal > bVal
-		case int64:
-			return int64(aVal) > bVal
-		case float64:
-			return float64(aVal) > bVal
-		}
-	case int64:
-		switch bVal := b.(type) {
-		case int:
-			return aVal > int64(bVal)
-		case int64:
-			return aVal > bVal
-		case float64:
-			return float64(aVal) > bVal
-		}
-	case float64:
-		switch bVal := b.(type) {
-		case int:
-			return aVal > float64(bVal)
-		case int64:
-			return aVal > float64(bVal)
-		case float64:
-			return aVal > bVal
-		}
-	}
-
-	// If types cannot be compared, return false
-	return false
-}
-
 // aVal, bVal, ok := NormalizeAndConvert(a, b)
 // if !ok {
 // 	return false
@@ -667,48 +433,6 @@ func IsGreaterThan(a, b any) bool {
 // 	return false
 // }
 // }
-
-// IsLessThan checks if a is less than b
-func IsLessThan(a, b any) bool {
-	return !IsGreaterThan(a, b) && !IsEqual(a, b)
-}
-
-// IsGreaterThanOrEqual checks if a is greater than or equal to b
-func IsGreaterThanOrEqual(a, b any) bool {
-	return IsGreaterThan(a, b) || IsEqual(a, b)
-}
-
-// IsLessThanOrEqual checks if a is less than or equal to b
-func IsLessThanOrEqual(a, b any) bool {
-	return IsLessThan(a, b) || IsEqual(a, b)
-}
-
-// Mod performs a modulus operation on a and b
-func Mod(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-	if a == nil || b == nil {
-		return nil
-	}
-
-	aFloat := ToFloat64(a)
-	bFloat := ToFloat64(b)
-
-	if aFloat == math.NaN() || bFloat == math.NaN() {
-		return nil
-	}
-	res := math.Mod(aFloat, bFloat)
-	if IsInteger(res) {
-		return ParseInt(res)
-	}
-	return res
-	// aVal, bVal, ok := NormalizeAndConvert(a, b)
-	// if !ok || bVal.Float() == 0 {
-	// 	return nil
-	// }
-
-	// return float64(int(aVal.Float()) % int(bVal.Float()))
-}
 
 // IsEqual checks for equality of a and b with dynamic type support
 func IsEqual(a, b any) bool {
@@ -793,24 +517,6 @@ func IsEqual(a, b any) bool {
 	// }
 }
 
-// NormalizeAndConvert normalizes and attempts to convert a and b to a common type
-func NormalizeAndConvert(a, b any) (reflect.Value, reflect.Value, bool) {
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	if aVal.Kind() != bVal.Kind() {
-		if aVal.Kind() < bVal.Kind() {
-			aVal = reflect.ValueOf(ToFloat64(a))
-			bVal = reflect.ValueOf(ToFloat64(b))
-		} else {
-			bVal = reflect.ValueOf(ToFloat64(b))
-			aVal = reflect.ValueOf(ToFloat64(a))
-		}
-	}
-
-	return aVal, bVal, true
-}
-
 func ToFloat64(v any) float64 {
 	v = derefScalar(v)
 	var result float64 = math.NaN()
@@ -829,90 +535,6 @@ func ToFloat64(v any) float64 {
 		result = math.NaN()
 	}
 	return result
-}
-
-func Increment(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return v + 1
-	case int64:
-		return v + 1
-	case float64:
-		return v + 1.0
-	case string:
-		return v + "1"
-	default:
-		return nil
-	}
-}
-
-// Decrement decreases the numeric value by 1.
-func Decrement(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return v - 1
-	case int64:
-		return v - 1
-	case float64:
-		return v - 1.0
-	default:
-		return nil
-	}
-}
-
-// Negate negates the numeric value.
-func Negate(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return -v
-	case int64:
-		return -v
-	case float64:
-		return -v
-	default:
-		return nil
-	}
-}
-
-// UnaryPlus returns the numeric value unchanged.
-func UnaryPlus(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return +v
-	case int64:
-		return +v
-	case float64:
-		return +v
-	default:
-		return nil
-	}
-}
-
-// PlusEqual adds the value of `value` to `a`, handling some basic types.
-func PlusEqual(a, value any) any {
-	a = derefScalar(a)
-	value = derefScalar(value)
-	aVal := reflect.ValueOf(a)
-	valueVal := reflect.ValueOf(value)
-
-	if aVal.Kind() != valueVal.Kind() {
-		return nil // type mismatch
-	}
-
-	switch aVal.Kind() {
-	case reflect.Int, reflect.Int64:
-		return aVal.Int() + valueVal.Int()
-	case reflect.Float64:
-		return aVal.Float() + valueVal.Float()
-	case reflect.String:
-		return aVal.String() + valueVal.String()
-	default:
-		return nil
-	}
 }
 
 // func AppendToArray(slicePtr *any, element any) {
@@ -1139,7 +761,7 @@ func InOp(dict any, key any) bool {
 		return false
 	}
 
-	if IsNumber(key) {
+	if _, isString := key.(string); !isString {
 		return false
 	}
 
@@ -1156,6 +778,11 @@ func InOp(dict any, key any) bool {
 			return true
 		}
 	case map[string]*Future:
+		_, ok := v[key.(string)]
+		if ok {
+			return true
+		}
+	case map[string]*WSClient:
 		_, ok := v[key.(string)]
 		if ok {
 			return true
@@ -1222,79 +849,6 @@ func InOp(dict any, key any) bool {
 	// return false
 }
 
-func GetIndexOf(str any, target any) int {
-	str = derefScalar(str)
-	target = derefScalar(target)
-	switch v := str.(type) {
-	case []string:
-		t, ok := target.(string)
-		if !ok {
-			return -1
-		}
-		for i, s := range v {
-			if s == t {
-				return i
-			}
-		}
-	case []int:
-		t, ok := target.(int)
-		if !ok {
-			return -1
-		}
-		for i, n := range v {
-			if n == t {
-				return i
-			}
-		}
-	case string:
-		t, ok := target.(string)
-		if !ok {
-			return -1
-		}
-		return strings.Index(v, t)
-	}
-
-	return -1
-}
-
-// IsBool checks if the input is a boolean
-func IsBool(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	_, ok := v.(bool)
-	return ok
-}
-
-// IsDictionary checks if the input is a map (dictionary in Python)
-func IsDictionary(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	switch v.(type) {
-	case map[string]any:
-		return true
-	case Dict:
-		return true
-	case map[any]any:
-		return true
-	case OrderBookInterface:
-		// live ws orderbooks are dictionaries in every other runtime — js
-		// objects, python dicts, java WsOrderBook extends AbstractMap
-		// (https://github.com/ccxt/ccxt/pull/29594), C# OrderBook implements
-		// IDictionary — and the shared structure test asserts
-		// isDictionary(entry) on them; the native go check introduced in
-		// https://github.com/ccxt/ccxt/pull/29704 must agree or every ws
-		// orderbook live test fails with "entry is not a dict"
-		return true
-	default:
-		return false
-	}
-	// return reflect.TypeOf(v).Kind() == reflect.Map
-}
-
 // IsString checks if the input is a string
 func IsString(v any) bool {
 	v = derefScalar(v)
@@ -1306,80 +860,6 @@ func IsString(v any) bool {
 }
 
 // IsInt checks if the input is an integer
-func IsInt(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	switch v.(type) {
-	case int, int8, int16, int32, int64:
-		return true
-	case uint, uint8, uint16, uint32, uint64:
-		return true
-	default:
-		return false
-	}
-}
-
-// IsFunction checks if the input is a function
-func IsFunction(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	return reflect.TypeOf(v).Kind() == reflect.Func
-}
-
-func IsNumber(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	switch v.(type) {
-	case int, int8, int16, int32, int64:
-		return true
-	case uint, uint8, uint16, uint32, uint64:
-		return true
-	case float32, float64:
-		return true
-	default:
-		return false
-	}
-}
-
-func IsObject(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	kind := reflect.TypeOf(v).Kind()
-	switch kind {
-	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
-		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
-		return true
-	default:
-		return false
-	}
-}
-
-func ToLower(v any) string {
-	v = derefScalar(v)
-	if str, ok := v.(string); ok {
-		return strings.ToLower(str)
-	}
-	return ""
-}
-
-// ToUpper converts a string to uppercase
-func ToUpper(v any) string {
-	v = derefScalar(v)
-	if str, ok := v.(string); ok {
-		return strings.ToUpper(str)
-	}
-	return ""
-}
-
-// IsInt checks if the input is an integer
 // func IsInt(v any) bool {
 // 	switch v.(type) {
 // 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
@@ -1388,104 +868,6 @@ func ToUpper(v any) string {
 // 		return false
 // 	}
 // }
-
-// MathFloor returns the largest integer less than or equal to the given number
-func MathFloor(v any) float64 {
-	v = derefScalar(v)
-	if num, ok := v.(float64); ok {
-		return math.Floor(num)
-	}
-	if num, ok := v.(int); ok {
-		return math.Floor(float64(num))
-	}
-	if num, ok := v.(int64); ok {
-		return math.Floor(float64(num))
-	}
-	return 0
-}
-
-// MathCeil returns the smallest integer greater than or equal to the given number
-func MathCeil(v any) float64 {
-	v = derefScalar(v)
-	if num, ok := v.(float64); ok {
-		return math.Ceil(num)
-	}
-	if num, ok := v.(int); ok {
-		return math.Ceil(float64(num))
-	}
-	if num, ok := v.(int64); ok {
-		return math.Ceil(float64(num))
-	}
-	return 0
-}
-
-// MathRound returns the nearest integer, rounding half away from zero
-func MathRound(v any) float64 {
-	v = derefScalar(v)
-	if num, ok := v.(float64); ok {
-		return math.Round(num)
-	}
-	if num, ok := v.(int); ok {
-		return math.Round(float64(num))
-	}
-	if num, ok := v.(int64); ok {
-		return math.Round(float64(num))
-	}
-	return 0
-}
-
-// StartsWith checks if the string starts with the specified prefix
-func StartsWith(v any, prefix any) bool {
-	v = derefScalar(v)
-	prefix = derefScalar(prefix)
-	if str, ok := v.(string); ok {
-		prefixStr := ToString(prefix)
-		return strings.HasPrefix(str, prefixStr)
-	}
-	return false
-}
-
-// EndsWith checks if the string ends with the specified suffix
-func EndsWith(v any, suffix any) bool {
-	v = derefScalar(v)
-	suffix = derefScalar(suffix)
-	if str, ok := v.(string); ok {
-		suffixStr := ToString(suffix)
-		return strings.HasSuffix(str, suffixStr)
-	}
-	return false
-}
-
-// IndexOf returns the index of the first occurrence of a substring
-func IndexOf(v any, substr any) int {
-	v = derefScalar(v)
-	substr = derefScalar(substr)
-	if str, ok := v.(string); ok {
-		substrStr := ToString(substr)
-		return strings.Index(str, substrStr)
-	}
-	return -1
-}
-
-// Trim removes leading and trailing whitespace from a string
-func Trim(v any) string {
-	v = derefScalar(v)
-	if str, ok := v.(string); ok {
-		return strings.TrimSpace(str)
-	}
-	return ""
-}
-
-// Contains checks if the string contains the specified substring
-func Contains(v any, substr any) bool {
-	v = derefScalar(v)
-	substr = derefScalar(substr)
-	if str, ok := v.(string); ok {
-		substrStr := ToString(substr)
-		return strings.Contains(str, substrStr)
-	}
-	return false
-}
 
 // StringArg converts a dynamically passed required string argument; nil or any
 // other type panics (ArgumentsRequired) instead of coercing
@@ -1678,24 +1060,6 @@ func ObjectKeys(v any) []string {
 	// return strKeys
 }
 
-// ObjectValues returns the values of a map as a slice of any
-func ObjectValues(v any) []any {
-	v = derefScalar(v)
-	if v == nil {
-		return nil
-	}
-	// return values
-	if mapObject, ok := v.(map[string]any); ok {
-		values := make([]any, 0, len(mapObject))
-		for _, value := range mapObject {
-			values = append(values, value)
-		}
-		return values
-	}
-	return nil
-	// val := ref
-}
-
 func JsonParse(jsonStr2 any) any {
 	jsonStr2 = derefScalar(jsonStr2)
 	jsonStr := derefScalar(jsonStr2).(string)
@@ -1734,36 +1098,6 @@ func IsArray(v any) bool {
 	}
 }
 
-func Shift(slice any) (any, any) {
-	slice = derefScalar(slice)
-	sliceVal, ok := castToSlice(slice)
-	if !ok || len(sliceVal) == 0 {
-		return slice, nil
-	}
-	return sliceVal[1:], sliceVal[0]
-}
-
-// Reverse reverses the elements of a slice in place
-func Reverse(slice any) {
-	// a typed-nil container reads like untyped nil (same panic / nil path)
-	sliceVal, ok := castToSlice(derefScalar(slice))
-	if !ok {
-		panic("provided value is not a slice")
-	}
-
-	// Reverse the elements in place
-	for i, j := 0, len(sliceVal)-1; i < j; i, j = i+1, j-1 {
-		sliceVal[i], sliceVal[j] = sliceVal[j], sliceVal[i]
-	}
-
-	// Copy the reversed values back into the original slice
-	// Since Go is a pass-by-value language, we need to reflect to modify the original slice in place
-	v := reflect.ValueOf(slice)
-	for i := 0; i < v.Len(); i++ {
-		v.Index(i).Set(reflect.ValueOf(sliceVal[i]))
-	}
-}
-
 // Helper function to cast any to []any
 func castToSlice(slice any) ([]any, bool) {
 	val := reflect.ValueOf(slice)
@@ -1776,80 +1110,6 @@ func castToSlice(slice any) ([]any, bool) {
 		sliceVal[i] = val.Index(i).Interface()
 	}
 	return sliceVal, true
-}
-
-func Replace(input any, old any, new any) string {
-	input = derefScalar(input)
-	str := ToString(input)
-	oldStr := ToString(old)
-	newStr := ToString(new)
-	return strings.ReplaceAll(str, oldStr, newStr)
-}
-
-// PadEnd pads the input string on the right with padStr until it reaches the specified length
-func PadEnd(input any, length2 any, padStr any) string {
-	length := int(ParseInt(length2))
-	str := ToString(input)
-	pad := ToString(padStr)
-	for len(str) < length {
-		str += pad
-	}
-	return str[:length]
-}
-
-// PadStart pads the input string on the left with padStr until it reaches the specified length
-func PadStart(input any, length2 any, padStr any) string {
-	length := int(ParseInt(length2))
-	str := ToString(input)
-	pad := ToString(padStr)
-	for len(str) < length {
-		str = pad + str
-	}
-	return str[len(str)-length:]
-}
-
-// DateNow returns the current date and time as a string
-func DateNow() string {
-	return time.Now().Format(time.RFC3339)
-}
-
-func GetLength(v any) int {
-	v = derefScalar(v)
-	val := reflect.ValueOf(v)
-	switch val.Kind() {
-	case reflect.String:
-		return len(val.String())
-	case reflect.Array, reflect.Slice:
-		return val.Len()
-	default:
-		return 0
-	}
-}
-
-func IsNil(x any) bool {
-	x = derefScalar(x)
-	// https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
-	if x == nil {
-		return true
-	}
-	return false
-
-	// switch val := x.(type){
-	// case any:
-	// 	return val == nil
-	// case
-
-	// }
-
-	// value := reflect.ValueOf(x)
-	// kind := value.Kind()
-
-	// switch kind {
-	// case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
-	// 	return value.IsNil()
-	// default:
-	// 	return false
-	// }
 }
 
 // derefScalar reproduces untyped-nil semantics for a maybe-undefined value that
@@ -2038,19 +1298,6 @@ func GetArgMap(args []any, index int, def map[string]any) map[string]any {
 	return def
 }
 
-// GetArgAnySlice returns the list the caller passed, or def when the argument is absent.
-func GetArgAnySlice(args []any, index int, def []any) []any {
-	val, ok := goArgValue(args, index)
-	if !ok {
-		return def
-	}
-	if res, isList := val.([]any); isList {
-		return res
-	}
-	goArgPanic("GetArgAnySlice", index, val)
-	return def
-}
-
 // GetArgStringSlice returns the []string the caller passed, or def when the argument is absent.
 func GetArgStringSlice(args []any, index int, def []string) []string {
 	val, ok := goArgValue(args, index)
@@ -2073,19 +1320,6 @@ func GetArgStringSlice(args []any, index int, def []string) []string {
 		return res
 	}
 	goArgPanic("GetArgStringSlice", index, val)
-	return def
-}
-
-// GetArgMapSlice returns the []map[string]any the caller passed, or def when absent.
-func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
-	val, ok := goArgValue(args, index)
-	if !ok {
-		return def
-	}
-	if res, isMaps := val.([]map[string]any); isMaps {
-		return res
-	}
-	goArgPanic("GetArgMapSlice", index, val)
 	return def
 }
 
@@ -2146,34 +1380,6 @@ func GetArgInt64(args []any, index int, def int64) int64 {
 		return int64(res)
 	}
 	goArgPanic("GetArgInt64", index, val)
-	return def
-}
-
-// GetArgFloat64 returns the number the caller passed, or def when the argument is absent.
-func GetArgFloat64(args []any, index int, def float64) float64 {
-	val, ok := goArgValue(args, index)
-	if !ok {
-		return def
-	}
-	switch res := val.(type) {
-	case float64:
-		return res
-	case float32:
-		return float64(res)
-	case int64:
-		return float64(res)
-	case int:
-		return float64(res)
-	case int32:
-		return float64(res)
-	case uint:
-		return float64(res)
-	case uint32:
-		return float64(res)
-	case uint64:
-		return float64(res)
-	}
-	goArgPanic("GetArgFloat64", index, val)
 	return def
 }
 
@@ -2265,12 +1471,6 @@ func Int64PtrTyped(v any) *int64 {
 	return &num
 }
 
-// Float64PtrTyped stores a numeric result boxed in `any` (ParseNumber) into a *float64 local;
-// absent stays a nil pointer.
-func Float64PtrTyped(v any) *float64 {
-	return toFloat64Ptr(v)
-}
-
 // GetArgFloat64Ptr is GetArgStringPtr for a `number` parameter (`price`, `amount`).
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 	if len(args) <= index {
@@ -2347,15 +1547,6 @@ func GetArgBoolPtr(args []any, index int, def *bool) *bool {
 	return def
 }
 
-func Ternary(cond bool, whenTrue any, whenFalse any) any {
-	// forward the selected branch as a plain value, so a pointer-carried operand
-	// does not leak past the ternary into ToString/Split/comparison sites
-	if cond {
-		return derefScalar(whenTrue)
-	}
-	return derefScalar(whenFalse)
-}
-
 func IsInstance(value any, typ any) bool {
 	// Get the reflect.Type of the value and the type
 
@@ -2416,52 +1607,15 @@ func errorTypeIs(typ ErrorType, name string) bool {
 	return false
 }
 
-func Slice(str2 any, idx1 any, idx2 any) string {
-	str2 = derefScalar(str2)
-	idx1 = derefScalar(idx1)
-	idx2 = derefScalar(idx2)
-	if str2 == nil {
-		return ""
-	}
-	str := derefScalar(str2).(string)
-	var start int64 = -1
-	if idx1 != nil {
-		start = ParseInt(idx1)
-	}
-	var lenStr int64 = int64(len(str))
-	if idx2 == nil {
-		if start < 0 {
-			innerStart := lenStr + start
-			if innerStart < 0 {
-				innerStart = 0
-			}
-			return str[innerStart:]
-		}
-		return str[start:]
-	} else {
-		end := ParseInt(idx2)
-		if start < 0 {
-			start = lenStr + start
-		}
-		if end < 0 {
-			end = lenStr + end
-		}
-		if end > lenStr {
-			end = lenStr
-		}
-		return str[start:end]
-	}
-}
-
 type Task func() any
 
-func PromiseAll(tasksInterface any) <-chan AsyncResult[any] {
+func PromiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
 	return promiseAll(tasksInterface)
 }
 
 // promiseAll awaits every task; the first failing task by index fails the whole call.
-func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func promiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any])
 
 	go func() {
 		defer close(ch)
@@ -2469,7 +1623,7 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 
 		tasks, ok := tasksInterface.([]any)
 		if !ok {
-			ch <- AsyncResult[any]{} // not a slice of tasks: nil, as before
+			ch <- AsyncResult[[]any]{} // not a slice of tasks: nil, as before
 			return
 		}
 
@@ -2493,11 +1647,11 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 		wg.Wait()
 		for _, err := range failures {
 			if err != nil {
-				ch <- AsyncResult[any]{Err: err}
+				ch <- AsyncResult[[]any]{Err: err}
 				return
 			}
 		}
-		ch <- AsyncResult[any]{Value: results}
+		ch <- AsyncResult[[]any]{Value: results}
 	}()
 
 	return ch
@@ -2627,10 +1781,6 @@ func ParseInt(number any) int64 {
 	return math.MinInt64 // Default value if conversion is not possible
 }
 
-func MathMin(a, b any) any {
-	return mathMin(a, b)
-}
-
 func mathMin(a, b any) any {
 	a = derefScalar(a)
 	b = derefScalar(b)
@@ -2652,101 +1802,6 @@ func mathMin(a, b any) any {
 
 	return bf
 
-}
-
-func MathPow(base any, exp any) float64 {
-	base64 := ToFloat64(base)
-	exp64 := ToFloat64(exp)
-	return math.Pow(base64, exp64)
-}
-
-func MathAbs(v any) float64 {
-	v = derefScalar(v)
-	switch n := v.(type) {
-	case float64:
-		return math.Abs(n)
-	case float32:
-		return math.Abs(float64(n))
-	case int:
-		return math.Abs(float64(n))
-	case int64:
-		return math.Abs(float64(n))
-	case int32:
-		return math.Abs(float64(n))
-	case int16:
-		return math.Abs(float64(n))
-	case int8:
-		return math.Abs(float64(n))
-	case uint, uint64, uint32, uint16, uint8:
-		return float64(reflect.ValueOf(n).Uint()) // no need for Abs on unsigned values
-	default:
-		return 0
-	}
-}
-
-func MathMax(a, b any) any {
-	return mathMax(a, b)
-}
-
-// mathMax returns the maximum of two values of the same type.
-// It supports int, float64, and string types.
-func mathMax(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if a == nil || b == nil {
-		return nil
-	}
-
-	af := ToFloat64(a)
-	bf := ToFloat64(b)
-
-	if af == math.NaN() || bf == math.NaN() {
-		return nil
-	}
-
-	if af > bf {
-		return af
-	}
-
-	return bf
-}
-
-func ParseFloat(input any) any {
-	input = derefScalar(input)
-	switch v := input.(type) {
-	case float32:
-		return float64(v)
-	case float64:
-		return v
-	case int:
-		return float64(v)
-	case int8:
-		return float64(v)
-	case int16:
-		return float64(v)
-	case int32:
-		return float64(v)
-	case int64:
-		return float64(v)
-	case uint:
-		return float64(v)
-	case uint8:
-		return float64(v)
-	case uint16:
-		return float64(v)
-	case uint32:
-		return float64(v)
-	case uint64:
-		return float64(v)
-	case string:
-		if result, err := strconv.ParseFloat(v, 64); err == nil {
-			return result
-		}
-		return nil
-	default:
-		return nil
-	}
 }
 
 func ParseJSON(input any) any {
@@ -2837,122 +1892,6 @@ func ThrowDynamicException(exceptionType any, message any) {
 	// // panic(err)
 }
 
-func OpNeg(value any) any {
-	value = derefScalar(value)
-	val := reflect.ValueOf(value)
-
-	switch val.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return -val.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return nil // Cannot negate unsigned integers, return nil
-	case reflect.Float32, reflect.Float64:
-		return -val.Float()
-	case reflect.Complex64, reflect.Complex128:
-		return -val.Complex()
-	default:
-		return nil // Unsupported type, return nil
-	}
-}
-
-func JsonStringify(obj any) string {
-	obj = derefScalar(obj)
-	if obj == nil {
-		return ""
-	}
-
-	// Check if the object is an error (Go's equivalent of an exception)
-	if err, ok := obj.(error); ok {
-		// Create an anonymous struct with the error type name
-		errorObj := struct {
-			Name string `json:"name"`
-		}{
-			Name: reflect.TypeOf(err).Name(),
-		}
-		// Serialize the error object to JSON
-		jsonData, _ := json.Marshal(errorObj)
-		return string(jsonData)
-	}
-
-	// Serialize the object to JSON
-	jsonData, _ := json.Marshal(obj)
-	return string(jsonData)
-}
-
-func ToFixed(number any, decimals any) float64 {
-	// Assert that the number is a float64 or convert it
-	num := ToFloat64(number)
-
-	// Assert that the decimals is an int or convert it
-	dec := ParseInt(decimals)
-	// Calculate the rounding multiplier
-	multiplier := math.Pow(10, float64(dec))
-	return math.Round(num*multiplier) / multiplier
-}
-
-func Remove(dict any, key any) {
-	// Attempt to cast the key to string first
-	keyStr, ok := derefScalar(key).(string)
-	if !ok {
-		// Panic if the key is not a string
-		panic("provided key is not a string")
-	}
-	switch v := dict.(type) {
-	case ArrayCache, *ArrayCache, ArrayCacheByTimestamp, *ArrayCacheByTimestamp, ArrayCacheBySymbolById, *ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, *ArrayCacheBySymbolBySide:
-		v.(interface{ Remove(string) }).Remove(keyStr)
-		return
-	case map[string]*ArrayCache:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]*ArrayCacheByTimestamp:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]*ArrayCacheBySymbolById:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]*ArrayCacheBySymbolBySide:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]map[string]any:
-		// the ohlcv book is two-level; the javascript delete is a no-op on a missing key
-		delete(v, keyStr)
-		return
-	case map[string]*Future:
-		delete(v, keyStr)
-		return
-	case map[string]any:
-		// the javascript delete statement is a no-op on a missing key
-		delete(v, keyStr)
-		return
-	default:
-		panic(fmt.Sprintf("exchange_helpers.Remove: provided value type is %T", v))
-	}
-}
-
 func Capitalize(s string) string {
 	if len(s) == 0 {
 		return s
@@ -2963,13 +1902,18 @@ func Capitalize(s string) string {
 	return firstLetter + s[1:]
 }
 
-// delegates to the package-level predicate, which returns a bool
+// IsDictionary checks if the input is a map or live ws orderbook.
 func (this *BaseExchange) IsDictionary(value any) bool {
-	return IsDictionary(value)
-}
-
-func SetDefaults(p any) {
-	setDefaults(p)
+	v := derefScalar(value)
+	if v == nil {
+		return false
+	}
+	switch v.(type) {
+	case map[string]any, Dict, map[any]any, OrderBookInterface:
+		return true
+	default:
+		return false
+	}
 }
 
 // NewMapArray converts a generated-code result (usually a []any of map[string]any
@@ -2992,33 +1936,6 @@ func NewMapArray(res any) []map[string]any {
 		}
 	}
 	return out
-}
-
-func setDefaults(p any) {
-	// Get the value of the pointer to struct
-	val := reflect.ValueOf(p).Elem()
-	typ := val.Type()
-
-	// Iterate over the fields of the struct using reflection
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		fieldType := typ.Field(i)
-		if value, ok := fieldType.Tag.Lookup("default"); ok {
-			switch field.Kind() {
-			case reflect.String:
-				if field.String() == "" {
-					field.SetString(value)
-				}
-			case reflect.Int:
-				if field.Int() == 0 {
-					if intValue, err := strconv.Atoi(value); err == nil {
-						field.SetInt(int64(intValue))
-					}
-				}
-				// Add other types as necessary
-			}
-		}
-	}
 }
 
 // suffix carried by every transpiled channel-returning (async) method; the plain
@@ -3098,7 +2015,17 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 					arg = args[k]
 				}
 				in = append(in, reflect.ValueOf(Int64Arg(arg)).Convert(paramType))
-			} else if k < len(args) && args[k] != nil {
+			} else if paramType.Kind() == reflect.Float64 && k < len(args) && args[k] != nil {
+				// a required float parameter: an int literal or a numeric string arrives boxed
+				in = append(in, reflect.ValueOf(ToFloat64(args[k])).Convert(paramType))
+			} else if paramType.Kind() == reflect.Float64 {
+				// a required number parameter: a missing or nil argument panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
+				}
+				panic(ArgumentsRequired(fmt.Sprintf("expected a number argument, got %T: %v", arg, arg)))
+			} else if k < len(args) && args[k] != nil && derefScalar(args[k]) != nil {
 				argValue := reflect.ValueOf(args[k])
 				if paramType.Kind() == reflect.Slice && argValue.Kind() == reflect.Slice && argValue.Type() != paramType && argValue.Type().Elem().Kind() == reflect.Interface {
 					// decoded JSON lists arrive as []any: rebuild them as the typed slice the method declares
@@ -3120,7 +2047,7 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 		if isVariadic && len(args) >= numIn-1 {
 			variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
 			for k := numIn - 1; k < len(args); k++ {
-				if args[k] == nil {
+				if args[k] == nil || derefScalar(args[k]) == nil {
 					in = append(in, reflect.Zero(variadicType))
 				} else {
 					in = append(in, reflect.ValueOf(args[k]))
@@ -3240,6 +2167,12 @@ func (r AsyncResult[T]) Typed() T {
 	return r.Value
 }
 
+// MapPair is the async result of a (value, params) pair method: V the value, P the params.
+type MapPair[T any] struct {
+	V T
+	P map[string]any
+}
+
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
 // delivered, Value its typed view (zero on shape mismatch), Err the failure.
 type EndpointResult[T any] struct {
@@ -3290,24 +2223,6 @@ func endpointValue[T any](raw any) T {
 	return out
 }
 
-// Fetch2Result relays the single Fetch2Async outcome unchanged in Raw/Err, adding its typed view.
-func Fetch2Result[T any](this interface {
-	Fetch2Async(path any, optionalArgs ...any) <-chan AsyncResult[any]
-}, path any, optionalArgs ...any) <-chan EndpointResult[T] {
-	out := make(chan EndpointResult[T], 1)
-	in := this.Fetch2Async(path, optionalArgs...)
-	go func() {
-		defer close(out)
-		defer ReturnPanicErrorT(out)
-		v, ok := <-in
-		if !ok {
-			return
-		}
-		out <- EndpointResult[T]{Value: endpointValue[T](v.Value), Raw: v.Value, Err: v.Err}
-	}()
-	return out
-}
-
 // EndpointRaw adapts a typed endpoint channel to the boxed channel PromiseAll and any-typed holders expect.
 func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan AsyncResult[any] {
 	out := make(chan AsyncResult[any], 1)
@@ -3332,38 +2247,6 @@ func EndpointTyped[T any](in <-chan AsyncResult[any]) <-chan EndpointResult[T] {
 		}
 	}()
 	return out
-}
-
-// ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel.
-func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
-	if r := recover(); r != nil {
-		if r != "break" {
-			ch <- EndpointResult[T]{Err: RecoveredError(r)}
-		}
-	}
-}
-
-func GetCallerName() string {
-	return getCallerName()
-}
-
-func getCallerName() string {
-	// Skip 2 levels to get the name of the caller of the function that called this one
-	pc, _, _, ok := runtime.Caller(3)
-	if !ok {
-		return "Unknown"
-	}
-
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		return "Unknown"
-	}
-
-	return fn.Name()
-}
-
-func Print(v any) {
-	fmt.Println(v)
 }
 
 func HandleDelta(bookside any, delta any) any {
@@ -3409,23 +2292,4 @@ func HandleDeltas(bookside any, deltas any) any {
 	}
 
 	return bookside
-}
-
-// the printed element read of a destructured binding, as a bool: the same box the untyped
-// `GetValue` read, folded to def when it is absent, nil or not a bool. `x == true` answered
-// exactly that for the untyped box.
-func GetValueBool(v any, index int, def bool) bool {
-	val := GetValue(v, index)
-	if b, ok := val.(bool); ok {
-		return b
-	}
-	return def
-}
-
-// MapOrEmpty is the dict a typed constructor reads: nil or a non-map value gives an empty map
-func MapOrEmpty(v any) map[string]any {
-	if m := SafeMapTyped(map[string]any{"v": v}, "v"); m != nil {
-		return m
-	}
-	return map[string]any{}
 }

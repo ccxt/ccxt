@@ -673,9 +673,9 @@ export default class bitteam extends Exchange {
         let fee = undefined;
         const withdrawCommissionFixed = this.safeDict(txLimits, 'withdrawCommissionFixed', {});
         let feesByNetworkId = {};
-        const blockChain = this.safeString(currency, 'blockChain');
+        const blockChain = this.safeString(currency, 'blockChain', '');
         // if only one blockChain
-        if ((blockChain !== undefined) && (blockChain !== '')) {
+        if (blockChain !== '') {
             fee = this.parseNumber(withdrawCommissionFixed);
             feesByNetworkId[blockChain] = fee;
         }
@@ -1047,7 +1047,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1166,7 +1166,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const order = this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -1195,7 +1195,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method
@@ -1454,8 +1454,7 @@ export default class bitteam extends Exchange {
             rawTickers = response;
         }
         for (let i = 0; i < rawTickers.length; i++) {
-            const rawTicker = rawTickers[i];
-            const ticker = this.parseTicker(rawTicker);
+            const ticker = this.parseTicker(this.safeDict(rawTickers, i, {}));
             tickers.push(ticker);
         }
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
@@ -2055,7 +2054,7 @@ export default class bitteam extends Exchange {
         //
         const marketId = this.safeString(trade, 'pair');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString2(trade, 'id', 'trade_id');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString2(trade, 'quantity', 'base_volume');
@@ -2177,7 +2176,8 @@ export default class bitteam extends Exchange {
             const free = this.safeString(currencyBalance, 'free');
             const used = this.safeString(currencyBalance, 'used');
             const total = this.safeString(currencyBalance, 'total');
-            const currencyCode = this.safeCurrencyCode(rawCurrencyId.toLowerCase());
+            const rawCurrencyIdLower = rawCurrencyId.toLowerCase();
+            const currencyCode = this.safeCurrencyCode(rawCurrencyIdLower);
             if (currencyCode !== undefined) {
                 balance[currencyCode] = {
                     'free': free,

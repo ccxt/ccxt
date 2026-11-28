@@ -54,7 +54,8 @@ export default class derive extends deriveRest {
         const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     async watchPublic(messageHash, message, subscription) {
@@ -506,7 +507,7 @@ export default class derive extends deriveRest {
         //
         //
         const params = this.safeDict(message, 'params');
-        const data = this.safeDict(params, 'data', {});
+        const data = this.safeList(params, 'data', []);
         const topic = this.safeString(params, 'channel', '');
         const parsedTopic = topic.split('.');
         const marketId = this.safeString(parsedTopic, 1);
@@ -518,7 +519,7 @@ export default class derive extends deriveRest {
             tradesArray = new ArrayCache(limit);
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i]);
+            const trade = this.parseTrade(this.safeDict(data, i, {}));
             tradesArray.append(trade);
         }
         this.trades[symbol] = tradesArray;
@@ -785,7 +786,7 @@ export default class derive extends deriveRest {
         const topic = this.safeString(params, 'channel');
         const rawTrades = this.safeList(params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade(rawTrades[i]);
+            const trade = this.parseTrade(this.safeDict(rawTrades, i, {}));
             myTrades.append(trade);
             client.resolve(myTrades, topic);
             if (topic !== undefined) {

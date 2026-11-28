@@ -952,8 +952,8 @@ class onetrading extends onetrading$1["default"] {
         const result = {};
         const rawTickers = this.toArray(response);
         for (let i = 0; i < rawTickers.length; i++) {
-            const ticker = this.parseTicker(rawTickers[i]);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker(this.safeDict(rawTickers, i, {}));
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1523,7 +1523,7 @@ class onetrading extends onetrading$1["default"] {
         //
         // responds with an empty body
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method

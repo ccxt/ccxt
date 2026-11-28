@@ -131,7 +131,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const length = symbolsValue.length;
         if (length === 1) {
-            const market = this.market(marketIds[0]);
+            const market = this.market(symbolsValue[0]);
             messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;
@@ -783,7 +783,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['trades'] = [];
                 }
                 previousOrder['trades'].push(trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                previousOrder['lastTradeTimestamp'] = this.safeInteger(trade, 'timestamp');
                 let totalCost = '0';
                 let totalAmount = '0';
                 const trades = this.safeList(previousOrder, 'trades', []);
@@ -814,7 +814,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 if ((previousFee['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
                     const stringOrderCost = this.numberToString(previousFee['cost']);
                     const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
-                    previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    previousFee['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    previousOrder['fee'] = previousFee;
                 }
                 // update the newUpdates count
                 orders.append(this.safeOrder(previousOrder));
@@ -1450,13 +1451,13 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys(holding); // cashAccount
             this.balance['cash'] = this.safeDict(this.balance, 'cash', {});
-            this.balance['cash']['info'] = message;
-            this.balance['cash']['timestamp'] = timestamp;
-            this.balance['cash']['datetime'] = this.iso8601(timestamp);
+            const cashBalance = this.safeDict(this.balance, 'cash', {});
+            cashBalance['info'] = message;
+            cashBalance['timestamp'] = timestamp;
+            cashBalance['datetime'] = this.iso8601(timestamp);
             const holdingCodes = {};
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
@@ -1465,19 +1466,18 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['total'] = this.safeString(holding, key);
                 if (code !== undefined) {
                     holdingCodes[code] = true;
-                    this.balance['cash'][code] = newAccount;
+                    cashBalance[code] = newAccount;
                 }
             }
-            this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
-            this.balance['cash'] = this.safeBalance(this.balance['cash']);
-            updatedBalance = this.balance['cash'];
+            this.balance['cash'] = this.safeBalance(this.pruneStaleBalanceKeys(cashBalance, holdingCodes));
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys(futures); // marginAccount
             this.balance['margin'] = this.safeDict(this.balance, 'margin', {});
-            this.balance['margin']['info'] = message;
-            this.balance['margin']['timestamp'] = timestamp;
-            this.balance['margin']['datetime'] = this.iso8601(timestamp);
+            const marginBalance = this.safeDict(this.balance, 'margin', {});
+            marginBalance['info'] = message;
+            marginBalance['timestamp'] = timestamp;
+            marginBalance['datetime'] = this.iso8601(timestamp);
             const futuresSymbols = {};
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
@@ -1494,22 +1494,19 @@ export default class krakenfutures extends krakenfuturesRest {
                     futuresSymbols[symbol] = true;
                     symbolAccounts[code] = newAccount;
                 }
-                this.balance['margin'][symbol] = symbolAccounts;
+                marginBalance[symbol] = symbolAccounts;
             }
-            this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
-            this.balance['margin'] = this.safeBalance(this.balance['margin']);
+            this.balance['margin'] = this.safeBalance(this.pruneStaleBalanceKeys(marginBalance, futuresSymbols));
             client.resolve(this.balance['margin'], messageHash + ':futures');
-            if (updatedBalance === undefined) {
-                updatedBalance = this.balance['margin'];
-            }
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
             this.balance['flex'] = this.safeDict(this.balance, 'flex', {});
-            this.balance['flex']['info'] = message;
-            this.balance['flex']['timestamp'] = timestamp;
-            this.balance['flex']['datetime'] = this.iso8601(timestamp);
+            const flexBalance = this.safeDict(this.balance, 'flex', {});
+            flexBalance['info'] = message;
+            flexBalance['timestamp'] = timestamp;
+            flexBalance['datetime'] = this.iso8601(timestamp);
             const flexCodes = {};
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
@@ -1521,22 +1518,24 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['total'] = this.safeString(flexFuture, 'quantity');
                 if (code !== undefined) {
                     flexCodes[code] = true;
-                    this.balance['flex'][code] = newAccount;
+                    flexBalance[code] = newAccount;
                 }
             }
-            this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
-            this.balance['flex'] = this.safeBalance(this.balance['flex']);
+            this.balance['flex'] = this.safeBalance(this.pruneStaleBalanceKeys(flexBalance, flexCodes));
             client.resolve(this.balance['flex'], messageHash + ':flex_futures');
-            if (updatedBalance === undefined) {
-                updatedBalance = this.balance['flex'];
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if (updatedBalance !== undefined) {
-            client.resolve(updatedBalance, messageHash);
+        if (holding !== undefined) {
+            client.resolve(this.balance['cash'], messageHash);
+        }
+        else if (futures !== undefined) {
+            client.resolve(this.balance['margin'], messageHash);
+        }
+        else if (flexFutures !== undefined) {
+            client.resolve(this.balance['flex'], messageHash);
         }
     }
     /**
@@ -1781,7 +1780,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const event = this.safeString(message, 'event');
         const messageHash = 'challenge';
         if (event !== 'error') {
-            const challenge = this.safeValue(message, 'message');
+            const challenge = this.safeString(message, 'message', '');
             const hashedChallenge = this.hash(this.encode(challenge), sha256, 'binary');
             const base64Secret = this.base64ToBinary(this.secret);
             const signature = this.hmac(hashedChallenge, base64Secret, sha512, 'base64');
@@ -1797,6 +1796,5 @@ export default class krakenfutures extends krakenfuturesRest {
                 delete client.subscriptions[messageHash];
             }
         }
-        return message;
     }
 }

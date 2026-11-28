@@ -1,5 +1,5 @@
 import Exchange from './abstract/bithumb.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, DepositAddress } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, DepositAddress } from './base/types.js';
 /**
  * @class bithumb
  * @augments Exchange
@@ -120,7 +120,7 @@ export default class bithumb extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Dict;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name bithumb#createOrder
@@ -430,5 +430,5 @@ export default class bithumb extends Exchange {
     nonce(): int;
     urlencodeWithArrayBrackets(query: Dict): string;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

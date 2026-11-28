@@ -68,29 +68,31 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trade:" + this.safeString(market, "symbol", ""));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-                put( "channel", "v4_trades" );
-                put( "id", market.get("id") );
-            }};
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = this.safeString(this.urls.get("api"), "ws");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("trade:" + this.safeString(market, "symbol", ""));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+            put( "channel", "v4_trades" );
+            put( "id", market.get("id") );
+        }};
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -105,23 +107,25 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trade:" + this.safeString(market, "symbol", ""));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "unsubscribe" );
-                put( "channel", "v4_trades" );
-                put( "id", market.get("id") );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = this.safeString(this.urls.get("api"), "ws");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("trade:" + this.safeString(market, "symbol", ""));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "unsubscribe" );
+            put( "channel", "v4_trades" );
+            put( "id", market.get("id") );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -150,7 +154,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String marketId = this.safeString(message, "id");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> content = this.safeDict(message, "contents", null);
         List<Object> rawTrades = this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -161,7 +165,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        List<Object> parsedTrades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        List<Object> parsedTrades = this.parseTrades(rawTrades, market, null, null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < parsedTrades.size(); i++)
         {
             stored.append((parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i)));
@@ -213,24 +217,26 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-                put( "channel", "v4_orderbook" );
-                put( "id", market.get("id") );
-            }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = this.safeString(this.urls.get("api"), "ws");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+            put( "channel", "v4_orderbook" );
+            put( "id", market.get("id") );
+        }};
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+        return orderbook.limit();
 
     }
 
@@ -243,25 +249,27 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
+    }
+
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "unsubscribe" );
-                put( "channel", "v4_orderbook" );
-                put( "id", market.get("id") );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = this.safeString(this.urls.get("api"), "ws");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "unsubscribe" );
+            put( "channel", "v4_orderbook" );
+            put( "id", market.get("id") );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -291,7 +299,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String marketId = this.safeString(message, "id");
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> content = this.safeDict(message, "contents", null);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -302,25 +310,25 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         orderbook.put("symbol", symbol);
         List<Object> asks = this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
-        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), bids);
         orderbook.put("nonce", this.safeInteger(message, "message_id"));
         String messageHash = ("orderbook:" + symbol);
         this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleDelta(Object bookside, Object delta)
+    public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         if ((delta instanceof List))
         {
             Double price = this.safeFloat(delta, 0);
             Double amount = this.safeFloat(delta, 1);
-            ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+            bookside.store(price, amount);
         } else
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "size", 2);
-            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+            bookside.storeArray(bidAsk);
         }
     }
 
@@ -338,30 +346,32 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("ohlcv:" + this.safeString(market, "symbol", ""));
-            String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-                put( "channel", "v4_candles" );
-                put( "id", ((Dydx.this.safeString(market, "id", "") + "/") + resolution) );
-            }};
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = this.safeString(this.urls.get("api"), "ws");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("ohlcv:" + this.safeString(market, "symbol", ""));
+        String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+            put( "channel", "v4_candles" );
+            put( "id", ((Dydx.this.safeString(market, "id", "") + "/") + resolution) );
+        }};
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -378,24 +388,26 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOHLCVCore(symbol, timeframe, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOHLCVCore(String symbol, String timeframe, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("ohlcv:" + this.safeString(market, "symbol", ""));
-            String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "unsubscribe" );
-                put( "channel", "v4_candles" );
-                put( "id", ((Dydx.this.safeString(market, "id", "") + "/") + resolution) );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = this.safeString(this.urls.get("api"), "ws");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("ohlcv:" + this.safeString(market, "symbol", ""));
+        String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "unsubscribe" );
+            put( "channel", "v4_candles" );
+            put( "id", ((Dydx.this.safeString(market, "id", "") + "/") + resolution) );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -455,28 +467,28 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String id = this.safeString(message, "id", "");
         List<Object> part = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("/"))));
         String interval = this.safeString(part, 1);
-        String timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, null);
         String marketId = this.safeString(part, 0);
-        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> content = this.safeDict(message, "contents", null);
         List<Object> candles = this.safeList(content, "candles", null);
         String messageHash = ("ohlcv:" + symbol);
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(candles, 0, content);
-        List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
+        List<Object> parsed = this.parseOHLCV(ohlcv, market);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         try
         {

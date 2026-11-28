@@ -179,8 +179,8 @@ public partial class blockchaincom : Exchange
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0045")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0.0006")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0017")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0045}, new List<object> {10000.0, 0.0035}, new List<object> {50000.0, 0.0018}, new List<object> {100000.0, 0.0018}, new List<object> {500000.0, 0.0018}, new List<object> {1000000.0, 0.0018}, new List<object> {2500000.0, 0.0018}, new List<object> {5000000.0, 0.0016}, new List<object> {25000000.0, 0.0014}, new List<object> {100000000.0, 0.0011}, new List<object> {500000000.0, 0.0008}, new List<object> {1000000000.0, 0.0006}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.004}, new List<object> {10000.0, 0.0017}, new List<object> {50000.0, 0.0015}, new List<object> {100000.0, 0.0008}, new List<object> {500000.0, 0.0007}, new List<object> {1000000.0, 0.0006}, new List<object> {2500000.0, 0.0005}, new List<object> {5000000.0, 0.0004}, new List<object> {25000000.0, 0.0003}, new List<object> {100000000.0, 0.0002}, new List<object> {500000000.0, 0.0001}, new List<object> {1000000000.0, 0.0}} },
                     } },
                 } },
             } },
@@ -506,7 +506,7 @@ public partial class blockchaincom : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -586,7 +586,7 @@ public partial class blockchaincom : Exchange
             await this.loadMarkets();
         }
         List<object> tickers = await this.publicGetTickers(parameters);
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public virtual string? parseOrderState(string? state)
@@ -602,7 +602,7 @@ public partial class blockchaincom : Exchange
         return this.safeString(states, state, state);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -880,7 +880,7 @@ public partial class blockchaincom : Exchange
         return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(string state, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1032,7 +1032,7 @@ public partial class blockchaincom : Exchange
         return this.safeString(states, state, state);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposit
@@ -1424,27 +1424,27 @@ public partial class blockchaincom : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? text = this.safeString(response, "text");
         if ((text != null))
         {
             if (text == "Insufficient Balance")
             {
-                throw new InsufficientFunds ((string)((this.id + " ") + (body))) ;
+                throw new InsufficientFunds (((this.id + " ") + body)) ;
             }
         }
         string? errorCode = this.safeString(response, "status");
         string? errorMessage = this.safeString(response, "error");
         // code is an int: it is never undefined, the guard was dead
         string feedback = ((this.id + " ") + this.json(response));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

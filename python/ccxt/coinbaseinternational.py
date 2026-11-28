@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbaseinternational import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Leverage, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, Int, Leverage, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -573,7 +573,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         return self.parse_markets(instruments)
 
     def parse_market(self, market: dict) -> Market:
-        instrumentName = self.safe_string(market, 'instrument_name')
+        instrumentName = self.safe_string(market, 'instrument_name', '')
         lowercaseId = self.safe_string_lower(market, 'instrument_name')
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'counter_currency')
@@ -619,7 +619,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             optionTypeLetter = 'P'
             if optionType == 'call':
                 optionTypeLetter = 'C'
-            strikeString = self.number_to_string(strike)
+            strikeString = self.safe_string(market, 'strike', '')
             symbol = symbol + '-' + strikeString + '-' + optionTypeLetter
         marketStructure = {
             'id': instrumentName,
@@ -887,7 +887,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         isArray = isinstance(ohlcv, list)
         if isArray:
-            return ohlcv
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
         return [
             self.parse8601(self.safe_string_2(ohlcv, 'start', 'time')),
             self.safe_number(ohlcv, 'open'),
@@ -966,8 +973,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         rawRates = self.safe_list(response, 'result', [])
         return self.parse_funding_rate_histories(rawRates, market, since, limit)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
-        fundingRate = self.parse_funding_rate(info, market)
+    def parse_funding_rate_history(self, info: dict, market: Market = None) -> FundingRateHistory:
+        fundingRate = self.parse_funding_rate(self.extend({}, info), market)
         return {
             'info': info,
             'symbol': fundingRate['symbol'],
@@ -1029,8 +1036,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
         tickers = {}
         for i in range(0, len(symbolsResolved)):
-            symbol = self.safe_string(symbolsResolved, i)
-            if symbol is None:
+            symbol = self.safe_string(symbolsResolved, i, '')
+            if symbol == '':
                 continue
             ticker = self.fetch_ticker(symbol, paramsResolved)
             tickers[symbol] = ticker
@@ -1091,7 +1098,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "timestamp": 1788867258984,
@@ -1247,7 +1254,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             self.load_markets()
         self.authenticate_v2()
         code = self.safe_string(paramsResolved, 'code')
-        paramsOmitted = paramsResolved
+        paramsOmitted = self.extend({}, paramsResolved)
         if self.is_native_deribit_credentials():
             paramsOmitted = self.omit(paramsResolved, 'code')
         response = None
@@ -1501,19 +1508,15 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             # Account summaries are arrays; retain the gateway info shape without dropping balances.
             summaries = self.safe_list(result, 'summaries')
             if summaries is not None:
-                return self.parse_balance_list(summaries)
-            return self.parse_balance_list(self.safe_dict(result, 'summaries', []))
-        return self.parse_balance_list(result)
+                return self.parse_balance_list(summaries, summaries)
+            # a missing summary row has no currency, so the loop skips it
+            return self.parse_balance_list(self.safe_dict(result, 'summaries', []), [self.safe_dict(result, 'summaries', {})])
+        return self.parse_balance_list(result, self.safe_list(result, 'summaries', [result]))
 
-    def parse_balance_list(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object, summaries: list[dict]) -> Balances:
         result = {
             'info': response,
         }
-        summaries = [response]
-        if isinstance(response, list):
-            summaries = response
-        elif self.is_native_deribit_credentials():
-            summaries = self.safe_list(response, 'summaries', [response])
         for i in range(0, len(summaries)):
             data = self.safe_dict(summaries, i)
             currencyId = self.safe_string(data, 'currency')
@@ -2052,7 +2055,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         exchangeAmount = self.number_to_string(amount)
         if self.is_native_deribit_credentials() and (self.safe_bool(market, 'contract', False)):
             exchangeAmount = Precise.string_mul(exchangeAmount, self.safe_string(market, 'contractSize'))
-        return self.amount_to_precision(market['symbol'], exchangeAmount)
+        return self.amount_to_precision(self.safe_string(market, 'symbol'), exchangeAmount)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2640,11 +2643,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         paramsResolved = self.handle_route_and_params('fetchOpenOrders', params)
+        paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchOpenOrders', 'paginate', False)
+        nativeDeribit = self.is_native_deribit_credentials()
+        if nativeDeribit and paginate:
+            raise NotSupported(self.id + ' fetchOpenOrders() does not support pagination')
         paramsPaginate = paramsResolved
-        if self.is_native_deribit_credentials():
-            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchOpenOrders', 'paginate', False)
-            if paginate:
-                raise NotSupported(self.id + ' fetchOpenOrders() does not support pagination')
+        if nativeDeribit:
             paramsPaginate = paramsFinal
         if self.markets is None:
             self.load_markets()
@@ -2709,11 +2713,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         paramsResolved = self.handle_route_and_params('fetchMyTrades', params)
+        paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchMyTrades', 'paginate', False)
+        nativeDeribit = self.is_native_deribit_credentials()
+        if nativeDeribit and paginate:
+            raise NotSupported(self.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters')
         paramsPaginate = paramsResolved
-        if self.is_native_deribit_credentials():
-            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchMyTrades', 'paginate', False)
-            if paginate:
-                raise NotSupported(self.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters')
+        if nativeDeribit:
             paramsPaginate = paramsFinal
         if self.markets is None:
             self.load_markets()
@@ -3001,10 +3006,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         uri = None
         if (url is not None) and (method is not None):
-            uri = method + ' ' + url.replace('https://', '')
-            quesPos = uri.find('?')
+            fullUri = method + ' ' + url.replace('https://', '')
+            quesPos = fullUri.find('?')
             if quesPos > 0:
-                uri = uri[0:quesPos]
+                uri = fullUri[0:quesPos]
+            else:
+                uri = fullUri
         nonce = self.random_bytes(16)
         aud = 'retail_rest_api_proxy'
         if useEddsa:
@@ -3221,7 +3228,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return False
         return(len(self.apiKey) == 8) and (len(self.secret) == 43)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         #
         #     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         #

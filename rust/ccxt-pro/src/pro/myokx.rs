@@ -22,7 +22,8 @@ pub struct Myokx {
 }
 
 impl Myokx {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = Self { parent: crate::pro::okx::Okx::new(config) };
         s.init();
         s
@@ -30,7 +31,7 @@ impl Myokx {
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -54,7 +55,7 @@ impl crate::exchange::DerivedExchange for Myokx {
 }
 
 impl crate::exchange_generated::ExchangeBase for Myokx {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -77,8 +78,8 @@ impl std::ops::DerefMut for Myokx {
 }
 
 impl Myokx {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("myokx".into()));
         m.insert("name".to_string(), Value::Str("MyOKX (EEA)".into()));
@@ -116,7 +117,5 @@ impl Myokx {
 }));
     m
 })]);
-
-    Value::Null
 }
 }

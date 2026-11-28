@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -24,10 +25,10 @@ public class TestWatchTrades extends BaseTest {
 
         String method = "watchTrades";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
+        Object ends = TestHelpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
+        while ((TestHelpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = new ArrayList<Object>(Arrays.asList());
             Boolean success = true;
@@ -37,7 +38,7 @@ public class TestWatchTrades extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTrades", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -49,9 +50,9 @@ public class TestWatchTrades extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response);
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (String) (symbol), now, true);
+                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, true);
                 }
-                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
+                if (TestHelpers.isGreaterThan((TestHelpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

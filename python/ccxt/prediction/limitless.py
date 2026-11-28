@@ -239,7 +239,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             cappedPages = int(math.ceil(maxMarkets / pageSize))
             knownTotal = self.safe_integer(firstPageResponse, 'totalMarketsCount', 0)
             allPages = self.parse_to_int(int(math.ceil(knownTotal / pageSize)))
-            for i in range(2, allPages):
+            for i in range(2, allPages + 1):
                 if i > cappedPages:
                     break
                 page = i
@@ -260,10 +260,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     page = self.sum(page, 1)
                     request['page'] = page
                     response = await self.limitlessPublicGetMarketsActive(self.extend(request, rest))
-                    responseRows = []
-                    if isinstance(response, list):
-                        responseRows = response
-                    page_markets = self.safe_list(response, 'data', responseRows)
+                    page_markets = self.safe_list(response, 'data', [])
                     pageMarketsLength = len(page_markets)
                     if pageMarketsLength == 0:
                         break
@@ -281,27 +278,20 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(expandedRaw)):
             raw = expandedRaw[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = None
-            if groupId is not None and groupId != '':
-                eventKey = self.shorten_slug(groupId)
+            eventKey = self.shorten_slug(groupId)
             m = self.parse_market(raw)
             markets.append(m)
-            if (eventKey is not None) and (eventKey != ''):
-                if not (eventKey in eventGroups):
-                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
-                eventGroup = eventGroups[eventKey]
-                # push through a local and write the slice back — the go transpiler's
-                # AppendToArray reassigns only a local copy of a map-stored array, so a
-                # direct push on eventGroup['markets'] loses the element in go
+            if eventKey != '':
+                eventGroup = self.safe_dict(eventGroups, eventKey, {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []})
                 groupMarkets = eventGroup['markets']
                 groupMarkets.append(m)
                 eventGroup['markets'] = groupMarkets
+                eventGroups[eventKey] = eventGroup
         eventsDict = {}
         eventKeys = list(eventGroups.keys())
         for i in range(0, len(eventKeys)):
             eventKey = eventKeys[i]
-            g = eventGroups[eventKey]
-            eventsDict[eventKey] = self.parse_event(g)
+            eventsDict[eventKey] = self.parse_event(self.safe_dict(eventGroups, eventKey, {}))
         self.events = eventsDict
         marketsLength = len(markets)
         if marketsLength > maxMarkets:
@@ -419,8 +409,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         tokenEntries = list(tokens.keys())
         for i in range(0, len(tokenEntries)):
             outcomeLabel = tokenEntries[i]
-            tokenData = tokens[outcomeLabel]
-            tokenId = tokenData
+            tokenId = self.safe_string(tokens, outcomeLabel)
             outcomeHandle = self.slug_to_outcome_symbol(groupId, slug, outcomeLabel)
             # winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             # limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1017,10 +1006,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             # the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             rawBids = self.safe_list(book, 'bids', [])
             rawAsks = self.safe_list(book, 'asks', [])
-            rawBidsLength = len(rawBids)
-            rawAsksLength = len(rawAsks)
-            yesBestBid = rawBids[0] if (rawBidsLength > 0) else None
-            yesBestAsk = rawAsks[0] if (rawAsksLength > 0) else None
+            yesBestBid = self.safe_dict(rawBids, 0)
+            yesBestAsk = self.safe_dict(rawAsks, 0)
             yesBidPrice = self.safe_string(yesBestBid, 'price')
             yesBidSize = self.safe_string(yesBestBid, 'size')
             yesAskPrice = self.safe_string(yesBestAsk, 'price')
@@ -1388,15 +1375,16 @@ class limitless(PredictionExchange, ImplicitAPI):
                 candles[key] = [bucket, pPrice, pPrice, pPrice, pPrice, 0]
                 bucketOrder.append(key)
             else:
-                candle = candles[key]
-                prevHigh = self.safe_number(candle, 2)
-                if (prevHigh is None) or (pPrice > prevHigh):
-                    candle[2] = pPrice
-                prevLow = self.safe_number(candle, 3)
-                if (prevLow is None) or (prevLow > pPrice):
-                    candle[3] = pPrice
-                candle[4] = pPrice
-                candles[key] = candle  # php arrays are value types - write the mutation back
+                prevHigh = self.safe_number(candles[key], 2, pPrice)
+                prevLow = self.safe_number(candles[key], 3, pPrice)
+                openTs = self.safe_integer(candles[key], 0)
+                openPrice = self.safe_number(candles[key], 1)
+                if (prevHigh is not None) and (pPrice > prevHigh):
+                    candles[key] = [openTs, openPrice, pPrice, prevLow, pPrice, 0]
+                elif (prevLow is not None) and (prevLow > pPrice):
+                    candles[key] = [openTs, openPrice, prevHigh, pPrice, pPrice, 0]
+                else:
+                    candles[key] = [openTs, openPrice, prevHigh, prevLow, pPrice, 0]
         result = []
         for i in range(0, len(bucketOrder)):
             result.append(self.safe_value(candles, bucketOrder[i]))
@@ -1490,7 +1478,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         })
         return await self.fetch_orders(outcome, since, limit, paramsExtended)
 
-    async def fetch_orders_by_ids(self, ids: object, outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
+    async def fetch_orders_by_ids(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetch orders by the list of order id
 
@@ -2015,7 +2003,9 @@ class limitless(PredictionExchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
-                    costRequest = cost if (cost is not None) else quoteAmount
+                    costRequest = quoteAmount
+                    if cost is not None:
+                        costRequest = cost
                     makerAmount = self.cost_to_prediction_precision(outcome, costRequest)
             else:
                 makerAmount = self.cost_to_prediction_precision(outcome, amount)
@@ -2092,8 +2082,8 @@ class limitless(PredictionExchange, ImplicitAPI):
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         rPadded = r.rjust(64, '0')
         sPadded = s.rjust(64, '0')
@@ -2120,10 +2110,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         payload = '02' + self.rlp_encode_list(fields)
         hashHex = self.hash(self.base16_to_binary(payload), 'keccak', 'hex')
         signature = self.ecdsa(hashHex, self.remove0x_prefix(privateKey), 'secp256k1', None)
-        rHex = self.safe_string(signature, 'r')
-        sHex = self.safe_string(signature, 's')
-        rHex = self.pad_hex_to_even(rHex)
-        sHex = self.pad_hex_to_even(sHex)
+        rHex = self.pad_hex_to_even(self.safe_string(signature, 'r', ''))
+        sHex = self.pad_hex_to_even(self.safe_string(signature, 's', ''))
         yParity = self.safe_integer(signature, 'v')
         signedFields = []
         for i in range(0, len(fields)):
@@ -2268,8 +2256,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         paramsValue = params
         if outcome is not None:
-            warn = True
-            warn, paramsValue = self.handle_option_and_params(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
+            warn, paramsWarn = self.handle_option_bool_and_params(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', True)
+            paramsValue = paramsWarn
             if warn:
                 raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
         request = {}
@@ -2304,13 +2292,11 @@ class limitless(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             outcomeObj = await self.load_outcome(outcome)
             outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
-        paginate = False
         maxLimit = 100
-        paramsValue = params
-        paginate, paramsValue = self.handle_option_and_params(paramsValue, 'fetchMyTrades', 'paginate', paginate)
+        paginate, paramsValue = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            paramsValue = self.omit(paramsValue, 'paginate')
-            return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', None, maxLimit)
+            paramsCursor = self.omit(paramsValue, 'paginate')
+            return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', None, maxLimit)
         request = {}
         if limit is not None:
             request['limit'] = min(limit, 100)
@@ -2628,17 +2614,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = []
         labels = ['yes', 'no']
         for i in range(0, len(clob)):
-            entry = self.safe_dict(clob, i)
             for j in range(0, len(labels)):
                 label = self.safe_string(labels, j)
-                position = self.get_position_from_clob_entry(label, entry)
+                position = self.get_position_from_clob_entry(label, self.safe_dict(clob, i, {}))
                 if position is not None:
                     result.append(position)
         return result
 
-    def get_position_from_clob_entry(self, label: Str, entry: dict = None):
-        if entry is None:
-            return None
+    def get_position_from_clob_entry(self, label: Str, entry: dict):
         tokensBalance = self.safe_dict(entry, 'tokensBalance')
         contracts = self.omit_zero(self.safe_string(tokensBalance, label))
         if contracts is None:
@@ -2781,23 +2764,17 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, rawMarketsLength):
             raw = expandedMarkets[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = None
-            if groupId is not None and groupId != '':
-                eventKey = self.shorten_slug(groupId)
+            eventKey = self.shorten_slug(groupId)
             m = self.parse_market(raw)
             if m is None:
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
-            if (eventKey is not None) and (eventKey != ''):
-                if not (eventKey in eventGroups):
-                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
-                eventGroup = eventGroups[eventKey]
-                # push through a local and write the slice back — the go transpiler's
-                # AppendToArray reassigns only a local copy of a map-stored array, so a
-                # direct push on eventGroup['markets'] loses the element in go
+            if eventKey != '':
+                eventGroup = self.safe_dict(eventGroups, eventKey, {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []})
                 groupMarkets = eventGroup['markets']
                 groupMarkets.append(m)
                 eventGroup['markets'] = groupMarkets
+                eventGroups[eventKey] = eventGroup
         result = []
         eventKeys = list(eventGroups.keys())
         eventKeysLength = len(eventKeys)
@@ -2868,7 +2845,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             categories = categoriesResponse
         wanted = []
         for i in range(0, len(tags)):
-            wanted.append(tags[i].lower())
+            tag = self.safe_string(tags, i, '')
+            wanted.append(tag.lower())
         categoryIds = []
         categoriesLength = len(categories)
         for i in range(0, categoriesLength):
@@ -2877,8 +2855,6 @@ class limitless(PredictionExchange, ImplicitAPI):
             categoryId = self.safe_string(category, 'id')
             matched = False
             for wi in range(0, len(wanted)):
-                if name is None:
-                    raise ExchangeError(self.id + ' fetchRawMarketsByTags() missing name')
                 if name.find(wanted[wi]) >= 0:
                     matched = True
                     break
@@ -2916,8 +2892,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
+        baseUrl = self.safe_string(self.urls['api'], apiGroup, self.safe_string(self.urls['api'], 'limitless', ''))
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         querystring = self.urlencode_with_array_repeat(query)
@@ -2951,7 +2926,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         """
  @ignore
         maps limitless error responses to ccxt exceptions

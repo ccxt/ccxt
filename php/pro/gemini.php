@@ -65,7 +65,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $market = $this->market($symbol);
         $messageHash = 'trades:' . $this->safe_string($market, 'symbol', '');
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         if ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' watchTrades() marketId is required');
         }
@@ -190,7 +190,7 @@ class gemini extends \ccxt\async\gemini {
         //     }
         //
         $trade = $this->parse_ws_trade($message);
-        $symbol = $trade['symbol'];
+        $symbol = $this->safe_string($trade, 'symbol');
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -200,7 +200,7 @@ class gemini extends \ccxt\async\gemini {
             }
         }
         $stored->append($trade);
-        $messageHash = 'trades:' . $symbol;
+        $messageHash = 'trades:' . $this->safe_string($trade, 'symbol', '');
         $client->resolve($stored, $messageHash);
     }
 
@@ -386,8 +386,7 @@ class gemini extends \ccxt\async\gemini {
         $changesLength = count($changes);
         // reverse order of array to store candles in ascending order
         for ($i = 0; $i < $changesLength; $i++) {
-            $parsed = $this->parse_ohlcv($this->safe_value($changes, $changesLength - $i - 1), $market);
-            $stored->append($parsed);
+            $stored->append($this->parse_ohlcv($this->safe_value($changes, $changesLength - $i - 1), $market));
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
         $client->resolve($stored, $messageHash);
@@ -414,7 +413,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         if ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' watchOrderBook() marketId is required');
         }
@@ -613,7 +612,8 @@ class gemini extends \ccxt\async\gemini {
             $messageHash = $itemHashName . ':' . $symbol;
             $messageHashes[] = $messageHash;
             $market = $this->market($symbol);
-            $marketIds[] = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $marketIds[] = $marketId;
         }
         $queryStr = implode(',', $marketIds);
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
@@ -821,7 +821,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $orders = $this->orders;
         for ($i = 0; $i < count($message); $i++) {
-            $order = $this->parse_ws_order($this->safe_value($message, $i));
+            $order = $this->parse_ws_order($this->safe_dict($message, $i, array()));
             $orders->append($order);
         }
         $client->resolve($this->orders, $messageHash);
@@ -1052,15 +1052,13 @@ class gemini extends \ccxt\async\gemini {
         // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
-        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
-        $originalHeaders = $this->safe_dict($wsSubOptions, 'headers', array());
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
             'X-GEMINI-PAYLOAD' => $b64,
             'X-GEMINI-SIGNATURE' => $signature,
         );
-        $this->options['ws']['options']['headers'] = $headers;
+        $this->options['ws'] = $this->extend($wsOptions, array( 'options' => $this->extend($this->safe_dict($wsOptions, 'options'), array( 'headers' => $headers )) ));
         $this->client($url);
-        $this->options['ws']['options']['headers'] = $originalHeaders;
+        $this->options['ws'] = $wsOptions;
     }
 }

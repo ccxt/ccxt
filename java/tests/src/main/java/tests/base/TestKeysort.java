@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class TestKeysort extends BaseTest
                 put( "id", "sampleexchange" );
             }});
             // temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-            if (Helpers.isGreaterThan(exchange.milliseconds(), 0))
+            if (TestHelpers.isGreaterThan(exchange.milliseconds(), 0))
             {
                 return;
             }
@@ -64,7 +65,7 @@ public class TestKeysort extends BaseTest
             AssertDeepEqual(exchange, null, "testKeysort", new ArrayList<Object>(((Map<String, Object>)result3).keySet()), new ArrayList<Object>(expectedSorted3.keySet()));
             // Test 4: Empty dictionary
             Map<String, Object> unsortedDict4 = new HashMap<String, Object>() {{}};
-            Map<String, Object> expectedSorted4 = new HashMap<String, Object>() {{}};
+            Map<String, Map<String, Object>> expectedSorted4 = new HashMap<String, Map<String, Object>>();
             Object result4 = exchange.keysort(unsortedDict4);
             AssertDeepEqual(exchange, null, "testKeysort", new ArrayList<Object>(((Map<String, Object>)result4).keySet()), new ArrayList<Object>(expectedSorted4.keySet()));
             // Test 5: Single key dictionary

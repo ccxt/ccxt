@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -160,9 +160,10 @@ class kucoin(ccxt.async_support.kucoin):
             client.keepAlive = pingInterval
             return result
         except Exception as e:
-            future = self.safe_value(self.options['urls'], connectId)
+            urls = self.safe_dict(self.options, 'urls', {})
+            future = self.safe_value(urls, connectId)
             future.reject(e)
-            del self.options['urls'][connectId]
+            self.options['urls'] = self.omit(urls, connectId)
         return None
 
     def request_id(self) -> int:
@@ -332,9 +333,11 @@ class kucoin(ccxt.async_support.kucoin):
         isFuturesMethod = market['contract']
         url = await self.negotiate(False, isFuturesMethod)
         spotMethod, paramsSpotMethod = self.handle_option_string_and_params(paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot')
-        method = '/contractMarket/ticker' if (isFuturesMethod is True) else spotMethod
         query = paramsUta if (isFuturesMethod is True) else paramsSpotMethod
-        topic = method + ':' + market['id']
+        tickerMarketId = self.safe_string(market, 'id', '')
+        topic = '/contractMarket/ticker:' + tickerMarketId
+        if isFuturesMethod is not True:
+            topic = spotMethod + ':' + tickerMarketId
         return await self.subscribe(url, messageHash, topic, query)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}):
@@ -371,9 +374,11 @@ class kucoin(ccxt.async_support.kucoin):
         else:
             url = await self.negotiate(False, isFuturesMethod)
             spotMethod, paramsSpotMethod = self.handle_option_string_and_params(paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot')
-            method = '/contractMarket/ticker' if (isFuturesMethod is True) else spotMethod
             query = paramsUta if (isFuturesMethod is True) else paramsSpotMethod
-            topic = method + ':' + market['id']
+            tickerMarketId = self.safe_string(market, 'id', '')
+            topic = '/contractMarket/ticker:' + tickerMarketId
+            if isFuturesMethod is not True:
+                topic = spotMethod + ':' + tickerMarketId
             messageHash = 'unsubscribe:' + subMessageHash
             subscription['messageHashes'] = [messageHash, topic]
             subscription['subMessageHashes'] = [subMessageHash, topic]
@@ -441,7 +446,7 @@ class kucoin(ccxt.async_support.kucoin):
                 return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    async def subscribe_public_multiple_uta(self, messageHashes: list[str], channel: str, symbols: list[object], params: dict = {}, subscription: dict = None):
+    async def subscribe_public_multiple_uta(self, messageHashes: list[str], channel: str, symbols: list[str], params: dict = {}, subscription: dict = None):
         requestId = str(self.request_id())
         market = self.get_market_from_symbols(symbols)
         isContract = self.safe_bool(market, 'contract', False)
@@ -775,7 +780,7 @@ class kucoin(ccxt.async_support.kucoin):
         topic = self.safe_string(ticker, 'topic')
         if topic.find('contractMarket') < 0:
             parts = topic.split(':')
-            marketId = parts[1]
+            marketId = self.safe_string(parts, 1)
             marketResolved = self.safe_market(marketId, market)
             symbol = self.safe_string(marketResolved, 'symbol')
             data = self.safe_dict(ticker, 'data', {})
@@ -1550,10 +1555,9 @@ class kucoin(ccxt.async_support.kucoin):
         if topic.find('Depth') >= 0:
             if not (symbol in self.orderbooks):
                 self.orderbooks[symbol] = self.order_book()
-            else:
-                orderbook = self.orderbooks[symbol]
-                orderbook.reset()
-            self.orderbooks[symbol]['symbol'] = symbol
+            storedBook = self.orderbooks[symbol]
+            storedBook.reset()
+            storedBook['symbol'] = self.safe_symbol(marketId, None, '-')
         else:
             if not (symbol in self.orderbooks):
                 self.orderbooks[symbol] = self.order_book()
@@ -1561,16 +1565,16 @@ class kucoin(ccxt.async_support.kucoin):
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
                 subscriptions = list(client.subscriptions.keys())
                 subscription = None
                 for i in range(0, len(subscriptions)):
                     key = subscriptions[i]
-                    if (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
+                    if (topicSymbol is not None) and (topicChannel is not None) and (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
                         subscription = client.subscriptions[key]
                         break
                 limit = self.safe_integer(subscription, 'limit')
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 5))
                 if cacheLength == snapshotDelay:
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
                 (orderbook.cache).append(data)
@@ -1619,10 +1623,10 @@ class kucoin(ccxt.async_support.kucoin):
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer(data, 'C')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
                 subscription = self.safe_dict(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 5))
                 utaParams = {
                     'uta': True,
                 }
@@ -1697,9 +1701,9 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         limit = self.safe_integer(subscription, 'limit')
-        symbols = self.safe_list(subscription, 'symbols')
+        symbols = self.safe_string_list(subscription, ['symbols', 'symbol'])
         if symbols is None:
-            symbols = [self.safe_string(subscription, 'symbol')]
+            return
         limits = self.safe_dict(self.options, 'orderBookLimits', {})
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -1739,22 +1743,23 @@ class kucoin(ccxt.async_support.kucoin):
         subscription = self.safe_dict(client.subscriptions, subscriptionHash)
         del client.subscriptions[id]
         method = self.safe_value(subscription, 'method')
-        if method is not None:
-            method(client, message, subscription)
+        if (subscription is not None) and (method is not None):
+            self.handle_order_book_subscription(client, message, subscription)
         isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
         if isUnSub:
-            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+            messageHashes = self.safe_string_list(subscription, ['messageHashes'])
             subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-            for i in range(0, len(messageHashes)):
-                messageHash = self.safe_string(messageHashes, i)
-                subHash = self.safe_string(subMessageHashes, i)
-                self.clean_unsubscription(client, subHash, messageHash)
+            if messageHashes is not None:
+                for i in range(0, len(messageHashes)):
+                    messageHash = self.safe_string(messageHashes, i)
+                    subHash = self.safe_string(subMessageHashes, i)
+                    self.clean_unsubscription(client, subHash, messageHash)
             topic = self.safe_string(subscription, 'topic')
             if topic == 'fundingRate':
                 # todo: add fundingRate topic to cleanCache
                 symbols = self.safe_list(subscription, 'symbols', [])
                 for i in range(0, len(symbols)):
-                    symbol = symbols[i]
+                    symbol = self.safe_string(symbols, i, '')
                     if symbol in self.fundingRates:
                         del self.fundingRates[symbol]
             else:
@@ -1870,7 +1875,7 @@ class kucoin(ccxt.async_support.kucoin):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None):
         #
         # /spotMarket/tradeOrders
         #
@@ -2076,7 +2081,7 @@ class kucoin(ccxt.async_support.kucoin):
         #        "type": "open"
         #    }
         #
-        data = self.safe_dict(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         tradeId = self.safe_string(data, 'tradeId')
         if tradeId is not None:
             self.handle_my_trade(client, message)
@@ -2100,7 +2105,7 @@ class kucoin(ccxt.async_support.kucoin):
             # derives cost from the order price otherwise, which is wrong for
             # orders filled at better prices, so the accumulated values win on
             # the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if order['average'] is not None:
+            if self.safe_number(order, 'average') is not None:
                 parsed['average'] = self.safe_number(order, 'average')
                 parsed['cost'] = self.safe_number(order, 'cost')
             if self.safe_number(parsed, 'filled') is None:
@@ -2211,8 +2216,8 @@ class kucoin(ccxt.async_support.kucoin):
         symbolResolved = symbol
         if market is not None:
             symbolResolved = self.safe_string(market, 'symbol')
-        if market is not None:
-            messageHash = messageHash + ':' + market['symbol']
+        if symbolResolved is not None:
+            messageHash = messageHash + ':' + symbolResolved
         marketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         isFuturesMethod = ((marketType != 'spot') and (marketType != 'margin'))
         utaEnabled = await self.is_uta_enabled()
@@ -2382,7 +2387,7 @@ class kucoin(ccxt.async_support.kucoin):
             amount = self.safe_string(trade, 'size')
         order = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer_product_2(trade, 'ts', 'time', 0.000001)
-        feeCurrency = marketResolved['quote']
+        feeCurrency = self.safe_string(marketResolved, 'quote')
         feeRate = self.safe_string(trade, 'feeRate')
         feeCost = self.safe_string(trade, 'fee')
         return self.safe_trade({
@@ -2580,10 +2585,11 @@ class kucoin(ccxt.async_support.kucoin):
         if uniformType is not None:
             if not (uniformType in self.balance):
                 self.balance[uniformType] = {}
-            self.balance[uniformType]['info'] = data
+            balance = self.safe_dict(self.balance, uniformType, {})
+            balance['info'] = data
             timestamp = self.safe_integer_2(data, 'time', 'timestamp')
-            self.balance[uniformType]['timestamp'] = timestamp
-            self.balance[uniformType]['datetime'] = self.iso8601(timestamp)
+            balance['timestamp'] = timestamp
+            balance['datetime'] = self.iso8601(timestamp)
             code = self.safe_currency_code(currencyId)
             account = self.account()
             used = self.safe_string_2(data, 'hold', 'holdBalance')
@@ -2594,8 +2600,8 @@ class kucoin(ccxt.async_support.kucoin):
             account['used'] = used
             account['total'] = self.safe_string(data, 'total')
             if code is not None:
-                self.balance[uniformType][code] = account
-            self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
+                balance[code] = account
+            self.balance[uniformType] = self.safe_balance(balance)
             client.resolve(self.balance[uniformType], uniformType + ':balance')
 
     def handle_uta_balance(self, client: Client, message: dict):
@@ -2620,17 +2626,18 @@ class kucoin(ccxt.async_support.kucoin):
         code = self.safe_currency_code(currencyId)
         if not (type in self.balance):
             self.balance[type] = {}
-        self.balance[type]['info'] = data
+        balance = self.safe_dict(self.balance, type, {})
+        balance['info'] = data
         timestamp = self.safe_integer_product(data, 'U', 0.000001)
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
         account = self.account()
         account['free'] = self.safe_string(data, 'a')
         account['used'] = self.safe_string(data, 'h')
         account['total'] = self.safe_string(data, 'b')
         if code is not None:
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         messageHash = type + ':balance'
         client.resolve(self.balance[type], messageHash)
 
@@ -2696,7 +2703,7 @@ class kucoin(ccxt.async_support.kucoin):
                 messageHashes.append(messageHash + ':' + symbol)
         url = await self.get_uta_url()
         client = self.client(url)
-        self.set_positions_cache(client, utaOption)
+        self.set_positions_cache(client, utaOption is True)
         fetchPositionSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
@@ -3231,7 +3238,7 @@ class kucoin(ccxt.async_support.kucoin):
         client.lastPong = self.milliseconds()
         # https://docs.kucoin.com/#ping
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "id": "1",
@@ -3256,7 +3263,7 @@ class kucoin(ccxt.async_support.kucoin):
             if client.url.find('connectId=' + type + 'Futures') >= 0:
                 type += 'Futures'
             self.options['urls'][type] = None
-        self.handle_errors(1, '', client.url, '', {}, data, message, {}, '')
+        self.handle_errors(1, '', client.url, '', {}, data, message, {}, None)
         return False
 
     def handle_message(self, client: Client, message: dict):
@@ -3280,7 +3287,7 @@ class kucoin(ccxt.async_support.kucoin):
                 self.handle_error_message(client, message)
             self.handle_subscription_status(client, message)
 
-    def get_message_hash(self, elementName: Str, symbol: Str = None) -> str:
+    def get_message_hash(self, elementName: str, symbol: Str = None) -> str:
         # method from kucoinfutures
         # elementName can be 'ticker', 'bidask', ...
         if symbol is not None:

@@ -17,7 +17,7 @@ func TestIncrementingNonce() {
 	ccxt.AddElementToObject(exchange.Options, "lastNonce", seed)
 	var first any = exchange.IncrementingNonce()
 	var second any = exchange.IncrementingNonce()
-	assert(ccxt.IsGreaterThan(first, seed), "incrementingNonce should bump past the stored lastNonce")
+	assert(IsGreaterThan(first, seed), "incrementingNonce should bump past the stored lastNonce")
 	assert((second == ccxt.Add(first, 1)), "two incrementingNonce calls in the same tick should return n and n + 1")
-	assert(ccxt.IsGreaterThan(second, first), "incrementingNonce should be strictly increasing")
+	assert(IsGreaterThan(second, first), "incrementingNonce should be strictly increasing")
 }

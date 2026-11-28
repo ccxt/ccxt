@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, NullableList, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -362,8 +362,10 @@ export default class hollaex extends Exchange {
             const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
-            const baseCode = this.commonCurrencyCode ((baseId as string).toUpperCase ());
-            const quoteCode = this.commonCurrencyCode ((quoteId as string).toUpperCase ());
+            const upperBaseId = (baseId as string).toUpperCase ();
+            const upperQuoteId = (quoteId as string).toUpperCase ();
+            const baseCode = this.commonCurrencyCode (upperBaseId);
+            const quoteCode = this.commonCurrencyCode (upperQuoteId);
             result.push ({
                 'id': this.safeString (market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -696,13 +698,14 @@ export default class hollaex extends Exchange {
 
     override parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
         const result: Dict = {};
-        const keys = Object.keys (tickers);
+        const tickersDict: Dict = this.extend ({}, tickers);
+        const keys = Object.keys (tickersDict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const ticker = this.safeDict (tickers, key, {});
             const marketId = this.safeString (ticker, 'symbol', key);
             const market = this.safeMarket (marketId, undefined, '-');
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             result[symbol] = this.extend (this.parseTicker (ticker, market), params);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
@@ -737,7 +740,7 @@ export default class hollaex extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
         const close = this.safeString (ticker, 'close');
         return this.safeTicker ({
@@ -826,7 +829,7 @@ export default class hollaex extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const datetime = this.safeString (trade, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const side = this.safeString (trade, 'side');
@@ -1178,7 +1181,7 @@ export default class hollaex extends Exchange {
         if (response === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
-        return this.parseOrder (response);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**
@@ -1361,7 +1364,7 @@ export default class hollaex extends Exchange {
         const meta = this.safeDict (params, 'meta', {});
         const exchangeSpecificParam = this.safeBool (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam === true, params);
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1620,12 +1623,10 @@ export default class hollaex extends Exchange {
         //     }
         //
         const wallet = this.safeList (response, 'wallet', []);
-        let addresses: NullableList = undefined;
         if (network === undefined) {
-            addresses = wallet;
-        } else {
-            addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
+            return this.parseDepositAddresses (wallet, codes, false) as DepositAddress[];
         }
+        const addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
@@ -1846,10 +1847,8 @@ export default class hollaex extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
         let addressTo: Str = undefined;
-        const addressFrom = undefined;
         let tag: Str = undefined;
         let tagTo: Str = undefined;
-        const tagFrom = undefined;
         if (address !== undefined) {
             const parts = address.split (':');
             address = this.safeString (parts, 0);
@@ -1889,10 +1888,10 @@ export default class hollaex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
-            'addressFrom': addressFrom,
+            'addressFrom': undefined,
             'address': address,
             'addressTo': addressTo,
-            'tagFrom': tagFrom,
+            'tagFrom': undefined,
             'tag': tag,
             'tagTo': tagTo,
             'type': type,
@@ -2116,7 +2115,7 @@ export default class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;

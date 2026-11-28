@@ -497,8 +497,8 @@ public partial class alpaca : Exchange
                     { "maker", this.parseNumber("0.0015") },
                     { "taker", this.parseNumber("0.0025") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0025}, new List<object> {100000.0, 0.0022}, new List<object> {500000.0, 0.0020}, new List<object> {1000000.0, 0.0018}, new List<object> {10000000.0, 0.0015}, new List<object> {25000000.0, 0.0013}, new List<object> {50000000.0, 0.0012}, new List<object> {100000000.0, 0.001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0015}, new List<object> {100000.0, 0.0012}, new List<object> {500000.0, 0.001}, new List<object> {1000000.0, 0.0008}, new List<object> {10000000.0, 0.0005}, new List<object> {25000000.0, 0.0002}, new List<object> {50000000.0, 0.0002}, new List<object> {100000000.0, 0.00}} },
                     } },
                 } },
             } },
@@ -1056,7 +1056,7 @@ public partial class alpaca : Exchange
                 for (int i = 1; (i < paginationCalls); i++)
                 {
                     int ohlcvsLength = (ohlcvs?.Count ?? 0);
-                    if (((pageToken == null)) || (((limit != null)) && ((limit == null || ohlcvsLength >= limit))))
+                    if (((pageToken == null)) || (((limit != null)) && (ohlcvsLength >= limit.Value)))
                     {
                         break;
                     }
@@ -1102,7 +1102,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1265,7 +1265,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
 
-    public virtual string? generateClientOrderId(object parameters)
+    public virtual string? generateClientOrderId(IDictionary<string, object> parameters)
     {
         string? clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         string uuid = this.uuid();
@@ -1408,7 +1408,13 @@ public partial class alpaca : Exchange
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
         IDictionary<string, object> paramsTimeInForce = (defaultTIFparamsTimeInForceVariable.Item2);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
+        if ((defaultTIF != null))
+        {
+            request["time_in_force"] = defaultTIF.ToLower();
+        } else
+        {
+            request["time_in_force"] = null;
+        }
         Dictionary<string, object> paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
         request["client_order_id"] = this.generateClientOrderId(paramsOmitted);
         Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new List<object>() {"clientOrderId"})));
@@ -1494,13 +1500,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         List<object> response = await this.traderPrivateDeleteV2Orders(parameters);
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            return this.parseOrders(response);
-        } else
-        {
-            return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
-        }
+        return this.parseOrders(response);
     }
 
     /**
@@ -1725,7 +1725,7 @@ public partial class alpaca : Exchange
         return this.parseOrder(response, market);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -2014,7 +2014,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2096,7 +2096,7 @@ public partial class alpaca : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string type, string? code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string type, string? code, Int64? since, Int64? limit, object parameters)
     {
         if ((this.markets == null))
         {
@@ -2130,13 +2130,13 @@ public partial class alpaca : Exchange
             //
             List<object> filtered = new List<object>() {};
             List<object> ledger = new List<object>() {};
-            if (((activities is IList<object>) || (activities.GetType().IsGenericType && activities.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((activities is IList<object>) || (activities is not null && activities.GetType().IsGenericType && activities.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 ledger = activities;
             }
             for (int i = 0; i < (ledger?.Count ?? 0); i++)
             {
-                object entry = ledger[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)ledger[i]);
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(amount, "0"));
@@ -2172,13 +2172,13 @@ public partial class alpaca : Exchange
         //
         List<object> results = new List<object>() {};
         List<object> transfers = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             transfers = response;
         }
         for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
-            object entry = transfers[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)transfers[i]);
             string? direction = this.safeString(entry, "direction");
             if ((direction == type))
             {
@@ -2206,7 +2206,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2224,7 +2224,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2242,10 +2242,10 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -2462,7 +2462,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
@@ -2581,24 +2581,24 @@ public partial class alpaca : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // default error handler
+            return ((bool?)((object)(null)));  // default error handler
         }
         // {
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         string? errorCode = this.safeString(response, "code");
         // code is an int: it is never undefined, the guard was dead
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string codeAsString = ((object)code).ToString();
             Int64? statusCode = this.parseToInt(code);
@@ -2607,6 +2607,6 @@ public partial class alpaca : Exchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

@@ -110,8 +110,8 @@ class lighter(ccxt.async_support.lighter):
 
     async def subscribe_private(self, messageHash: str, params: dict = {}):
         await self.preLoadLighterLibrary()
-        params['auth'] = self.createAuth(params)
-        return await self.subscribe_public(messageHash, params)
+        request = self.extend(params, {'auth': self.createAuth(params)})
+        return await self.subscribe_public(messageHash, request)
 
     def handle_delta(self, bookside: object, delta: object):
         price = self.safe_float(delta, 'price')
@@ -163,7 +163,7 @@ class lighter(ccxt.async_support.lighter):
         parts = channel.split(':')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -192,7 +192,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         request = {
             'channel': 'order_book/' + self.safe_string(market, 'id', ''),
         }
@@ -213,7 +213,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         request = {
             'channel': 'order_book/' + self.safe_string(market, 'id', ''),
         }
@@ -281,7 +281,7 @@ class lighter(ccxt.async_support.lighter):
                 marketId = marketIds[i]
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
-                ticker = self.parse_ticker(data[marketId], market)
+                ticker = self.parse_ticker(self.safe_dict(data, marketId, {}), market)
                 self.tickers[symbol] = ticker
                 client.resolve(ticker, self.get_message_hash('ticker', symbol))
                 client.resolve(ticker, self.get_message_hash('ticker'))
@@ -306,7 +306,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchTicker() is only supported for swap markets')
         request = {
@@ -328,7 +328,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' unWatchTicker() is only supported for swap markets')
         request = {
@@ -546,7 +546,7 @@ class lighter(ccxt.async_support.lighter):
         parts = channel.split(':')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -899,7 +899,7 @@ class lighter(ccxt.async_support.lighter):
         parts = channel.split(':')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         stored = self.safe_value(self.liquidations, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -908,7 +908,7 @@ class lighter(ccxt.async_support.lighter):
         dataLength = len(data)
         for i in range(0, dataLength):
             iReversed = self.parse_to_int(dataLength - 1 - i)
-            liquidation = self.parse_ws_liquidation(data[iReversed], market)
+            liquidation = self.parse_ws_liquidation(self.safe_dict(data, iReversed, {}), market)
             stored.append(liquidation)
         messageHash = self.get_message_hash('liquidations', symbol)
         client.resolve(stored, messageHash)
@@ -1023,7 +1023,7 @@ class lighter(ccxt.async_support.lighter):
             assetIds = list(assets.keys())
             for i in range(0, len(assetIds)):
                 assetId = assetIds[i]
-                asset = self.safe_dict(assets, assetId)
+                asset = self.safe_dict(assets, assetId, {})
                 codeId = self.safe_string(asset, 'symbol')
                 code = self.safe_currency_code(codeId)
                 account = self.account()
@@ -1102,10 +1102,11 @@ class lighter(ccxt.async_support.lighter):
         return await self.unsubscribe(messageHash, self.extend(request, paramsAccountIndex))
 
     def request_id(self, url: str) -> int:
-        options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -1150,7 +1151,7 @@ class lighter(ccxt.async_support.lighter):
             'id': requestId,
         }
         rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.parse_order(self.deep_extend(rawMessage, order), market)
+        return self.parse_order(self.extend({}, self.deep_extend(rawMessage, order)), market)
 
     async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1185,7 +1186,7 @@ class lighter(ccxt.async_support.lighter):
             'id': requestId,
         }
         rawMessage = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.parse_order(rawMessage, market)
+        return self.parse_order(self.extend({}, rawMessage), market)
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -1224,7 +1225,7 @@ class lighter(ccxt.async_support.lighter):
         #
         #     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         #
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         client.resolve(message, 'jsonapi/sendtx:' + id)
 
     def handle_orders(self, client: Client, message: dict) -> bool:
@@ -1262,9 +1263,9 @@ class lighter(ccxt.async_support.lighter):
             market = self.safe_market(marketId)
             orders = self.safe_list(data, marketId, [])
             for j in range(0, len(orders)):
-                order = self.parse_order(orders[j], market)
+                order = self.parse_order(self.safe_dict(orders, j, {}), market)
                 stored.append(order)
-                symbol = order['symbol']
+                symbol = self.safe_string(order, 'symbol')
                 if symbol is not None:
                     symbolSpecificMessageHash = self.get_message_hash('orders', symbol)
                     client.resolve(stored, symbolSpecificMessageHash)
@@ -1443,8 +1444,8 @@ class lighter(ccxt.async_support.lighter):
             for i in range(0, len(subscriptionHashes)):
                 subscriptionHash = subscriptionHashes[i]
                 if subscriptionHash.startswith('ticker'):
-                    subscription = self.safe_dict(client.subscriptions, subscriptionHash)
-                    subscriptionParams = self.safe_dict(subscription, 'params')
+                    subscription = self.safe_dict(client.subscriptions, subscriptionHash, {})
+                    subscriptionParams = self.safe_dict(subscription, 'params', {})
                     subscribedChannel = self.safe_string(subscriptionParams, 'channel')
                     if subscribedChannel == 'market_stats/all':
                         del client.subscriptions[subscriptionHash]

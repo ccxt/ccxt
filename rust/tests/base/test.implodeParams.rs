@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,15 +15,15 @@ pub fn testImplodeParams() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut path: String = "v2/watchlists/{timeframe_id}/{symbol_id}".to_string();
-    let mut params: Value = Value::Map({
+    let path: String = "v2/watchlists/{timeframe_id}/{symbol_id}".to_string();
+    let params: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("timeframe_id".to_string(), Value::Str("1m".into()));
             m.insert("symbol_id".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("extra_param".to_string(), Value::Str("should_be_ignored".into()));
         m
     });
-    let mut expected: String = "v2/watchlists/1m/BTC/USDT".to_string();
-    let mut result: String = exchange.implode_params(Value::from(path), params);
-    assert!(ccxt::runtime::is_true(&((result == expected))));
+    let expected: String = "v2/watchlists/1m/BTC/USDT".to_string();
+    let result: String = exchange.implode_params(Value::from(path), params);
+    assert!(crate::test_helpers::is_true(&((result == expected))));
 }

@@ -14,6 +14,17 @@ func getValueFromList(list any, keys []any, defVal any) any {
 	// a maybe-undefined element travels as a pointer; unwrap it so callers keep
 	// seeing plain scalars (nil pointer -> untyped nil)
 	switch l := list.(type) {
+	case [][]any:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					if l[keyInt] == nil {
+						return nil
+					}
+					return l[keyInt]
+				}
+			}
+		}
 	case []any:
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
@@ -116,6 +127,17 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			}
 		}
 		return defVal
+	} else if clients, ok := obj.(map[string]*WSClient); ok {
+		// the ws client registry: a missing or nil entry reads as absent
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			if client, found := clients[fmt.Sprintf("%v", key)]; found && client != nil {
+				return client
+			}
+		}
+		return defVal
 	} else if bookMap, ok := obj.(map[string]map[string]any); ok {
 		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		for _, key := range keys {
@@ -136,6 +158,8 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 	switch v := obj.(type) {
 	// handle slices
 	case []any:
+		return getValueFromList(v, keys, defVal)
+	case [][]any:
 		return getValueFromList(v, keys, defVal)
 	case ListCache:
 		return getValueFromList([]any(v), keys, defVal)
@@ -205,6 +229,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	case *ArrayCacheByTimestamp:
 		if len(keys) > 0 && keys[0] != nil {
 			keyStr := fmt.Sprintf("%v", keys[0])
@@ -215,6 +240,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	case *ArrayCacheBySymbolById:
 		if len(keys) > 0 && keys[0] != nil {
 			keyStr := fmt.Sprintf("%v", keys[0])
@@ -225,6 +251,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	case *ArrayCacheBySymbolBySide:
 		if len(keys) > 0 && keys[0] != nil {
 			keyStr := fmt.Sprintf("%v", keys[0])
@@ -235,7 +262,12 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	default:
+		// a cache reads its rows by index, as the TS Array subclass does
+		if cache, ok := obj.(ArrayCacheInterface); ok {
+			return getValueFromList(cache.ToArray(), keys, defVal)
+		}
 		// Handle orderbook interfaces
 		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
 			return ob.GetValue(derefScalar(keys[0]).(string), defVal)
@@ -828,6 +860,16 @@ func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) *in
 	return nil
 }
 
+// SafeIntegerOmitZero mirrors the TS safeIntegerOmitZero (nil when absent or zero); the
+// transpiled copy is dropped in favour of this *int64 one (build/goTranspiler.ts).
+func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, defaultValue ...any) *int64 {
+	var timestamp *int64 = this.SafeInteger(obj, key, defaultValue...)
+	if timestamp == nil || *timestamp == 0 {
+		return nil
+	}
+	return timestamp
+}
+
 func (this *BaseExchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
@@ -1120,7 +1162,7 @@ func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []str
 // MarketIdsStrings is MarketIds read as the []string a joined id-list local holds: nil exactly where
 // MarketIds answers nil, else the ids Join joins.
 func (this *BaseExchange) MarketIdsStrings(symbols any) []string {
-	return joinListValue(this.MarketIds(symbols))
+	return this.MarketIds(symbols)
 }
 
 // MarketIdsSlice is MarketIds read as a []any: nil exactly where MarketIds answers nil.
@@ -1159,4 +1201,20 @@ func (this *BaseExchange) SafeListNSliceDefault(dictionaryOrList any, keys any, 
 		return value
 	}
 	return defaultValue
+}
+
+// SafeStringList: the first present key's value, a list read as its elements' strings and any other
+// string or number as a one-element list; nil where no key holds one of those.
+func (this *BaseExchange) SafeStringList(dictionaryOrList any, keys []any) []string {
+	value := SafeValueN(dictionaryOrList, keys)
+	if value == nil {
+		return nil
+	}
+	if IsArray(value) {
+		return joinListValue(value)
+	}
+	if s, ok := SafeStringN([]any{value}, []any{0}, nil).(string); ok {
+		return []string{s}
+	}
+	return nil
 }

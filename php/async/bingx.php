@@ -989,11 +989,11 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_spot_markets(mixed $params): PromiseInterface {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_markets(...))($params);
     }
 
-    private function do_fetch_spot_markets(mixed $params) {
+    private function do_fetch_spot_markets($params = array()) {
         $response = Async\await($this->spotV1PublicGetCommonSymbols($params));
         //
         //    {
@@ -1027,11 +1027,11 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_swap_markets(mixed $params): PromiseInterface {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_swap_markets(...))($params);
     }
 
-    private function do_fetch_swap_markets(mixed $params) {
+    private function do_fetch_swap_markets($params = array()) {
         $response = Async\await($this->swapV2PublicGetQuoteContracts($params));
         //
         //    {
@@ -1068,11 +1068,11 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_inverse_swap_markets(mixed $params): PromiseInterface {
+    public function fetch_inverse_swap_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_inverse_swap_markets(...))($params);
     }
 
-    private function do_fetch_inverse_swap_markets(mixed $params) {
+    private function do_fetch_inverse_swap_markets($params = array()) {
         $response = Async\await($this->cswapV1PublicGetMarketContracts($params));
         //
         //     {
@@ -1278,7 +1278,10 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $requestLimit = ($limit === null) ? 500 : min($limit, $maxLimit);
+        $requestLimit = 500;
+        if ($limit !== null) {
+            $requestLimit = $this->parse_to_int(min($limit, $maxLimit));
+        }
         if ($since !== null) {
             $request['startTime'] = max($since - 1, 0);
         }
@@ -1288,13 +1291,13 @@ class bingx extends Exchange {
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'endTime');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
         if ($until !== null) {
-            $endTime = $until;
             if ($since !== null) {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $endTime = min($until, $this->sum($since, $duration * $requestLimit));
+                $request['endTime'] = min($until, $this->sum($since, $duration * $requestLimit));
+            } else {
+                $request['endTime'] = $until;
             }
-            $request['endTime'] = $endTime;
         } elseif (($this->safe_bool($market, 'inverse', false)) && ($since !== null)) {
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $request['endTime'] = $this->sum($since, $duration * $requestLimit);
@@ -1303,9 +1306,7 @@ class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             list($timeZone, $paramsTimeZone) = $this->handle_option_integer_and_params($paramsUntil, 'fetchOHLCV', 'timeZone', 0);
-            if ($timeZone !== null) {
-                $request['timeZone'] = $timeZone;
-            }
+            $request['timeZone'] = $timeZone;
             $response = Async\await($this->spotV1PublicGetMarketKline($this->extend($request, $paramsTimeZone)));
         } else {
             if ($this->safe_bool($market, 'inverse', false)) {
@@ -1355,9 +1356,9 @@ class bingx extends Exchange {
         //        ]
         //    }
         //
-        $ohlcvs = $this->safe_value($response, 'data', array());
-        if ((gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs)))) {
-            $ohlcvs = array( $ohlcvs );
+        $ohlcvs = $this->safe_list($response, 'data', array());
+        if ($this->safe_list($response, 'data') === null && $this->safe_dict($response, 'data') !== null) {
+            $ohlcvs = array( $this->safe_dict($response, 'data') );
         }
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -1636,10 +1637,11 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $isSpotExecution ? $this->safe_string($trade, 'l') : $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && ($this->safe_bool($market, 'swap', false)) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
+        $volume = $this->safe_string($trade, 'volume');
+        if (($market !== null) && ($this->safe_bool($market, 'swap', false)) && ($volume !== null)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            $amount = $this->safe_string($trade, 'volume');
+            $amount = $volume;
         }
         $price = $isSpotExecution ? $this->safe_string($trade, 'L') : $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
         if (($market !== null) && ($this->safe_bool($market, 'linear', false)) && ($this->safe_string($trade, 'x') === 'TRADE')) {
@@ -1981,7 +1983,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -2312,7 +2314,7 @@ class bingx extends Exchange {
         $rowMarket = ($symbolsLength === 1) ? $market : null;
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $results[] = $this->parse_ticker($rows[$i], $rowMarket);
+            $results[] = $this->parse_ticker($this->safe_dict($rows, $i, array()), $rowMarket);
         }
         return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
@@ -2429,6 +2431,8 @@ class bingx extends Exchange {
             //     ]
             // }
             //
+            $rows = $this->safe_list($response, 'data', array());
+            return $this->parse_ticker($this->safe_dict($rows, 0, array()), $market);
         } else {
             $response = Async\await($this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $paramsSubType)));
             //
@@ -2445,10 +2449,7 @@ class bingx extends Exchange {
             // }
             //
         }
-        if ((gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data'])))) {
-            return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
-        }
-        return $this->parse_ticker($response['data'], $market);
+        return $this->parse_ticker($this->safe_dict($response, 'data', array()), $market);
     }
 
     public function fetch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2575,7 +2576,7 @@ class bingx extends Exchange {
             $type = 'spot';
         }
         if ($market !== null) {
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type', $type);
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $type);
         $symbol = $this->safe_string($marketResolved, 'symbol');
@@ -3590,7 +3591,7 @@ class bingx extends Exchange {
         return $this->extend($request, $paramsRequest);
     }
 
-    public function encode_trigger_price_type(?string $triggerPriceType) {
+    public function encode_trigger_price_type(?string $triggerPriceType): ?string {
         $types = array(
             'last' => 'CONTRACT_PRICE',
             'mark' => 'MARK_PRICE',
@@ -3751,18 +3752,19 @@ class bingx extends Exchange {
             $result = $data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        $fixedMembers = array();
         $stopLossDict = $this->safe_dict($result, 'stopLoss');
         $stopLoss = $this->safe_string($result, 'stopLoss');
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if (($stopLossDict === null) && ($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
-            $result['stopLoss'] = $this->parse_json($stopLoss);
+            $fixedMembers['stopLoss'] = $this->parse_json($stopLoss);
         }
         $takeProfit = $this->safe_string($result, 'takeProfit');
         if (($takeProfit !== null) && (mb_strpos($takeProfit, '{') === 0)) {
-            $result['takeProfit'] = $this->parse_json($takeProfit);
+            $fixedMembers['takeProfit'] = $this->parse_json($takeProfit);
         }
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend($result, $fixedMembers), $market);
     }
 
     public function create_orders(array $orders, $params = array()): PromiseInterface {
@@ -4197,7 +4199,11 @@ class bingx extends Exchange {
             $marketType = 'spot';
         }
         $marketId = $this->safe_string_2($orderData, 'symbol', 's');
-        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market, null, $marketType);
+        $marketIdOrUndefined = null;
+        if ($market === null) {
+            $marketIdOrUndefined = $marketId;
+        }
+        $marketResolved = $this->safe_market($marketIdOrUndefined, $market, null, $marketType);
         $side = $this->safe_string_lower_2($orderData, 'side', 'S');
         $timestamp = $this->safe_integer_n($orderData, array( 'time', 'transactTime', 'E', 'createdTime' ));
         $transactTime = $this->safe_string($orderData, 'transactTime', '');
@@ -4221,29 +4227,19 @@ class bingx extends Exchange {
                 $feeCurrencyCode = $this->safe_string($marketResolved, $feeKey);
             }
         }
-        $stopLoss = $this->safe_value($orderData, 'stopLoss');
-        $stopLossPrice = null;
-        if (($stopLoss !== null) && ($stopLoss !== '')) {
-            $stopLossPrice = $this->omit_zero($this->safe_string($stopLoss, 'stopLoss'));
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        $stopLossString = $this->safe_string($orderData, 'stopLoss');
+        $stopLossIsDict = $this->safe_dict($orderData, 'stopLoss') !== null;
+        $stopLossPrice = $this->omit_zero($this->safe_string($this->safe_dict($orderData, 'stopLoss', array()), 'stopPrice'));
+        if (!$stopLossIsDict && ($stopLossString !== null) && (mb_strpos($stopLossString, '{') === 0)) {
+            $stopLossPrice = $this->omit_zero($this->safe_string($this->parse_json($stopLossString), 'stopPrice'));
         }
-        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss))) && ($stopLoss !== '')) {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if (gettype($stopLoss) === 'string') {
-                $stopLoss = $this->parse_json($stopLoss);
-            }
-            $stopLossPrice = $this->omit_zero($this->safe_string($stopLoss, 'stopPrice'));
-        }
-        $takeProfit = $this->safe_value($orderData, 'takeProfit');
-        $takeProfitPrice = null;
-        if ($takeProfit !== null && ($takeProfit !== '')) {
-            $takeProfitPrice = $this->omit_zero($this->safe_string($takeProfit, 'takeProfit'));
-        }
-        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit))) && ($takeProfit !== '')) {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if (gettype($takeProfit) === 'string') {
-                $takeProfit = $this->parse_json($takeProfit);
-            }
-            $takeProfitPrice = $this->omit_zero($this->safe_string($takeProfit, 'stopPrice'));
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        $takeProfitString = $this->safe_string($orderData, 'takeProfit');
+        $takeProfitIsDict = $this->safe_dict($orderData, 'takeProfit') !== null;
+        $takeProfitPrice = $this->omit_zero($this->safe_string($this->safe_dict($orderData, 'takeProfit', array()), 'stopPrice'));
+        if (!$takeProfitIsDict && ($takeProfitString !== null) && (mb_strpos($takeProfitString, '{') === 0)) {
+            $takeProfitPrice = $this->omit_zero($this->safe_string($this->parse_json($takeProfitString), 'stopPrice'));
         }
         $rawType = $this->safe_string_lower_2($orderData, 'type', 'o');
         $stopPrice = $this->omit_zero($this->safe_string_2($orderData, 'StopPrice', 'stopPrice'));
@@ -4492,7 +4488,7 @@ class bingx extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $order = $this->safe_dict($data, 'order', $data);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -4678,13 +4674,15 @@ class bingx extends Exchange {
         );
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
         $paramsOmitted = $this->omit($params, 'clientOrderIds');
+        $idsCount = count($ids);
         $idsToParse = $ids;
         $areClientOrderIds = ($clientOrderIds !== null);
         if ($areClientOrderIds) {
+            $idsCount = count($clientOrderIds);
             $idsToParse = $clientOrderIds;
         }
         $parsedIds = array();
-        for ($i = 0; $i < count($idsToParse); $i++) {
+        for ($i = 0; $i < $idsCount; $i++) {
             $id = $this->safe_string($idsToParse, $i, '');
             $stringId = (string) $id;
             $parsedIds[] = $stringId;
@@ -5003,7 +5001,7 @@ class bingx extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $order = $this->safe_dict($data, 'order', $data);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -5783,7 +5781,7 @@ class bingx extends Exchange {
         //     }
         //
         $data = $this->safe_list($this->safe_dict($response, 'data'), 'data', array());
-        $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
+        $parsed = $this->parse_deposit_addresses($data, array( $this->safe_string($currency, 'code', '') ), false);
         return $this->index_by($parsed, 'network');
     }
 
@@ -6039,7 +6037,7 @@ class bingx extends Exchange {
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = 'withdrawal';
-        if (($rawType === '0') || (is_array($transaction) && array_key_exists('insertTime' ?? '', $transaction))) {
+        if (($rawType === '0') || ($this->safe_integer($transaction, 'insertTime') !== null)) {
             $type = 'deposit';
         }
         $internal = null;
@@ -6225,6 +6223,7 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $positionSide = $this->safe_string($params, 'positionSide');
         if (($market['inverse'] === true) && ($positionSide === null)) {
             throw new ArgumentsRequired($this->id . ' setMargin() requires a positionSide parameter for Coin-M markets');
@@ -6233,7 +6232,7 @@ class bingx extends Exchange {
         if ($market['inverse'] === true) {
             $amountString = $this->currency_to_precision($market['settle'], $amount);
         } else {
-            $amountString = $this->amount_to_precision($market['symbol'], $amount);
+            $amountString = $this->amount_to_precision($precisionSymbol, $amount);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -6253,14 +6252,14 @@ class bingx extends Exchange {
         //        "type": 1
         //    }
         //
-        $responseData = $response;
         if ($market['inverse'] === true) {
-            $responseData = $this->extend(array(
+            $inverseResult = $this->parse_margin_modification($this->extend(array(
                 'amount' => $amountString,
                 'type' => $type,
-            ), $this->safe_dict($response, 'data', array()));
+            ), $this->safe_dict($response, 'data', array())), $market);
+            return $this->extend($inverseResult, array( 'info' => $response ));
         }
-        $result = $this->parse_margin_modification($responseData, $market);
+        $result = $this->parse_margin_modification($response, $market);
         $result['info'] = $response;
         return $result;
     }
@@ -6638,11 +6637,12 @@ class bingx extends Exchange {
             ),
             'networks' => array(),
         );
+        $networkFees = array();
         if ($networksLength !== 0) {
             for ($i = 0; $i < $networksLength; $i++) {
                 $networkCode = $this->safe_string($networkCodes, $i, '');
                 $network = $this->safe_dict($networks, $networkCode);
-                $result['networks'][$networkCode] = array(
+                $networkFees[$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
                     'withdraw' => array( 'fee' => $this->safe_number($network, 'fee'), 'percentage' => false ),
                 );
@@ -6654,6 +6654,7 @@ class bingx extends Exchange {
                 }
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 
@@ -6748,7 +6749,7 @@ class bingx extends Exchange {
     }
 
     public function parse_params(array $params): array {
-        $copied = $this->clone($params);
+        $copied = $this->extend(array(), $params);
         $sortedParams = $this->keysort($params);
         $rawKeys = is_array($sortedParams) ? array_keys($sortedParams) : array();
         $rawKeysLength = count($rawKeys);
@@ -6808,7 +6809,7 @@ class bingx extends Exchange {
             $requestUntil['limit'] = min($limit, 100); // api maximum 100
         }
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $paramsUntil);
-        $liquidations = null;
+        $key = 'data';
         if ($subType === 'inverse') {
             $response = Async\await($this->cswapV1PrivateGetTradeForceOrders($this->extend($requestUntil, $paramsSubType)));
             //
@@ -6838,9 +6839,8 @@ class bingx extends Exchange {
             //         ]
             //     }
             //
-            $liquidations = $this->safe_list($response, 'data', array());
         } else {
-            $response = Async\await($this->swapV2PrivateGetTradeForceOrders($this->extend($requestUntil, $paramsSubType)));
+            $swapResponse = Async\await($this->swapV2PrivateGetTradeForceOrders($this->extend($requestUntil, $paramsSubType)));
             //
             //     {
             //         "code": 0,
@@ -6870,9 +6870,10 @@ class bingx extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_dict($response, 'data', array());
-            $liquidations = $this->safe_list($data, 'orders', array());
+            $response = $this->safe_dict($swapResponse, 'data', array());
+            $key = 'orders';
         }
+        $liquidations = $this->safe_list($response, $key, array());
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
@@ -7107,7 +7108,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 
@@ -7445,7 +7446,7 @@ class bingx extends Exchange {
                 $commission = $this->safe_dict($data, 'commission', array());
             }
         }
-        return $this->parse_trading_fee($commission, $market);
+        return $this->parse_trading_fee($this->extend(array(), $commission), $market);
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -7466,25 +7467,31 @@ class bingx extends Exchange {
         );
     }
 
-    public function custom_encode(array $params): ?string {
+    public function custom_encode(array $params): string {
         $sortedParams = $this->keysort($params);
         $rawKeys = is_array($sortedParams) ? array_keys($sortedParams) : array();
         $rawKeysLength = count($rawKeys);
         $adjustedValue = null;
-        $result = null;
+        $result = '';
         for ($i = 0; $i < $rawKeysLength; $i++) {
             $key = $rawKeys[$i];
             $value = $sortedParams[$key];
+            $pair = $this->safe_string($sortedParams, $key, '');
+            $flag = $this->safe_bool($sortedParams, $key);
+            if ($flag !== null) {
+                $pair = $flag ? 'true' : 'false';
+            }
             if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];
                     $isString = (gettype($arrayElement) === 'string');
                     if ($isString) {
+                        $elementStr = $this->safe_string($value, $j, '');
                         if ($j > 0) {
-                            $arrStr .= ',' . '"' . (string) $arrayElement . '"';
+                            $arrStr .= ',' . '"' . $elementStr . '"';
                         } else {
-                            $arrStr = '"' . (string) $arrayElement . '"';
+                            $arrStr = '"' . $elementStr . '"';
                         }
                     } else {
                         if ($j > 0) {
@@ -7496,11 +7503,12 @@ class bingx extends Exchange {
                 }
                 $adjustedValue = '[' . $arrStr . ']';
                 $value = $adjustedValue;
+                $pair = '[' . $arrStr . ']';
             }
             if ($i === 0) {
-                $result = $key . '=' . $value;
+                $result = $key . '=' . $pair;
             } else {
-                $result .= '&' . $key . '=' . $value;
+                $result .= '&' . $key . '=' . $pair;
             }
         }
         return $result;
@@ -7664,7 +7672,7 @@ class bingx extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

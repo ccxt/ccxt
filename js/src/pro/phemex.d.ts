@@ -3,10 +3,7 @@ import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, 
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): Dict;
-    fromEn(en: any, scale: any): Str;
-    fromEp(ep: Str, market?: Market): Str;
-    fromEv(ev: Str, market?: Market): Str;
-    fromEr(er: Str, market?: Market): Str;
+    fromEn(en: Str, scale: Int): Str;
     requestId(): int;
     parseSwapTicker(ticker: Dict, market?: Market): Ticker;
     parsePerpetualTicker(ticker: any[], market?: Market): Ticker;
@@ -23,7 +20,7 @@ export default class phemex extends phemexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(type: string, client: Client, message: any[]): void;
+    handleBalance(client: Client, message: any[], type: string): void;
     handleTrades(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
     /**
@@ -147,7 +144,7 @@ export default class phemex extends phemexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    handleOrders(client: Client, message: any): void;
+    handleOrders(client: Client, message: Dict): void;
     parseWSSwapOrder(order: Dict, market?: Market): Order;
     handleMessage(client: Client, message: Dict): void;
     handleAuthenticate(client: Client, message: Dict): void;

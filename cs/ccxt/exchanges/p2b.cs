@@ -218,8 +218,8 @@ public partial class p2b : Exchange
                     { "taker", this.parseNumber("0.002") },
                     { "maker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1"), this.parseNumber("0.0019")}, new List<object> {this.parseNumber("5"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0017")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("150"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("300"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("450"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("5"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("150"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("300"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("450"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.0001")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {1.0, 0.0019}, new List<object> {5.0, 0.0018}, new List<object> {10.0, 0.0017}, new List<object> {25.0, 0.0016}, new List<object> {75.0, 0.0015}, new List<object> {100.0, 0.0014}, new List<object> {150.0, 0.0013}, new List<object> {300.0, 0.0012}, new List<object> {450.0, 0.0011}, new List<object> {500.0, 0.001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {1.0, 0.0018}, new List<object> {5.0, 0.0016}, new List<object> {10.0, 0.0014}, new List<object> {25.0, 0.0012}, new List<object> {75.0, 0.001}, new List<object> {100.0, 0.0008}, new List<object> {150.0, 0.0006}, new List<object> {300.0, 0.0004}, new List<object> {450.0, 0.0002}, new List<object> {500.0, 0.0001}} },
                     } },
                 } },
             } },
@@ -395,7 +395,7 @@ public partial class p2b : Exchange
         {
             return null;
         }
-        IDictionary<string, object> limits = this.safeDict(market, "limits");
+        IDictionary<string, object> limits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
         string? maxAmount = this.safeString(limits, "max_amount");
         string? maxPrice = this.safeString(limits, "max_price");
         return new Dictionary<string, object>() {
@@ -492,7 +492,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -540,7 +540,7 @@ public partial class p2b : Exchange
         return this.parseTicker(result, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // parseTickers
@@ -845,7 +845,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    [
@@ -899,7 +899,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         //
         //    {
@@ -916,11 +916,11 @@ public partial class p2b : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? currencyId = ((string)keys[i]);
-            IDictionary<string, object> balance = this.safeDict(response, currencyId);
+            IDictionary<string, object> balance = this.safeDict(response, currencyId, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(currencyId);
             string? used = this.safeString(balance, "freeze");
             string? available = this.safeString(balance, "available");
@@ -988,7 +988,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**
@@ -1041,7 +1041,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result));
     }
 
     /**
@@ -1373,7 +1373,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder
@@ -1477,7 +1477,7 @@ public partial class p2b : Exchange
                 { "Content-Type", "application/json" },
                 { "X-TXC-APIKEY", this.apiKey },
                 { "X-TXC-PAYLOAD", payload },
-                { "X-TXC-SIGNATURE", this.hmac(this.encode(payload), this.encode(this.secret), sha512) },
+                { "X-TXC-SIGNATURE", this.hmac(payload, this.secret, sha512) },
             };
             string bodyJson = this.json(paramsOmitted);
             return new Dictionary<string, object>() {
@@ -1495,11 +1495,11 @@ public partial class p2b : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
@@ -1510,8 +1510,8 @@ public partial class p2b : Exchange
         if (success != true)
         {
             string? errorCode = this.safeString(response, "errorCode");
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             string codeAsString = ((object)code).ToString();
             Int64? statusCode = this.parseToInt(code);
             if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
@@ -1519,6 +1519,6 @@ public partial class p2b : Exchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

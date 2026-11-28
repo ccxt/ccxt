@@ -367,7 +367,7 @@ class polymarket extends polymarket$1["default"] {
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
                 flatMarkets.push(ccxtMarkets[mi]);
             }
-            const parsedEvent = this.parseEvent(rawEvent);
+            const parsedEvent = this.parseEvent(this.extend({}, rawEvent));
             const eventSlug = this.safeString(rawEvent, 'slug');
             if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug(eventSlug);
@@ -439,7 +439,7 @@ class polymarket extends polymarket$1["default"] {
             }
             else {
                 const optionMaxPages = this.safeInteger(this.options, 'maxSearchPages', 5);
-                const maxSearchPages = this.safeInteger(params, 'maxSearchPages', optionMaxPages);
+                const maxSearchPages = this.parseToInt(this.safeInteger(params, 'maxSearchPages', optionMaxPages));
                 if (maxSearchPages < totalPages) {
                     totalPages = maxSearchPages;
                 }
@@ -760,8 +760,8 @@ class polymarket extends polymarket$1["default"] {
             // Build outcomes array
             const outcomes = [];
             for (let oi = 0; oi < outcomeLabels.length; oi++) {
-                const outcomeLabel = outcomeLabels[oi];
-                const clobTokenId = clobTokenIds[oi];
+                const outcomeLabel = this.safeString(outcomeLabels, oi);
+                const clobTokenId = this.safeString(clobTokenIds, oi);
                 const outcomePrice = this.safeNumber(outcomePrices, oi);
                 if ((clobTokenId === undefined) || (clobTokenId === '')) {
                     continue;
@@ -891,7 +891,7 @@ class polymarket extends polymarket$1["default"] {
                 const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
                 const ccxtMarketsLength = ccxtMarkets.length;
                 for (let i = 0; i < ccxtMarketsLength; i++) {
-                    const mkt = ccxtMarkets[i];
+                    const mkt = this.safeDict(ccxtMarkets, i);
                     if (mkt === undefined) {
                         throw new errors.ExchangeError(this.id + ' fetchOutcome() could not resolve mkt');
                     }
@@ -917,7 +917,7 @@ class polymarket extends polymarket$1["default"] {
     async fetchOutcomes(outcomeSymbols) {
         const tokenIds = [];
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            const outcomeSymbol = outcomeSymbols[i];
+            const outcomeSymbol = this.safeString(outcomeSymbols, i, '');
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -941,7 +941,8 @@ class polymarket extends polymarket$1["default"] {
                 }
                 const chunk = [];
                 for (let i = startIndex; i < endIndex; i++) {
-                    chunk.push(tokenIds[i]);
+                    const chunkId = this.safeString(tokenIds, i, '');
+                    chunk.push(chunkId);
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -949,7 +950,7 @@ class polymarket extends polymarket$1["default"] {
                 const rawMarkets = (response !== undefined) ? response : [];
                 const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
                 for (let i = 0; i < ccxtMarkets.length; i++) {
-                    const mkt = ccxtMarkets[i];
+                    const mkt = this.safeDict(ccxtMarkets, i);
                     if (mkt === undefined) {
                         throw new errors.ExchangeError(this.id + ' fetchOutcomes() could not resolve mkt');
                     }
@@ -960,8 +961,9 @@ class polymarket extends polymarket$1["default"] {
             this.populateOutcomes();
         }
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            if (!this.hasOutcome(outcomeSymbols[i])) {
-                await this.fetchOutcome(outcomeSymbols[i]);
+            const pendingSymbol = this.safeString(outcomeSymbols, i, '');
+            if (!this.hasOutcome(pendingSymbol)) {
+                await this.fetchOutcome(pendingSymbol);
             }
         }
         return this.outcomes;
@@ -1064,7 +1066,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const bookParams = [];
             for (let i = startIndex; i < endIndex; i++) {
-                bookParams.push({ 'token_id': tokenIds[i] });
+                bookParams.push({ 'token_id': this.safeString(tokenIds, i) });
             }
             const promises = [
                 this.clobPublicPostBooks(bookParams),
@@ -1172,7 +1174,7 @@ class polymarket extends polymarket$1["default"] {
         const timestamp = this.safeInteger(bookData, 'timestamp');
         let quoteVolume = undefined;
         if (market !== undefined) {
-            quoteVolume = this.safeNumber2(market['info'], 'volume24hr', 'volume');
+            quoteVolume = this.safeNumber2(this.safeDict(market, 'info'), 'volume24hr', 'volume');
         }
         return this.safePredictionTicker({
             'outcome': outcome,
@@ -1266,18 +1268,22 @@ class polymarket extends polymarket$1["default"] {
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
-        let startS;
-        let endS = nowS;
+        let startS = this.parseToInt(0);
+        let endS = this.parseToInt(nowS);
         if (since !== undefined) {
             startS = this.parseToInt(since / 1000);
             if (limit !== undefined) {
-                const endBound = this.sum(startS, limit * fidelityMin * 60);
+                const endBound = this.parseToInt(this.sum(startS, limit * fidelityMin * 60));
                 endS = (endBound < nowS) ? endBound : nowS;
             }
         }
         else {
-            const barCount = (limit !== undefined) ? limit : 100;
-            startS = nowS - (barCount * fidelityMin * 60);
+            if (limit !== undefined) {
+                startS = this.parseToInt(nowS - (limit * fidelityMin * 60));
+            }
+            else {
+                startS = this.parseToInt(nowS - (100 * fidelityMin * 60));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -1286,10 +1292,10 @@ class polymarket extends polymarket$1["default"] {
         const maxWindow = this.safeInteger(this.options, 'maxPricesHistoryWindow', 1296000);
         if ((endS - startS) > maxWindow) {
             if (since !== undefined) {
-                endS = this.sum(startS, maxWindow);
+                endS = this.parseToInt(this.sum(startS, maxWindow));
             }
             else {
-                startS = endS - maxWindow;
+                startS = this.parseToInt(endS - maxWindow);
             }
         }
         const request = {
@@ -1310,6 +1316,9 @@ class polymarket extends polymarket$1["default"] {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         const resolutionMs = fidelityMin * 60 * 1000;
+        if (resolutionMs <= 0) {
+            throw new errors.BadRequest(this.id + ' fetchOHLCV() invalid timeframe resolution');
+        }
         const buckets = {};
         for (let i = 0; i < history.length; i++) {
             const item = this.safeDict(history, i);
@@ -1331,15 +1340,29 @@ class polymarket extends polymarket$1["default"] {
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol];
             }
             else {
-                const candle = this.safeList(buckets, bucketKey, []);
-                candle[2] = Math.max(candle[2], price); // high
-                candle[3] = Math.min(candle[3], price); // low
-                candle[4] = price; // close (last tick wins)
+                const prevVol = this.safeNumber(buckets[bucketKey], 5);
+                let candleVol = prevVol;
                 if (vol !== undefined) {
-                    const prevVol = candle[5];
-                    candle[5] = (prevVol === undefined) ? vol : this.sum(prevVol, vol); // volume
+                    if (prevVol === undefined) {
+                        candleVol = vol;
+                    }
+                    else {
+                        candleVol = this.sum(prevVol, vol);
+                    }
                 }
-                buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
+                const open = this.safeNumber(buckets[bucketKey], 1);
+                let high = price;
+                const prevHigh = this.safeNumber(buckets[bucketKey], 2);
+                if ((prevHigh !== undefined) && (price !== undefined) && (prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let low = price;
+                const prevLow = this.safeNumber(buckets[bucketKey], 3);
+                if ((prevLow !== undefined) && (price !== undefined) && (price > prevLow)) {
+                    low = prevLow;
+                }
+                // close is the last tick
+                buckets[bucketKey] = [snappedMs, open, high, low, price, candleVol];
             }
         }
         const bucketKeys = Object.keys(buckets);
@@ -1720,7 +1743,8 @@ class polymarket extends polymarket$1["default"] {
         }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
-            wantedIds[outcomeObj['outcomeId']] = true;
+            const outcomeId = this.safeString(outcomeObj, 'outcomeId', '');
+            wantedIds[outcomeId] = true;
         }
         const result = [];
         for (let i = 0; i < parsed.length; i++) {
@@ -1999,14 +2023,14 @@ class polymarket extends polymarket$1["default"] {
             for (let i = 0; i < response.length; i++) {
                 // request echo first so the response's real orderID/status win on overlap
                 const rawItem = response[i];
-                const enriched = this.extend(requests[i], rawItem);
-                const parsedItem = this.parsePredictionOrder(enriched, outcomes[i]);
+                const enriched = this.extend(this.safeDict(requests, i), rawItem);
+                const parsedItem = this.parsePredictionOrder(enriched, this.safeDict(outcomes, i));
                 parsedItem['info'] = rawItem; // keep info the raw exchange response
                 result.push(parsedItem);
             }
         }
         else {
-            result.push(this.parsePredictionOrder(response));
+            result.push(this.parsePredictionOrder(this.safeDict(response, 0, {})));
         }
         return result;
     }
@@ -2070,7 +2094,8 @@ class polymarket extends polymarket$1["default"] {
         const signatureType = this.safeInteger2(params, 'signatureType', 'signature_type', this.safeInteger(this.options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         const eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
-        const funder = this.ethChecksumAddress(this.safeString2(params, 'funder', 'maker', this.safeString(this.options, 'funder', this.walletAddress)));
+        const funderAddress = this.safeString2(params, 'funder', 'maker', this.safeString(this.options, 'funder', this.walletAddress));
+        const funder = this.ethChecksumAddress(funderAddress);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         const defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         const salt = this.safeString(params, 'salt', this.numberToString(defaultSalt));
@@ -2272,7 +2297,7 @@ class polymarket extends polymarket$1["default"] {
             const eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            const eoaSignature = '0x' + this.remove0xPrefix(eoaSig['r']) + this.remove0xPrefix(eoaSig['s']) + this.intToBase16(eoaSig['v']);
+            const eoaSignature = '0x' + this.remove0xPrefix(this.safeString(eoaSig, 'r')) + this.remove0xPrefix(this.safeString(eoaSig, 's')) + this.intToBase16(eoaSig['v']);
             return eoaSignature.toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2475,13 +2500,13 @@ class polymarket extends polymarket$1["default"] {
                 }
             }
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
-                const m = ccxtMarkets[mi];
+                const m = this.safeDict(ccxtMarkets, mi);
                 if (m === undefined) {
                     throw new errors.ExchangeError(this.id + ' fetchEvents() missing m');
                 }
                 this.markets[m['market']] = m;
             }
-            const parsedEvent = this.parseEvent(eventForParsing);
+            const parsedEvent = this.parseEvent(this.extend({}, eventForParsing));
             result.push(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -2494,9 +2519,11 @@ class polymarket extends polymarket$1["default"] {
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
             // the single behaviour definition
-            effectiveParams = this.extend({}, params);
-            effectiveParams['status'] = this.safeString(params, 'status', 'active');
-            effectiveParams['searchIn'] = this.safeString(params, 'searchIn', 'title');
+            const defaults = {
+                'status': this.safeString(params, 'status', 'active'),
+                'searchIn': this.safeString(params, 'searchIn', 'title'),
+            };
+            effectiveParams = this.extend(params, defaults);
         }
         return this.applyEventFetchParams(result, effectiveParams, queries);
     }
@@ -2522,7 +2549,7 @@ class polymarket extends polymarket$1["default"] {
         if (eventForParsing === undefined) {
             eventForParsing = {};
         }
-        const event = this.parseEvent(eventForParsing);
+        const event = this.parseEvent(this.extend({}, eventForParsing));
         this.indexEventOutcomes(event);
         return event;
     }
@@ -2645,8 +2672,7 @@ class polymarket extends polymarket$1["default"] {
     parseEvents(rawEvents) {
         const result = [];
         for (let i = 0; i < rawEvents.length; i++) {
-            const rawEvent = rawEvents[i];
-            result.push(this.parseEvent(rawEvent));
+            result.push(this.parseEvent(this.extend({}, rawEvents[i])));
         }
         return result;
     }
@@ -2832,8 +2858,8 @@ class polymarket extends polymarket$1["default"] {
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -2868,7 +2894,7 @@ class polymarket extends polymarket$1["default"] {
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         const sig = this.signMessage(encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+        return '0x' + this.remove0xPrefix(this.safeString(sig, 'r')) + this.remove0xPrefix(this.safeString(sig, 's')) + this.intToBase16(sig['v']);
     }
     /**
      * @method
@@ -2951,13 +2977,7 @@ class polymarket extends polymarket$1["default"] {
             return;
         }
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
-        let secret = undefined;
-        if (this.secret !== undefined) {
-            secret = this.secret;
-        }
-        else {
-            secret = this.safeString(this.options, 'l2Secret');
-        }
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
         const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
@@ -2981,11 +3001,8 @@ class polymarket extends polymarket$1["default"] {
     }
     handleListMessage(client, message) {
         for (let i = 0; i < message.length; i++) {
-            const event = message[i];
-            if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
-                continue;
-            }
-            this.handleMessageEvent(client, event);
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            this.handleMessageEvent(client, this.safeDict(message, i, {}));
         }
     }
     handleMessageEvent(client, event) {
@@ -3182,8 +3199,8 @@ class polymarket extends polymarket$1["default"] {
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
+        const bids = this.safeList(orderbook, 'bids', []);
+        const asks = this.safeList(orderbook, 'asks', []);
         let bestBid = undefined;
         let bestBidVolume = undefined;
         let bidsLength = 0;
@@ -3221,8 +3238,8 @@ class polymarket extends polymarket$1["default"] {
             'outcomeId': this.safeString(market, 'outcomeId'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
-            'timestamp': orderbook['timestamp'],
-            'datetime': orderbook['datetime'],
+            'timestamp': this.safeInteger(orderbook, 'timestamp'),
+            'datetime': this.safeString(orderbook, 'datetime'),
             'high': undefined,
             'low': undefined,
             'bid': bestBid,
@@ -3322,7 +3339,7 @@ class polymarket extends polymarket$1["default"] {
             this.orders = new Cache.ArrayCacheByOutcomeById(limit);
         }
         const stored = this.orders;
-        const parsed = this.parsePredictionOrder(event);
+        const parsed = this.parsePredictionOrder(this.extend({}, event));
         stored.append(parsed);
         client.resolve(stored, 'orders');
         const outcome = this.safeString(parsed, 'outcome');
@@ -3336,7 +3353,7 @@ class polymarket extends polymarket$1["default"] {
             this.myTrades = new Cache.ArrayCacheByOutcomeById(limit);
         }
         const stored = this.myTrades;
-        const parsed = this.parsePredictionTrade(event);
+        const parsed = this.parsePredictionTrade(this.extend({}, event));
         stored.append(parsed);
         client.resolve(stored, 'myTrades');
         const outcome = this.safeString(parsed, 'outcome');

@@ -944,7 +944,10 @@ export default class bit2c extends Exchange {
             tradeMarket = this.safeMarket(reference_parts[0], marketByPair);
             const isMaker = this.safeBool(trade, 'isMaker', false);
             makerOrTaker = isMaker ? 'maker' : 'taker';
-            orderId = isMaker ? reference_parts[2] : reference_parts[1];
+            orderId = this.safeString(reference_parts, 1);
+            if (isMaker) {
+                orderId = this.safeString(reference_parts, 2);
+            }
             const action = this.safeInteger(trade, 'action');
             if (action === 0) {
                 side = 'buy';

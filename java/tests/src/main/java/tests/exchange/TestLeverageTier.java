@@ -27,13 +27,13 @@ public class TestLeverageTier extends BaseTest {
             put( "info", new HashMap<String, Object>() {{}} );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("maintenanceMarginRate"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         //
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "tier", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "minNotional", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "maxNotional", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "maxLeverage", "1");
-        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, (String) (method), entry, "maintenanceMarginRate", "1");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "tier", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "minNotional", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "maxNotional", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "maxLeverage", "1");
+        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, method, entry, "maintenanceMarginRate", "1");
     }
 
 }

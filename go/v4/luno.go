@@ -11,7 +11,6 @@ type Luno struct {
 
 func newLuno() *Luno {
 	p := &Luno{}
-	setDefaults(p)
 	return p
 }
 
@@ -298,8 +297,8 @@ func (this *Luno) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.006"),
 				"maker":      this.ParseNumber("0.004"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.006")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.005")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("20000000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("40000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("80000000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("120000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("160000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.0005")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.004")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0")}, []any{this.ParseNumber("20000000"), this.ParseNumber("0")}, []any{this.ParseNumber("40000000"), this.ParseNumber("-0.0001")}, []any{this.ParseNumber("80000000"), this.ParseNumber("-0.0001")}, []any{this.ParseNumber("120000000"), this.ParseNumber("-0.0002")}, []any{this.ParseNumber("160000000"), this.ParseNumber("-0.0002")}, []any{this.ParseNumber("300000000"), this.ParseNumber("-0.0002")}},
+					"taker": []any{[]any{0.0, 0.006}, []any{20000.0, 0.005}, []any{200000.0, 0.004}, []any{1000000.0, 0.003}, []any{2000000.0, 0.002}, []any{5000000.0, 0.0015}, []any{10000000.0, 0.001}, []any{20000000.0, 0.0009}, []any{40000000.0, 0.0008}, []any{80000000.0, 0.0007}, []any{120000000.0, 0.0006}, []any{160000000.0, 0.0005}, []any{300000000.0, 0.0005}},
+					"maker": []any{[]any{0.0, 0.004}, []any{20000.0, 0.003}, []any{200000.0, 0.002}, []any{1000000.0, 0.001}, []any{2000000.0, 0.0008}, []any{5000000.0, 0.0006}, []any{10000000.0, 0.0}, []any{20000000.0, 0.0}, []any{40000000.0, -0.0001}, []any{80000000.0, -0.0001}, []any{120000000.0, -0.0002}, []any{160000000.0, -0.0002}, []any{300000000.0, -0.0002}},
 				},
 			},
 		},
@@ -528,7 +527,8 @@ func (this *Luno) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//         ]
 	//     }
 	//
-	var currenciesData []any = SafeListTyped(response, "data")
+	var currenciesData []any
+	currenciesData, _ = response["data"].([]any)
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
 	var values []any = nil
 	if grouped != nil {
@@ -657,12 +657,12 @@ func (this *Luno) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		// rates below are read from Luno's own Help Centre fee article for the ZAR
 		// market; markets quoted in other fiat currencies are left on the
 		// exchange-wide default until their schedules are verified the same way.
-		var fiats []any = []any{"ZAR"}
+		var fiats []string = []string{"ZAR"}
 		// live-but-unverified counters, kept on the exchange-wide default; the market
 		// list is geo-filtered so this is a superset of any one region's view, and
 		// ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-		var unverifiedQuotes []any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
-		var stablecoins []any = []any{"USDT", "USDC"}
+		var unverifiedQuotes []string = []string{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
+		var stablecoins []string = []string{"USDT", "USDC"}
 		var taker *float64 = nil
 		var maker *float64 = nil
 		if this.InArray(quote, fiats) {
@@ -778,15 +778,16 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
 	return nil
 }
-func (this *Luno) ParseBalance(response any) map[string]any {
-	var wallets []any = SafeListTyped(response, "balance")
+func (this *Luno) ParseBalance(response map[string]any) map[string]any {
+	var wallets []any
+	wallets, _ = response["balance"].([]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; i < len(wallets); i++ {
-		var wallet map[string]any = SafeMapTyped(wallets, i)
+		var wallet, _ = wallets[i].(map[string]any)
 		var currencyId *string = this.SafeString(wallet, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")
@@ -794,31 +795,14 @@ func (this *Luno) ParseBalance(response any) map[string]any {
 		var balance *string = this.SafeString(wallet, "balance")
 		var reservedUnconfirmed *string = Precise.StringAdd(reserved, unconfirmed)
 		var balanceUnconfirmed *string = Precise.StringAdd(balance, unconfirmed)
-		if (code != nil) && (func() bool {
-			if code == nil {
-				return false
-			}
-			_, ok := result[*code]
-			return ok
-		}()) {
-			result[*code] = this.Extend(func() any {
-				if code == nil {
-					return nil
-				}
-				return result[*code]
-			}(), map[string]any{
-				"used": Precise.StringAdd(this.SafeString(func() any {
-					if code == nil {
-						return nil
-					}
-					return result[*code]
-				}(), "used"), reservedUnconfirmed),
-				"total": Precise.StringAdd(this.SafeString(func() any {
-					if code == nil {
-						return nil
-					}
-					return result[*code]
-				}(), "total"), balanceUnconfirmed),
+		var codeInResult bool
+		if code != nil {
+			_, codeInResult = result[*code]
+		}
+		if (code != nil) && (codeInResult) {
+			result[*code] = this.Extend(result[*code], map[string]any{
+				"used":  Precise.StringAdd(this.SafeString(result[*code], "used"), reservedUnconfirmed),
+				"total": Precise.StringAdd(this.SafeString(result[*code], "total"), balanceUnconfirmed),
 			})
 		} else if code != nil {
 			var account map[string]any = this.Account()
@@ -906,9 +890,12 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 	var response map[string]any = nil
 	if (limit != nil) && (*limit <= 100) {
@@ -928,7 +915,7 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "volume"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "bids", "asks", "price", "volume"))}
 	return nil
 }
 func (this *Luno) ParseOrderStatus(status *string) *string {
@@ -937,7 +924,7 @@ func (this *Luno) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Luno) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "base": "string",
@@ -962,9 +949,11 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = nil
 	var orderType *string = this.SafeString(order, "type")
 	if (orderType != nil && *orderType == "ASK") || (orderType != nil && *orderType == "SELL") {
-		side = SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if (orderType != nil && *orderType == "BID") || (orderType != nil && *orderType == "BUY") {
-		side = SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	var marketId *string = this.SafeString(order, "pair")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
@@ -987,7 +976,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var id *string = this.SafeString(order, "order_id")
-	return this.SafeOrder(map[string]any{
+	var literal83231 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
 		"datetime":           this.Iso8601(timestamp),
@@ -998,7 +987,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
 		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       nil,
 		"amount":             amount,
@@ -1009,7 +998,11 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
 		"fee":                fee,
 		"info":               order,
 		"average":            nil,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal83231["side"] = *side
+	}
+	return this.SafeOrder(literal83231, marketResolved)
 }
 
 /**
@@ -1054,12 +1047,12 @@ func (this *Luno) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Luno) FetchOrdersByStateAsync(state *string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any, optionalArgs ...any) any {
+func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1079,7 +1072,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	if !IsEqual(state, nil) {
+	if state != nil {
 		request["state"] = state
 	}
 	if symbol != nil {
@@ -1092,7 +1085,11 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = SafeListTypedDefault(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1167,7 +1164,8 @@ func (this *Luno) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.FetchOrdersByStateAsync("PENDING", symbol, since, limit, params)
+	argStr := "PENDING"
+	r := <-this.FetchOrdersByStateAsync(&argStr, symbol, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1208,7 +1206,8 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.FetchOrdersByStateAsync("COMPLETE", symbol, since, limit, params)
+	argStr := "COMPLETE"
+	r := <-this.FetchOrdersByStateAsync(&argStr, symbol, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1220,7 +1219,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	}
 	return nil
 }
-func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Luno) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	// {
 	//     "pair":"XBTAUD",
 	//     "timestamp":1642201439301,
@@ -1295,7 +1294,8 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rawTickers []any = SafeListTyped(response, "tickers")
+	var rawTickers []any
+	rawTickers, _ = response["tickers"].([]any)
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
 	var ids []string = nil
 	if tickers != nil {
@@ -1308,11 +1308,12 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	for i := 0; i < len(ids); i++ {
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
-		var symbol *string = SafeStringPtr(market["symbol"])
-		var ticker any = tickers[id]
-		if symbol != nil {
-			result[*symbol] = TickerToMap(this.ParseTicker(ticker, market))
+		var symbol string = *this.SafeString(market, "symbol", "")
+		tickersDict100247, _ := tickers[id].(map[string]any)
+		if tickersDict100247 == nil {
+			tickersDict100247 = map[string]any{}
 		}
+		result[symbol] = TickerToMap(this.ParseTicker(tickersDict100247, market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
@@ -1345,7 +1346,7 @@ func (this *Luno) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1410,24 +1411,30 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if orderId != nil {
 		var typeVar *string = this.SafeString(trade, "type")
 		if (typeVar != nil && *typeVar == "ASK") || (typeVar != nil && *typeVar == "SELL") {
-			side = SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else if (typeVar != nil && *typeVar == "BID") || (typeVar != nil && *typeVar == "BUY") {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 		if (side != nil && *side == "sell") && (*this.SafeBool(trade, "is_buy", false)) {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr := "maker"
+			takerOrMaker = &takerOrMakerStr
 		} else if (side != nil && *side == "buy") && (!(*this.SafeBool(trade, "is_buy", false))) {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr2 := "maker"
+			takerOrMaker = &takerOrMakerStr2
 		} else {
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr3 := "taker"
+			takerOrMaker = &takerOrMakerStr3
 		}
 	} else {
-		side = SafeStringPtr(func() string {
-			if *this.SafeBool(trade, "is_buy", false) {
-				return "buy"
-			}
-			return "sell"
-		}())
+		var sideStr3 string
+		if *this.SafeBool(trade, "is_buy", false) {
+			sideStr3 = "buy"
+		} else {
+			sideStr3 = "sell"
+		}
+		side = &sideStr3
 	}
 	var feeBaseString *string = this.SafeString(trade, "fee_base")
 	var feeCounterString *string = this.SafeString(trade, "fee_counter")
@@ -1445,7 +1452,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	return this.SafeTrade(map[string]any{
+	var literal110731 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
@@ -1454,7 +1461,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"order":        orderId,
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString2(trade, "volume", "base"),
 		"cost":         this.SafeString(trade, "counter"),
@@ -1462,7 +1469,11 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"cost":     feeCost,
 			"currency": feeCurrency,
 		},
-	}, market)
+	}
+	if takerOrMaker != nil {
+		literal110731["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal110731, market)
 }
 
 /**
@@ -1476,12 +1487,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Luno) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Luno) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1497,12 +1508,12 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -1523,7 +1534,11 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	//          ]
 	//      }
 	//
-	var trades []any = SafeListTypedDefault(response, "trades", []any{})
+	var trades []any
+	trades, _ = response["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1564,7 +1579,7 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
 		"pair":     market["id"],
@@ -1597,7 +1612,11 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//          "pair": "XBTEUR"
 	//     }
 	//
-	var ohlcvs []any = SafeListTypedDefault(response, "candles", []any{})
+	var ohlcvs []any
+	ohlcvs, _ = response["candles"].([]any)
+	if ohlcvs == nil {
+		ohlcvs = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -1658,10 +1677,10 @@ func (this *Luno) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		"pair": market["id"],
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetListtrades(this.Extend(request, params))
@@ -1690,7 +1709,11 @@ func (this *Luno) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	//          ]
 	//      }
 	//
-	var trades []any = SafeListTypedDefault(response, "trades", []any{})
+	var trades []any
+	trades, _ = response["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1722,16 +1745,19 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
-	r1 := <-this.PrivateGetFeeInfo(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetFeeInfo(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -1741,7 +1767,7 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	//     }
 	//
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     symbol,
 		"maker":      this.SafeNumber(response, "maker_fee"),
 		"taker":      this.SafeNumber(response, "taker_fee"),
@@ -1784,7 +1810,8 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1794,9 +1821,9 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		request["type"] = strings.ToUpper(side)
 		// todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
 		if side == "buy" {
-			request["counter_volume"] = this.AmountToPrecision(market["symbol"], amount)
+			request["counter_volume"] = this.AmountToPrecision(&precisionSymbol, amount)
 		} else {
-			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
+			request["base_volume"] = this.AmountToPrecision(&precisionSymbol, amount)
 		}
 
 		r1 := <-this.PrivatePostMarketorder(this.Extend(request, params))
@@ -1805,14 +1832,13 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		}
 		response = r1.Value
 	} else {
-		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
-		request["price"] = this.PriceToPrecision(market["symbol"], price)
-		request["type"] = func() string {
-			if side == "buy" {
-				return "BID"
-			}
-			return "ASK"
-		}()
+		request["volume"] = this.AmountToPrecision(&precisionSymbol, amount)
+		request["price"] = this.PriceToPrecision(&precisionSymbol, price)
+		if side == "buy" {
+			request["type"] = "BID"
+		} else {
+			request["type"] = "ASK"
+		}
 
 		r2 := <-this.PrivatePostPostorder(this.Extend(request, params))
 		if r2.Err != nil {
@@ -1898,12 +1924,12 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan AsyncResult[[]LedgerEntry], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var entryValue any = func() any {
-		if entry == nil {
-			return int64(-1)
-		}
-		return entry
-	}()
+	var entryValue any
+	if entry == nil {
+		entryValue = int64(-1)
+	} else {
+		entryValue = entry
+	}
 	var limitValue int64
 	if limit == nil {
 		limitValue = 1
@@ -1977,7 +2003,10 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		}
 		currency = this.Currency(code)
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
-		var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
+		var account map[string]any = nil
+		if code != nil {
+			account, _ = accountsByCurrencyCode[*code].(map[string]any)
+		}
 		if account == nil {
 			panic(ExchangeError(this.Id + " fetchLedger() could not find account id for " + *code))
 		}
@@ -1986,21 +2015,21 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	if ((minRowParam == nil) || (maxRowParam == nil)) && ((minRowParam != nil) || (maxRowParam != nil)) {
 		panic(ExchangeError(this.Id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined"))
 	}
-	var maxRowBase *int64 = this.SafeInteger(params, "max_row", 0)            // Default to most recent transactions
+	var maxRowBase int64 = *this.SafeInteger(params, "max_row", 0)            // Default to most recent transactions
 	var minRowBase *int64 = this.SafeInteger(params, "min_row", int64(-1000)) // Maximum number of records supported
-	var limitApplies bool = (limit != nil) && (*maxRowBase-*minRowBase > *limit)
+	var limitApplies bool = (limit != nil) && (maxRowBase-*minRowBase > *limit)
 	var min_row *int64 = func() *int64 {
-		if limitApplies && (limit != nil) && (maxRowBase == nil || *maxRowBase <= 0) {
-			return Int64PtrTyped(*maxRowBase - *limit)
+		if limitApplies && (limit != nil) && (maxRowBase <= 0) {
+			return Int64PtrTyped(maxRowBase - *limit)
 		}
 		return minRowBase
 	}()
-	var max_row any = maxRowBase
-	if limitApplies && (maxRowBase != nil && *maxRowBase > 0) && (minRowBase != nil && *minRowBase > 0) {
+	var max_row int64 = maxRowBase
+	if limitApplies && (maxRowBase > 0) && (minRowBase != nil && *minRowBase > 0) {
 		max_row = *minRowBase + *limit
 	}
-	var limitAdjusts bool = limitApplies && ((maxRowBase == nil || *maxRowBase <= 0) || (minRowBase != nil && *minRowBase > 0)) // max_row - min_row becomes limit
-	if (limitAdjusts && (limit != nil && *limit > 1000)) || (!limitAdjusts && (*maxRowBase-*minRowBase > 1000)) {
+	var limitAdjusts bool = limitApplies && ((maxRowBase <= 0) || (minRowBase != nil && *minRowBase > 0)) // max_row - min_row becomes limit
+	if (limitAdjusts && (limit != nil && *limit > 1000)) || (!limitAdjusts && (maxRowBase-*minRowBase > 1000)) {
 		panic(ExchangeError(this.Id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000"))
 	}
 	var request map[string]any = map[string]any{
@@ -2014,7 +2043,11 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var entries []any = SafeListTypedDefault(response, "transactions", []any{})
+	var entries []any
+	entries, _ = response["transactions"].([]any)
+	if entries == nil {
+		entries = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}
 	return nil
@@ -2040,17 +2073,22 @@ func (this *Luno) ParseLedgerComment(comment string) map[string]any {
 	var fourthWord *string = this.SafeString(words, 3)
 	var typeVar *string = this.SafeString(types, firstWord)
 	if (typeVar == nil) && (thirdWord != nil && *thirdWord == "fee") {
-		typeVar = SafeStringPtr("fee")
+		typeVarStr := "fee"
+		typeVar = &typeVarStr
 	}
 	if (typeVar != nil && *typeVar == "reserved") && (fourthWord != nil && *fourthWord == "order") {
 		referenceId = this.SafeString(words, 4)
 	}
-	return map[string]any{
+	var literal149615 map[string]any = map[string]any{
 		"type":        typeVar,
-		"referenceId": referenceId,
+		"referenceId": nil,
 	}
+	if referenceId != nil {
+		literal149615["referenceId"] = *referenceId
+	}
+	return literal149615
 }
-func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) LedgerEntry {
+func (this *Luno) ParseLedgerEntry(entry map[string]any, optionalArgs ...any) LedgerEntry {
 	// const details = this.safeValue (entry, 'details', {});
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
@@ -2073,19 +2111,24 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) LedgerEntry {
 	var status *string = nil
 	if !Precise.StringEquals(balance_delta, "0.0") {
 		before = Precise.StringSub(after, balance_delta)
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 		amount = Precise.StringAbs(balance_delta)
 	} else if Precise.StringLt(available_delta, "0.0") {
-		status = SafeStringPtr("pending")
+		statusStr2 := "pending"
+		status = &statusStr2
 		amount = Precise.StringAbs(available_delta)
 	} else if Precise.StringGt(available_delta, "0.0") {
-		status = SafeStringPtr("canceled")
+		statusStr3 := "canceled"
+		status = &statusStr3
 		amount = Precise.StringAbs(available_delta)
 	}
 	if Precise.StringGt(balance_delta, "0") || Precise.StringGt(available_delta, "0") {
-		direction = SafeStringPtr("in")
+		directionStr := "in"
+		direction = &directionStr
 	} else if Precise.StringLt(balance_delta, "0") || Precise.StringLt(available_delta, "0") {
-		direction = SafeStringPtr("out")
+		directionStr2 := "out"
+		direction = &directionStr2
 	}
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             entry,
@@ -2232,7 +2275,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Luno) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "account_id": "string",
@@ -2334,7 +2377,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 		url += "?" + this.Urlencode(query)
 	}
@@ -2345,7 +2388,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) map[string]any {
 			"Authorization": "Basic " + auth,
 		}
 	}
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -2353,7 +2396,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Luno) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Luno) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}
@@ -2499,7 +2542,7 @@ func (this *Luno) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	var res Order = r.Value
 	return res, nil
 }
-func (this *Luno) FetchOrdersByState(state string, options ...FetchOrdersByStateOptions) ([]Order, error) {
+func (this *Luno) FetchOrdersByState(state *string, options ...FetchOrdersByStateOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStateOptionsStruct{}
 

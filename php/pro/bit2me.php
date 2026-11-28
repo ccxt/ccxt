@@ -193,7 +193,7 @@ class bit2me extends \ccxt\async\bit2me {
         //
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($message, 'data', array());
         $trade = $this->parse_ws_trade($data, $market);
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
@@ -294,8 +294,9 @@ class bit2me extends \ccxt\async\bit2me {
         $unifiedSymbol = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $unifiedSymbol = $market['symbol'];
-            $messageHash = $messageHash . ':' . $unifiedSymbol;
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $messageHash = 'orders:' . $marketSymbol;
+            $unifiedSymbol = $marketSymbol;
         }
         $orders = Async\await($this->subscribe_private('my-orders', $messageHash, $params));
         $finalLimit = $limit;
@@ -340,7 +341,7 @@ class bit2me extends \ccxt\async\bit2me {
         $orders = $this->orders;
         $orders->append($order);
         $client->resolve($orders, 'orders');
-        $client->resolve($orders, 'orders:' . $order['symbol']);
+        $client->resolve($orders, 'orders:' . $this->safe_string($order, 'symbol', ''));
     }
 
     public function parse_ws_order(array $order, ?array $market = null): array {
@@ -427,8 +428,9 @@ class bit2me extends \ccxt\async\bit2me {
         $unifiedSymbol = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $unifiedSymbol = $market['symbol'];
-            $messageHash = $messageHash . ':' . $unifiedSymbol;
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $messageHash = 'myTrades:' . $marketSymbol;
+            $unifiedSymbol = $marketSymbol;
         }
         $trades = Async\await($this->subscribe_private('my-trades', $messageHash, $params));
         $finalLimit = $limit;
@@ -468,7 +470,7 @@ class bit2me extends \ccxt\async\bit2me {
         $myTrades = $this->myTrades;
         $myTrades->append($trade);
         $client->resolve($myTrades, 'myTrades');
-        $client->resolve($myTrades, 'myTrades:' . $trade['symbol']);
+        $client->resolve($myTrades, 'myTrades:' . $this->safe_string($trade, 'symbol', ''));
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -654,7 +656,7 @@ class bit2me extends \ccxt\async\bit2me {
             'symbol' => $market['symbol'],
             'status' => $this->parse_order_status($this->safe_string($data, 'status')),
         ), $market);
-        $this->settle_request($client, 'canceled-order:' . $orderId, $order);
+        $this->settle_request($client, 'canceled-order:' . $this->safe_string($data, 'orderId', ''), $order);
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -751,7 +753,7 @@ class bit2me extends \ccxt\async\bit2me {
             'symbol' => $market['id'],
         );
         $url = $this->urls['api']['ws'];
-        $messageHash = 'canceled-all-orders:' . $market['id'];
+        $messageHash = 'canceled-all-orders:' . $this->safe_string($market, 'id', '');
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
@@ -774,12 +776,12 @@ class bit2me extends \ccxt\async\bit2me {
         for ($i = 0; $i < count($ids); $i++) {
             $orders[] = $this->safe_order(array(
                 'info' => $message,
-                'id' => $ids[$i],
-                'symbol' => $market['symbol'],
+                'id' => $this->safe_string($ids, $i),
+                'symbol' => $this->safe_string($market, 'symbol'),
                 'status' => 'canceled',
             ), $market);
         }
-        $this->settle_request($client, 'canceled-all-orders:' . $marketId, $orders);
+        $this->settle_request($client, 'canceled-all-orders:' . $this->safe_string($message, 'symbol', ''), $orders);
     }
 
     public function authenticate($params = array()) {
@@ -842,7 +844,7 @@ class bit2me extends \ccxt\async\bit2me {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
         //     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -867,17 +869,18 @@ class bit2me extends \ccxt\async\bit2me {
             $clientOrderIds = is_array($pending) ? array_keys($pending) : array();
             for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $clientOrderId = $clientOrderIds[$i];
-                if ($pending[$clientOrderId] === $marketId) {
+                $pendingMarketId = $this->safe_string($pending, $clientOrderId);
+                if ($pendingMarketId === $marketId) {
                     $this->settle_request($client, 'added-order:' . $clientOrderId, null, $exception);
                     $this->options['pendingWsOrders'] = $this->omit($this->options['pendingWsOrders'], $clientOrderId);
                 }
             }
         } elseif ($event === 'canceled-order') {
-            $this->settle_request($client, 'canceled-order:' . $this->safe_string($message, 'orderId'), null, $exception);
+            $this->settle_request($client, 'canceled-order:' . $this->safe_string($message, 'orderId', ''), null, $exception);
         } elseif ($event === 'canceled-orders') {
             $this->settle_request($client, 'canceled-orders', null, $exception);
         } elseif ($event === 'canceled-all-orders') {
-            $this->settle_request($client, 'canceled-all-orders:' . $this->safe_string($message, 'symbol'), null, $exception);
+            $this->settle_request($client, 'canceled-all-orders:' . $this->safe_string($message, 'symbol', ''), null, $exception);
         } elseif ($event === 'subscribe') {
             // a refused subscription names the channel and the symbol it was asked for
             $subscription = $this->safe_dict($message, 'subscription', array());
@@ -913,6 +916,7 @@ class bit2me extends \ccxt\async\bit2me {
                 }
             }
         }
+        return false;
     }
 
     public function handle_message(Client $client, array $message) {

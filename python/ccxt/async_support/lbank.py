@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -801,9 +801,10 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
         if self.safe_bool(market, 'swap', False):
-            responseForSwap = await self.fetch_tickers([market['symbol']], params)
-            swapTicker = self.safe_dict(responseForSwap, market['symbol'])
+            responseForSwap = await self.fetch_tickers([marketSymbol], params)
+            swapTicker = self.safe_dict(responseForSwap, marketSymbol)
             return swapTicker
         request = {
             'symbol': market['id'],
@@ -1329,19 +1330,6 @@ class lbank(Exchange, ImplicitAPI):
                 if codeInner is not None:
                     result[codeInner] = account
             return self.safe_balance(result)
-        # from spotPrivatePostSupplementUserInfo
-        isArray = isinstance(data, list)
-        if isArray:
-            for i in range(0, len(data)):
-                item = self.safe_dict(data, i)
-                currencyId = self.safe_string(item, 'coin')
-                codeInner = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(item, 'usableAmt')
-                account['used'] = self.safe_string(item, 'freezeAmt')
-                if codeInner is not None:
-                    result[codeInner] = account
-            return self.safe_balance(result)
         return self.safe_balance(result)
 
     def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
@@ -1403,7 +1391,8 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        responseForSwap = await self.fetch_funding_rates([market['symbol']], params)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        responseForSwap = await self.fetch_funding_rates([marketSymbol], params)
         fundingRate = self.safe_dict(responseForSwap, market['symbol'])
         return fundingRate
 
@@ -1559,8 +1548,8 @@ class lbank(Exchange, ImplicitAPI):
         fees = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(fees)):
-            fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            fee = self.parse_trading_fee(self.extend({}, fees[i]))
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -1923,12 +1912,6 @@ class lbank(Exchange, ImplicitAPI):
         if numOrders == 1:
             return self.parse_order(self.safe_dict(result, 0, {}))
         else:
-            # const parsedOrders = [];
-            # for (let i = 0; i < numOrders; i++) {
-            #     const parsedOrder = this.parseOrder (result[i]);
-            #     parsedOrders.push (parsedOrder);
-            # }
-            # return parsedOrders;
             raise BadRequest(self.id + ' fetchOrder() can only fetch one order at a time')
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -2966,13 +2949,13 @@ class lbank(Exchange, ImplicitAPI):
         secretLength = len(secret) - 0
         fullLines = self.parse_to_int(secretLength / 64)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
-        for i in range(0, fullLines):
+        for i in range(0, fullLines + 1):
             start = i * 64
             end = self.sum(start, 64)
             pem += self.secret[start:end] + "\n"  # eslint-disable-line
         return pem + '-----END PRIVATE KEY-----'
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             raise NullResponse(self.id + ' parseBalance() returned empty response')
         success = self.safe_string(response, 'result')
@@ -3032,7 +3015,7 @@ class lbank(Exchange, ImplicitAPI):
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
             }, errorCode, self.json(response))
-            ErrorClass = self.safe_value({
+            self.throw_exactly_matched_exception({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
                 '10003': BadRequest,
@@ -3082,6 +3065,6 @@ class lbank(Exchange, ImplicitAPI):
                 '10601': ExchangeError,  # 'Interface closed unavailable',
                 '10701': BadSymbol,  # 'invalid asset code',
                 '10702': PermissionDenied,  # 'not allowed deposit',
-            }, errorCode, ExchangeError)
-            raise ErrorClass(message)
+            }, errorCode, message)
+            raise ExchangeError(message)
         return None

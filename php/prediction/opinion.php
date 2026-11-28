@@ -212,7 +212,7 @@ class opinion extends Exchange {
                 $fetchedRawRows[] = $raw;
                 $marketType = $this->safe_integer($raw, 'marketType');
                 if ($marketType === 1) {
-                    $event = $this->parse_event($raw);
+                    $event = $this->parse_event($this->extend(array(), $rawMarkets[$i]));
                     $childMarkets = $this->safe_list($event, 'markets', array());
                     $childMarketsLength = count($childMarkets);
                     for ($ci = 0; $ci < $childMarketsLength; $ci++) {
@@ -474,14 +474,17 @@ class opinion extends Exchange {
             $this->markets = $this->create_safe_dictionary();
         }
         for ($i = 0; $i < $rawEventsLength; $i++) {
-            $event = $this->parse_event($rawEvents[$i]);
+            $event = $this->parse_event($this->extend(array(), $rawEvents[$i]));
             $parsedEvents[] = $event;
             // register the parsed markets so populateOutcomes can index their outcomes
             $eventMarkets = $this->safe_list($event, 'markets', array());
             $eventMarketsLength = count($eventMarkets);
             for ($mi = 0; $mi < $eventMarketsLength; $mi++) {
                 $m = $eventMarkets[$mi];
-                $this->markets[$m['market']] = $m;
+                $marketKey = $this->safe_string($m, 'market');
+                if ($marketKey !== null) {
+                    $this->markets[$marketKey] = $m;
+                }
             }
         }
         $this->populate_outcomes();
@@ -1342,10 +1345,10 @@ class opinion extends Exchange {
          * @see https://docs.opinion.trade/developer-guide/opinion-open-api/trade
          *
          * @param {string} [$outcome] filter by unified $outcome or $outcome token id
-         * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum number of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
+         * @param {array} [$params] $extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
          */
         if ($this->walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a walletAddress');
@@ -1362,18 +1365,26 @@ class opinion extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'list', array());
         $tradesLength = count($trades);
+        $filled = array();
         for ($i = 0; $i < $tradesLength; $i++) {
-            $trade = $trades[$i];
-            $tokenId = $this->safe_string($trade, 'tokenId');
-            $marketId = $this->safe_integer($trade, 'marketId');
+            $tokenId = $this->safe_string($trades[$i], 'tokenId');
+            $marketId = $this->safe_integer($trades[$i], 'marketId');
             if (($tokenId === null) && ($marketId !== null)) {
                 $tradeMarket = Async\await($this->load_trade_market($marketId));
                 $info = $this->safe_dict($tradeMarket, 'info', array());
-                $isYes = ($this->safe_string_lower($trade, 'outcomeSideEnum') === 'yes');
-                $trade['tokenId'] = $isYes ? $this->safe_string($info, 'yesTokenId') : $this->safe_string($info, 'noTokenId');
+                $isYes = ($this->safe_string_lower($trades[$i], 'outcomeSideEnum') === 'yes');
+                $extra = array();
+                if ($isYes) {
+                    $extra['tokenId'] = $this->safe_string($info, 'yesTokenId');
+                } else {
+                    $extra['tokenId'] = $this->safe_string($info, 'noTokenId');
+                }
+                $filled[] = $this->extend($trades[$i], $extra);
+            } else {
+                $filled[] = $trades[$i];
             }
         }
-        return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
+        return $this->parse_prediction_trades($filled, $outcomeObj, $since, $limit);
     }
 
     public function load_trade_market(int $marketId): PromiseInterface {
@@ -2058,7 +2069,7 @@ class opinion extends Exchange {
         $marketId = $this->safe_integer($info, 'marketId');
         $messageHash = 'orders';
         $orders = Async\await($this->subscribe_opinion_channel($messageHash, 'trade.order.update', $marketId));
-        $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
+        $sym = $this->safe_string($outcomeObj, 'outcome');
         return $this->filter_by_value_since_limit($orders, 'outcome', $sym, $since, $limit, 'timestamp', true);
     }
 
@@ -2181,7 +2192,7 @@ class opinion extends Exchange {
         $marketId = $this->safe_integer($info, 'marketId');
         $messageHash = 'myTrades';
         $trades = Async\await($this->subscribe_opinion_channel($messageHash, 'trade.record.new', $marketId));
-        $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
+        $sym = $this->safe_string($outcomeObj, 'outcome');
         return $this->filter_by_value_since_limit($trades, 'outcome', $sym, $since, $limit, 'timestamp', true);
     }
 
@@ -2242,7 +2253,7 @@ class opinion extends Exchange {
         $client->resolve($stored, 'myTrades');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

@@ -9,17 +9,17 @@ import (
 )
 
 type PreciseStruct struct {
-	Decimals   any
+	Decimals   int
 	integer    *big.Int
 	baseNumber int64
 }
 
 var Precise = &PreciseStruct{}
 
-func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
+func NewPrecise(number2 any, dec2 ...int) *PreciseStruct {
 	var dec int
 	if len(dec2) > 0 {
-		dec = int(ParseInt(dec2[0]))
+		dec = dec2[0]
 	} else {
 		dec = math.MinInt32
 	}
@@ -62,7 +62,7 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 
 func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Mul(p.integer, other.integer)
-	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
+	decimals := p.Decimals + other.Decimals
 	return NewPrecise(integer.String(), decimals)
 }
 
@@ -71,7 +71,7 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 	if len(precision2) > 0 {
 		precision = ParseInt(precision2[0])
 	}
-	distance := precision - ParseInt(p.Decimals) + ParseInt(other.Decimals)
+	distance := precision - int64(p.Decimals) + int64(other.Decimals)
 	var numerator *big.Int
 
 	if distance == 0 {
@@ -85,51 +85,51 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
 	result := new(big.Int).Quo(numerator, other.integer)
-	return NewPrecise(result.String(), precision)
+	return NewPrecise(result.String(), int(precision))
 }
 
 func (p *PreciseStruct) Add(other *PreciseStruct) *PreciseStruct {
 	if p.Decimals == other.Decimals {
 		integerResult := new(big.Int).Add(p.integer, other.integer)
-		return NewPrecise(integerResult.String(), derefScalar(p.Decimals).(int))
+		return NewPrecise(integerResult.String(), p.Decimals)
 	} else {
 		var smaller, bigger *PreciseStruct
-		if derefScalar(p.Decimals).(int) < derefScalar(other.Decimals).(int) {
+		if p.Decimals < other.Decimals {
 			smaller = p
 			bigger = other
 		} else {
 			smaller = other
 			bigger = p
 		}
-		exponent := derefScalar(bigger.Decimals).(int) - derefScalar(smaller.Decimals).(int)
+		exponent := bigger.Decimals - smaller.Decimals
 		normalized := new(big.Int).Mul(smaller.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(exponent)), nil))
 		result := new(big.Int).Add(normalized, bigger.integer)
-		return NewPrecise(result.String(), derefScalar(bigger.Decimals).(int))
+		return NewPrecise(result.String(), bigger.Decimals)
 	}
 }
 
 func (p *PreciseStruct) Mod(other *PreciseStruct) *PreciseStruct {
-	rationizerNumerator := int(math.Max(float64(-derefScalar(p.Decimals).(int)+derefScalar(other.Decimals).(int)), 0))
+	rationizerNumerator := int(math.Max(float64(-p.Decimals+other.Decimals), 0))
 	numerator := new(big.Int).Mul(p.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerNumerator)), nil))
-	rationizerDenominator := int(math.Max(float64(-derefScalar(other.Decimals).(int)+derefScalar(p.Decimals).(int)), 0))
+	rationizerDenominator := int(math.Max(float64(-other.Decimals+p.Decimals), 0))
 	denominator := new(big.Int).Mul(other.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerDenominator)), nil))
 	result := new(big.Int).Mod(numerator, denominator)
-	return NewPrecise(result.String(), rationizerDenominator+derefScalar(other.Decimals).(int))
+	return NewPrecise(result.String(), rationizerDenominator+other.Decimals)
 }
 
 func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
-	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), derefScalar(other.Decimals).(int))
+	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), other.Decimals)
 	return p.Add(negative)
 }
 
 func (p *PreciseStruct) Or(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Or(p.integer, other.integer)
-	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
+	decimals := p.Decimals + other.Decimals
 	return NewPrecise(integer.String(), decimals)
 }
 
 func (p *PreciseStruct) Neg() *PreciseStruct {
-	return NewPrecise(new(big.Int).Neg(p.integer).String(), derefScalar(p.Decimals).(int))
+	return NewPrecise(new(big.Int).Neg(p.integer).String(), p.Decimals)
 }
 
 func (p *PreciseStruct) Min(other *PreciseStruct) *PreciseStruct {
@@ -171,7 +171,7 @@ func (p *PreciseStruct) Abs() *PreciseStruct {
 	} else {
 		result = p.integer
 	}
-	return NewPrecise(result.String(), derefScalar(p.Decimals).(int))
+	return NewPrecise(result.String(), p.Decimals)
 }
 
 func (p *PreciseStruct) Reduce() *PreciseStruct {
@@ -193,7 +193,7 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 	if difference == 0 {
 		return p
 	}
-	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precision by converting to int, should be int64
+	p.Decimals -= int(difference)
 	p.integer = new(big.Int)
 	p.integer.SetString(str[:i+1], 10)
 	return p
@@ -202,7 +202,7 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 func (p *PreciseStruct) Equals(other *PreciseStruct) bool {
 	p.Reduce()
 	other.Reduce()
-	return p.integer.Cmp(other.integer) == 0 && derefScalar(p.Decimals).(int) == derefScalar(other.Decimals).(int)
+	return p.integer.Cmp(other.integer) == 0 && p.Decimals == other.Decimals
 }
 
 func (p *PreciseStruct) String() string {
@@ -216,13 +216,7 @@ func (p *PreciseStruct) String() string {
 		abs = p.integer
 	}
 	absParsed := abs.String()
-	var intDecimals int
-	switch v := p.Decimals.(type) {
-	case int:
-		intDecimals = v
-	case int64:
-		intDecimals = int(v) // TODO: loss of precsion by converting to int, should be int64
-	}
+	intDecimals := p.Decimals
 	padSize := intDecimals
 	if padSize < 0 {
 		padSize = 0
@@ -403,7 +397,7 @@ func (p *PreciseStruct) ToString() string {
 		sign = "-"
 		digits = digits[1:]
 	}
-	decimals := int(ParseInt(p.Decimals))
+	decimals := p.Decimals
 	if decimals <= 0 {
 		return sign + digits + strings.Repeat("0", -decimals)
 	}

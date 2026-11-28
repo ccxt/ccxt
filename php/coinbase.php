@@ -622,8 +622,8 @@ class coinbase extends Exchange {
         $cursor = $this->safe_string($pagination, 'next_starting_after');
         $accounts = $this->safe_list($response, 'data', array());
         $length = count($accounts);
-        $lastIndex = $length - 1;
-        if (($cursor !== null) && ($cursor !== '')) {
+        if (($length > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $length - 1;
             $accounts[$lastIndex] = $this->extend($this->safe_dict($accounts, $lastIndex, array()), array( 'next_starting_after' => $cursor ));
         }
         return $this->parse_accounts($data, $paramsPaginate);
@@ -1584,21 +1584,21 @@ class coinbase extends Exchange {
         $data = $this->safe_list($spot, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $spotMarket = $this->parse_spot_market($data[$i], $feeTier);
+            $spotMarket = $this->parse_spot_market($this->safe_dict($data, $i, array()), $feeTier);
             if ($spotMarket !== null) {
                 $result[] = $spotMarket;
             }
         }
         $futureData = $this->safe_list($expiringFutures, 'products', array());
         for ($i = 0; $i < count($futureData); $i++) {
-            $futureMarket = $this->parse_contract_market($futureData[$i]);
+            $futureMarket = $this->parse_contract_market($this->safe_dict($futureData, $i, array()));
             if ($futureMarket !== null) {
                 $result[] = $futureMarket;
             }
         }
         $perpetualData = $this->safe_list($perpetualFutures, 'products', array());
         for ($i = 0; $i < count($perpetualData); $i++) {
-            $perpetualMarket = $this->parse_contract_market($perpetualData[$i]);
+            $perpetualMarket = $this->parse_contract_market($this->safe_dict($perpetualData, $i, array()));
             if ($perpetualMarket !== null) {
                 $result[] = $perpetualMarket;
             }
@@ -2034,10 +2034,14 @@ class coinbase extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             if ($code !== null) {
-                $this->options['networks'][$code] = strtolower($name);
+                $networksDict1 = $this->safe_dict($this->options, 'networks', array());
+                $networksDict1[$code] = strtolower($name);
+                $this->options['networks'] = $networksDict1;
             }
             if ($code !== null) {
-                $this->options['networksById'][$code] = strtolower($name);
+                $networksByIdDict2 = $this->safe_dict($this->options, 'networksById', array());
+                $networksByIdDict2[$code] = strtolower($name);
+                $this->options['networksById'] = $networksByIdDict2;
             }
             $type = 'fiat';
             if ($assetId !== null) {
@@ -2149,7 +2153,7 @@ class coinbase extends Exchange {
             $marketId = $baseId . $delimiter . $quoteId;
             $market = $this->safe_market($marketId, null, $delimiter);
             $symbol = $this->safe_string($market, 'symbol', '');
-            $result[$symbol] = $this->parse_ticker($rates[$baseId], $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_dict($rates, $baseId, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
@@ -2214,11 +2218,10 @@ class coinbase extends Exchange {
         $data = $this->safe_list($response, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $marketId = $this->safe_string($entry, 'product_id');
+            $marketId = $this->safe_string($data[$i], 'product_id');
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $this->safe_string($market, 'symbol', '');
-            $result[$symbol] = $this->parse_ticker($entry, $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_dict($data, $i, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
@@ -2411,8 +2414,8 @@ class coinbase extends Exchange {
         $ask = $this->safe_number($ticker, 'ask');
         $bidVolume = null;
         $askVolume = null;
-        if ((is_array($ticker) && array_key_exists('bids' ?? '', $ticker))) {
-            $bids = $this->safe_list($ticker, 'bids', array());
+        $bids = $this->safe_list($ticker, 'bids');
+        if ($bids !== null) {
             $asks = $this->safe_list($ticker, 'asks', array());
             $firstBid = $this->safe_dict($bids, 0, array());
             $firstAsk = $this->safe_dict($asks, 0, array());
@@ -2687,7 +2690,9 @@ class coinbase extends Exchange {
             $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
             if (($cursor !== null) && ($cursor !== '')) {
-                $last['info']['next_starting_after'] = $cursor;
+                $lastInfo = $this->safe_dict($last, 'info', array());
+                $lastInfo['next_starting_after'] = $cursor;
+                $last['info'] = $lastInfo;
                 $ledger[$lastIndex] = $last;
             }
         }
@@ -3442,7 +3447,12 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($target, 'base_size');
             $postOnly = $this->safe_bool($target, 'post_only');
         } elseif ($isStop) {
-            $stopTarget = ($stopLimitGTC !== null) ? $stopLimitGTC : $stopLimitGTD;
+            $stopTarget = null;
+            if ($stopLimitGTC !== null) {
+                $stopTarget = $stopLimitGTC;
+            } else {
+                $stopTarget = $stopLimitGTD;
+            }
             $price = $this->safe_string($stopTarget, 'limit_price');
             $amount = $this->safe_string($stopTarget, 'base_size');
             $postOnly = $this->safe_bool($stopTarget, 'post_only');
@@ -3627,7 +3637,7 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3779,9 +3789,11 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
+        $ordersLength = count($orders);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $orders[0] = $this->extend($this->safe_dict($orders, 0, array()), array( 'cursor' => $cursor ));
+        if (($ordersLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $ordersLength - 1;
+            $orders[$lastIndex] = $this->extend($this->safe_dict($orders, $lastIndex, array()), array( 'cursor' => $cursor ));
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -3854,9 +3866,11 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
+        $ordersLength = count($orders);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $orders[0] = $this->extend($this->safe_dict($orders, 0, array()), array( 'cursor' => $cursor ));
+        if (($ordersLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $ordersLength - 1;
+            $orders[$lastIndex] = $this->extend($this->safe_dict($orders, $lastIndex, array()), array( 'cursor' => $cursor ));
         }
         return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
@@ -4154,9 +4168,11 @@ class coinbase extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'fills', array());
+        $tradesLength = count($trades);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $trades[0] = $this->extend($this->safe_dict($trades, 0, array()), array( 'cursor' => $cursor ));
+        if (($tradesLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $tradesLength - 1;
+            $trades[$lastIndex] = $this->extend($this->safe_dict($trades, $lastIndex, array()), array( 'cursor' => $cursor ));
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -5236,13 +5252,15 @@ class coinbase extends Exchange {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         $uri = null;
-        if ($url !== '') {
-            $uri = $method . ' ' . str_replace('https://', '', $url);
-            $quesPos = mb_strpos($uri, '?');
+        if (($url !== '') && ($method !== null)) {
+            $fullUri = $method . ' ' . str_replace('https://', '', $url);
+            $quesPos = mb_strpos($fullUri, '?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if ($quesPos > 0) {
-                $uri = mb_substr($uri, 0, $quesPos - 0);
+                $uri = mb_substr($fullUri, 0, $quesPos - 0);
+            } else {
+                $uri = $fullUri;
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
@@ -5397,7 +5415,7 @@ class coinbase extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

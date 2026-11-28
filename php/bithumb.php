@@ -402,7 +402,7 @@ class bithumb extends Exchange {
 
     public function amount_to_precision(?string $symbol, mixed $amount): ?string {
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_value($market['precision'], 'amount'), DECIMAL_PLACES);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_integer($market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     public function get_gen2_market_id(array $market): string {
@@ -458,8 +458,8 @@ class bithumb extends Exchange {
                 if ($marketId !== null) {
                     $parts = explode('-', $marketId);
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    $baseId = $parts[1];
-                    $quoteId = $parts[0];
+                    $baseId = $this->safe_string($parts, 1);
+                    $quoteId = $this->safe_string($parts, 0);
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
                 }
@@ -761,7 +761,6 @@ class bithumb extends Exchange {
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
         $data = null;
         $timestamp = null;
         if ($generation === 2) {
@@ -1000,18 +999,25 @@ class bithumb extends Exchange {
             if ($marketIdsLength === 0) {
                 return $result;
             }
-            $marketIdsChunks = array();
+            $singleMarketIds = array();
             $promises = array();
             // the exchange rejects more than 200 market ids per request
             $maxMarketIdsOption = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
-            $maxMarketIdsPerRequest = $this->parse_to_int((($maxMarketIdsOption === null) || ($maxMarketIdsOption < 1)) ? 200 : $maxMarketIdsOption);
+            $maxMarketIdsPerRequest = 200;
+            if (($maxMarketIdsOption !== null) && ($maxMarketIdsOption >= 1)) {
+                $maxMarketIdsPerRequest = $this->parse_to_int($maxMarketIdsOption);
+            }
             $marketIdsChunk = array();
             for ($i = 0; $i < $marketIdsLength; $i++) {
                 $marketIdsChunk[] = $marketIds[$i];
                 $marketIdsChunkLength = count($marketIdsChunk);
                 $isLastMarketId = ($i === ($marketIdsLength - 1));
                 if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
-                    $marketIdsChunks[] = $marketIdsChunk;
+                    if ($marketIdsChunkLength === 1) {
+                        $singleMarketIds[] = $marketIds[$i];
+                    } else {
+                        $singleMarketIds[] = '';
+                    }
                     $request['markets'] = implode(',', $marketIdsChunk);
                     $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
                     $marketIdsChunk = array();
@@ -1056,20 +1062,16 @@ class bithumb extends Exchange {
                 if ($this->is_dictionary($response) && ($this->safe_value($response, 'data') !== null)) {
                     $response = $this->safe_value($response, 'data');
                 }
-                $expectedMarketId = null;
-                $requestedMarketIds = $this->safe_list($marketIdsChunks, $i, array());
-                $firstMarketId = $this->safe_string($requestedMarketIds, 0);
-                if (($firstMarketId !== null) && ($this->safe_string($requestedMarketIds, 1) === null)) {
-                    $expectedMarketId = $firstMarketId;
-                }
+                $expectedMarketId = $this->safe_string($singleMarketIds, $i);
                 $tickers = array();
                 if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                     $tickers = $response;
                 } elseif ($this->is_dictionary($response)) {
-                    if ((is_array($response) && array_key_exists('market' ?? '', $response)) || (is_array($response) && array_key_exists('trade_date' ?? '', $response)) || (is_array($response) && array_key_exists('trade_timestamp' ?? '', $response))) {
+                    if (($this->safe_string($response, 'market') !== null) || ($this->safe_string($response, 'trade_date') !== null) || ($this->safe_string($response, 'trade_timestamp') !== null)) {
                         $tickers = array( $response );
                     } else {
-                        $ids = is_array($response) ? array_keys($response) : array();
+                        $responseDict = $this->extend(array(), $response);
+                        $ids = is_array($responseDict) ? array_keys($responseDict) : array();
                         for ($j = 0; $j < count($ids); $j++) {
                             $id = $ids[$j];
                             $ticker = $this->safe_dict($response, $id);
@@ -1091,7 +1093,7 @@ class bithumb extends Exchange {
                     if ($symbol === null) {
                         continue;
                     }
-                    $result[$symbol] = $this->parse_ticker($entry, $market);
+                    $result[$symbol] = $this->parse_ticker($this->safe_dict($tickers, $j, array()), $market);
                 }
             }
         } else {
@@ -1149,15 +1151,14 @@ class bithumb extends Exchange {
                 $currencyIds = is_array($tickers) ? array_keys($tickers) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
                     $currencyId = $currencyIds[$j];
-                    $ticker = $data[$currencyId];
+                    $ticker = $this->extend(array(), $data[$currencyId]);
                     $base = $this->safe_currency_code($currencyId);
                     if ($base === null) {
                         continue;
                     }
                     $symbol = $base . '/' . $quote;
                     $market = $this->safe_market($symbol);
-                    $ticker['date'] = $timestamp;
-                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                    $result[$symbol] = $this->parse_ticker($this->extend($ticker, array( 'date' => $timestamp )), $market);
                 }
             }
         }
@@ -1182,7 +1183,6 @@ class bithumb extends Exchange {
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTicker', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
         $data = array();
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);
@@ -1245,7 +1245,7 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
         }
-        return $this->parse_ticker($data, $market);
+        return $this->parse_ticker($this->extend(array(), $data), $market);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1322,7 +1322,7 @@ class bithumb extends Exchange {
         $response = null;
         $data = array();
         if ($generation === 2) {
-            list($paginate, $paramsPaginate) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
                 return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200);
             }
@@ -1516,7 +1516,6 @@ class bithumb extends Exchange {
                 }
             }
         }
-        $type = null;
         $side = $this->safe_string_lower_2($trade, 'ask_bid', 'type');
         if ($side === 'bid') {
             $side = 'buy';
@@ -1549,7 +1548,7 @@ class bithumb extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
             'order' => null,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $priceString,
@@ -1582,7 +1581,6 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = null;
         $data = array();
         if ($generation === 2) {
             $request['market'] = $this->get_gen2_market_id($market);
@@ -1669,8 +1667,8 @@ class bithumb extends Exchange {
             if ($side === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires each order to have a side');
             }
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
@@ -1699,7 +1697,7 @@ class bithumb extends Exchange {
         return $this->parse_orders($data, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * helper function to build the $request *for generation 2 createOrder and createOrders only*
@@ -2418,7 +2416,6 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         $data = null;
         if ($twap) {
             $response = $this->privateGetV1Twap($this->extend($request, $paramsRequest));
@@ -3300,7 +3297,8 @@ class bithumb extends Exchange {
     }
 
     public function urlencode_with_array_brackets(array $query): string {
-        $keys = is_array($query) ? array_keys($query) : array();
+        $queryCopy = $this->extend(array(), $query);
+        $keys = is_array($queryCopy) ? array_keys($queryCopy) : array();
         $result = '';
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -3406,7 +3404,7 @@ class bithumb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

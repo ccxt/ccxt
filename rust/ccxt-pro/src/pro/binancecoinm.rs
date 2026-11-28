@@ -22,7 +22,8 @@ pub struct Binancecoinm {
 }
 
 impl Binancecoinm {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = Self { parent: crate::pro::binance::Binance::new(config) };
         s.init();
         s
@@ -30,7 +31,7 @@ impl Binancecoinm {
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -54,7 +55,7 @@ impl crate::exchange::DerivedExchange for Binancecoinm {
 }
 
 impl crate::exchange_generated::ExchangeBase for Binancecoinm {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -77,13 +78,13 @@ impl std::ops::DerefMut for Binancecoinm {
 }
 
 impl Binancecoinm {
-    pub fn describe(&self) -> Value {
+    pub fn describe(&self) -> crate::value::Dict {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::binancecoinm::Binancecoinm::new(None);
-        let mut restDescribe: Value = restInstance.describe();
-        let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: crate::value::Dict = self.deep_extend(restDescribe, &[parentWsDescribe]).into_dict();
-        return self.deep_extend(extended, &[Value::Map({
+        let restDescribe: crate::value::Dict = restInstance.describe();
+        let parentWsDescribe: crate::value::Dict = self.parent.describe_data();
+        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[&parentWsDescribe]);
+        return self.deep_extend_t(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binancecoinm".into()));
         m.insert("name".to_string(), Value::Str("Binance COIN-M".into()));
@@ -105,7 +106,5 @@ impl Binancecoinm {
 }));
     m
 })]);
-
-    Value::Null
 }
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Leverage } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Leverage, Bool } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
@@ -76,7 +76,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(info: Dict, market?: Market): FundingRateHistory;
     parseFundingRate(contract: NullableDict, market?: Market): {
         info: NullableDict;
         symbol: string;
@@ -120,7 +120,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    parseTicker(ticker: object, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name coinbaseinternational#fetchOrderBook
@@ -147,7 +147,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalanceList(response: any): Balances;
+    parseBalanceList(response: any, summaries: Dict[]): Balances;
     /**
      * @method
      * @name coinbaseinternational#fetchTransfers
@@ -479,5 +479,5 @@ export default class coinbaseinternational extends Exchange {
      * @returns {boolean} true for native Deribit, false for Coinbase
      */
     resolveRoute(route?: any): boolean;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

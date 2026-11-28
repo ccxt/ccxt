@@ -40,8 +40,10 @@ class upbit extends upbit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsRequested = (symbols === undefined) ? this.symbols : symbols;
-        const symbolsNormalized = this.marketSymbols(symbolsRequested);
+        let symbolsNormalized = this.symbols;
+        if (symbols !== undefined) {
+            symbolsNormalized = this.marketSymbols(symbols);
+        }
         const marketIds = this.marketIds(symbolsNormalized);
         const url = this.implodeParams(this.safeString(this.urls['api'], 'ws'), {
             'hostname': this.hostname,
@@ -217,12 +219,12 @@ class upbit extends upbit$1["default"] {
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         const ticker = this.parseTicker(message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve(ticker, messageHash);
         }
-        const messageHash = 'ticker:' + symbol;
-        client.resolve(ticker, messageHash);
     }
     handleOrderBook(client, message) {
         // { type: "orderbook",
@@ -295,7 +297,7 @@ class upbit extends upbit$1["default"] {
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         const trade = this.parseTrade(message);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString(trade, 'symbol');
         if (symbol === undefined) {
             return;
         }

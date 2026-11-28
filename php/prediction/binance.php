@@ -186,7 +186,7 @@ class binance extends Exchange {
         $flatMarkets = array();
         $rawTopicsLength = count($rawTopics);
         for ($i = 0; $i < $rawTopicsLength; $i++) {
-            $parsedEvent = $this->parse_event($rawTopics[$i]);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawTopics[$i]));
             $parsedEvents[] = $parsedEvent;
             $eventMarkets = $this->safe_list($parsedEvent, 'markets', array());
             $eventMarketsLength = count($eventMarkets);
@@ -227,7 +227,7 @@ class binance extends Exchange {
         $offset = 0;
         while (true) {
             $collectedLength = count($collected);
-            $remaining = $maxTopicsResolved - $collectedLength;
+            $remaining = $this->parse_to_int($maxTopicsResolved - $collectedLength);
             $reqLimit = ($remaining < $pageLimit) ? $remaining : $pageLimit;
             if ($reqLimit <= 0) {
                 break;
@@ -430,7 +430,7 @@ class binance extends Exchange {
         $rawTopicsLength = count($rawTopics);
         $result = array();
         for ($i = 0; $i < $rawTopicsLength; $i++) {
-            $parsedEvent = $this->parse_event($rawTopics[$i]);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawTopics[$i]));
             $result[] = $parsedEvent;
             $parsedMarkets = $this->safe_list($parsedEvent, 'markets', array());
             $parsedMarketsLength = count($parsedMarkets);
@@ -480,7 +480,7 @@ class binance extends Exchange {
         }
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
-                'query' => $queries[$qi],
+                'query' => $this->safe_string($queries, $qi),
             );
             $request['topK'] = $limitResolved;
             $response = Async\await($this->sapiPrivateGetMarketSearch($this->extend($request, $rest)));
@@ -897,7 +897,7 @@ class binance extends Exchange {
                 $response = Async\await($this->sapiPrivateGetOrderBookLastTradePrice($this->extend($request, $params)));
                 $responsesByMarketId[$marketId] = $response;
             }
-            $ticker = $this->parse_prediction_ticker($response, $outcomeObj);
+            $ticker = $this->parse_prediction_ticker($this->extend(array(), $response), $outcomeObj);
             $symbolKey = $this->safe_string($ticker, 'outcome', $outcomes[$i]);
             $result[$symbolKey] = $ticker;
         }
@@ -1027,12 +1027,9 @@ class binance extends Exchange {
             $marketId = $this->safe_string($order, 'marketId');
             $outcome = $this->safe_string_upper($order, 'outcome');
             $market = $this->safe_market($marketId);
-            $outcomeName = $this->safe_string($market, 'market');
-            if ($outcomeName === null) {
-                $outcomeName = $marketId;
-            }
-            $outcomeName .= ':' . $outcome;
-            $outcomeObjResolved = $this->safe_outcome($outcomeName);
+            $marketName = $this->safe_string($market, 'market', $marketId);
+            $outcomeKey = $marketName . ':' . $outcome;
+            $outcomeObjResolved = $this->safe_outcome($outcomeKey);
         }
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'createTime');
@@ -1122,7 +1119,7 @@ class binance extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $market = $this->market($outcomeObj['market']);
+            $market = $this->market($this->safe_string($outcomeObj, 'market'));
             $request['marketId'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1379,8 +1376,8 @@ class binance extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $market = $this->market($outcomeObj['market']);
-            $request['marketTopicId'] = $market['info']['marketTopicId'];
+            $market = $this->market($this->safe_string($outcomeObj, 'market'));
+            $request['marketTopicId'] = $this->safe_string($market['info'], 'marketTopicId');
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
         $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
@@ -1406,12 +1403,8 @@ class binance extends Exchange {
             $marketId = $this->safe_string($position, 'marketId');
             $outcome = $this->safe_string_upper($position, 'outcomeName');
             $market = $this->safe_market($marketId);
-            $outcomeName = $this->safe_string($market, 'market');
-            if ($outcomeName === null) {
-                $outcomeName = $marketId;
-            }
-            $outcomeName .= ':' . $outcome;
-            $outcomeObjResolved = $this->safe_outcome($outcomeName);
+            $marketName = $this->safe_string($market, 'market', $marketId);
+            $outcomeObjResolved = $this->safe_outcome($marketName . ':' . $outcome);
         }
         $timestamp = $this->safe_integer($position, 'createdTime');
         $totalCost = $this->parse_number($this->safe_string($position, 'totalCost'));
@@ -1582,12 +1575,9 @@ class binance extends Exchange {
             $marketId = $this->safe_string($trade, 'marketId');
             $outcome = $this->safe_string_upper($trade, 'outcome');
             $market = $this->safe_market($marketId);
-            $outcomeName = $this->safe_string($market, 'market');
-            if ($outcomeName === null) {
-                $outcomeName = $marketId;
-            }
-            $outcomeName .= ':' . $outcome;
-            $outcomeObjResolved = $this->safe_outcome($outcomeName);
+            $marketName = $this->safe_string($market, 'market', $marketId);
+            $outcomeKey = $marketName . ':' . $outcome;
+            $outcomeObjResolved = $this->safe_outcome($outcomeKey);
         }
         $timestamp = $this->safe_integer($trade, 'createTime');
         $filled = $this->safe_string($trade, 'filledShareQty');
@@ -1638,8 +1628,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a wallet
          */
-        if ($this->safe_dict($this->options, 'wallet') !== null) {
-            return $this->safe_dict($this->options, 'wallet');
+        $cachedWallet = $this->safe_dict($this->options, 'wallet');
+        if ($cachedWallet !== null) {
+            return $cachedWallet;
         }
         $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());
@@ -1978,7 +1969,7 @@ class binance extends Exchange {
         return $orders;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }
@@ -2004,8 +1995,11 @@ class binance extends Exchange {
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $baseUrls = $this->urls['api'];
-        $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sapi']);
+        $baseUrls = $this->safe_dict($this->urls, 'api', array());
+        $baseUrl = $this->safe_string($baseUrls, $apiGroup, '');
+        if ($baseUrl === '') {
+            $baseUrl = $this->safe_string($baseUrls, 'sapi', '');
+        }
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $this->check_required_credentials();
@@ -2016,11 +2010,11 @@ class binance extends Exchange {
         if ($defaultRecvWindow !== null) {
             $extendedParams['recvWindow'] = $defaultRecvWindow;
         }
-        $querystring = $this->urlencode_nested($extendedParams);
-        $querystring = str_replace('%5B', '[', $querystring);
-        $querystring = str_replace('%5D', ']', $querystring);
-        $signature = $this->hmac($this->encode($querystring), $this->encode($this->secret), 'sha256');
-        $querystring = $querystring . '&signature=' . $signature;
+        $rawQuery = $this->urlencode_nested($extendedParams);
+        $bracketedQuery = str_replace('%5B', '[', $rawQuery);
+        $cleanQuery = str_replace('%5D', ']', $bracketedQuery);
+        $signature = $this->hmac($this->encode($cleanQuery), $this->encode($this->secret), 'sha256');
+        $querystring = $cleanQuery . '&signature=' . $signature;
         $headersValue = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );

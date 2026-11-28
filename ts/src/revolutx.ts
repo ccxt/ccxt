@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -546,11 +546,11 @@ export default class revolutx extends Exchange {
         }
         const request: Dict = {};
         if (symbols !== undefined) {
-            const marketIds: Str[] = [];
+            const marketIds: string[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                marketIds.push (market['id']);
+                marketIds.push (this.safeString (market, 'id', ''));
             }
             request['symbols'] = marketIds.join (',');
         }
@@ -1593,17 +1593,14 @@ export default class revolutx extends Exchange {
         return order;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         const statusCode = this.parseToInt (code);
         if (statusCode >= 400) {
             if (response === undefined) {
                 return undefined;
             }
             const feedback = this.id + ' ' + body;
-            let errorMessage: Str = undefined;
-            if (typeof response === 'object') {
-                errorMessage = this.safeString2 (response, 'message', 'error');
-            }
+            const errorMessage = this.safeString2 (response, 'message', 'error');
             if (errorMessage !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
             }

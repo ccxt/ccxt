@@ -459,7 +459,7 @@ public partial class bit2me : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? status = this.safeString(market, "marketEnabled");
-        IDictionary<string, object> fees = this.fees;
+        object tradingFees = this.safeValue(this.fees, "trading");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", (bs == null ? null : bs + "/" + quote) },
@@ -484,8 +484,8 @@ public partial class bit2me : Exchange
             { "expiryDatetime", null },
             { "strike", null },
             { "optionType", null },
-            { "taker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "taker") },
-            { "maker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "maker") },
+            { "taker", this.safeNumber(tradingFees, "taker") },
+            { "maker", this.safeNumber(tradingFees, "maker") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "amountPrecision"))) },
                 { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
@@ -675,7 +675,7 @@ public partial class bit2me : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> marketSymbols = this.marketSymbols(this.toArray(symbols));
+        IList<object> marketSymbols = this.marketSymbols(symbols);
         List<object> response = await this.publicGetV2TradingTickers(parameters);
         //
         //     [
@@ -736,7 +736,7 @@ public partial class bit2me : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -883,13 +883,13 @@ public partial class bit2me : Exchange
         //         "symbol": "BTC/EUR"
         //     }
         //
-        if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((trade is IList<object>) || (trade is not null && trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             string? publicSide = this.safeStringLower(trade, 0);
             string? publicPrice = this.safeString(trade, 1);
             string? publicAmount = this.safeString(trade, 2);
             Int64? publicTimestamp = this.safeInteger(trade, 3);
-            Dictionary<string, object> resolvedMarket = this.safeMarket(null, market);
+            Dictionary<string, object> resolvedMarket = this.safeMarket(((string)null), market);
             return this.safeTrade(new Dictionary<string, object>() {
                 { "info", trade },
                 { "id", null },
@@ -993,8 +993,13 @@ public partial class bit2me : Exchange
         {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            Int64? end = (!(until == null)) ? until : this.milliseconds();
-            request["startTime"] = (end - (requestLimit * duration));
+            if (!(until == null))
+            {
+                request["startTime"] = (until - (requestLimit * duration));
+            } else
+            {
+                request["startTime"] = (this.milliseconds() - (requestLimit * duration));
+            }
         }
         if (!(until == null))
         {
@@ -1010,7 +1015,7 @@ public partial class bit2me : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [ 1793628000000, 69397.5, 69549.9, 69200.1, 69334.1, 20.37762874 ]
@@ -1049,14 +1054,14 @@ public partial class bit2me : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object wallet = getValue(response, i);
+            IDictionary<string, object> wallet = ((IDictionary<string, object>)response[i]);
             string? currencyId = this.safeString(wallet, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1107,7 +1112,7 @@ public partial class bit2me : Exchange
         //         { "id": "514bf92e-...", "orderType": "stop-limit", "status": "inactive", "price": 50892.91, "stopPrice": 51630.49, "orderGroupId": "9a28690c-...", ... }
         //     ]
         //
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             IDictionary<string, object> takeProfitLeg = this.safeDict(response, 0, new Dictionary<string, object>() {});
             Dictionary<string, object> ocoOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(takeProfitLeg, market));
@@ -1138,7 +1143,7 @@ public partial class bit2me : Exchange
         //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -1154,7 +1159,7 @@ public partial class bit2me : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request body
      */
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, double amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -1197,37 +1202,40 @@ public partial class bit2me : Exchange
                 throw new InvalidOrder ((this.id + " createOrder() OCO legs are limit orders, use the limit type")) ;
             }
             request["orderType"] = "oco";
-            request["amount"] = this.amountToPrecision(symbol, amount);
-            request["takeProfitPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
-            request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
+            request["amount"] = this.amountToPrecision(((string)symbol), amount);
+            request["takeProfitPrice"] = this.priceToPrecision(((string)symbol), takeProfitPrice);
+            request["stopPrice"] = this.priceToPrecision(((string)symbol), stopLossPrice);
             string? stopLossLimit = stopLimitPrice;
             if ((stopLossLimit == null))
             {
-                stopLossLimit = ((price != null)) ? this.numberToString(price) : stopLossPrice;
+                if ((price != null))
+                {
+                    stopLossLimit = this.numberToString(price);
+                } else
+                {
+                    stopLossLimit = stopLossPrice;
+                }
             }
-            request["stopLimitPrice"] = this.priceToPrecision(symbol, stopLossLimit);
+            request["stopLimitPrice"] = this.priceToPrecision(((string)symbol), stopLossLimit);
         } else if (isMarketOrder)
         {
             if ((triggerPrice != null))
             {
                 throw new InvalidOrder ((this.id + " createOrder() does not support stop-market orders, use a limit price to place a stop-limit order")) ;
             }
-            string? quoteAmount = null;
             if ((cost != null))
             {
-                quoteAmount = cost;
+                request["amount"] = this.costToPrecision(((string)symbol), cost);
+                request["amountInQuote"] = true;
             } else if (((side is "buy")) && ((price != null)))
             {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
-            }
-            if ((quoteAmount != null))
-            {
-                request["amount"] = this.costToPrecision(symbol, quoteAmount);
+                string? quoteAmount = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
+                request["amount"] = this.costToPrecision(((string)symbol), quoteAmount);
                 request["amountInQuote"] = true;
             } else
             {
-                request["amount"] = this.amountToPrecision(symbol, amount);
+                request["amount"] = this.amountToPrecision(((string)symbol), amount);
             }
         } else
         {
@@ -1235,12 +1243,12 @@ public partial class bit2me : Exchange
             {
                 throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
-            request["amount"] = this.amountToPrecision(symbol, amount);
-            request["price"] = this.priceToPrecision(symbol, price);
+            request["amount"] = this.amountToPrecision(((string)symbol), amount);
+            request["price"] = this.priceToPrecision(((string)symbol), price);
             if ((triggerPrice != null))
             {
                 request["orderType"] = "stop-limit";
-                request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
+                request["stopPrice"] = this.priceToPrecision(((string)symbol), triggerPrice);
             }
         }
         if ((postOnly == true))
@@ -1453,9 +1461,14 @@ public partial class bit2me : Exchange
         if (((since != null)) || (!(until == null)))
         {
             Int64? start = ((since != null)) ? since : 0;
-            Int64? end = (!(until == null)) ? until : this.milliseconds();
             request["startTime"] = this.iso8601(start);
-            request["endTime"] = this.iso8601(end);
+            if (!(until == null))
+            {
+                request["endTime"] = this.iso8601(until);
+            } else
+            {
+                request["endTime"] = this.iso8601(this.milliseconds());
+            }
         }
         List<object> response = await this.privateGetV1TradingOrder(this.extend(request, query));
         //
@@ -1592,7 +1605,7 @@ public partial class bit2me : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, cancelOrder, fetchOrder, fetchOrders
@@ -1695,9 +1708,14 @@ public partial class bit2me : Exchange
         if (((since != null)) || (!(until == null)))
         {
             Int64? start = ((since != null)) ? since : 0;
-            Int64? end = (!(until == null)) ? until : this.milliseconds();
             request["startTime"] = this.iso8601(start);
-            request["endTime"] = this.iso8601(end);
+            if (!(until == null))
+            {
+                request["endTime"] = this.iso8601(until);
+            } else
+            {
+                request["endTime"] = this.iso8601(this.milliseconds());
+            }
         }
         Dictionary<string, object> response = await this.privateGetV1TradingTrade(this.extend(request, query));
         //
@@ -1895,7 +1913,7 @@ public partial class bit2me : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer
@@ -2015,8 +2033,8 @@ public partial class bit2me : Exchange
                 }
                 message = message + (":" + requestBody);
             }
-            byte[] digest = ((byte[])this.hash(this.encode(message), sha256, "binary"));
-            string signature = this.hmac(digest, this.encode(this.secret), sha512, "base64");
+            byte[] digest = ((byte[])this.hash(message, sha256, "binary"));
+            string signature = this.hmac(digest, this.secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "x-api-key", this.apiKey },
                 { "x-nonce", nonce },
@@ -2041,11 +2059,11 @@ public partial class bit2me : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? httpCode, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"statusCode":404,"error":"Not Found","message":"Market not found for symbol FOO/BAR","reqId":"9834b8a8-97b8-470d-ade2-3d31687c0723"}
@@ -2061,13 +2079,13 @@ public partial class bit2me : Exchange
         if (((errorCode != null)) || ((errorsList != null)) || ((payloadCode != null)))
         {
             string? message = this.safeStringN(response, new List<object>() {"message", "description", "error"});
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), payloadCode, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, payloadCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

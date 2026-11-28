@@ -88,7 +88,7 @@ func TestSafeString() {
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputList, 0), "hi"))
 	// With defaults
-	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"))
+	Assert((ccxt.IsEqual(exchange.SafeStringLower(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case")))
 	// safeStringLower2testSafeString
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "f"), "0.123"))
@@ -115,7 +115,7 @@ func TestSafeString() {
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputList, 0), "HI"))
 	// With defaults
-	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"))
+	Assert((ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case")))
 	// safeStringUpper2
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "f"), "0.123"))
@@ -258,7 +258,7 @@ func TestSafeInteger() {
 	Assert(ccxt.IsEqual(exchange.SafeIntegerN(inputList, []any{3, 2, 1}), 2))
 	// safeIntegerOmitZero
 	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "i"), 1))
-	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "f"), nil))
+	Assert((exchange.SafeIntegerOmitZero(inputDict, "f") == nil))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "strNumber"), 3))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputList, 1), 2))
 	// safeIntegerProduct
@@ -325,28 +325,28 @@ func TestSafeFloat() {
 	var inputList []any = []any{"Hi", 2}
 	// safeFloat
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "i"), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "i"), float64(1)))
 	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "f"), 0.123))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "strNumber"), ccxt.ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "strNumber"), float64(3)))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 1), ccxt.ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 1), float64(2)))
 	// safeFloat2
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "i"), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "i"), float64(1)))
 	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "f"), 0.123))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "strNumber"), ccxt.ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "strNumber"), float64(3)))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputList, 2, 1), ccxt.ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputList, 2, 1), float64(2)))
 	// safeFloatN
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "i"}), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "i"}), float64(1)))
 	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "f"}), 0.123))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "strNumber"}), ccxt.ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "strNumber"}), float64(3)))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{3, 2, 1}), ccxt.ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{3, 2, 1}), float64(2)))
 	// safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
 	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent"), nil), "safeFloat failed for missing key")
 	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default")
@@ -442,12 +442,12 @@ func TestCacheSafeCalls() {
 	arrayCacheByTimestamp := ccxt.NewArrayCacheByTimestamp(100)
 	arrayCacheByTimestamp.Append([]any{1000, 50000, 1, 2, 3})
 	var arrayCacheByTimestampData any = exchange.SafeValue(arrayCacheByTimestamp, "Data")
-	var cacheByTimestampData any = func() any {
-		if !ccxt.IsEqual(arrayCacheByTimestampData, nil) {
-			return arrayCacheByTimestampData
-		}
-		return arrayCacheByTimestamp
-	}()
+	var cacheByTimestampData any
+	if !ccxt.IsEqual(arrayCacheByTimestampData, nil) {
+		cacheByTimestampData = arrayCacheByTimestampData
+	} else {
+		cacheByTimestampData = arrayCacheByTimestamp
+	}
 	Assert((ccxt.GetArrayLength(cacheByTimestampData) > 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolById
 	arrayCacheBySymbolById := ccxt.NewArrayCacheBySymbolById(100)
@@ -461,12 +461,12 @@ func TestCacheSafeCalls() {
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), nil))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), nil))
 	var arrayCacheBySymbolByIdData any = exchange.SafeValue(arrayCacheBySymbolById, "Data")
-	var cacheBySymbolByIdData any = func() any {
-		if !ccxt.IsEqual(arrayCacheBySymbolByIdData, nil) {
-			return arrayCacheBySymbolByIdData
-		}
-		return arrayCacheBySymbolById
-	}()
+	var cacheBySymbolByIdData any
+	if !ccxt.IsEqual(arrayCacheBySymbolByIdData, nil) {
+		cacheBySymbolByIdData = arrayCacheBySymbolByIdData
+	} else {
+		cacheBySymbolByIdData = arrayCacheBySymbolById
+	}
 	Assert((ccxt.GetArrayLength(cacheBySymbolByIdData) > 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolBySide
 	arrayCacheBySymbolBySide := ccxt.NewArrayCacheBySymbolBySide()
@@ -479,12 +479,12 @@ func TestCacheSafeCalls() {
 	var arrayCacheBySymbolBySideHashmap any = arrayCacheBySymbolBySide.Hashmap
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), nil))
 	var arrayCacheBySymbolBySideData any = exchange.SafeValue(arrayCacheBySymbolBySide, "Data")
-	var cacheBySymbolBySideData any = func() any {
-		if !ccxt.IsEqual(arrayCacheBySymbolBySideData, nil) {
-			return arrayCacheBySymbolBySideData
-		}
-		return arrayCacheBySymbolBySide
-	}()
+	var cacheBySymbolBySideData any
+	if !ccxt.IsEqual(arrayCacheBySymbolBySideData, nil) {
+		cacheBySymbolBySideData = arrayCacheBySymbolBySideData
+	} else {
+		cacheBySymbolBySideData = arrayCacheBySymbolBySide
+	}
 	Assert((ccxt.GetArrayLength(cacheBySymbolBySideData) > 0))
 	// Test map[string]map[string]interface{} (ccxt.ArrayCache.hashmap)
 	// Use direct property access for object attributes

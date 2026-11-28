@@ -228,7 +228,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601(timestamp);
         }
         const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-        if ((checksum) && (receivedSnapshot)) {
+        if ((checksum === true) && (receivedSnapshot)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -262,11 +262,10 @@ export default class independentreserve extends independentreserveRest {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        let result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = result.replace('.', '');
+        const padded = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        const digits = padded.replace('.', '');
         // remove leading zeros
-        result = this.parseNumber(result);
-        result = this.numberToString(result);
+        const result = this.numberToString(this.parseNumber(digits));
         return result;
     }
     handleDelta(bookside, delta) {

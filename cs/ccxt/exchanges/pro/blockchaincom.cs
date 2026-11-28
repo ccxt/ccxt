@@ -171,7 +171,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -216,7 +216,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
             stored.append(ohlcv);
             client.resolve(stored, messageHash);
@@ -295,7 +295,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             return;
         } else if (eventVar == "snapshot")
         {
-            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(message, market));
+            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(((IDictionary<string, object>)message), market));
         } else if (eventVar == "updated")
         {
             IDictionary<string, object> lastTicker = this.safeDict(this.tickers, symbol);
@@ -372,8 +372,8 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object trades = await this.watch(url, messageHash, request, messageHash, request);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.watch<ccxt.pro.ArrayCache>(url, messageHash, request, messageHash, request);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -491,7 +491,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -795,13 +795,13 @@ public partial class blockchaincom : ccxt.blockchaincom
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         (bookside as IOrderBookSide).storeArray(bookArray);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
+    public override void handleDeltas(ccxt.pro.IOrderBookSide bookside, IList<object> deltas)
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
@@ -809,7 +809,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? channel = this.safeString(message, "channel");
         if (channel == "ticker")
@@ -868,8 +868,8 @@ public partial class blockchaincom : ccxt.blockchaincom
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object isAuthenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((isAuthenticated == null))
+        bool isAuthenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!isAuthenticated)
         {
             this.checkRequiredCredentials();
             Dictionary<string, object> request = new Dictionary<string, object>() {

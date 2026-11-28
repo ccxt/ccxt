@@ -2361,7 +2361,7 @@
                     "BTC/USDT:USDT",
                     "limit",
                     "buy",
-                    "0.002",
+                    0.002,
                     70000,
                     {
                         "triggerPrice": 71000,
@@ -2519,7 +2519,7 @@
                     "BTC/USDT:USDT",
                     "limit",
                     "buy",
-                    "0.002",
+                    0.002,
                     70000,
                     {
                         "triggerPrice": 69000,
@@ -2677,7 +2677,7 @@
                     "BTC/USDT:USDT",
                     "limit",
                     "buy",
-                    "0.001",
+                    0.001,
                     70000
                 ],
                 "httpResponse": {

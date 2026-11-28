@@ -87,7 +87,7 @@ function testHandleHttpStatusCode () {
     // dispatch composition: the base handleErrors stub returns undefined, so an
     // error envelope on an uncovered status passes both steps without a throw —
     // a derived handleErrors that wants to surface it must throw on its own
-    const skip = exchange.handleErrors (406, 'Not Acceptable', 'url', 'GET', {}, '{"success":false}', { 'success': false }, {}, '');
+    const skip = exchange.handleErrors (406, 'Not Acceptable', 'url', 'GET', {}, '{"success":false}', { 'success': false }, {}, undefined);
     assert (skip === undefined, 'the base handleErrors stub should return undefined');
     exchange.handleHttpStatusCode (406, 'Not Acceptable', 'url', 'GET', '{"success":false}');
 }

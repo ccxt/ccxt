@@ -800,7 +800,7 @@ public partial class upbit : Exchange
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> orderbooks = this.toArray(response);
+        IList<object> orderbooks = response;
         for (int i = 0; i < (orderbooks?.Count ?? 0); i++)
         {
             IDictionary<string, object> orderbook = this.safeDict(orderbooks, i, new Dictionary<string, object>() {});
@@ -838,7 +838,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //       {                market: "BTC-ETH",
@@ -916,7 +916,7 @@ public partial class upbit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> tickers = new List<object>() {};
         if ((symbolsNormalized == null))
         {
@@ -1064,7 +1064,6 @@ public partial class upbit : Exchange
         //         }
         //
         string? id = this.safeString2(trade, "sequential_id", "uuid");
-        string? orderId = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         if ((timestamp == null))
         {
@@ -1096,7 +1095,7 @@ public partial class upbit : Exchange
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
-            { "order", orderId },
+            { "order", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -1261,7 +1260,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTradingFees(response);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1357,7 +1356,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
@@ -1478,9 +1477,10 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        IDictionary<string, object> paramsOrdType = (customType == "best") ? this.omit(parameters, new List<object>() {"ordType", "ord_type"}) : parameters;
+        IDictionary<string, object> paramsOrdType = parameters;
         if (customType == "best")
         {
+            paramsOrdType = this.omit(paramsOrdType, new List<object>() {"ordType", "ord_type"});
             request["ord_type"] = "best";
             if ((side == "buy"))
             {
@@ -1958,7 +1958,7 @@ public partial class upbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits, fetchDeposit
@@ -2038,7 +2038,7 @@ public partial class upbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         // {
         //   "market": "KRW-USDT",
@@ -2507,7 +2507,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(response, codes, false));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -2741,11 +2741,11 @@ public partial class upbit : Exchange
             }
             if ((auth != null))
             {
-                string hash = ((string)this.hash(this.encode(auth), sha512));
+                string hash = ((string)this.hash(auth, sha512));
                 request["query_hash"] = hash;
                 request["query_hash_alg"] = "SHA512";
             }
-            string token = jwt(request, this.encode(this.secret), sha256);
+            string token = jwt(request, this.secret, sha256);
             headers["Authorization"] = ("Bearer " + token);
         }
         return new Dictionary<string, object>() {
@@ -2756,11 +2756,11 @@ public partial class upbit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name': 400 } },
@@ -2778,13 +2778,13 @@ public partial class upbit : Exchange
         {
             string? message = this.safeString(error, "message");
             string? name = this.safeString(error, "name");
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), name, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, name, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), name, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

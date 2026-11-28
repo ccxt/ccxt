@@ -809,7 +809,7 @@ export default class kraken extends krakenRest {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
         const unsubMessageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, symbolsNormalized[i]));
+            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, this.symbol(symbolsNormalized[i])));
         }
         const request = {
             'method': 'unsubscribe',
@@ -1104,7 +1104,7 @@ export default class kraken extends krakenRest {
                     const currentAskLength = currentAsk.length;
                     let formattedAsk = '';
                     if (currentAskLength > 1) {
-                        formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                        formattedAsk = this.formatNumber(this.safeString(currentAsk, 0, '')) + this.formatNumber(this.safeString(currentAsk, 1, ''));
                     }
                     payloadArray.push(formattedAsk);
                 }
@@ -1113,7 +1113,7 @@ export default class kraken extends krakenRest {
                     const currentBidLength = currentBid.length;
                     let formattedBid = '';
                     if (currentBidLength > 1) {
-                        formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                        formattedBid = this.formatNumber(this.safeString(currentBid, 0, '')) + this.formatNumber(this.safeString(currentBid, 1, ''));
                     }
                     payloadArray.push(formattedBid);
                 }
@@ -1383,8 +1383,8 @@ export default class kraken extends krakenRest {
             symbol = this.safeString(market, 'symbol');
         }
         let fee = undefined;
-        if ('fees' in trade) {
-            const fees = this.safeList(trade, 'fees', []);
+        const fees = this.safeList(trade, 'fees');
+        if (fees !== undefined) {
             const firstFee = this.safeDict(fees, 0, {});
             fee = {
                 'cost': this.safeNumber(firstFee, 'qty'),
@@ -1656,7 +1656,8 @@ export default class kraken extends krakenRest {
             this.balance = {};
         }
         this.balance[type] = this.safeDict(this.balance, type, {});
-        this.balance[type]['info'] = message;
+        const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = message;
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString(data[i], 'asset');
@@ -1664,9 +1665,9 @@ export default class kraken extends krakenRest {
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }
@@ -1773,17 +1774,15 @@ export default class kraken extends krakenRest {
         const errorMessage = this.safeString2(message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
             const requestId = this.safeString2(message, 'reqid', 'req_id');
-            const broad = this.exceptions['ws']['broad'];
-            const broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
-            let exception = undefined;
-            if (broadKey === undefined) {
-                exception = new ExchangeError(errorMessage); // c# requirement to convert the errorMessage to string
-            }
-            else {
-                exception = new broad[broadKey](errorMessage);
-            }
             if (requestId !== undefined) {
-                client.reject(exception, requestId);
+                const broad = this.exceptions['ws']['broad'];
+                try {
+                    this.throwBroadlyMatchedException(broad, errorMessage, errorMessage);
+                    throw new ExchangeError(errorMessage);
+                }
+                catch (e) {
+                    client.reject(e, requestId);
+                }
             }
             return false;
         }

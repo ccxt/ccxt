@@ -894,16 +894,11 @@ class cryptocom extends cryptocom$1["default"] {
         const request = {};
         if (symbols !== undefined) {
             let symbol = undefined;
-            if (Array.isArray(symbols)) {
-                const symbolsLength = symbols.length;
-                if (symbolsLength > 1) {
-                    throw new errors.BadRequest(this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = this.safeString(symbols, 0);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
+                throw new errors.BadRequest(this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
             }
-            else {
-                symbol = symbols;
-            }
+            symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
@@ -1352,7 +1347,7 @@ class cryptocom extends cryptocom$1["default"] {
         //     }
         //
         const order = this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -1502,7 +1497,7 @@ class cryptocom extends cryptocom$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1746,9 +1741,9 @@ class cryptocom extends cryptocom$1["default"] {
         const request = this.editOrderRequest(id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder(request);
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
-    editOrderRequest(id, symbol, amount, price = undefined, params = {}) {
+    editOrderRequest(id, symbol, amount = undefined, price = undefined, params = {}) {
         const request = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -1827,7 +1822,7 @@ class cryptocom extends cryptocom$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -2038,7 +2033,8 @@ class cryptocom extends cryptocom$1["default"] {
             const address = addressParts[0];
             const rawTag = addressParts[1];
             const splitted = rawTag.split('=');
-            return [address, splitted[1]];
+            const tag = this.safeString(splitted, 1);
+            return [address, tag];
         }
         return [addressString, undefined];
     }
@@ -2179,7 +2175,8 @@ class cryptocom extends cryptocom$1["default"] {
                 return this.safeDict(depositAddresses, network);
             }
         }
-        const keys = Object.keys(depositAddresses);
+        const addressesCopy = this.extend({}, depositAddresses);
+        const keys = Object.keys(addressesCopy);
         return this.safeDict(depositAddresses, this.safeString(keys, 0));
     }
     /**
@@ -3083,7 +3080,8 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(this.safeDict(settlements, i, {}), market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -3284,7 +3282,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        return this.parsePosition(this.safeDict(data, 0), market);
+        return this.parsePosition(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -3303,17 +3301,11 @@ class cryptocom extends cryptocom$1["default"] {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
-            if (Array.isArray(symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = symbolsNormalized[0];
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            else {
-                symbol = symbolsNormalized;
-            }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
@@ -3344,10 +3336,10 @@ class cryptocom extends cryptocom$1["default"] {
         const positions = this.safeList(responseResult, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const entry = positions[i];
-            const marketId = this.safeString(entry, 'instrument_name');
+            const marketId = this.safeString(positions[i], 'instrument_name');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, marketInner));
+            const position = this.parsePosition(this.safeDict(positions, i, {}), marketInner);
+            result.push(position);
         }
         return this.filterByArrayPositions(result, 'symbol', undefined);
     }
@@ -3404,11 +3396,8 @@ class cryptocom extends cryptocom$1["default"] {
     paramsToString(object, level) {
         const maxLevel = 3;
         const depth = this.parseToInt(level);
-        if (depth >= maxLevel) {
+        if ((depth >= maxLevel) || (typeof object === 'string')) {
             return object.toString();
-        }
-        if (typeof object === 'string') {
-            return object;
         }
         let returnString = '';
         let paramsKeys = undefined;
@@ -3416,7 +3405,8 @@ class cryptocom extends cryptocom$1["default"] {
             paramsKeys = object;
         }
         else {
-            const objectKeys = Object.keys(object);
+            const objectDict = this.extend({}, object);
+            const objectKeys = Object.keys(objectDict);
             paramsKeys = this.sort(objectKeys);
         }
         for (let i = 0; i < paramsKeys.length; i++) {
@@ -3456,6 +3446,7 @@ class cryptocom extends cryptocom$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'instrument_name': market['id'],
             'type': 'MARKET',
@@ -3466,7 +3457,7 @@ class cryptocom extends cryptocom$1["default"] {
             request['type'] = type;
         }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision(market['symbol'], price);
+            request['price'] = this.priceToPrecision(precisionSymbol, price);
         }
         const response = await this.v1PrivatePostPrivateClosePosition(this.extend(request, params));
         //
@@ -3481,7 +3472,7 @@ class cryptocom extends cryptocom$1["default"] {
         //    }
         //
         const result = this.safeDict(response, 'result');
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -3631,7 +3622,7 @@ class cryptocom extends cryptocom$1["default"] {
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
             const paramsKeysLength = paramsKeys.length;
-            requestBody = this.json({
+            let jsonBody = this.json({
                 'id': nonce,
                 'method': path,
                 'params': params,
@@ -3647,8 +3638,9 @@ class cryptocom extends cryptocom$1["default"] {
             if (paramsKeysLength === 0) {
                 const paramsString = '{}';
                 const arrayString = '[]';
-                requestBody = requestBody.replace(arrayString, paramsString);
+                jsonBody = jsonBody.replace(arrayString, paramsString);
             }
+            requestBody = jsonBody;
             requestHeaders = {
                 'Content-Type': 'application/json',
             };

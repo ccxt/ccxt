@@ -1,8 +1,12 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -118,11 +122,52 @@ func Add(a interface{}, b interface{}) interface{} {
 }
 
 func IsTrue(a interface{}) bool {
-	return ccxt.IsTrue(a)
+	return EvalTruthy(a)
 }
 
 func EvalTruthy(val interface{}) bool {
-	return ccxt.EvalTruthy(val)
+	val = ccxt.DerefScalar(val)
+	if val == nil {
+		return false
+	}
+	switch v := val.(type) {
+	case int:
+		return v != 0
+	case int32:
+		return v != 0
+	case int64:
+		return v != 0
+	case uint:
+		return v != 0
+	case uint32:
+		return v != 0
+	case uint64:
+		return v != 0
+	case float32:
+		return v != 0 && v == v
+	case float64:
+		return v != 0 && v == v
+	case string:
+		return v != ""
+	case bool:
+		return v
+	case []any:
+		return len(v) > 0
+	case map[string]any:
+		return len(v) > 0
+	case []string:
+		return len(v) > 0
+	case []int64:
+		return len(v) > 0
+	case []float64:
+		return len(v) > 0
+	case []bool:
+		return len(v) > 0
+	case []int:
+		return len(v) > 0
+	default:
+		return true
+	}
 }
 
 func IsInteger(value interface{}) bool {
@@ -134,15 +179,74 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 }
 
 func Multiply(a, b interface{}) interface{} {
-	return ccxt.Multiply(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a == nil || b == nil {
+		return nil
+	}
+	aVal := reflect.ValueOf(a)
+	bVal := reflect.ValueOf(b)
+	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+		return nil
+	}
+	aValConverted := aVal.Convert(bVal.Type())
+	switch bVal.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return aValConverted.Int() * bVal.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return aValConverted.Uint() * bVal.Uint()
+	case reflect.Float32, reflect.Float64:
+		res := ccxt.ToFloat64(a) * ccxt.ToFloat64(b)
+		if ccxt.IsInteger(res) {
+			return ccxt.ParseInt(res)
+		}
+		return res
+	default:
+		return nil
+	}
 }
 
 func Divide(a, b interface{}) interface{} {
-	return ccxt.Divide(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a == nil || b == nil {
+		return nil
+	}
+	aVal := reflect.ValueOf(a)
+	bVal := reflect.ValueOf(b)
+	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+		return nil
+	}
+	switch bVal.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		aFloat := aVal.Convert(reflect.TypeOf(float64(0))).Float()
+		bFloat := bVal.Convert(reflect.TypeOf(float64(0))).Float()
+		if bFloat == 0.0 {
+			return nil
+		}
+		res := aFloat / bFloat
+		if ccxt.IsInteger(res) {
+			return ccxt.ParseInt(res)
+		}
+		return res
+	default:
+		return nil
+	}
 }
 
 func Subtract(a, b interface{}) interface{} {
-	return ccxt.Subtract(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a == nil || b == nil {
+		return nil
+	}
+	res := ccxt.ToFloat64(a) - ccxt.ToFloat64(b)
+	if ccxt.IsInteger(res) {
+		return ccxt.ParseInt(res)
+	}
+	return res
 }
 
 func GetArrayLength(value interface{}) int {
@@ -150,23 +254,56 @@ func GetArrayLength(value interface{}) int {
 }
 
 func IsGreaterThan(a, b interface{}) bool {
-	return ccxt.IsGreaterThan(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a != nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	switch aVal := a.(type) {
+	case int:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > bVal
+		case int64:
+			return int64(aVal) > bVal
+		case float64:
+			return float64(aVal) > bVal
+		}
+	case int64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > int64(bVal)
+		case int64:
+			return aVal > bVal
+		case float64:
+			return float64(aVal) > bVal
+		}
+	case float64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > float64(bVal)
+		case int64:
+			return aVal > float64(bVal)
+		case float64:
+			return aVal > bVal
+		}
+	}
+	return false
 }
 
 func IsLessThan(a, b interface{}) bool {
-	return ccxt.IsLessThan(a, b)
+	return !IsGreaterThan(a, b) && !ccxt.IsEqual(a, b)
 }
 
 func IsGreaterThanOrEqual(a, b interface{}) bool {
-	return ccxt.IsGreaterThanOrEqual(a, b)
+	return IsGreaterThan(a, b) || ccxt.IsEqual(a, b)
 }
 
 func IsLessThanOrEqual(a, b interface{}) bool {
-	return ccxt.IsLessThanOrEqual(a, b)
-}
-
-func Mod(a, b interface{}) interface{} {
-	return ccxt.Mod(a, b)
+	return IsLessThan(a, b) || ccxt.IsEqual(a, b)
 }
 
 func IsEqual(a, b interface{}) bool {
@@ -180,32 +317,8 @@ func DerefScalar(v any) any {
 	return ccxt.DerefScalar(v)
 }
 
-func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) {
-	return ccxt.NormalizeAndConvert(a, b)
-}
-
 func ToFloat64(v interface{}) float64 {
 	return ccxt.ToFloat64(v)
-}
-
-func Increment(a interface{}) interface{} {
-	return ccxt.Increment(a)
-}
-
-func Decrement(a interface{}) interface{} {
-	return ccxt.Decrement(a)
-}
-
-func Negate(a interface{}) interface{} {
-	return ccxt.Negate(a)
-}
-
-func UnaryPlus(a interface{}) interface{} {
-	return ccxt.UnaryPlus(a)
-}
-
-func PlusEqual(a, value interface{}) interface{} {
-	return ccxt.PlusEqual(a, value)
 }
 
 func AppendToArray(slicePtr *interface{}, element interface{}) {
@@ -221,79 +334,164 @@ func InOp(dict interface{}, key interface{}) bool {
 }
 
 func GetIndexOf(str interface{}, target interface{}) int {
-	return ccxt.GetIndexOf(str, target)
+	str = ccxt.DerefScalar(str)
+	target = ccxt.DerefScalar(target)
+	switch v := str.(type) {
+	case []string:
+		t, ok := target.(string)
+		if !ok {
+			return -1
+		}
+		for i, s := range v {
+			if s == t {
+				return i
+			}
+		}
+	case []int:
+		t, ok := target.(int)
+		if !ok {
+			return -1
+		}
+		for i, n := range v {
+			if n == t {
+				return i
+			}
+		}
+	case string:
+		t, ok := target.(string)
+		if !ok {
+			return -1
+		}
+		return strings.Index(v, t)
+	}
+	return -1
 }
 
 func IsBool(v interface{}) bool {
-	return ccxt.IsBool(v)
-}
-
-func IsDictionary(v interface{}) bool {
-	return ccxt.IsDictionary(v)
+	v = ccxt.DerefScalar(v)
+	if v == nil {
+		return false
+	}
+	_, ok := v.(bool)
+	return ok
 }
 
 func IsString(v interface{}) bool {
 	return ccxt.IsString(v)
 }
 
-func IsFunction(v interface{}) bool {
-	return ccxt.IsFunction(v)
-}
-
 func IsNumber(v interface{}) bool {
-	return ccxt.IsNumber(v)
-}
-
-func IsObject(v interface{}) bool {
-	return ccxt.IsObject(v)
+	val := reflect.ValueOf(v)
+	for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
+		if val.IsNil() {
+			return false
+		}
+		val = val.Elem()
+	}
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return true
+	case reflect.Float32, reflect.Float64:
+		return true
+	}
+	return false
 }
 
 func ToLower(v interface{}) string {
-	return ccxt.ToLower(v)
+	switch s := v.(type) {
+	case string:
+		return strings.ToLower(s)
+	case *string:
+		if s != nil {
+			return strings.ToLower(*s)
+		}
+	}
+	return ""
 }
 
 func ToUpper(v interface{}) string {
-	return ccxt.ToUpper(v)
+	v = ccxt.DerefScalar(v)
+	if str, ok := v.(string); ok {
+		return strings.ToUpper(str)
+	}
+	return ""
 }
 
 func IsInt(v interface{}) bool {
-	return ccxt.IsInt(v)
-}
-
-func MathFloor(v interface{}) float64 {
-	return ccxt.MathFloor(v)
-}
-
-func MathCeil(v interface{}) float64 {
-	return ccxt.MathCeil(v)
-}
-
-func MathRound(v interface{}) float64 {
-	return ccxt.MathRound(v)
+	v = ccxt.DerefScalar(v)
+	if v == nil {
+		return false
+	}
+	switch v.(type) {
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return true
+	default:
+		return false
+	}
 }
 
 func StartsWith(v interface{}, prefix interface{}) bool {
-	return ccxt.StartsWith(v, prefix)
+	s, ok := v.(string)
+	if !ok {
+		if p, pok := v.(*string); pok && p != nil {
+			s = *p
+			ok = true
+		}
+	}
+	if !ok {
+		return false
+	}
+	return strings.HasPrefix(s, ccxt.ToString(prefix))
 }
 
 func EndsWith(v interface{}, suffix interface{}) bool {
-	return ccxt.EndsWith(v, suffix)
-}
-
-func IndexOf(v interface{}, substr interface{}) int {
-	return ccxt.IndexOf(v, substr)
-}
-
-func Trim(v interface{}) string {
-	return ccxt.Trim(v)
+	s, ok := v.(string)
+	if !ok {
+		if p, pok := v.(*string); pok && p != nil {
+			s = *p
+			ok = true
+		}
+	}
+	if !ok {
+		return false
+	}
+	return strings.HasSuffix(s, ccxt.ToString(suffix))
 }
 
 func Contains(v interface{}, substr interface{}) bool {
-	return ccxt.Contains(v, substr)
+	s, ok := v.(string)
+	if !ok {
+		if p, pok := v.(*string); pok && p != nil {
+			s = *p
+			ok = true
+		}
+	}
+	if !ok {
+		return false
+	}
+	return strings.Contains(s, ccxt.ToString(substr))
 }
 
 func StringArg(v interface{}) string {
 	return ccxt.StringArg(v)
+}
+
+func Float64Arg(v interface{}) float64 {
+	switch value := ccxt.DerefScalar(v).(type) {
+	case float64:
+		return value
+	case float32:
+		return float64(value)
+	case int:
+		return float64(value)
+	case int32:
+		return float64(value)
+	case int64:
+		return float64(value)
+	}
+	panic(ccxt.ArgumentsRequired(fmt.Sprintf("expected a number argument, got %T: %v", v, v)))
 }
 
 func ToString(v interface{}) string {
@@ -313,7 +511,14 @@ func ObjectKeys(v interface{}) []string {
 }
 
 func ObjectValues(v interface{}) []interface{} {
-	return ccxt.ObjectValues(v)
+	if mapObject, ok := v.(map[string]interface{}); ok {
+		values := make([]interface{}, 0, len(mapObject))
+		for _, value := range mapObject {
+			values = append(values, value)
+		}
+		return values
+	}
+	return nil
 }
 
 func JsonParse(jsonStr2 interface{}) interface{} {
@@ -324,32 +529,26 @@ func IsArray(v interface{}) bool {
 	return ccxt.IsArray(v)
 }
 
-func Shift(slice interface{}) (interface{}, interface{}) {
-	return ccxt.Shift(slice)
-}
-
-func Reverse(slice interface{}) {
-	ccxt.Reverse(slice)
-}
-
 func Replace(input interface{}, old interface{}, new interface{}) string {
-	return ccxt.Replace(input, old, new)
-}
-
-func PadEnd(input interface{}, length int, padStr interface{}) string {
-	return ccxt.PadEnd(input, length, padStr)
-}
-
-func PadStart(input interface{}, length int, padStr interface{}) string {
-	return ccxt.PadStart(input, length, padStr)
+	input = ccxt.DerefScalar(input)
+	return strings.ReplaceAll(ccxt.ToString(input), ccxt.ToString(old), ccxt.ToString(new))
 }
 
 func DateNow() string {
-	return ccxt.DateNow()
+	return time.Now().Format(time.RFC3339)
 }
 
 func GetLength(v interface{}) int {
-	return ccxt.GetLength(v)
+	v = ccxt.DerefScalar(v)
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.String:
+		return len(val.String())
+	case reflect.Array, reflect.Slice:
+		return val.Len()
+	default:
+		return 0
+	}
 }
 
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
@@ -381,15 +580,16 @@ func GetArgMap(args []any, index int, def map[string]any) map[string]any {
 }
 
 func GetArgAnySlice(args []any, index int, def []any) []any {
-	return ccxt.GetArgAnySlice(args, index, def)
+	if len(args) > index && args[index] != nil {
+		if res, ok := args[index].([]any); ok {
+			return res
+		}
+	}
+	return def
 }
 
 func GetArgStringSlice(args []any, index int, def []string) []string {
 	return ccxt.GetArgStringSlice(args, index, def)
-}
-
-func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
-	return ccxt.GetArgMapSlice(args, index, def)
 }
 
 func GetArgString(args []any, index int, def string) string {
@@ -404,10 +604,6 @@ func GetArgInt64(args []any, index int, def int64) int64 {
 	return ccxt.GetArgInt64(args, index, def)
 }
 
-func GetArgFloat64(args []any, index int, def float64) float64 {
-	return ccxt.GetArgFloat64(args, index, def)
-}
-
 func GetArgStringPtr(args []any, index int, def *string) *string {
 	return ccxt.GetArgStringPtr(args, index, def)
 }
@@ -420,10 +616,6 @@ func Int64PtrTyped(v any) *int64 {
 	return ccxt.Int64PtrTyped(v)
 }
 
-func Float64PtrTyped(v any) *float64 {
-	return ccxt.Float64PtrTyped(v)
-}
-
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 	return ccxt.GetArgFloat64Ptr(args, index, def)
 }
@@ -432,19 +624,11 @@ func GetArgBoolPtr(args []any, index int, def *bool) *bool {
 	return ccxt.GetArgBoolPtr(args, index, def)
 }
 
-func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
-	return ccxt.Ternary(cond, whenTrue, whenFalse)
-}
-
 func IsInstance(value interface{}, typ interface{}) bool {
 	return ccxt.IsInstance(value, typ)
 }
 
-func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
-	return ccxt.Slice(str2, idx1, idx2)
-}
-
-func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[any] {
+func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[[]any] {
 	return ccxt.PromiseAll(tasksInterface)
 }
 
@@ -456,24 +640,12 @@ func ParseInt(number interface{}) int64 {
 	return ccxt.ParseInt(number)
 }
 
-func mathMin(a, b interface{}) interface{} {
-	return ccxt.MathMin(a, b)
-}
-
-func mathMax(a, b interface{}) interface{} {
-	return ccxt.MathMax(a, b)
-}
-
 func mathAbs(a interface{}) interface{} {
-	return ccxt.MathAbs(a)
+	return math.Abs(ccxt.ToFloat64(a))
 }
 
 func parseInt(input interface{}) interface{} {
 	return ccxt.ParseInt(input)
-}
-
-func ParseFloat(input interface{}) interface{} {
-	return ccxt.ParseFloat(input)
 }
 
 func ParseJSON(input interface{}) interface{} {
@@ -481,15 +653,36 @@ func ParseJSON(input interface{}) interface{} {
 }
 
 func OpNeg(value interface{}) interface{} {
-	return ccxt.OpNeg(value)
+	value = ccxt.DerefScalar(value)
+	val := reflect.ValueOf(value)
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return -val.Int()
+	case reflect.Float32, reflect.Float64:
+		return -val.Float()
+	case reflect.Complex64, reflect.Complex128:
+		return -val.Complex()
+	default:
+		return nil
+	}
 }
 
 func JsonStringify(obj interface{}) string {
-	return ccxt.JsonStringify(obj)
-}
-
-func Remove(dict interface{}, key interface{}) {
-	ccxt.Remove(dict, key)
+	obj = ccxt.DerefScalar(obj)
+	if obj == nil {
+		return ""
+	}
+	if err, ok := obj.(error); ok {
+		errorObj := struct {
+			Name string `json:"name"`
+		}{
+			Name: reflect.TypeOf(err).Name(),
+		}
+		jsonData, _ := json.Marshal(errorObj)
+		return string(jsonData)
+	}
+	jsonData, _ := json.Marshal(obj)
+	return string(jsonData)
 }
 
 func Capitalize(s string) string {
@@ -504,12 +697,27 @@ func PanicOnError(msg interface{}) interface{} {
 	return ccxt.PanicOnError(msg)
 }
 
-func getCallerName() string {
-	return ccxt.GetCallerName()
-}
-
 func setDefaults(p interface{}) {
-	ccxt.SetDefaults(p)
+	val := reflect.ValueOf(p).Elem()
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+		if value, ok := fieldType.Tag.Lookup("default"); ok {
+			switch field.Kind() {
+			case reflect.String:
+				if field.String() == "" {
+					field.SetString(value)
+				}
+			case reflect.Int:
+				if field.Int() == 0 {
+					if intValue, err := strconv.Atoi(value); err == nil {
+						field.SetInt(int64(intValue))
+					}
+				}
+			}
+		}
+	}
 }
 
 func Print(v ...interface{}) {

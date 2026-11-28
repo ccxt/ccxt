@@ -263,5 +263,5 @@ export default class xt extends xtRest {
     ping(client: Client): string;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
 }

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -980,9 +980,8 @@ class luno(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            symbol = market['symbol']
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+            symbol = self.safe_string(market, 'symbol', '')
+            result[symbol] = self.parse_ticker(self.safe_dict(tickers, id, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1297,6 +1296,7 @@ class luno(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'pair': market['id'],
         }
@@ -1306,13 +1306,13 @@ class luno(Exchange, ImplicitAPI):
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
+                request['counter_volume'] = self.amount_to_precision(precisionSymbol, amount)
             else:
-                request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
+                request['base_volume'] = self.amount_to_precision(precisionSymbol, amount)
             response = await self.privatePostMarketorder(self.extend(request, params))
         else:
-            request['volume'] = self.amount_to_precision(market['symbol'], amount)
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['volume'] = self.amount_to_precision(precisionSymbol, amount)
+            request['price'] = self.price_to_precision(precisionSymbol, price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
             response = await self.privatePostPostorder(self.extend(request, params))
         if response is None:
@@ -1654,7 +1654,7 @@ class luno(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': None, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         error = self.safe_string(response, 'error')

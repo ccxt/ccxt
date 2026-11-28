@@ -674,10 +674,9 @@ class indodax extends Exchange {
         $parsedTickers = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $rawTicker = $tickers[$key];
             $marketId = str_replace('_', '', $key);
             $market = $this->safe_market($marketId);
-            $parsed = $this->parse_ticker($rawTicker, $market);
+            $parsed = $this->parse_ticker($this->safe_dict($tickers, $key, array()), $market);
             $parsedTickers[$marketId] = $parsed;
         }
         return $this->filter_by_array_tickers($parsedTickers, 'symbol', $symbols);
@@ -884,7 +883,6 @@ class indodax extends Exchange {
             $filled = $this->safe_string($order, 'receive_' . $baseId);
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
-        $fee = null;
         $id = $this->safe_string($order, 'order_id');
         return $this->safe_order(array(
             'info' => $order,
@@ -906,7 +904,7 @@ class indodax extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => null,
         ));
     }
@@ -971,13 +969,10 @@ class indodax extends Exchange {
         }
         $response = Async\await($this->privatePostOpenOrders($this->extend($request, $params)));
         $openOrdersResult = $this->safe_dict($response, 'return', array());
-        $rawOrders = $openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (($rawOrders === null) || ($rawOrders === null)) {
-            return array();
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if ($symbol !== null) {
+            $rawOrders = $this->safe_list($openOrdersResult, 'orders', array());
             return $this->parse_orders($rawOrders, $market, $since, $limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
@@ -1061,6 +1056,8 @@ class indodax extends Exchange {
         if ($isMarketBuy) {
             $paramsOmitted = $this->omit($params, 'cost');
         }
+        $quoteId = $this->safe_string($market, 'quoteId', '');
+        $baseId = $this->safe_string($market, 'baseId', '');
         if ($type === 'market') {
             if ($side === 'buy') {
                 $quoteAmount = null;
@@ -1076,7 +1073,7 @@ class indodax extends Exchange {
                     $costRequest = Precise::string_mul($amountString, $priceString);
                     $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                 }
-                $request[$market['quoteId']] = $quoteAmount;
+                $request[$quoteId] = $quoteAmount;
             } else {
                 $quantityIsRequired = true;
             }
@@ -1084,7 +1081,7 @@ class indodax extends Exchange {
             $priceIsRequired = true;
             $quantityIsRequired = true;
             if ($side === 'buy') {
-                $request[$market['quoteId']] = $this->parse_to_numeric($this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price))));
+                $request[$quoteId] = $this->parse_to_numeric($this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price))));
             }
         }
         if ($priceIsRequired) {
@@ -1094,7 +1091,7 @@ class indodax extends Exchange {
             $request['price'] = $price;
         }
         if ($quantityIsRequired) {
-            $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
+            $request[$baseId] = $this->amount_to_precision($symbol, $amount);
         }
         $result = Async\await($this->privatePostTrade($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($result, 'return', array());
@@ -1157,7 +1154,7 @@ class indodax extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'return');
-        return $this->parse_order($data);
+        return $this->parse_order($this->extend(array(), $data));
     }
 
     public function fetch_transaction_fee(string $code, $params = array()) {
@@ -1566,7 +1563,7 @@ class indodax extends Exchange {
                         throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
                     }
                     if (mb_strpos($networkId, ',') !== false) {
-                        $network = array();
+                        $networkCodes = array();
                         if ($networkId === null) {
                             throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
                         }
@@ -1574,9 +1571,10 @@ class indodax extends Exchange {
                         for ($j = 0; $j < count($networkIds); $j++) {
                             $_netIdTmp = $this->network_id_to_code($networkIds[$j], $code);
                             if ($_netIdTmp !== null) {
-                                $network[] = strtoupper($_netIdTmp);
+                                $networkCodes[] = strtoupper($_netIdTmp);
                             }
                         }
+                        $network = $networkCodes;
                     } else {
                         $_netIdTmp = $this->network_id_to_code($networkId, $code);
                         if ($_netIdTmp !== null) {
@@ -1640,7 +1638,7 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

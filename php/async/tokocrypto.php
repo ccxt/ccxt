@@ -1416,7 +1416,7 @@ class tokocrypto extends Exchange {
             $firstTicker = $this->safe_dict($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1535,12 +1535,6 @@ class tokocrypto extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = null;
-        if ($this->is_native_market($market)) {
-            $response = Async\await($this->publicGetOpenV1MarketKlines($this->extend($request, $paramsOmitted)));
-        } else {
-            $response = Async\await($this->binanceGetKlines($this->extend($request, $paramsOmitted)));
-        }
         //
         // binanceGetKlines
         //
@@ -1575,9 +1569,8 @@ class tokocrypto extends Exchange {
         //     }
         //
         $data = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $data = $response;
-        } else {
+        if ($this->is_native_market($market)) {
+            $response = Async\await($this->publicGetOpenV1MarketKlines($this->extend($request, $paramsOmitted)));
             $dataList = $this->safe_list($response, 'data');
             if ($dataList !== null) {
                 $data = $dataList;
@@ -1585,6 +1578,8 @@ class tokocrypto extends Exchange {
                 $dataDict = $this->safe_dict($response, 'data', array());
                 $data = $this->safe_list($dataDict, 'list', array());
             }
+        } else {
+            $data = Async\await($this->binanceGetKlines($this->extend($request, $paramsOmitted)));
         }
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitValue);
     }
@@ -2770,7 +2765,7 @@ class tokocrypto extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $restUrls = $this->extend(array(), $this->urls['api']['rest']);
+        $restUrls = $this->extend(array(), $this->safe_dict($this->urls['api'], 'rest', array()));
         if (!(is_array($restUrls) && array_key_exists($apiName ?? '', $restUrls))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
@@ -2838,7 +2833,7 @@ class tokocrypto extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -2911,7 +2906,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         $paramsDict = $this->extend(array(), $params);
         $byLimit = $this->safe_list($config, 'byLimit', array());
         if ((is_array($paramsDict) && array_key_exists('noCoin' ?? '', $paramsDict)) && !(is_array($paramsDict) && array_key_exists('coin' ?? '', $paramsDict))) {

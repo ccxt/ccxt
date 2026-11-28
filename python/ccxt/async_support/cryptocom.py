@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -896,13 +896,10 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {}
         if symbols is not None:
             symbol = None
-            if isinstance(symbols, list):
-                symbolsLength = len(symbols)
-                if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol')
-                symbol = self.safe_string(symbols, 0)
-            else:
-                symbol = symbols
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
+                raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol')
+            symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
             request['instrument_name'] = market['id']
         response = await self.v1PublicGetPublicGetTickers(self.extend(request, params))
@@ -1323,7 +1320,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #     }
         #
         order = self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def create_order_request(self, symbol: str, type: str, side: str, amount: float, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
@@ -1441,7 +1438,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -1643,9 +1640,9 @@ class cryptocom(Exchange, ImplicitAPI):
         request = self.edit_order_request(id, symbol, amount, price, params)
         response = await self.v1PrivatePostPrivateAmendOrder(request)
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
-    def edit_order_request(self, id: Str, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def edit_order_request(self, id: Str, symbol: str, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         request = {}
         if id is not None:
             request['order_id'] = id
@@ -1715,7 +1712,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -1913,7 +1910,8 @@ class cryptocom(Exchange, ImplicitAPI):
             address = addressParts[0]
             rawTag = addressParts[1]
             splitted = rawTag.split('=')
-            return [address, splitted[1]]
+            tag = self.safe_string(splitted, 1)
+            return [address, tag]
         return [addressString, None]
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
@@ -2044,7 +2042,8 @@ class cryptocom(Exchange, ImplicitAPI):
             network = self.safe_string(self.networkAliases, networkParam, networkParam)
             if network in depositAddresses:
                 return self.safe_dict(depositAddresses, network)
-        keys = list(depositAddresses.keys())
+        addressesCopy = self.extend({}, depositAddresses)
+        keys = list(addressesCopy.keys())
         return self.safe_dict(depositAddresses, self.safe_string(keys, 0))
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -2910,7 +2909,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(self.safe_dict(settlements, i, {}), market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     async def fetch_funding_rate(self, symbol: str, params: dict = {}):
@@ -3098,7 +3098,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
-        return self.parse_position(self.safe_dict(data, 0), market)
+        return self.parse_position(self.safe_dict(data, 0, {}), market)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -3116,14 +3116,10 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbolsNormalized is not None:
-            symbol = None
-            if isinstance(symbolsNormalized, list):
-                symbolsLength = len(symbolsNormalized)
-                if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                symbol = symbolsNormalized[0]
-            else:
-                symbol = symbolsNormalized
+            symbolsLength = len(symbolsNormalized)
+            if symbolsLength > 1:
+                raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+            symbol = self.safe_string(symbolsNormalized, 0)
             market = self.market(symbol)
             request['instrument_name'] = market['id']
         response = await self.v1PrivatePostPrivateGetPositions(self.extend(request, params))
@@ -3153,10 +3149,10 @@ class cryptocom(Exchange, ImplicitAPI):
         positions = self.safe_list(responseResult, 'data', [])
         result = []
         for i in range(0, len(positions)):
-            entry = positions[i]
-            marketId = self.safe_string(entry, 'instrument_name')
+            marketId = self.safe_string(positions[i], 'instrument_name')
             marketInner = self.safe_market(marketId, None, None, 'contract')
-            result.append(self.parse_position(entry, marketInner))
+            position = self.parse_position(self.safe_dict(positions, i, {}), marketInner)
+            result.append(position)
         return self.filter_by_array_positions(result, 'symbol', None)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -3212,16 +3208,15 @@ class cryptocom(Exchange, ImplicitAPI):
     def params_to_string(self, object: object, level: float) -> str:
         maxLevel = 3
         depth = self.parse_to_int(level)
-        if depth >= maxLevel:
+        if (depth >= maxLevel) or (isinstance(object, str)):
             return str(object)
-        if isinstance(object, str):
-            return object
         returnString = ''
         paramsKeys = None
         if isinstance(object, list):
             paramsKeys = object
         else:
-            objectKeys = list(object.keys())
+            objectDict = self.extend({}, object)
+            objectKeys = list(objectDict.keys())
             paramsKeys = self.sort(objectKeys)
         for i in range(0, len((paramsKeys))):
             key = self.safe_string(paramsKeys, i, '')
@@ -3254,6 +3249,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'instrument_name': market['id'],
             'type': 'MARKET',
@@ -3263,7 +3259,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if type is not None:
             request['type'] = type
         if price is not None:
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['price'] = self.price_to_precision(precisionSymbol, price)
         response = await self.v1PrivatePostPrivateClosePosition(self.extend(request, params))
         #
         #    {
@@ -3277,7 +3273,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result')
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
@@ -3419,7 +3415,7 @@ class cryptocom(Exchange, ImplicitAPI):
             payload = path + nonce + self.apiKey + strSortKey + nonce
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             paramsKeysLength = len(paramsKeys)
-            requestBody = self.json({
+            jsonBody = self.json({
                 'id': nonce,
                 'method': path,
                 'params': params,
@@ -3435,13 +3431,14 @@ class cryptocom(Exchange, ImplicitAPI):
             if paramsKeysLength == 0:
                 paramsString = '{}'
                 arrayString = '[]'
-                requestBody = requestBody.replace(arrayString, paramsString)
+                jsonBody = jsonBody.replace(arrayString, paramsString)
+            requestBody = jsonBody
             requestHeaders = {
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         errorCode = self.safe_string(response, 'code')
         if errorCode != '0':
             feedback = self.id + ' ' + body

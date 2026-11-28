@@ -1902,7 +1902,10 @@ class okx extends okx$1["default"] {
         const fees = this.safeDict2(this.fees, feesType, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
-        const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        let maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        if (contract) {
+            maxSpotCost = undefined;
+        }
         const leverageAboveOne = Precise["default"].stringGt(maxLeverage, '1');
         const quoteEqualSettle = (quoteId === settleId);
         const baseEqualSettle = (baseId === settleId);
@@ -1953,7 +1956,7 @@ class okx extends okx$1["default"] {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': contract ? undefined : maxSpotCost,
+                    'max': maxSpotCost,
                 },
             },
             'info': market,
@@ -1967,8 +1970,7 @@ class okx extends okx$1["default"] {
             const optionsUnderlying = this.safeList(this.options, 'defaultUnderlying', ['BTC-USD', 'ETH-USD']);
             const promises = [];
             for (let i = 0; i < optionsUnderlying.length; i++) {
-                const underlying = optionsUnderlying[i];
-                request['uly'] = underlying;
+                request['uly'] = this.safeString(optionsUnderlying, i);
                 promises.push(this.publicGetPublicInstruments(this.extend(request, params)));
             }
             const promisesResult = await Promise.all(promises);
@@ -2274,7 +2276,7 @@ class okx extends okx$1["default"] {
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
@@ -2447,7 +2449,7 @@ class okx extends okx$1["default"] {
         // }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTicker(this.safeDict(data, 0), market);
+        return this.parseTicker(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -2535,7 +2537,7 @@ class okx extends okx$1["default"] {
         const id = this.safeString(trade, 'tradeId');
         const marketId = this.safeString(trade, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(trade, 'ts');
         const price = this.safeString2(trade, 'fillPx', 'px');
         const amount = this.safeString2(trade, 'fillSz', 'sz');
@@ -2669,7 +2671,7 @@ class okx extends okx$1["default"] {
         //         "0" // candlestick state
         //     ]
         //
-        const type = this.handleMarketTypeAndParams('fetchOHLCV', market, undefined)[0];
+        const [type] = this.handleMarketTypeAndParams('fetchOHLCV', market, undefined);
         const volumeIndex = (type === 'spot') ? 5 : 6;
         return [
             this.safeInteger(ohlcv, 0),
@@ -2723,9 +2725,9 @@ class okx extends okx$1["default"] {
         if (isMarkOrIndex) {
             requestMaxLimit = 100;
         }
-        let limitResolved = 100;
+        let limitResolved = this.parseToInt(100);
         if (limit !== undefined) {
-            limitResolved = Math.min(limit, requestMaxLimit);
+            limitResolved = this.parseToInt(Math.min(limit, requestMaxLimit));
         }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2785,7 +2787,7 @@ class okx extends okx$1["default"] {
         else {
             if (isHistoryCandles) {
                 if (limitIsUndefined && (limitResolved === 100)) {
-                    limitResolved = 300;
+                    limitResolved = this.parseToInt(300);
                     request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, paramsType));
@@ -2981,7 +2983,7 @@ class okx extends okx$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'instType': this.convertToInstrumentType(market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': this.convertToInstrumentType(this.safeString(market, 'type')), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // "instId": market["id"], // only applicable to SPOT/MARGIN
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
@@ -3240,7 +3242,7 @@ class okx extends okx$1["default"] {
         }
         const spot = this.safeBool(market, 'spot', false);
         const contract = this.safeBool(market, 'contract');
-        const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeNumber(params, 'tpOrdPx', price);
@@ -3337,23 +3339,24 @@ class okx extends okx$1["default"] {
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(orderParams, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    let notional = this.safeNumber2(paramsRequiresPrice, 'cost', 'sz');
+                    const notionalParam = this.safeNumber2(paramsRequiresPrice, 'cost', 'sz');
+                    let notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, ['cost', 'sz']);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
-                            if (notional === undefined) {
+                            if (notionalParam === undefined) {
                                 const amountString = this.numberToString(amount);
                                 const priceString = this.numberToString(price);
                                 const quoteAmount = Precise["default"].stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
                         }
-                        else if (notional === undefined) {
+                        else if (notionalParam === undefined) {
                             throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     }
                     else {
-                        notional = (notional === undefined) ? amount : notional;
+                        notional = (notionalParam === undefined) ? amount : notionalParam;
                     }
                     request['sz'] = this.costToPrecision(symbol, notional);
                 }
@@ -3388,14 +3391,14 @@ class okx extends okx$1["default"] {
         else if (hasStopLoss || hasTakeProfit) {
             let attachAlgoOrd = {};
             if (hasStopLoss) {
-                const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
+                const stopLossTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 const slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 const slOrder = {};
                 slOrder['slTriggerPx'] = slTriggerPx;
-                const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
+                const stopLossLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
                 const stopLossOrderType = this.safeString(stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
                     const stopLossLimitOrderType = (stopLossOrderType === 'limit');
@@ -3431,13 +3434,13 @@ class okx extends okx$1["default"] {
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
             if (hasTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
+                const takeProfitTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
                 if (takeProfitTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
                 const tpOrder = {};
                 tpOrder['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
+                const takeProfitLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
                 const takeProfitOrderType = this.safeString2(takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
                     const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
@@ -3643,11 +3646,16 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
-            if (marketId === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
-            }
             const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
+            if ((marketId === undefined) || (side === undefined)) {
+                // a missing side is the createOrderRequest () error
+                let reason = ' requires a side argument';
+                if (marketId === undefined) {
+                    reason = ' createOrders() requires a symbol for each order';
+                }
+                throw new errors.ArgumentsRequired(this.id + reason);
+            }
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
@@ -3958,8 +3966,7 @@ class okx extends okx$1["default"] {
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeList(response, 'data', []);
-        const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     parseIds(ids) {
         /**
@@ -3973,7 +3980,7 @@ class okx extends okx$1["default"] {
             return ids.split(',');
         }
         else {
-            return ids;
+            return this.safeStringList([ids], [0]);
         }
     }
     /**
@@ -4019,18 +4026,20 @@ class okx extends okx$1["default"] {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
-                if ((trailing) || isTrigger) {
-                    request.push({
-                        'algoId': this.safeString(orderIds, i),
-                        'instId': market['id'],
-                    });
-                }
-                else {
-                    request.push({
-                        'ordId': this.safeString(orderIds, i),
-                        'instId': market['id'],
-                    });
+            if (orderIds !== undefined) {
+                for (let i = 0; i < orderIds.length; i++) {
+                    if ((trailing) || isTrigger) {
+                        request.push({
+                            'algoId': this.safeString(orderIds, i),
+                            'instId': market['id'],
+                        });
+                    }
+                    else {
+                        request.push({
+                            'ordId': this.safeString(orderIds, i),
+                            'instId': market['id'],
+                        });
+                    }
                 }
             }
         }
@@ -4685,8 +4694,7 @@ class okx extends okx$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -5393,7 +5401,7 @@ class okx extends okx$1["default"] {
             currency = this.currency(code);
             request['ccy'] = currency['id'];
         }
-        const requestUntil = this.handleUntilOption('end', request, paramsMarginMode)[0];
+        const [requestUntil] = this.handleUntilOption('end', request, paramsMarginMode);
         let response;
         if (method === 'privateGetAccountBillsArchive') {
             response = await this.privateGetAccountBillsArchive(this.extend(requestUntil, query));
@@ -5577,7 +5585,7 @@ class okx extends okx$1["default"] {
         }
         const currencyId = this.safeString(depositAddress, 'ccy');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString(currencyResolved, 'code');
         const chain = this.safeString(depositAddress, 'chain');
         const networks = this.safeDict(currencyResolved, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
@@ -5678,7 +5686,7 @@ class okx extends okx$1["default"] {
         //
         const data = this.safeList(response, 'data', []);
         const filtered = this.filterBy(data, 'selected', true);
-        const parsed = this.parseDepositAddresses(filtered, [currency['code']], false);
+        const parsed = this.parseDepositAddresses(filtered, [this.safeString(currency, 'code', '')], false);
         return this.indexBy(parsed, 'network');
     }
     /**
@@ -5713,7 +5721,8 @@ class okx extends okx$1["default"] {
             return this.safeDict(response, codeNetwork);
         }
         // if the network is not specified, return the first address
-        const keys = Object.keys(response);
+        const responseDict = this.extend({}, response);
+        const keys = Object.keys(responseDict);
         const first = this.safeString(keys, 0, '');
         return this.safeDict(response, first);
     }
@@ -5736,7 +5745,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag.length > 0);
+        const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag !== '');
         let addressWithTag = address;
         if (hasTag) {
             addressWithTag = address + ':' + tagWithdrawTag;
@@ -5753,7 +5762,7 @@ class okx extends okx$1["default"] {
             const networkUpper = network.toUpperCase();
             const networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
             network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
-            request['chain'] = currency['id'] + '-' + network;
+            request['chain'] = this.safeString(currency, 'id', '') + '-' + network;
         }
         const omitKeys = ['fee'];
         if (network !== undefined) {
@@ -6218,28 +6227,43 @@ class okx extends okx$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
-    }
-    parseLeverage(leverage, market = undefined) {
         let marketId = undefined;
-        let marginMode = undefined;
+        let rowMarginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for (let i = 0; i < leverage.length; i++) {
-            const entry = this.safeDict(leverage, i);
-            marginMode = this.safeStringLower(entry, 'mgnMode');
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict(data, i);
+            rowMarginMode = this.safeStringLower(entry, 'mgnMode');
             marketId = this.safeString(entry, 'instId');
             const positionSide = this.safeStringLower(entry, 'posSide');
-            if (positionSide === 'long') {
-                longLeverage = this.safeInteger(entry, 'lever');
+            const lever = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'short') {
+                longLeverage = lever;
             }
-            else if (positionSide === 'short') {
-                shortLeverage = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'long') {
+                shortLeverage = lever;
             }
-            else {
-                longLeverage = this.safeInteger(entry, 'lever');
-                shortLeverage = this.safeInteger(entry, 'lever');
-            }
+        }
+        return {
+            'info': data,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': rowMarginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'instId');
+        const positionSide = this.safeStringLower(leverage, 'posSide');
+        const lever = this.safeInteger(leverage, 'lever');
+        const marginMode = this.safeStringLower(leverage, 'mgnMode');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        if (positionSide !== 'short') {
+            longLeverage = lever;
+        }
+        if (positionSide !== 'long') {
+            shortLeverage = lever;
         }
         return {
             'info': leverage,
@@ -6352,7 +6376,8 @@ class okx extends okx$1["default"] {
             for (let i = 0; i < symbols.length; i++) {
                 const entry = symbols[i];
                 const market = this.market(entry);
-                marketIds.push(market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                marketIds.push(marketId);
             }
             const marketIdsLength = marketIds.length;
             if (marketIdsLength > 0) {
@@ -6417,7 +6442,8 @@ class okx extends okx$1["default"] {
         const positions = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push(this.parsePosition(positions[i]));
+            const parsedPosition = this.parsePosition(this.safeDict(positions, i, {}));
+            result.push(parsedPosition);
         }
         return this.filterByArrayPositions(result, 'symbol', this.marketSymbols(symbols));
     }
@@ -6503,7 +6529,7 @@ class okx extends okx$1["default"] {
         //
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise["default"].stringAbs(pos);
         let side = this.safeString2(position, 'posSide', 'direction');
@@ -6515,7 +6541,7 @@ class okx extends okx$1["default"] {
                 const posCcy = this.safeString(position, 'posCcy');
                 const parsedCurrency = this.safeCurrencyCode(posCcy);
                 if (parsedCurrency !== undefined) {
-                    side = (marketResolved['base'] === parsedCurrency) ? 'long' : 'short';
+                    side = (this.safeString(marketResolved, 'base') === parsedCurrency) ? 'long' : 'short';
                 }
             }
             if (side === undefined) {
@@ -6908,9 +6934,10 @@ class okx extends okx$1["default"] {
                         const entry = params[i];
                         const clientOrderId = this.safeString(entry, 'clOrdId');
                         if (clientOrderId === undefined) {
-                            entry['clOrdId'] = brokerId + this.uuid16();
-                            entry['tag'] = brokerId;
-                            params[i] = entry;
+                            const taggedEntry = this.extend({}, entry);
+                            taggedEntry['clOrdId'] = brokerId + this.uuid16();
+                            taggedEntry['tag'] = brokerId;
+                            params[i] = taggedEntry;
                         }
                     }
                 }
@@ -7383,7 +7410,10 @@ class okx extends okx$1["default"] {
         if (length > 1) {
             const accountId = this.safeString(params, 'accountId');
             if (accountId === undefined) {
-                const accountIds = this.getListFromObjectValues(accounts, 'id');
+                const accountIds = [];
+                for (let i = 0; i < length; i++) {
+                    accountIds.push(this.safeString(this.safeDict(accounts, i), 'id', ''));
+                }
                 throw new errors.ExchangeError(this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join(', '));
             }
             else {
@@ -7859,7 +7889,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const type = (this.safeBool(market, 'spot', false)) ? 'MARGIN' : this.convertToInstrumentType(market['type']);
+        const type = (this.safeBool(market, 'spot', false)) ? 'MARGIN' : this.convertToInstrumentType(this.safeString(market, 'type'));
         const instFamily = this.safeString(market['info'], 'instFamily');
         if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
@@ -8150,7 +8180,7 @@ class okx extends okx$1["default"] {
         if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        const type = this.convertToInstrumentType(market['type']);
+        const type = this.convertToInstrumentType(this.safeString(market, 'type'));
         const uly = this.safeString(market['info'], 'uly');
         const request = {
             'instType': type,
@@ -8195,7 +8225,10 @@ class okx extends okx$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         let marketType = undefined;
         let paramsSubType = {};
@@ -8303,7 +8336,11 @@ class okx extends okx$1["default"] {
             //    }
             //
             const instrumentData = this.safeList(response, 'data', []);
-            return this.parseOpenInterestsHistory(instrumentData, market, since, limit);
+            const instrumentInterests = [];
+            for (let i = 0; i < instrumentData.length; i++) {
+                instrumentInterests.push(this.parseOpenInterestRow(this.safeList(instrumentData, i, []), market));
+            }
+            return this.filterBySymbolSinceLimit(this.sortBy(instrumentInterests, 'timestamp'), this.safeString(market, 'symbol'), since, limit);
         }
         if (type === 'option') {
             response = await this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, paramsMarketType));
@@ -8334,7 +8371,62 @@ class okx extends okx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseOpenInterestsHistory(data, undefined, since, limit);
+        const interests = [];
+        for (let i = 0; i < data.length; i++) {
+            interests.push(this.parseOpenInterestRow(this.safeList(data, i, []), undefined));
+        }
+        return this.filterBySymbolSinceLimit(this.sortBy(interests, 'timestamp'), undefined, since, limit);
+    }
+    parseOpenInterestRow(interest, market = undefined) {
+        //
+        // fetchOpenInterestHistory
+        //
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
+        //
+        const marketResolved = this.safeMarket(undefined, market);
+        const timestamp = this.safeInteger(interest, 0);
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        let openInterestAmount = undefined;
+        let openInterestValue = undefined;
+        const type = this.safeString(this.options, 'defaultType');
+        const numFields = interest.length;
+        if (numFields > 3) {
+            openInterestAmount = this.safeNumber(interest, 1);
+            baseVolume = this.safeNumber(interest, 2);
+            openInterestValue = this.safeNumber(interest, 3);
+        }
+        else if (type === 'option') {
+            openInterestAmount = this.safeNumber(interest, 1);
+            baseVolume = this.safeNumber(interest, 2);
+        }
+        else {
+            openInterestValue = this.safeNumber(interest, 1);
+            quoteVolume = this.safeNumber(interest, 2);
+        }
+        return this.safeOpenInterest({
+            'symbol': this.safeSymbol(undefined),
+            'baseVolume': baseVolume, // deprecated
+            'quoteVolume': quoteVolume, // deprecated
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved);
     }
     /**
      * @ignore
@@ -8365,7 +8457,7 @@ class okx extends okx$1["default"] {
         const paramsOmitted = this.omit(params, 'until');
         let end = undefined;
         if (until !== undefined) {
-            end = this.sum(until, 1);
+            end = this.parseToInt(this.sum(until, 1));
         }
         if (since !== undefined) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -8384,8 +8476,8 @@ class okx extends okx$1["default"] {
             else {
                 windowDuration = effectiveLimit * this.parseTimeframe(unitPeriod.toLowerCase()) * 1000;
             }
-            const windowEnd = this.sum(since, windowDuration);
-            end = (end === undefined) ? windowEnd : Math.min(end, windowEnd);
+            const windowEnd = this.parseToInt(this.sum(since, windowDuration));
+            end = (end === undefined) ? windowEnd : this.parseToInt(Math.min(end, windowEnd));
         }
         if (end !== undefined) {
             request['end'] = end;
@@ -8393,23 +8485,6 @@ class okx extends okx$1["default"] {
         return [request, paramsOmitted];
     }
     parseOpenInterest(interest, market = undefined) {
-        //
-        // fetchOpenInterestHistory
-        //
-        //    [
-        //        "1648221300000",  // timestamp
-        //        "2183354317.945",  // open interest (USD) - (coin) for options
-        //        "74285877.617",  // volume (USD) - (coin) for options
-        //    ]
-        //
-        // fetchOpenInterestHistory for a swap or future market
-        //
-        //    [
-        //        "1790550000000",  // timestamp
-        //        "2800476.45",  // open interest (contracts)
-        //        "28006.5419",  // open interest (base currency)
-        //        "2360916466.88",  // open interest (USD)
-        //    ]
         //
         // fetchOpenInterest
         //
@@ -8424,40 +8499,13 @@ class okx extends okx$1["default"] {
         //
         const id = this.safeString(interest, 'instId');
         const marketResolved = this.safeMarket(id, market);
-        const time = this.safeInteger(interest, 'ts');
-        const timestamp = this.safeInteger(interest, 0, time);
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
-        let openInterestAmount = undefined;
-        let openInterestValue = undefined;
-        const type = this.safeString(this.options, 'defaultType');
-        if (Array.isArray(interest)) {
-            const numFields = interest.length;
-            if (numFields > 3) {
-                openInterestAmount = this.safeNumber(interest, 1);
-                baseVolume = this.safeNumber(interest, 2);
-                openInterestValue = this.safeNumber(interest, 3);
-            }
-            else if (type === 'option') {
-                openInterestAmount = this.safeNumber(interest, 1);
-                baseVolume = this.safeNumber(interest, 2);
-            }
-            else {
-                openInterestValue = this.safeNumber(interest, 1);
-                quoteVolume = this.safeNumber(interest, 2);
-            }
-        }
-        else {
-            baseVolume = this.safeNumber(interest, 'oiCcy');
-            openInterestAmount = this.safeNumber(interest, 'oi');
-            openInterestValue = this.safeNumber(interest, 'oiUsd');
-        }
+        const timestamp = this.safeInteger(interest, 'ts');
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
-            'baseVolume': baseVolume, // deprecated
-            'quoteVolume': quoteVolume, // deprecated
-            'openInterestAmount': openInterestAmount,
-            'openInterestValue': openInterestValue,
+            'baseVolume': this.safeNumber(interest, 'oiCcy'), // deprecated
+            'quoteVolume': undefined, // deprecated
+            'openInterestAmount': this.safeNumber(interest, 'oi'),
+            'openInterestValue': this.safeNumber(interest, 'oiUsd'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
@@ -8571,9 +8619,13 @@ class okx extends okx$1["default"] {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
                 if (currencyId !== undefined) {
-                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                    const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                    feeEntryInfo[currencyId] = feeInfo;
+                    feeEntry['info'] = feeEntryInfo;
                 }
+                depositWithdrawFees[code] = feeEntry;
                 const chain = this.safeString(feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -8591,10 +8643,13 @@ class okx extends okx$1["default"] {
                 };
                 const networkCode = this.networkIdToCode(networkId, code);
                 if (networkCode !== undefined) {
-                    depositWithdrawFees[code]['networks'][networkCode] = {
+                    const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                    feeEntryNetworks[networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
                     };
+                    feeEntry['networks'] = feeEntryNetworks;
+                    depositWithdrawFees[code] = feeEntry;
                 }
             }
         }
@@ -8690,7 +8745,7 @@ class okx extends okx$1["default"] {
             const symbolMarket = this.market(symbol);
             market = symbolMarket;
             request['instId'] = symbolMarket['id'];
-            request['instType'] = this.convertToInstrumentType(symbolMarket['type']);
+            request['instType'] = this.convertToInstrumentType(this.safeString(symbolMarket, 'type'));
         }
         if (since !== undefined) {
             request['begin'] = since;
@@ -8714,7 +8769,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parseSettlement(data[i], market));
+            result.push(this.parseSettlement(this.extend({}, data[i]), market));
         }
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
@@ -8771,7 +8826,7 @@ class okx extends okx$1["default"] {
             const timestamp = this.safeInteger(entry, 'ts');
             const details = this.safeList(entry, 'details', []);
             for (let j = 0; j < details.length; j++) {
-                const settlement = this.parseSettlement(details[j], market);
+                const settlement = this.parseSettlement(this.extend({}, details[j]), market);
                 result.push(this.extend(settlement, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601(timestamp),
@@ -8819,7 +8874,15 @@ class okx extends okx$1["default"] {
         //     }
         //
         const underlyings = this.safeList(response, 'data', []);
-        return this.toArray(this.safeList(underlyings, 0, []));
+        const first = this.safeList(underlyings, 0, []);
+        const result = [];
+        for (let i = 0; i < first.length; i++) {
+            const item = this.safeString(first, i);
+            if (item !== undefined) {
+                result.push(item);
+            }
+        }
+        return result;
     }
     /**
      * @method
@@ -8875,7 +8938,7 @@ class okx extends okx$1["default"] {
         //
         const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict(data, i, {});
             const entryMarketId = this.safeString(entry, 'instId');
             if (entryMarketId === marketId) {
                 return this.parseGreeks(entry, market);
@@ -9075,8 +9138,7 @@ class okx extends okx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -9142,7 +9204,7 @@ class okx extends okx$1["default"] {
         }
         const currency = this.currency(code);
         const request = {
-            'uly': currency['code'] + '-USD',
+            'uly': this.safeString(currency, 'code', '') + '-USD',
             'instType': 'OPTION',
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));
@@ -9427,8 +9489,7 @@ class okx extends okx$1["default"] {
         //         "msg": ""
         //     }
         //
-        const rows = this.safeList(response, 'data', []);
-        return this.parseConversions(rows, code, 'baseCcy', 'quoteCcy', since, limit);
+        return this.parseConversions(this.safeList(response, 'data', []), code, 'baseCcy', 'quoteCcy', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //
@@ -9850,7 +9911,7 @@ class okx extends okx$1["default"] {
         const timestamp = this.safeInteger(info, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString(market, 'symbol');
         }
         return {
             'info': info,

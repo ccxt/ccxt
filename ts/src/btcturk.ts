@@ -505,7 +505,7 @@ export default class btcturk extends Exchange {
         //
         const marketId = this.safeString (ticker, 'pair');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open');
@@ -740,9 +740,8 @@ export default class btcturk extends Exchange {
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        let limitResolved: Int = undefined;
+        let limitResolved: Int = limit;
         if (limit !== undefined) {
-            limitResolved = limit;
             if (limit > 11000) {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
             }
@@ -755,7 +754,7 @@ export default class btcturk extends Exchange {
             }
             const seconds = this.parseTimeframe (timeframe);
             const limitCount: Int = (limit === undefined) ? 100 : Math.min (limit, 11000);
-            const limitSeconds: int = this.parseToInt (seconds * (limitCount - 1));
+            const limitSeconds = seconds * (limitCount - 1);
             if (since !== undefined) {
                 const sinceSeconds: int = this.parseToInt (since / 1000);
                 const to: int = sinceSeconds + limitSeconds;
@@ -1144,7 +1143,7 @@ export default class btcturk extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
         let feedback = this.id + ' ' + body;

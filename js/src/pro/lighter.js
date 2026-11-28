@@ -109,8 +109,8 @@ export default class lighter extends lighterRest {
     }
     async subscribePrivate(messageHash, params = {}) {
         await this.preLoadLighterLibrary();
-        params['auth'] = this.createAuth(params);
-        return await this.subscribePublic(messageHash, params);
+        const request = this.extend(params, { 'auth': this.createAuth(params) });
+        return await this.subscribePublic(messageHash, request);
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 'price');
@@ -163,7 +163,7 @@ export default class lighter extends lighterRest {
         const parts = channel.split(':');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const timestamp = this.safeInteger(message, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -196,7 +196,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const request = {
             'channel': 'order_book/' + this.safeString(market, 'id', ''),
         };
@@ -218,7 +218,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const request = {
             'channel': 'order_book/' + this.safeString(market, 'id', ''),
         };
@@ -286,7 +286,7 @@ export default class lighter extends lighterRest {
                 const marketId = marketIds[i];
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
-                const ticker = this.parseTicker(data[marketId], market);
+                const ticker = this.parseTicker(this.safeDict(data, marketId, {}), market);
                 this.tickers[symbol] = ticker;
                 client.resolve(ticker, this.getMessageHash('ticker', symbol));
                 client.resolve(ticker, this.getMessageHash('ticker'));
@@ -315,7 +315,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' watchTicker() is only supported for swap markets');
         }
@@ -339,7 +339,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' unWatchTicker() is only supported for swap markets');
         }
@@ -570,7 +570,7 @@ export default class lighter extends lighterRest {
         const parts = channel.split(':');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -945,7 +945,7 @@ export default class lighter extends lighterRest {
         const parts = channel.split(':');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         let stored = this.safeValue(this.liquidations, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -955,7 +955,7 @@ export default class lighter extends lighterRest {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const iReversed = this.parseToInt(dataLength - 1 - i);
-            const liquidation = this.parseWsLiquidation(data[iReversed], market);
+            const liquidation = this.parseWsLiquidation(this.safeDict(data, iReversed, {}), market);
             stored.append(liquidation);
         }
         const messageHash = this.getMessageHash('liquidations', symbol);
@@ -1076,7 +1076,7 @@ export default class lighter extends lighterRest {
             const assetIds = Object.keys(assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
-                const asset = this.safeDict(assets, assetId);
+                const asset = this.safeDict(assets, assetId, {});
                 const codeId = this.safeString(asset, 'symbol');
                 const code = this.safeCurrencyCode(codeId);
                 const account = this.account();
@@ -1165,10 +1165,11 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
     }
     requestId(url) {
-        const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     /**
@@ -1213,7 +1214,7 @@ export default class lighter extends lighterRest {
             'id': requestId,
         };
         const rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+        return this.parseOrder(this.extend({}, this.deepExtend(rawMessage, order)), market);
     }
     /**
      * @method
@@ -1248,7 +1249,7 @@ export default class lighter extends lighterRest {
             'id': requestId,
         };
         const rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(rawMessage, market);
+        return this.parseOrder(this.extend({}, rawMessage), market);
     }
     /**
      * @method
@@ -1287,7 +1288,7 @@ export default class lighter extends lighterRest {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        const id = this.safeString(message, 'id');
+        const id = this.safeString(message, 'id', '');
         client.resolve(message, 'jsonapi/sendtx:' + id);
     }
     handleOrders(client, message) {
@@ -1327,9 +1328,9 @@ export default class lighter extends lighterRest {
             const market = this.safeMarket(marketId);
             const orders = this.safeList(data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], market);
+                const order = this.parseOrder(this.safeDict(orders, j, {}), market);
                 stored.append(order);
-                const symbol = order['symbol'];
+                const symbol = this.safeString(order, 'symbol');
                 if (symbol !== undefined) {
                     const symbolSpecificMessageHash = this.getMessageHash('orders', symbol);
                     client.resolve(stored, symbolSpecificMessageHash);
@@ -1542,8 +1543,8 @@ export default class lighter extends lighterRest {
             for (let i = 0; i < subscriptionHashes.length; i++) {
                 const subscriptionHash = subscriptionHashes[i];
                 if (subscriptionHash.startsWith('ticker')) {
-                    const subscription = this.safeDict(client.subscriptions, subscriptionHash);
-                    const subscriptionParams = this.safeDict(subscription, 'params');
+                    const subscription = this.safeDict(client.subscriptions, subscriptionHash, {});
+                    const subscriptionParams = this.safeDict(subscription, 'params', {});
                     const subscribedChannel = this.safeString(subscriptionParams, 'channel');
                     if (subscribedChannel === 'market_stats/all') {
                         delete client.subscriptions[subscriptionHash];

@@ -6,7 +6,7 @@ import Exchange from './abstract/btcmarkets.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint } from './base/types.js';
+import type{ Balances, Currency, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -877,9 +877,9 @@ export default class btcmarkets extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
         let feeCurrencyCode: Str = undefined;
         if (marketResolved['quote'] === 'AUD') {
-            feeCurrencyCode = marketResolved['quote'];
+            feeCurrencyCode = this.safeString (marketResolved, 'quote');
         } else {
-            feeCurrencyCode = marketResolved['base'];
+            feeCurrencyCode = this.safeString (marketResolved, 'base');
         }
         let side = this.safeString (trade, 'side');
         if (side === 'Bid') {
@@ -1025,7 +1025,7 @@ export default class btcmarkets extends Exchange {
         }
         let paramsTriggerPrice = params;
         if (triggerPriceIsRequired) {
-            paramsTriggerPrice = this.omit (params, 'triggerPrice');
+            paramsTriggerPrice = this.omit (paramsTriggerPrice, 'triggerPrice');
         }
         const paramsOmitted = this.omit (paramsTriggerPrice, 'clientOrderId');
         const response = await this.privatePostOrders (this.extend (request, paramsOmitted));
@@ -1483,7 +1483,7 @@ export default class btcmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

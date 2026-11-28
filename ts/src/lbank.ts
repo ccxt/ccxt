@@ -8,7 +8,7 @@ import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, Inv
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, FeeString, NullableDict, List, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, FeeString, NullableDict, List, DepositWithdrawFees, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -810,9 +810,10 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
         if (this.safeBool (market, 'swap', false)) {
-            const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
-            const swapTicker = this.safeDict (responseForSwap, market['symbol']);
+            const responseForSwap = await this.fetchTickers ([ marketSymbol ], params);
+            const swapTicker = this.safeDict (responseForSwap, marketSymbol);
             return swapTicker as Ticker;
         }
         const request: Dict = {
@@ -1374,22 +1375,6 @@ export default class lbank extends Exchange {
             }
             return this.safeBalance (result);
         }
-        // from spotPrivatePostSupplementUserInfo
-        const isArray = Array.isArray (data);
-        if (isArray) {
-            for (let i = 0; i < data.length; i++) {
-                const item = this.safeDict (data, i);
-                const currencyId = this.safeString (item, 'coin');
-                const codeInner = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (item, 'usableAmt');
-                account['used'] = this.safeString (item, 'freezeAmt');
-                if (codeInner !== undefined) {
-                    result[codeInner] = account;
-                }
-            }
-            return this.safeBalance (result);
-        }
         return this.safeBalance (result);
     }
 
@@ -1455,7 +1440,8 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const responseForSwap = await this.fetchFundingRates ([ market['symbol'] ], params);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
+        const responseForSwap = await this.fetchFundingRates ([ marketSymbol ], params);
         const fundingRate = this.safeDict (responseForSwap, market['symbol']);
         return fundingRate as FundingRate;
     }
@@ -1621,8 +1607,8 @@ export default class lbank extends Exchange {
         const fees = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
-            const symbol = fee['symbol'];
+            const fee = this.parseTradingFee (this.extend ({}, fees[i]));
+            const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -2017,12 +2003,6 @@ export default class lbank extends Exchange {
         if (numOrders === 1) {
             return this.parseOrder (this.safeDict (result, 0, {}));
         } else {
-            // const parsedOrders = [];
-            // for (let i = 0; i < numOrders; i++) {
-            //     const parsedOrder = this.parseOrder (result[i]);
-            //     parsedOrders.push (parsedOrder);
-            // }
-            // return parsedOrders;
             throw new BadRequest (this.id + ' fetchOrder() can only fetch one order at a time');
         }
     }
@@ -3168,7 +3148,7 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseBalance() returned empty response');
         }
@@ -3229,7 +3209,7 @@ export default class lbank extends Exchange {
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
             }, errorCode, this.json (response));
-            const ErrorClass = this.safeValue ({
+            this.throwExactlyMatchedException ({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
                 '10003': BadRequest,
@@ -3279,8 +3259,8 @@ export default class lbank extends Exchange {
                 '10601': ExchangeError, // 'Interface closed unavailable',
                 '10701': BadSymbol, // 'invalid asset code',
                 '10702': PermissionDenied, // 'not allowed deposit',
-            }, errorCode, ExchangeError);
-            throw new ErrorClass (message);
+            }, errorCode, message);
+            throw new ExchangeError (message);
         }
         return undefined;
     }

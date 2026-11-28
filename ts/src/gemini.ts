@@ -572,7 +572,7 @@ export default class gemini extends Exchange {
     async fetchMarketsFromWeb (params: Dict = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
-        const tables = data.split ('tbody>');
+        const tables = (data as string).split ('tbody>');
         const numTables = tables.length;
         if (numTables < 2) {
             throw new NotSupported (error);
@@ -698,7 +698,7 @@ export default class gemini extends Exchange {
         const fetchUsdtMarkets: string[] = this.safeList (this.options, 'fetchUsdtMarkets', []);
         const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
-            const marketId = fetchUsdtMarkets[i];
+            const marketId = this.safeString (fetchUsdtMarkets, i, '');
             const request: Dict = {
                 'symbol': marketId,
             };
@@ -726,7 +726,7 @@ export default class gemini extends Exchange {
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
         const marketIds: string[] = [];
         let allMarketIds: string[] = [];
-        if (Array.isArray (marketIdsRaw)) {
+        if (marketIdsRaw !== undefined) {
             allMarketIds = marketIdsRaw;
         }
         for (let i = 0; i < allMarketIds.length; i++) {
@@ -737,7 +737,7 @@ export default class gemini extends Exchange {
         if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
             const promises: List = [];
             for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
+                const marketId = this.safeString (marketIds, i, '');
                 const request: Dict = {
                     'symbol': marketId,
                 };
@@ -768,7 +768,7 @@ export default class gemini extends Exchange {
             if (tradingPairs !== undefined) {
                 const indexedTradingPairs = this.indexBy (tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
-                    const marketId = marketIds[i];
+                    const marketId = this.safeString (marketIds, i, '');
                     const pairInfo = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
                     if (pairInfo !== undefined && !this.inArray (marketId, brokenPairs)) {
                         const parsed = this.parseMarket (pairInfo);
@@ -849,7 +849,7 @@ export default class gemini extends Exchange {
             settleId = this.safeString (response, 'contract_price_currency');
         } else {
             // if no detailed API was called, then parse either string or array
-            if (isString) {
+            if (typeof response === 'string') {
                 marketId = response;
             } else {
                 marketId = this.safeStringLower (response, 0);
@@ -857,7 +857,10 @@ export default class gemini extends Exchange {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber (response, 3); // quantityMinimum
             }
-            const marketIdUpper = (marketId as string).toUpperCase ();
+            if (marketId === undefined) {
+                throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+            }
+            const marketIdUpper = marketId.toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
             const conflictingMarkets: Dictionary<Dict> = this.safeDict (this.options, 'conflictingMarkets', {});
@@ -1031,6 +1034,7 @@ export default class gemini extends Exchange {
     }
 
     async fetchTickerV1AndV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
+        await this.loadMarkets ();
         const tickerPromiseA = this.fetchTickerV1 (symbol, params);
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
@@ -1114,7 +1118,7 @@ export default class gemini extends Exchange {
         let base: Str = undefined;
         let quote: Str = undefined;
         if ((marketId !== undefined) && (marketResolved === undefined)) {
-            const idLength = marketId.length - 0;
+            const idLength = marketId.length;
             if (idLength === 7) {
                 baseId = marketId.slice (0, 4);
                 quoteId = marketId.slice (4, 7);
@@ -1517,7 +1521,6 @@ export default class gemini extends Exchange {
         } else {
             type = this.safeString (order, 'type');
         }
-        const fee = undefined;
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString (order, 'order_id');
@@ -1557,7 +1560,7 @@ export default class gemini extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         }, market);
     }
@@ -2039,7 +2042,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const codeValue: string = currency['code'];
+        const codeValue: string = this.safeString (currency, 'code', '');
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
@@ -2099,7 +2102,7 @@ export default class gemini extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;
@@ -2186,11 +2189,7 @@ export default class gemini extends Exchange {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        let candles: List = [];
-        if (Array.isArray (response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     /**

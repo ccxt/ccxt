@@ -726,7 +726,7 @@ class bitvavo extends Exchange {
         //         "timestamp":1590381666900
         //     }
         //
-        return $this->parse_ticker($response, $market);
+        return $this->parse_ticker($this->extend(array(), $response), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1680,7 +1680,7 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
-        $operatorId = $this->handle_option_and_params($paramsOmitted, 'editOrder', 'operatorId')[0];
+        list($operatorId) = $this->handle_option_and_params($paramsOmitted, 'editOrder', 'operatorId');
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
@@ -2112,7 +2112,7 @@ class bitvavo extends Exchange {
         $timestamp = $this->safe_integer($order, 'created');
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
@@ -2556,7 +2556,6 @@ class bitvavo extends Exchange {
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        $id = null;
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -2573,7 +2572,7 @@ class bitvavo extends Exchange {
             );
         }
         $type = null;
-        if ((is_array($transaction) && array_key_exists('success' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('address' ?? '', $transaction))) {
+        if (($this->safe_bool($transaction, 'success') !== null) || ($this->safe_string($transaction, 'address') !== null)) {
             $type = 'withdrawal';
         } else {
             $type = 'deposit';
@@ -2581,7 +2580,7 @@ class bitvavo extends Exchange {
         $tag = $this->safe_string($transaction, 'paymentId');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2640,12 +2639,14 @@ class bitvavo extends Exchange {
             $networkId = $currencyCode;
         }
         $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        $networkFees = array();
         if ($networkCode !== null) {
-            $result['networks'][$networkCode] = array(
+            $networkFees[$networkCode] = array(
                 'deposit' => $result['deposit'],
                 'withdraw' => $result['withdraw'],
             );
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 
@@ -2728,7 +2729,7 @@ class bitvavo extends Exchange {
         return array( 'url' => $fullUrl, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2748,8 +2749,9 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
+        $marketId = $this->safe_string($params, 'market');
+        if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && ($marketId === null)) {
             return $config['noMarket'];
         }
         return $this->safe_integer($config, 'cost', 1);

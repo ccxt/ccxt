@@ -58,7 +58,8 @@ class derive(ccxt.async_support.derive):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict, subscription: dict):
@@ -482,7 +483,7 @@ class derive(ccxt.async_support.derive):
         #
         #
         params = self.safe_dict(message, 'params')
-        data = self.safe_dict(params, 'data', {})
+        data = self.safe_list(params, 'data', [])
         topic = self.safe_string(params, 'channel', '')
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
@@ -493,7 +494,7 @@ class derive(ccxt.async_support.derive):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArray = ArrayCache(limit)
         for i in range(0, len(data)):
-            trade = self.parse_trade(data[i])
+            trade = self.parse_trade(self.safe_dict(data, i, {}))
             tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, topic)
@@ -743,7 +744,7 @@ class derive(ccxt.async_support.derive):
         topic = self.safe_string(params, 'channel')
         rawTrades = self.safe_list(params, 'data', [])
         for i in range(0, len(rawTrades)):
-            trade = self.parse_trade(rawTrades[i])
+            trade = self.parse_trade(self.safe_dict(rawTrades, i, {}))
             myTrades.append(trade)
             client.resolve(myTrades, topic)
             if topic is not None:

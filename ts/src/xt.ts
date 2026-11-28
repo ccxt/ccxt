@@ -966,8 +966,8 @@ export default class xt extends Exchange {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        const chainsData = this.safeList (chainsResponse, 'result', []);
-        const currenciesResult = this.safeDict (currenciesResponse, 'result', {});
+        const chainsData: Dict[] = this.safeList (chainsResponse, 'result', []);
+        const currenciesResult: Dict = this.safeDict (currenciesResponse, 'result', {});
         const currenciesData: Dict[] = this.safeList (currenciesResult, 'currencies', []);
         const chainsDataIndexed = this.indexBy (chainsData, 'currency');
         const result: Dict = {};
@@ -1783,7 +1783,7 @@ export default class xt extends Exchange {
         //
         if (this.safeBool (market, 'spot', false)) {
             const tickers = this.safeList (response, 'result', []);
-            return this.parseTicker (tickers[0], market);
+            return this.parseTicker (this.safeDict (tickers, 0, {}), market);
         }
         const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
@@ -1806,7 +1806,10 @@ export default class xt extends Exchange {
         let market: Market = undefined;
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market (symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market (symbolsNormalized[0]);
+            }
         }
         const request: Dict = {};
         let response = undefined;
@@ -1870,8 +1873,8 @@ export default class xt extends Exchange {
         const tickers = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i], market);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker (this.safeDict (tickers, i, {}), market);
+            const symbol: Str = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1897,7 +1900,10 @@ export default class xt extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market (symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market (symbolsNormalized[0]);
+            }
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, paramsMarketType);
@@ -1952,17 +1958,16 @@ export default class xt extends Exchange {
         const tickers: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            const rawTicker = tickers[i];
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            const marketId = this.safeString (rawTicker, 's');
+            const marketId = this.safeString (tickers[i], 's');
             let marketType: Str = 'spot';
             if (isContract) {
                 marketType = 'contract';
             }
             const marketInner = this.safeMarket (marketId, market, '_', marketType);
-            const ticker = this.parseTicker (rawTicker, marketInner);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker (this.safeDict (tickers, i, {}), marketInner);
+            const symbol: Str = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -2023,7 +2028,7 @@ export default class xt extends Exchange {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol: Str = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 't');
         const open = this.safeString (ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -2500,7 +2505,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances: NullableDict = undefined;
+        let balances: List = [];
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeList (response, 'result', []);
         } else {
@@ -2510,7 +2515,7 @@ export default class xt extends Exchange {
         return this.parseBalanceList (balances);
     }
 
-    parseBalanceList (response: any): Balances {
+    parseBalanceList (response: List): Balances {
         //
         // spot
         //
@@ -2737,7 +2742,7 @@ export default class xt extends Exchange {
             }
             request['positionSide'] = requestType;
         }
-        let response: Dict = {};
+        let response: NullableDict = undefined;
         const triggerPrice = this.safeNumber2 (paramsOmitted4, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2 (paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
@@ -2826,7 +2831,7 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**
@@ -3684,8 +3689,10 @@ export default class xt extends Exchange {
         //     }
         //
         const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
-        const order = isContractResponse ? response : this.safeDict (response, 'result', {});
-        return this.parseOrder (order, market);
+        if (isContractResponse) {
+            return this.parseOrder (response, market);
+        }
+        return this.parseOrder (this.safeDict (response, 'result', {}), market);
     }
 
     /**
@@ -3953,7 +3960,9 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const marketType = ('result' in order) || ('positionSide' in order) ? 'contract' : 'spot';
+        const resultId = this.safeString (order, 'result');
+        const orderPositionSide = this.safeString (order, 'positionSide');
+        const marketType = (resultId !== undefined) || (orderPositionSide !== undefined) ? 'contract' : 'spot';
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
@@ -4569,7 +4578,7 @@ export default class xt extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: string, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, addOrReduce: string, params: Dict = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
         let methodName = 'reduceMargin';
         if (addOrReduce === 'ADD') {
@@ -5194,7 +5203,7 @@ export default class xt extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit) as FundingHistory[];
     }
 
-    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined): Dict {
         //
         //     {
         //         "id": "210804044057280512",
@@ -5229,12 +5238,13 @@ export default class xt extends Exchange {
     indexPositionBreakList (breakList: Dict[]): Dict {
         const breakBySymbolSide: Dict = {};
         for (let i = 0; i < breakList.length; i++) {
-            const breakEntry = breakList[i];
+            const breakEntry: Dict = breakList[i];
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[this.safeString (breakEntry, 'symbol', '') + '_' + this.safeString (breakEntry, 'positionSide', '')] = breakEntry;
+            const breakKey: string = this.safeString (breakEntry, 'symbol', '') + '_' + this.safeString (breakEntry, 'positionSide', '');
+            breakBySymbolSide[breakKey] = breakEntry;
         }
         return breakBySymbolSide;
     }
@@ -5247,13 +5257,12 @@ export default class xt extends Exchange {
      */
     mergePositionBreakInfo (entry: Dict, breakBySymbolSide: Dict): Dict {
         const breakEntry = this.safeDict (breakBySymbolSide, this.safeString (entry, 'symbol', '') + '_' + this.safeString (entry, 'positionSide', ''));
-        if (breakEntry === undefined) {
-            return entry;
+        const extra: Dict = {};
+        if (breakEntry !== undefined) {
+            extra['breakPrice'] = this.safeString (breakEntry, 'breakPrice');
+            extra['calMarkPrice'] = this.safeString (breakEntry, 'calMarkPrice');
         }
-        return this.extend (entry, {
-            'breakPrice': this.safeString (breakEntry, 'breakPrice'),
-            'calMarkPrice': this.safeString (breakEntry, 'calMarkPrice'),
-        });
+        return this.extend (entry, extra);
     }
 
     /**
@@ -5804,11 +5813,13 @@ export default class xt extends Exchange {
             //     }
             //
         }
-        const result = (this.safeBool (market, 'swap', false)) ? response : this.safeDict (response, 'result', {});
-        return this.parseOrder (result, market);
+        if (this.safeBool (market, 'swap', false)) {
+            return this.parseOrder (response, market);
+        }
+        return this.parseOrder (this.safeDict (response, 'result', {}), market);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         //
         // spot: error
         //

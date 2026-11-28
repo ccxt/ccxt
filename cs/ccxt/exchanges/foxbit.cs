@@ -675,7 +675,7 @@ public partial class foxbit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.v3PublicGetMarketsTicker24hr(parameters);
         //  {
         //    "data": [
@@ -729,10 +729,10 @@ public partial class foxbit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "market_symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             result[(string)symbol] = this.parseTradingFee(entry, market);
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -815,7 +815,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 200))
+            if (limit > 200)
             {
                 request["page_size"] = 200;
             }
@@ -868,7 +868,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["limit"] = limit;
-            if ((limit > 500))
+            if (limit > 500)
             {
                 request["limit"] = 500;
             }
@@ -889,7 +889,7 @@ public partial class foxbit : Exchange
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,interval, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,interval, since, limit));
     }
 
     /**
@@ -983,7 +983,7 @@ public partial class foxbit : Exchange
         return await this.FetchOrdersByStatus("CANCELED", symbol, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1006,7 +1006,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1355,7 +1355,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1421,7 +1421,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1514,7 +1514,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1571,7 +1571,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1824,7 +1824,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1910,7 +1910,7 @@ public partial class foxbit : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object entry, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> entry, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", entry },
@@ -1922,7 +1922,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(ticker, "market_symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "spot");
@@ -1965,7 +1965,7 @@ public partial class foxbit : Exchange
         }, market);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
     }
@@ -2013,7 +2013,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(order, "market_symbol");
         IDictionary<string, object> marketResolved = market;
@@ -2079,7 +2079,7 @@ public partial class foxbit : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         IDictionary<string, object> network = this.safeDict(depositAddress, "network");
         string? networkId = this.safeString(network, "code");
@@ -2113,7 +2113,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         IDictionary<string, object> cryptoDetails = this.safeDict(transaction, "details_crypto");
         string? address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
@@ -2179,7 +2179,7 @@ public partial class foxbit : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
@@ -2215,7 +2215,7 @@ public partial class foxbit : Exchange
         {
             throw new ExchangeError ((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        object before = null;
+        double? before = null;
         if ((amount != null) && (balance != null))
         {
             before = (balance - amount);
@@ -2269,7 +2269,8 @@ public partial class foxbit : Exchange
         string signatureQuery = "";
         if ((method == "GET"))
         {
-            List<object> paramKeys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
+            Dictionary<string, object> paramsCopy = this.extend(new Dictionary<string, object>() {}, paramsOmitted);
+            List<object> paramKeys = new List<object>(paramsCopy.Keys);
             int paramKeysLength = paramKeys.Count;
             int lastKeyIndex = (paramKeysLength - 1);
             if (paramKeysLength > 0)
@@ -2292,14 +2293,12 @@ public partial class foxbit : Exchange
             }
         }
         string? requestBody = null;
+        string bodyToSignature = "";
         if ((method == "POST") || (method == "PUT"))
         {
-            requestBody = this.json(paramsOmitted);
-        }
-        string? bodyToSignature = "";
-        if ((requestBody != null))
-        {
-            bodyToSignature = requestBody;
+            string jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
@@ -2310,7 +2309,7 @@ public partial class foxbit : Exchange
         {
             this.checkRequiredCredentials();
             string preHash = ((((timestamp.ToString() + method) + fullPath) + signatureQuery) + bodyToSignature);
-            string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(preHash, this.secret, sha256, "hex");
             headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
             headersValue["X-FB-ACCESS-TIMESTAMP"] = timestamp.ToString();
             headersValue["X-FB-ACCESS-SIGNATURE"] = signature;
@@ -2323,11 +2322,11 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         IDictionary<string, object> error = this.safeDict(response, "error");
         string? codeError = this.safeString(error, "code");
@@ -2346,9 +2345,9 @@ public partial class foxbit : Exchange
             string feedback = ((((this.id + " ") + message) + " details: ") + detailsString);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), detailsString, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

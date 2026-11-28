@@ -701,7 +701,7 @@ class foxbit extends Exchange {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'market_symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = $this->parse_trading_fee($entry, $market);
         }
         return $result;
@@ -2038,7 +2038,7 @@ class foxbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction(mixed $transaction, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         $cryptoDetails = $this->safe_dict($transaction, 'details_crypto');
         $address = $this->safe_string_2($cryptoDetails, 'receiving_address', 'destination_address');
         $sn = $this->safe_string($transaction, 'sn');
@@ -2178,7 +2178,8 @@ class foxbit extends Exchange {
         $query = '';
         $signatureQuery = '';
         if ($method === 'GET') {
-            $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
+            $paramsCopy = $this->extend(array(), $paramsOmitted);
+            $paramKeys = is_array($paramsCopy) ? array_keys($paramsCopy) : array();
             $paramKeysLength = count($paramKeys);
             $lastKeyIndex = $paramKeysLength - 1;
             if ($paramKeysLength > 0) {
@@ -2197,12 +2198,11 @@ class foxbit extends Exchange {
             }
         }
         $requestBody = null;
-        if ($method === 'POST' || $method === 'PUT') {
-            $requestBody = $this->json($paramsOmitted);
-        }
         $bodyToSignature = '';
-        if ($requestBody !== null) {
-            $bodyToSignature = $requestBody;
+        if ($method === 'POST' || $method === 'PUT') {
+            $jsonBody = $this->json($paramsOmitted);
+            $requestBody = $jsonBody;
+            $bodyToSignature = $jsonBody;
         }
         $headersValue = array(
             'Content-Type' => 'application/json',
@@ -2220,7 +2220,7 @@ class foxbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

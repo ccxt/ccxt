@@ -861,10 +861,8 @@ class bitflyer extends Exchange {
             'count' => $limit,
         );
         $response = Async\await($this->privateGetGetchildorders($this->extend($request, $params)));
-        if ($symbol !== null) {
-            return $this->filter_by($this->parse_orders($response, $market, $since, $limit), 'symbol', $symbol);
-        }
-        return $this->parse_orders($response, $market, $since, $limit);
+        $marketSymbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by($this->parse_orders($response, $market, $since, $limit), 'symbol', $marketSymbol);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): PromiseInterface {
@@ -1224,10 +1222,10 @@ class bitflyer extends Exchange {
         $type = null;
         $status = null;
         $fee = null;
-        if (is_array($transaction) && array_key_exists('fee' ?? '', $transaction)) {
+        $feeCost = $this->safe_string($transaction, 'fee');
+        if ($feeCost !== null) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
-            $feeCost = $this->safe_string($transaction, 'fee');
             $additionalFee = $this->safe_string($transaction, 'additional_fee');
             $fee = array( 'currency' => $code, 'cost' => $this->parse_number(Precise::string_add($feeCost, $additionalFee)) );
         } else {
@@ -1363,7 +1361,7 @@ class bitflyer extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to the default error handler
         }

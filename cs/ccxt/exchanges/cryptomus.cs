@@ -565,14 +565,14 @@ public partial class cryptomus : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
         //         "price": "78450.4"
         //     }
         //
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? last = this.safeString(ticker, "price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -988,7 +988,7 @@ public partial class cryptomus : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(result[i], market)));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.safeDict(result, i, new Dictionary<string, object>() {}), market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1050,7 +1050,7 @@ public partial class cryptomus : Exchange
         return this.parseOrders(result, market, null, null);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1322,7 +1322,7 @@ public partial class cryptomus : Exchange
             }
             string jsonParamsBase64 = this.stringToBase64(jsonParams);
             string stringToSign = (jsonParamsBase64 + this.secret);
-            string signature = ((string)this.hash(this.encode(stringToSign), md5));
+            string signature = ((string)this.hash(stringToSign, md5));
             privateHeaders["sign"] = signature;
             string? privateBody = ((method != "GET")) ? jsonParams : null;
             return new Dictionary<string, object>() {
@@ -1347,18 +1347,18 @@ public partial class cryptomus : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? codeError = this.safeString(response, "code");
         string? message = this.safeString(response, "message");
         if ((codeError != null))
         {
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         } else if ((message != null))
@@ -1366,11 +1366,11 @@ public partial class cryptomus : Exchange
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

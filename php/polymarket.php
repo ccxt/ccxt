@@ -924,9 +924,9 @@ class polymarket extends Exchange {
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
-        $paginate = false;
         $paramsOmitted = $params;
-        list($paginate, $paramsOmitted) = $this->handle_option_and_params($paramsOmitted, 'fetchOHLCV', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchOHLCV', 'paginate', false);
+        $paramsOmitted = $paramsPaginate;
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsOmitted, 1000);
         }
@@ -1081,9 +1081,9 @@ class polymarket extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $this->load_markets();
-        $paginate = false;
         $paramsOmitted = $params;
-        list($paginate, $paramsOmitted) = $this->handle_option_and_params($paramsOmitted, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchFundingRateHistory', 'paginate', false);
+        $paramsOmitted = $paramsPaginate;
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '1h', $paramsOmitted, 100);
         }
@@ -1244,7 +1244,7 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function create_order_request(array $market, string $type, string $side, mixed $amount, mixed $price = null, $params = array()): array {
+    public function create_order_request(array $market, string $type, string $side, ?string $amount, mixed $price = null, $params = array()): array {
         /**
          * @ignore
          * builds one order for the createOrders operation, returning the compact $signable $row next to the structured body $entry
@@ -1595,12 +1595,13 @@ class polymarket extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         if (($amount === null) || ($price === null)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires both the amount and the price arguments');
         }
         $orderId = $this->parse_to_int($id);
-        $priceString = $this->price_to_precision($market['symbol'], $price);
-        $quantity = $this->amount_to_precision($market['symbol'], $amount);
+        $priceString = $this->price_to_precision($precisionSymbol, $price);
+        $quantity = $this->amount_to_precision($precisionSymbol, $amount);
         $signable = array( 'modifyOrders', array( array( $orderId, $priceString, $quantity ) ) );
         $bodyOp = array(
             'type' => 'modifyOrders',
@@ -2398,7 +2399,7 @@ class polymarket extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $row = $this->safe_dict($response, $i, array());
             $rowId = $this->safe_string($row, 'instrument_id');
-            if ($rowId === $market['id']) {
+            if ($rowId === $this->safe_string($market, 'id')) {
                 return $this->parse_leverage($row, $market);
             }
         }
@@ -2508,7 +2509,7 @@ class polymarket extends Exchange {
         return $this->set_leverage($leverageInt, $symbol, $this->extend($request, $paramsOmitted));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, string $type, $params = array()): array {
         /**
          * @ignore
          * adds margin to an isolated position or removes some, the $amount is a $signed decimal in the $collateral asset
@@ -2587,15 +2588,15 @@ class polymarket extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey): string {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $sVal = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $sVal = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($sVal, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey): string {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 
@@ -2684,7 +2685,7 @@ class polymarket extends Exchange {
             if ($expires === null) {
                 return $credentials;
             }
-            $refreshAfter = $expires - $margin;
+            $refreshAfter = $this->parse_to_int($expires - $margin);
             if ($this->milliseconds() < $refreshAfter) {
                 return $credentials;
             }
@@ -2724,7 +2725,7 @@ class polymarket extends Exchange {
             'ts' => $ts,
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $message);
-        $proxyPrivateKey = $this->safe_string($credentials, 'privateKey');
+        $proxyPrivateKey = $this->safe_string($credentials, 'privateKey', '');
         $signature = $this->sign_message($encoded, $proxyPrivateKey);
         $envelope = array(
             'op' => $bodyOp,
@@ -2741,7 +2742,7 @@ class polymarket extends Exchange {
         return $envelope;
     }
 
-    public function compact_signable(array $row) {
+    public function compact_signable(array $row): array {
         /**
          * @ignore
          * removes null entries from a positional signable array, later entries shift left exactly like the official sdk does before hashing
@@ -2789,12 +2790,18 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, $config = array()) {
         if ($path === 'account/orders') {
-            return (is_array($params) && array_key_exists('order_id' ?? '', $params)) ? 1 : 10;
+            if ($this->safe_string($params, 'order_id') !== null) {
+                return 1;
+            }
+            return 10;
         }
         if ($path === 'account/open-orders') {
-            return (is_array($params) && array_key_exists('instrument_id' ?? '', $params)) ? 1 : 20;
+            if ($this->safe_string($params, 'instrument_id') !== null) {
+                return 1;
+            }
+            return 20;
         }
         if (($path === 'trade/orders') || ($path === 'trade/orders-coid')) {
             $op = $this->safe_dict($params, 'op', array());
@@ -2832,7 +2839,8 @@ class polymarket extends Exchange {
             $headersResolved['Content-Type'] = 'application/json';
         } else {
             if ($method === 'GET') {
-                $keys = is_array($query) ? array_keys($query) : array();
+                $queryCopy = $this->extend(array(), $query);
+                $keys = is_array($queryCopy) ? array_keys($queryCopy) : array();
                 $keysLength = count($keys);
                 if ($keysLength > 0) {
                     $url = $baseUrl . '/' . $implodedPath . '?' . $this->urlencode($query);
@@ -2847,7 +2855,7 @@ class polymarket extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

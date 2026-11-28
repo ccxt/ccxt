@@ -205,7 +205,7 @@ class blofin extends \ccxt\async\blofin {
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
-        return $this->parse_trade($trade, $market);
+        return $this->parse_trade($this->extend(array(), $trade), $market);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -373,7 +373,7 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_ticker($this->safe_dict($data, $i, array()));
+            $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->tickers[$symbol] = $ticker;
             if ($channelName !== null) {
@@ -381,10 +381,6 @@ class blofin extends \ccxt\async\blofin {
                 $client->resolve($this->tickers[$symbol], $messageHash);
             }
         }
-    }
-
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
-        return $this->parse_ticker($ticker, $market);
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -575,7 +571,7 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $interval = str_replace('candle', '', $channelName);
         $unifiedTimeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
@@ -645,6 +641,7 @@ class blofin extends \ccxt\async\blofin {
         // the merged currencies by safeBalance
         $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
         $parsed = $this->parse_ws_balance($message);
+        $marketBalance = $this->safe_dict($this->balance, $marketType, array());
         $reserved = array( 'free', 'used', 'total' );
         $keys = is_array($parsed) ? array_keys($parsed) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -652,9 +649,10 @@ class blofin extends \ccxt\async\blofin {
             if ($this->in_array($key, $reserved)) {
                 continue;
             }
-            $this->balance[$marketType][$key] = $parsed[$key];
+            $marketBalance[$key] = $parsed[$key];
         }
-        $this->balance[$marketType] = $this->safe_balance($this->balance[$marketType]);
+        $this->balance[$marketType] = $marketBalance;
+        $this->balance[$marketType] = $this->safe_balance($marketBalance);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
     }
@@ -682,11 +680,11 @@ class blofin extends \ccxt\async\blofin {
          * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
          */
         $params['callerMethodName'] = 'watchOrders';
-        $symbolsArray = array();
         if ($symbol !== null) {
-            $symbolsArray[] = $symbol;
+            Async\await($this->load_markets());
+            return Async\await($this->watch_orders_for_symbols(array( $this->symbol($symbol) ), $since, $limit, $params));
         }
-        return Async\await($this->watch_orders_for_symbols($symbolsArray, $since, $limit, $params));
+        return Async\await($this->watch_orders_for_symbols(array(), $since, $limit, $params));
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -780,14 +778,14 @@ class blofin extends \ccxt\async\blofin {
         // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for ($i = 0; $i < count($symbols); $i++) {
             if ($channelName !== null) {
-                $client->resolve($orders, $channelName . ':' . $symbols[$i]);
+                $client->resolve($orders, $channelName . ':' . $this->safe_string($symbols, $i, ''));
             }
             $client->resolve($orders, $channelName);
         }
     }
 
     public function parse_ws_order(array $order, ?array $market = null): array {
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -835,17 +833,13 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_ws_position($this->safe_dict($data, $i, array()));
+            $position = $this->parse_position($this->safe_dict($data, $i, array()));
             $newPositions[] = $position;
             $cache->append($position);
             if ($channelName !== null) {
                 $client->resolve($position, $channelName . ':' . $this->safe_string($position, 'symbol', ''));
             }
         }
-    }
-
-    public function parse_ws_position(array $position, ?array $market = null): array {
-        return $this->parse_position($position, $market);
     }
 
     public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -933,15 +927,15 @@ class blofin extends \ccxt\async\blofin {
             for ($i = 0; $i < count($symbols); $i++) {
                 $current = $symbols[$i];
                 $market = null;
-                $channel = $channelName;
+                $interval = '';
                 if ($isOHLCV) {
                     $market = $this->market($current);
-                    $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
+                    $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1, '');
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                    $channel = $channel . $interval;
                 } else {
                     $market = $this->market($current);
                 }
+                $channel = '' . $channelName . $interval;
                 $topic = array(
                     'channel' => $channel,
                     'instId' => $market['id'],
@@ -993,12 +987,12 @@ class blofin extends \ccxt\async\blofin {
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market($this->safe_string($symbols, $i));
-            $channel = $channelName;
+            $interval = '';
             if ($isOHLCV) {
-                $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
+                $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1, '');
                 $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $channel = $channel . $interval;
             }
+            $channel = $channelName . $interval;
             $topic = array(
                 'channel' => $channel,
                 'instId' => $market['id'],
@@ -1010,7 +1004,7 @@ class blofin extends \ccxt\async\blofin {
             'op' => 'unsubscribe',
             'args' => $topics,
         );
-        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        $url = $this->safe_string($this->urls['api']['ws'][$marketType], 'public', '');
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 

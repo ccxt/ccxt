@@ -311,12 +311,12 @@ public partial class bitflyer : Exchange
         string? month = this.safeString(months, monthName);
         if ((month == null))
         {
-            return ((Int64?)((object)(null)));
+            return null;
         }
-        return this.parse8601((expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z"));
+        return this.parse8601((((((expiryYear + "-") + month) + "-") + day) + "T00:00:00Z"));
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
@@ -366,12 +366,12 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        List<object> markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
-        markets = this.arrayConcat(markets, this.toArray(eu_markets));
+        List<object> markets = this.arrayConcat(jp_markets, us_markets);
+        markets = this.arrayConcat(markets, eu_markets);
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "product_code");
             List<object> currencies = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? marketType = this.safeString(market, "market_type");
@@ -585,7 +585,7 @@ public partial class bitflyer : Exchange
         return this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size");
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
@@ -687,7 +687,7 @@ public partial class bitflyer : Exchange
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         string? id = this.safeString(trade, "id");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -855,7 +855,7 @@ public partial class bitflyer : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.parse8601(this.safeString(order, "child_order_date"));
         string? price = this.safeString(order, "price");
@@ -933,11 +933,8 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        if ((symbol != null))
-        {
-            return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", symbol));
-        }
-        return this.parseOrders(response, market, since, limitVar);
+        string? marketSymbol = this.safeString(market, "symbol");
+        return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", marketSymbol));
     }
 
     /**
@@ -1080,7 +1077,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", this.marketIds(this.toArray(symbols)) },
+            { "product_code", this.marketIds(symbols) },
         };
         List<object> response = await this.privateGetGetpositions(this.extend(request, parameters));
         //
@@ -1254,7 +1251,7 @@ public partial class bitflyer : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -1302,11 +1299,11 @@ public partial class bitflyer : Exchange
         string? type = null;
         string? status = null;
         Dictionary<string, object> fee = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("fee")))
+        string? feeCost = this.safeString(transaction, "fee");
+        if ((feeCost != null))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
-            string? feeCost = this.safeString(transaction, "fee");
             string? additionalFee = this.safeString(transaction, "additional_fee");
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -1371,7 +1368,7 @@ public partial class bitflyer : Exchange
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -1448,7 +1445,7 @@ public partial class bitflyer : Exchange
             headersSigned = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-TIMESTAMP", nonce },
-                { "ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGN", this.hmac(auth, this.secret, sha256) },
                 { "Content-Type", "application/json" },
             };
         }
@@ -1462,21 +1459,21 @@ public partial class bitflyer : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to the default error handler
+            return ((bool?)((object)(null)));  // fallback to the default error handler
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         string? errorMessage = this.safeString(response, "error_message");
         string? statusCode = this.safeString(response, "status");
         if ((errorMessage != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), statusCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, statusCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

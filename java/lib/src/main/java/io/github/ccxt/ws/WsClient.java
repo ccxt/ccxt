@@ -204,6 +204,38 @@ public class WsClient {
         return f;
     }
 
+    // settles made while this thread runs a frame handler wait until the handler returns
+    // (js resolves on a microtask): a waiter woken by the first of several hashes must not
+    // re-watch and pick up a sibling future the same frame is about to settle
+    private static final ThreadLocal<java.util.ArrayList<Runnable>> deferredSettles = new ThreadLocal<>();
+
+    private static void settle(Runnable r) {
+        var q = deferredSettles.get();
+        if (q != null) {
+            q.add(r);
+        } else {
+            r.run();
+        }
+    }
+
+    /** Runs the frame handler; futures it settles complete after it returns. */
+    public void dispatchMessage(Object message) {
+        if (deferredSettles.get() != null) {
+            this.handleMessageCallback.accept(this, message);
+            return;
+        }
+        var q = new java.util.ArrayList<Runnable>();
+        deferredSettles.set(q);
+        try {
+            this.handleMessageCallback.accept(this, message);
+        } finally {
+            deferredSettles.remove();
+            for (Runnable r : q) {
+                r.run();
+            }
+        }
+    }
+
     public Future reusableFuture(String messageHash) {
         return this.future(messageHash);
     }
@@ -227,7 +259,8 @@ public class WsClient {
             rejectionsMap().remove(messageHash); // clear any stale rejection for this hash
         }
         if (f != null) {
-            f.resolve(content);
+            final Future done = f;
+            settle(() -> done.resolve(content));
         }
     }
 
@@ -245,7 +278,8 @@ public class WsClient {
                 }
             }
             if (f != null) {
-                f.reject(error);
+                final Future done = f;
+                settle(() -> done.reject(error));
             }
         } else {
             // Drain under the monitor; settle outside so continuations cannot re-enter.
@@ -258,9 +292,13 @@ public class WsClient {
                     }
                 }
             }
-            for (Future f : settled) {
-                f.reject(error);
-            }
+            settle(() -> rejectEach(settled, error));
+        }
+    }
+
+    private static void rejectEach(java.util.List<Future> settled, Object error) {
+        for (Future f : settled) {
+            f.reject(error);
         }
     }
 
@@ -454,7 +492,7 @@ public class WsClient {
                         if (this.verbose) {
                             System.out.println(getFormattedDate() + "OnMessage:" + message);
                         }
-                        this.handleMessageCallback.accept(this, message);
+                        this.dispatchMessage(message);
                     } catch (Exception e) {
                         if (this.verbose) {
                             System.err.println("handleMessage error: " + e.getMessage());

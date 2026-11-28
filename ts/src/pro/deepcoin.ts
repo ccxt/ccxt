@@ -103,7 +103,6 @@ export default class deepcoin extends deepcoinRest {
 
     handlePong (client: Client, message: string) {
         client.lastPong = this.milliseconds ();
-        return message;
     }
 
     requestId (): int {
@@ -170,7 +169,8 @@ export default class deepcoin extends deepcoinRest {
     }
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
-        const listenKey = await this.authenticate ();
+        await this.authenticate ();
+        const listenKey: string = this.safeString (this.options, 'listenKey', '');
         return await this.watch (this.safeString (this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, undefined, 'private', params);
     }
 
@@ -778,7 +778,7 @@ export default class deepcoin extends deepcoinRest {
         }
         const orderbook = this.orderbooks[symbol];
         const type = this.safeString (message, 't');
-        if (orderbook['timestamp'] === undefined) {
+        if (this.safeInteger (orderbook, 'timestamp') === undefined) {
             if (type === 'f') {
                 // snapshot
                 this.handleOrderBookSnapshot (client, message);
@@ -826,7 +826,7 @@ export default class deepcoin extends deepcoinRest {
         orderbook.reset (snapshot);
         const cachedMessages = orderbook.cache;
         for (let j = 0; j < cachedMessages.length; j++) {
-            const cachedMessage = cachedMessages[j];
+            const cachedMessage = this.safeDict (cachedMessages, j, {});
             this.handleOrderBookMessage (client, cachedMessage, orderbook);
         }
         orderbook.cache = [];
@@ -1116,7 +1116,8 @@ export default class deepcoin extends deepcoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const listenKey = await this.authenticate ();
+        await this.authenticate ();
+        const listenKey: string = this.safeString (this.options, 'listenKey', '');
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHash = 'positions';
         const messageHashes: string[] = [];
@@ -1324,7 +1325,7 @@ export default class deepcoin extends deepcoinRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1358,5 +1359,6 @@ export default class deepcoin extends deepcoinRest {
         } catch (e) {
             client.reject (e, messageHash);
         }
+        return false;
     }
 }

@@ -353,57 +353,54 @@ class digifinex extends digifinex$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                'exact': {
-                    '10001': [errors.BadRequest, "Wrong request method, please check it's a GET ot POST request"],
-                    '10002': [errors.AuthenticationError, 'Invalid ApiKey'],
-                    '10003': [errors.AuthenticationError, "Sign doesn't match"],
-                    '10004': [errors.BadRequest, 'Illegal request parameters'],
-                    '10005': [errors.DDoSProtection, 'Request frequency exceeds the limit'],
-                    '10006': [errors.PermissionDenied, 'Unauthorized to execute this request'],
-                    '10007': [errors.PermissionDenied, 'IP address Unauthorized'],
-                    '10008': [errors.InvalidNonce, 'Timestamp for this request is invalid, timestamp must within 1 minute'],
-                    '10009': [errors.NetworkError, 'Unexist endpoint, please check endpoint URL'],
-                    '10011': [errors.AccountSuspended, 'ApiKey expired. Please go to client side to re-create an ApiKey'],
-                    '20001': [errors.PermissionDenied, 'Trade is not open for this trading pair'],
-                    '20002': [errors.PermissionDenied, 'Trade of this trading pair is suspended'],
-                    '20003': [errors.InvalidOrder, 'Invalid price or amount'],
-                    '20007': [errors.InvalidOrder, 'Price precision error'],
-                    '20008': [errors.InvalidOrder, 'Amount precision error'],
-                    '20009': [errors.InvalidOrder, 'Amount is less than the minimum requirement'],
-                    '20010': [errors.InvalidOrder, 'Cash Amount is less than the minimum requirement'],
-                    '20011': [errors.InsufficientFunds, 'Insufficient balance'],
-                    '20012': [errors.BadRequest, 'Invalid trade type, valid value: buy/sell)'],
-                    '20013': [errors.InvalidOrder, 'No order info found'],
-                    '20014': [errors.BadRequest, 'Invalid date, Valid format: 2018-07-25)'],
-                    '20015': [errors.BadRequest, 'Date exceeds the limit'],
-                    '20018': [errors.PermissionDenied, 'Your trading rights have been banned by the system'],
-                    '20019': [errors.BadSymbol, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front'],
-                    '20020': [errors.DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."],
-                    '50000': [errors.ExchangeError, 'Exception error'],
-                    '20021': [errors.BadRequest, 'Invalid currency'],
-                    '20022': [errors.BadRequest, 'The ending timestamp must be larger than the starting timestamp'],
-                    '20023': [errors.BadRequest, 'Invalid transfer type'],
-                    '20024': [errors.BadRequest, 'Invalid amount'],
-                    '20025': [errors.BadRequest, 'This currency is not transferable at the moment'],
-                    '20026': [errors.InsufficientFunds, 'Transfer amount exceed your balance'],
-                    '20027': [errors.PermissionDenied, 'Abnormal account status'],
-                    '20028': [errors.PermissionDenied, 'Blacklist for transfer'],
-                    '20029': [errors.PermissionDenied, 'Transfer amount exceed your daily limit'],
-                    '20030': [errors.BadRequest, 'You have no position on this trading pair'],
-                    '20032': [errors.PermissionDenied, 'Withdrawal limited'],
-                    '20033': [errors.BadRequest, 'Wrong Withdrawal ID'],
-                    '20034': [errors.PermissionDenied, 'Withdrawal service of this crypto has been closed'],
-                    '20035': [errors.PermissionDenied, 'Withdrawal limit'],
-                    '20036': [errors.ExchangeError, 'Withdrawal cancellation failed'],
-                    '20037': [errors.InvalidAddress, 'The withdrawal address, Tag or chain type is not included in the withdrawal management list'],
-                    '20038': [errors.InvalidAddress, 'The withdrawal address is not on the white list'],
-                    '20039': [errors.ExchangeError, "Can't be canceled in current status"],
-                    '20040': [errors.RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day'],
-                    '20041': [errors.PermissionDenied, 'Beyond the daily withdrawal limit'],
-                    '20042': [errors.BadSymbol, 'Current trading pair does not support API trading'],
-                    '400002': [errors.BadRequest, 'Invalid Parameter'],
-                },
-                'broad': {},
+                '10001': errors.BadRequest,
+                '10002': errors.AuthenticationError,
+                '10003': errors.AuthenticationError,
+                '10004': errors.BadRequest,
+                '10005': errors.DDoSProtection,
+                '10006': errors.PermissionDenied,
+                '10007': errors.PermissionDenied,
+                '10008': errors.InvalidNonce,
+                '10009': errors.NetworkError,
+                '10011': errors.AccountSuspended,
+                '20001': errors.PermissionDenied,
+                '20002': errors.PermissionDenied,
+                '20003': errors.InvalidOrder,
+                '20007': errors.InvalidOrder,
+                '20008': errors.InvalidOrder,
+                '20009': errors.InvalidOrder,
+                '20010': errors.InvalidOrder,
+                '20011': errors.InsufficientFunds,
+                '20012': errors.BadRequest,
+                '20013': errors.InvalidOrder,
+                '20014': errors.BadRequest,
+                '20015': errors.BadRequest,
+                '20018': errors.PermissionDenied,
+                '20019': errors.BadSymbol,
+                '20020': errors.DDoSProtection,
+                '50000': errors.ExchangeError,
+                '20021': errors.BadRequest,
+                '20022': errors.BadRequest,
+                '20023': errors.BadRequest,
+                '20024': errors.BadRequest,
+                '20025': errors.BadRequest,
+                '20026': errors.InsufficientFunds,
+                '20027': errors.PermissionDenied,
+                '20028': errors.PermissionDenied,
+                '20029': errors.PermissionDenied,
+                '20030': errors.BadRequest,
+                '20032': errors.PermissionDenied,
+                '20033': errors.BadRequest,
+                '20034': errors.PermissionDenied,
+                '20035': errors.PermissionDenied,
+                '20036': errors.ExchangeError,
+                '20037': errors.InvalidAddress,
+                '20038': errors.InvalidAddress,
+                '20039': errors.ExchangeError,
+                '20040': errors.RateLimitExceeded,
+                '20041': errors.PermissionDenied,
+                '20042': errors.BadSymbol,
+                '400002': errors.BadRequest,
             },
             'options': {
                 'defaultType': 'spot',
@@ -1107,7 +1104,7 @@ class digifinex extends digifinex$1["default"] {
                 'date': date,
             }, this.safeDict(tickers, i));
             const ticker = this.parseTicker(rawTicker);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1337,7 +1334,11 @@ class digifinex extends digifinex$1["default"] {
         const amountString = this.safeStringN(trade, ['amount', 'volume', 'size']);
         const marketId = this.safeStringUpper2(trade, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol(marketId, market);
-        const marketResolved = this.safeMarket((market === undefined) ? marketId : undefined, market);
+        let marketIdResolved = undefined;
+        if (market === undefined) {
+            marketIdResolved = marketId;
+        }
+        const marketResolved = this.safeMarket(marketIdResolved, market);
         let timestamp = this.safeTimestamp2(trade, 'date', 'timestamp');
         let side = this.safeString2(trade, 'type', 'side');
         let type = undefined;
@@ -2079,7 +2080,7 @@ class digifinex extends digifinex$1["default"] {
         const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString(success, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -2088,7 +2089,7 @@ class digifinex extends digifinex$1["default"] {
             }));
         }
         for (let i = 0; i < error.length; i++) {
-            const order = error[i];
+            const order = this.safeString(error, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -2123,7 +2124,7 @@ class digifinex extends digifinex$1["default"] {
             if (market === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument for swap markets');
             }
-            const marketSymbol = market['symbol'];
+            const marketSymbol = this.safeString(market, 'symbol', '');
             const orders = [];
             for (let i = 0; i < ids.length; i++) {
                 const orderItem = {
@@ -2173,17 +2174,16 @@ class digifinex extends digifinex$1["default"] {
         const symbolsById = {};
         let marketType = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            const id = this.safeString(order, 'id');
+            const id = this.safeString(orders[i], 'id');
             if (id === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrdersForSymbols() requires an id for each order');
             }
-            const symbol = this.safeString(order, 'symbol');
+            const symbol = this.safeString(orders[i], 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrdersForSymbols() requires a symbol for each order');
             }
             const market = this.market(symbol);
-            const orderMarketType = market['type'];
+            const orderMarketType = this.safeString(market, 'type');
             if (marketType === undefined) {
                 marketType = orderMarketType;
             }
@@ -2201,8 +2201,8 @@ class digifinex extends digifinex$1["default"] {
             }
             const ordersRequests = [];
             for (let i = 0; i < ids.length; i++) {
-                const market = this.market(symbols[i]);
-                const marketId = market['id'];
+                const market = this.market(this.safeString(symbols, i));
+                const marketId = this.safeString(market, 'id');
                 const orderId = ids[i];
                 ordersRequests.push({
                     'instrument_id': marketId,
@@ -2229,7 +2229,7 @@ class digifinex extends digifinex$1["default"] {
                 result.push(this.safeOrder({
                     'info': orderId,
                     'id': orderId,
-                    'symbol': symbols[i],
+                    'symbol': this.safeString(symbols, i),
                     'status': status,
                 }));
             }
@@ -2749,7 +2749,7 @@ class digifinex extends digifinex$1["default"] {
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -3070,7 +3070,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const addresses = this.indexBy(this.parseDepositAddresses(data, [currency['code']], false), 'currency');
+        const addresses = this.indexBy(this.parseDepositAddresses(data, [this.safeString(currency, 'code', '')], false), 'currency');
         const address = this.safeDict(addresses, code);
         if (address === undefined) {
             throw new errors.InvalidAddress(this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
@@ -3306,7 +3306,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const currencyId = currency['id'];
+        const currencyId = this.safeString(currency, 'id');
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3491,9 +3491,9 @@ class digifinex extends digifinex$1["default"] {
         const data = this.safeList(response, 'list', []);
         let result = undefined;
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            if (this.safeString(entry, 'currency') === code) {
-                result = entry;
+            const entryCurrency = this.safeString(data[i], 'currency', '');
+            if (entryCurrency === code) {
+                result = data[i];
             }
         }
         const currency = this.currency(code);
@@ -3805,17 +3805,11 @@ class digifinex extends digifinex$1["default"] {
         let market = undefined;
         let marketType = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
-            if (Array.isArray(symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = symbolsNormalized[0];
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            else {
-                symbol = symbolsNormalized;
-            }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
         }
         let paramsMarketType = undefined;
@@ -3901,7 +3895,8 @@ class digifinex extends digifinex$1["default"] {
         const positions = this.safeList(response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push(this.parsePosition(positions[i], market));
+            const parsedPosition = this.parsePosition(this.safeDict(positions, i, {}), market);
+            result.push(parsedPosition);
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }
@@ -3999,7 +3994,7 @@ class digifinex extends digifinex$1["default"] {
             dataRequest = 'data';
         }
         const data = this.safeList(response, dataRequest, []);
-        const position = this.parsePosition(data[0], market);
+        const position = this.parsePosition(this.safeDict(data, 0, {}), market);
         if (marketType === 'swap') {
             return position;
         }
@@ -4050,7 +4045,7 @@ class digifinex extends digifinex$1["default"] {
         //
         const marketId = this.safeString2(position, 'instrument_id', 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         let marginMode = this.safeString(position, 'margin_mode');
         if (marginMode !== undefined) {
             marginMode = (marginMode === 'crossed') ? 'cross' : 'isolated';
@@ -4499,8 +4494,10 @@ class digifinex extends digifinex$1["default"] {
                     }
                 }
                 else {
-                    depositWithdrawFee['withdraw'] = withdrawResult;
-                    depositWithdrawFee['deposit'] = depositResult;
+                    depositWithdrawFees[code] = this.extend(depositWithdrawFee, {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    });
                 }
             }
         }
@@ -4713,7 +4710,7 @@ class digifinex extends digifinex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         let urlencoded = '';
         if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
-            urlencoded = JSON.stringify(params);
+            urlencoded = this.json(params);
         }
         else {
             urlencoded = this.urlencode(this.keysort(query));
@@ -4774,9 +4771,58 @@ class digifinex extends digifinex$1["default"] {
         if (codeError === undefined) {
             throw new errors.BadResponse(feedback);
         }
-        const unknownError = [errors.ExchangeError, feedback];
-        const [ExceptionClass, message] = this.safeValue(this.exceptions['exact'], codeError, unknownError);
-        throw new ExceptionClass(message);
+        const message = this.safeString({
+            '10001': "Wrong request method, please check it's a GET ot POST request",
+            '10002': 'Invalid ApiKey',
+            '10003': "Sign doesn't match",
+            '10004': 'Illegal request parameters',
+            '10005': 'Request frequency exceeds the limit',
+            '10006': 'Unauthorized to execute this request',
+            '10007': 'IP address Unauthorized',
+            '10008': 'Timestamp for this request is invalid, timestamp must within 1 minute',
+            '10009': 'Unexist endpoint, please check endpoint URL',
+            '10011': 'ApiKey expired. Please go to client side to re-create an ApiKey',
+            '20001': 'Trade is not open for this trading pair',
+            '20002': 'Trade of this trading pair is suspended',
+            '20003': 'Invalid price or amount',
+            '20007': 'Price precision error',
+            '20008': 'Amount precision error',
+            '20009': 'Amount is less than the minimum requirement',
+            '20010': 'Cash Amount is less than the minimum requirement',
+            '20011': 'Insufficient balance',
+            '20012': 'Invalid trade type, valid value: buy/sell)',
+            '20013': 'No order info found',
+            '20014': 'Invalid date, Valid format: 2018-07-25)',
+            '20015': 'Date exceeds the limit',
+            '20018': 'Your trading rights have been banned by the system',
+            '20019': 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front',
+            '20020': "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.",
+            '50000': 'Exception error',
+            '20021': 'Invalid currency',
+            '20022': 'The ending timestamp must be larger than the starting timestamp',
+            '20023': 'Invalid transfer type',
+            '20024': 'Invalid amount',
+            '20025': 'This currency is not transferable at the moment',
+            '20026': 'Transfer amount exceed your balance',
+            '20027': 'Abnormal account status',
+            '20028': 'Blacklist for transfer',
+            '20029': 'Transfer amount exceed your daily limit',
+            '20030': 'You have no position on this trading pair',
+            '20032': 'Withdrawal limited',
+            '20033': 'Wrong Withdrawal ID',
+            '20034': 'Withdrawal service of this crypto has been closed',
+            '20035': 'Withdrawal limit',
+            '20036': 'Withdrawal cancellation failed',
+            '20037': 'The withdrawal address, Tag or chain type is not included in the withdrawal management list',
+            '20038': 'The withdrawal address is not on the white list',
+            '20039': "Can't be canceled in current status",
+            '20040': 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day',
+            '20041': 'Beyond the daily withdrawal limit',
+            '20042': 'Current trading pair does not support API trading',
+            '400002': 'Invalid Parameter',
+        }, codeError, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, message);
+        throw new errors.ExchangeError(message);
     }
 }
 

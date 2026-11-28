@@ -574,7 +574,8 @@ export default class bigone extends Exchange {
         if (this.safeBool (rawCurrency, 'is_fiat', false)) {
             type = 'fiat';
         } else if (chainLength === 0) {
-            if (this.isLeveragedCurrency (id)) {
+            const leveragedId: string = this.safeString (rawCurrency, 'symbol', '');
+            if (this.isLeveragedCurrency (leveragedId)) {
                 type = 'leveraged';
             } else {
                 type = 'other';
@@ -619,7 +620,7 @@ export default class bigone extends Exchange {
         const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
         const promisesResult = await Promise.all (promises);
         const response = this.safeDict (promisesResult, 0);
-        const contractResponse = this.safeValue (promisesResult, 1);
+        const contractMarkets: Dict[] = this.safeList (promisesResult, 1, []);
         //
         //     {
         //         "code":0,
@@ -736,7 +737,6 @@ export default class bigone extends Exchange {
                 'info': market,
             }));
         }
-        const contractMarkets: Dict[] = this.toArray (contractResponse);
         for (let i = 0; i < contractMarkets.length; i++) {
             const market = contractMarkets[i];
             const baseId = this.safeString (market, 'baseCurrency');
@@ -1625,7 +1625,7 @@ export default class bigone extends Exchange {
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
         let query = undefined;
-        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam, params);
+        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN (query, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -2424,7 +2424,7 @@ export default class bigone extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

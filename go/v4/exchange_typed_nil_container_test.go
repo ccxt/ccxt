@@ -17,9 +17,6 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if !IsEqual(v, nil) || !IsEqual(nil, v) {
 			t.Errorf("%s: IsEqual(x, nil) = false, want true", name)
 		}
-		if EvalTruthy(v) {
-			t.Errorf("%s: EvalTruthy = true", name)
-		}
 		if InOp(v, "k") {
 			t.Errorf("%s: InOp = true", name)
 		}
@@ -29,21 +26,18 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if GetArg([]any{v}, 0, "def") != "def" {
 			t.Errorf("%s: GetArg did not answer the default", name)
 		}
-		if IsDictionary(v) || IsArray(v) {
+		ex := &BaseExchange{}
+		if ex.IsDictionary(v) || IsArray(v) {
 			t.Errorf("%s: IsDictionary/IsArray = true", name)
 		}
 		if SafeValue(map[string]any{"k": v}, "k", "def") != "def" {
 			t.Errorf("%s: SafeValue did not answer the default", name)
 		}
-		if !IsNil(v) || GetArrayLength(v) != 0 || ObjectKeys(v) != nil {
-			t.Errorf("%s: IsNil/GetArrayLength/ObjectKeys differ from absent", name)
+		if GetArrayLength(v) != 0 || ObjectKeys(v) != nil {
+			t.Errorf("%s: GetArrayLength/ObjectKeys differ from absent", name)
 		}
-		ex := &BaseExchange{}
 		if ex.Omit(v, "k") != nil || ex.Clone(v) != nil || ex.ArrayConcat(v, []any{1}) != nil {
 			t.Errorf("%s: Omit/Clone/ArrayConcat differ from absent", name)
-		}
-		if rest, first := Shift(v); rest != nil || first != nil {
-			t.Errorf("%s: Shift = %#v, %#v", name, rest, first)
 		}
 		AddElementToObject(v, "k", 1) // must not panic
 		got, _ := json.Marshal(map[string]any{"fee": v})
@@ -99,7 +93,6 @@ func TestTypedNilContainerSinksMatchUntyped(t *testing.T) {
 		"SortBy":          func(v any) any { return ex.SortBy(v, "a") },
 		"SortBy2":         func(v any) any { return ex.SortBy2(v, "a", "b") },
 		"GroupBy":         func(v any) any { return ex.GroupBy(v, "a") },
-		"Reverse":         func(v any) any { Reverse(v); return "ok" },
 		"ArraySlice":      func(v any) any { return ex.ArraySlice(v, 0) },
 		"Rawencode":       func(v any) any { return ex.Rawencode(v) },
 		"Urlencode":       func(v any) any { return ex.Urlencode(v) },

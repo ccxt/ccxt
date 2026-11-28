@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,7 +15,7 @@ pub fn testFilterBy() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut sampleArray: Value = Value::from(vec![Value::Map({
+    let sampleArray: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));
     m
@@ -52,8 +53,8 @@ pub fn testFilterBy() {
         m.insert("foo".to_string(), Value::Str("c".into()));
     m
 })]);
-    let mut currentValue: Value = exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]);
-    let mut storedValue: Value = Value::from(vec![Value::Map({
+    let currentValue: Value = Value::Arr(exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]));
+    let storedValue: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));
     m
@@ -63,5 +64,5 @@ pub fn testFilterBy() {
         m.insert("bar".to_string(), Value::Str("b".into()));
     m
 })]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testFilterBy".into()).clone(), currentValue.clone(), storedValue.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testFilterBy".into()), currentValue, storedValue]);
 }

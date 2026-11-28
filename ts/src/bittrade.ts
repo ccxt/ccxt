@@ -6,7 +6,7 @@ import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, Endpoint, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, Endpoint, DepositAddress, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -451,8 +451,11 @@ export default class bittrade extends Exchange {
         }
         const result: Dict = {};
         for (let i = 0; i < symbolsResolved.length; i++) {
-            const symbol = symbolsResolved[i];
-            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+            const symbol = this.safeString (symbolsResolved, i);
+            const limits = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+            if (symbol !== undefined) {
+                result[symbol] = limits;
+            }
         }
         return result;
     }
@@ -849,8 +852,8 @@ export default class bittrade extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const marketId = this.safeString (tickers[i], 'symbol');
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const ticker = this.parseTicker (tickers[i], market);
+            const symbol: string = this.safeString (market, 'symbol', '');
+            const ticker = this.parseTicker (this.safeDict (tickers, i, {}), market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
@@ -1048,7 +1051,7 @@ export default class bittrade extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const trades: Dict[] = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade (trades[j], market);
+                const trade = this.parseTrade (this.safeDict (trades, j, {}), market);
                 result.push (trade);
             }
         }
@@ -1516,9 +1519,9 @@ export default class bittrade extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrency: Str = undefined;
             if (side === 'sell') {
-                feeCurrency = marketResolved['quote'];
+                feeCurrency = this.safeString (marketResolved, 'quote');
             } else {
-                feeCurrency = marketResolved['base'];
+                feeCurrency = this.safeString (marketResolved, 'base');
             }
             fee = {
                 'cost': feeCost,
@@ -2080,7 +2083,8 @@ export default class bittrade extends Exchange {
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {
-                request['chain'] = currency['id'] + network;
+                const currencyId: string = this.safeString (currency, 'id', '');
+                request['chain'] = currencyId + network;
             } else {
                 request['chain'] = network + currency['id'];
             }
@@ -2156,7 +2160,7 @@ export default class bittrade extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

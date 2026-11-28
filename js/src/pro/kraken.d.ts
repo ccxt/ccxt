@@ -1,5 +1,5 @@
 import krakenRest from '../kraken.js';
-import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Market } from '../base/types.js';
+import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): Dict;
@@ -245,6 +245,6 @@ export default class kraken extends krakenRest {
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
 }

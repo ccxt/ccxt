@@ -1189,7 +1189,7 @@ export default class btse extends Exchange {
             const entry = this.safeDict(data, i);
             const marketId = this.safeString(entry, 'symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             if (symbolsNormalized === undefined || this.inArray(symbol, symbolsNormalized)) {
                 const levels = this.safeList(entry, 'riskLimits', []);
                 const tiers = [];
@@ -1916,7 +1916,7 @@ export default class btse extends Exchange {
         const isLimitOrder = (typeValue === 'LIMIT');
         let postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        [postOnly, query] = this.handlePostOnly(isMarketOrder, postOnly, query); // this will remove PO from params.timeInForce if present
+        [postOnly, query] = this.handlePostOnly(isMarketOrder, false, query); // this will remove PO from params.timeInForce if present
         if (postOnly) {
             request['postOnly'] = true;
         }
@@ -2152,7 +2152,7 @@ export default class btse extends Exchange {
         const isLimitOrder = (typeValue === 'LIMIT');
         let postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        [postOnly, query] = this.handlePostOnly(isMarketOrder, postOnly, query); // this will remove PO from params.timeInForce if present
+        [postOnly, query] = this.handlePostOnly(isMarketOrder, false, query); // this will remove PO from params.timeInForce if present
         if (postOnly) {
             request['postOnly'] = true;
         }
@@ -2290,13 +2290,7 @@ export default class btse extends Exchange {
             }
             response = await this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, query));
         }
-        // the normal futures endpoint responds with a single order dict, keep a
-        // one element array guard in case a gateway wraps it
-        let order = response;
-        if (Array.isArray(response)) {
-            order = this.safeDict(response, 0, {});
-        }
-        return this.parseOrder(order, market);
+        return this.parseOrder(response, market);
     }
     encodeTriggerPriceType(priceType) {
         const priceTypes = {
@@ -2356,7 +2350,7 @@ export default class btse extends Exchange {
         if (Array.isArray(order)) {
             order = this.safeDict(order, 0, {});
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -2883,7 +2877,8 @@ export default class btse extends Exchange {
         for (let i = 0; i < typesList.length; i++) {
             const historyType = this.safeString(typesList, i, '');
             allowed[historyType] = true;
-            allowed[this.capitalize(historyType.toLowerCase())] = true;
+            const capitalizedType = this.capitalize(historyType.toLowerCase());
+            allowed[capitalizedType] = true;
         }
         const rows = [];
         for (let i = 0; i < rawRows.length; i++) {
@@ -3544,7 +3539,7 @@ export default class btse extends Exchange {
         const paramsOmitted = (typeUpper === 'LIMIT') ? this.omit(paramsOrderType, 'price') : paramsOrderType;
         const response = await this.privateDeleteFuturesApiV3TradePositions(this.extend(request, paramsOmitted));
         const order = this.safeDict(response, 0, response);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

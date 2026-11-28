@@ -132,11 +132,13 @@ class coinbase extends \ccxt\async\coinbase {
         $watchMessageHash = $name;
         $unWatchMessageHash = 'unsubscribe:' . $name;
         $productIds = array();
+        $subscriptionSymbols = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $watchMessageHash = $name . '::' . $symbol;
             $unWatchMessageHash = 'unsubscribe:' . $name . '::' . $symbol;
             $productIds = array( $this->safe_string($market, 'id') );
+            $subscriptionSymbols[] = $market['symbol'];
         }
         $url = $this->urls['api']['ws'];
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -150,7 +152,7 @@ class coinbase extends \ccxt\async\coinbase {
             'subMessageHashes' => array( $watchMessageHash ),
             'topic' => $topic,
             'unsubscribe' => true,
-            'symbols' => array( $symbol ),
+            'symbols' => $subscriptionSymbols,
         );
         if ($isPrivate) {
             $message = $this->extend($message, $this->create_ws_auth($name, $productIds));
@@ -490,7 +492,7 @@ class coinbase extends \ccxt\async\coinbase {
             $tickersObj = $this->safe_dict($events, $i);
             $tickers = $this->safe_list($tickersObj, 'tickers', array());
             for ($j = 0; $j < count($tickers); $j++) {
-                $ticker = $tickers[$j];
+                $ticker = $this->safe_dict($tickers, $j, array());
                 $wsMarketId = $this->safe_string($ticker, 'product_id');
                 if ($wsMarketId === null) {
                     continue;
@@ -633,7 +635,7 @@ class coinbase extends \ccxt\async\coinbase {
                     $this->safe_number($candle, 'close'),
                     $this->safe_number($candle, 'volume'),
                 );
-                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+                $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
                 if ($stored === null) {
                     $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -917,8 +919,7 @@ class coinbase extends \ccxt\async\coinbase {
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             $tradesLength = count($currentTrades);
             for ($j = 0; $j < $tradesLength; $j++) {
-                $item = $currentTrades[$tradesLength - $j - 1];
-                $tradesArray->append($this->parse_trade($item));
+                $tradesArray->append($this->parse_trade($this->safe_dict($currentTrades, $tradesLength - $j - 1, array())));
             }
         }
         $client->resolve($tradesArray, $messageHash);
@@ -959,6 +960,7 @@ class coinbase extends \ccxt\async\coinbase {
             return;
         }
         $marketIds = array();
+        $seenMarketIds = array();
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -975,7 +977,8 @@ class coinbase extends \ccxt\async\coinbase {
                 $cachedOrders = $this->orders;
                 $marketId = $this->safe_string($responseOrder, 'product_id');
                 if ($marketId !== null) {
-                    if (!(is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
+                    if (!(is_array($seenMarketIds) && array_key_exists($marketId ?? '', $seenMarketIds))) {
+                        $seenMarketIds[$marketId] = true;
                         $marketIds[] = $marketId;
                     }
                 }
@@ -1152,16 +1155,18 @@ class coinbase extends \ccxt\async\coinbase {
         $events = $this->safe_list($message, 'events', array());
         $firstEvent = $this->safe_dict($events, 0, array());
         $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions' ?? '', $firstEvent));
-        $subKeys = is_array($firstEvent['subscriptions']) ? array_keys($firstEvent['subscriptions']) : array();
+        $subKeys = is_array($this->safe_dict($firstEvent, 'subscriptions', array())) ? array_keys($this->safe_dict($firstEvent, 'subscriptions', array())) : array();
         $subKeysLength = count($subKeys);
         if ($isUnsub && $subKeysLength === 0) {
             $unSubObject = $this->safe_dict($this->options, 'unSubscription', array());
-            $messageHashes = $this->safe_list($unSubObject, 'messageHashes', array());
+            $messageHashes = $this->safe_string_list($unSubObject, array( 'messageHashes' ));
             $subMessageHashes = $this->safe_list($unSubObject, 'subMessageHashes', array());
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $subHash = $subMessageHashes[$i];
-                $this->clean_unsubscription($client, $subHash, $messageHash);
+            if ($messageHashes !== null) {
+                for ($i = 0; $i < count($messageHashes); $i++) {
+                    $messageHash = $messageHashes[$i];
+                    $subHash = $subMessageHashes[$i];
+                    $this->clean_unsubscription($client, $subHash, $messageHash);
+                }
             }
             $this->clean_cache($unSubObject);
         }

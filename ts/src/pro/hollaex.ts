@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
@@ -380,7 +380,8 @@ export default class hollaex extends hollaexRest {
             rawOrders = [ dataDict ];
         }
         // usually the first message is an empty array
-        if (rawOrders.length === 0) {
+        const rawOrdersLength = rawOrders.length;
+        if (rawOrdersLength === 0) {
             return;
         }
         if (this.orders === undefined) {
@@ -454,10 +455,7 @@ export default class hollaex extends hollaexRest {
             const parts = key.split ('_');
             const currencyId = this.safeString (parts, 0);
             const code = this.safeCurrencyCode (currencyId);
-            let account = this.account ();
-            if ((code !== undefined) && (code in this.balance)) {
-                account = this.balance[code];
-            }
+            const account = this.safeDict (this.balance, code, this.account ());
             const second = this.safeString (parts, 1);
             const freeOrTotal = (second === 'available') ? 'free' : 'total';
             account[freeOrTotal] = this.safeString (data, key);
@@ -507,7 +505,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (signedUrl, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }

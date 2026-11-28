@@ -110,7 +110,8 @@ class coinone extends coinone$1["default"] {
         if ((base === undefined) || (quote === undefined)) {
             return;
         }
-        const symbol = this.symbol(base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol(marketSymbol);
         const timestamp = this.safeInteger(data, 'timestamp');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -235,7 +236,8 @@ class coinone extends coinone$1["default"] {
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol(base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol(marketSymbol);
         }
         return this.safeTicker({
             'symbol': symbol,

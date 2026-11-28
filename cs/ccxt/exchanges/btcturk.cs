@@ -432,7 +432,7 @@ public partial class btcturk : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -530,7 +530,7 @@ public partial class btcturk : Exchange
         return this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //   {
@@ -554,7 +554,7 @@ public partial class btcturk : Exchange
         //
         string? marketId = this.safeString(ticker, "pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open");
@@ -611,7 +611,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> response = await this.publicGetTicker(parameters);
         List<object> tickers = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -754,7 +754,7 @@ public partial class btcturk : Exchange
         return this.parseTrades(dataList, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -803,11 +803,10 @@ public partial class btcturk : Exchange
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
         }
-        object limitResolved = null;
+        Int64? limitResolved = limit;
         if ((limit != null))
         {
-            limitResolved = limit;
-            if ((limit > 11000))
+            if (limit > 11000)
             {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
             }
@@ -823,12 +822,12 @@ public partial class btcturk : Exchange
             }
             int seconds = this.parseTimeframe(timeframeVar);
             Int64 limitCount = ((limit == null)) ? 100 : Math.Min(limit.Value, 11000);
-            Int64? limitSeconds = this.parseToInt((seconds * ((limitCount - 1))));
+            Int64 limitSeconds = (seconds * ((limitCount - 1)));
             if ((since != null))
             {
                 Int64? sinceSeconds = this.parseToInt(((double?)since / 1000));
-                object to = add(sinceSeconds, limitSeconds);
-                if (isLessThan(to, untilSeconds))
+                Int64? to = (sinceSeconds + limitSeconds);
+                if ((untilSeconds != null && (to == null || to < untilSeconds)))
                 {
                     request["to"] = to;
                 }
@@ -894,9 +893,9 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
+    public override IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, Int64? limit = null, bool? tail = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         tail ??= false;
         IList<object> rows = this.toArray(ohlcvs);
@@ -906,7 +905,7 @@ public partial class btcturk : Exchange
             results.Add(this.parseOHLCV(this.safeDict(rows, i, new Dictionary<string, object>() {}), market));
         }
         List<object> sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted,ccxt.BaseExchange.ToInt64Arg(since), limit, 0, tail);
     }
 
     /**
@@ -1078,7 +1077,7 @@ public partial class btcturk : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders / fetchOpenOrders
@@ -1248,7 +1247,7 @@ public partial class btcturk : Exchange
             privateHeaders = new Dictionary<string, object>() {
                 { "X-PCK", this.apiKey },
                 { "X-Stamp", nonce },
-                { "X-Signature", this.hmac(this.encode(auth), secret, sha256, "base64") },
+                { "X-Signature", this.hmac(auth, secret, sha256, "base64") },
                 { "Content-Type", "application/json" },
             };
         }
@@ -1260,20 +1259,20 @@ public partial class btcturk : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         if ((message != null))
         {
             feedback = ((this.id + " ") + message);
         }
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

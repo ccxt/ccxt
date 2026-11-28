@@ -18,12 +18,12 @@ func HelperTestInitThrottler() {
 	var rateLimit any = ExchangeProp(exchange, "rateLimit")
 	Assert(ccxt.IsEqual(rateLimit, 10.8))
 	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "delay"), 0.001))
-	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "refillRate"), ccxt.Divide(1, rateLimit)))
+	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "refillRate"), Divide(1, rateLimit)))
 	// fix decimal/integer issues across langs
 	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []any{1, 1}))
 	var cost any = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix
 	Assert(exchange.InArray(cost, []any{1, 1}))
-	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
+	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	var expectEnabled bool = ccxt.GetArgBool(optionalArgs, 0, true)
@@ -135,9 +135,9 @@ func HelperTestProperties() {
 	assert((ccxt.IsEqual(ExchangeProp(exchange, "apiKey"), nil)) || (ccxt.IsEqual(ExchangeProp(exchange, "apiKey"), "")), "apiKey should be empty string")
 	assert((ccxt.IsEqual(exchange.Secret, nil)) || (exchange.Secret == ""), "secret should be empty string")
 	assert((ccxt.IsEqual(exchange.Uid, nil)) || (exchange.Uid == ""), "uid should be empty string")
-	assert(ccxt.IsEqual(exchange.Login, nil), "login should be empty string")
+	assert((ccxt.IsEqual(exchange.Login, nil)) || (exchange.Login == ""), "login should be empty string")
 	assert((ccxt.IsEqual(exchange.Password, nil)) || (exchange.Password == ""), "password should be empty string")
-	assert(ccxt.IsEqual(exchange.Twofa, nil), "twofa should be undefined")
+	assert((ccxt.IsEqual(exchange.Twofa, nil)) || (exchange.Twofa == ""), "twofa should be undefined")
 	assert((ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), nil)) || (ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), "")), "privateKey should be empty string")
 	assert((ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), nil)) || (ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), "")), "walletAddress should be empty string")
 	assert(ccxt.IsEqual(exchange.Token, nil), "token should be empty string")

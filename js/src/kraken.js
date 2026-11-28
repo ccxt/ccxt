@@ -922,7 +922,7 @@ export default class kraken extends Exchange {
     }
     safeCurrencyCode(currencyId, currency = undefined) {
         if (currencyId === undefined) {
-            return currencyId;
+            return undefined;
         }
         if (currencyId.indexOf('.') > 0) {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
@@ -987,8 +987,9 @@ export default class kraken extends Exchange {
     parseTradingFee(fee, market) {
         const makerFees = this.safeDict(fee, 'fees_maker', {});
         const takerFees = this.safeDict(fee, 'fees', {});
-        const symbolMakerFee = this.safeDict(makerFees, market['id'], {});
-        const symbolTakerFee = this.safeDict(takerFees, market['id'], {});
+        const marketId = this.safeString(market, 'id', '');
+        const symbolMakerFee = this.safeDict(makerFees, marketId, {});
+        const symbolTakerFee = this.safeDict(takerFees, marketId, {});
         return {
             'info': fee,
             'symbol': market['symbol'],
@@ -1126,7 +1127,8 @@ export default class kraken extends Exchange {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 if (this.safeBool(market, 'active', false)) {
-                    marketIds.push(market['id']);
+                    const marketId = this.safeString(market, 'id', '');
+                    marketIds.push(marketId);
                 }
             }
             request['pair'] = marketIds.join(',');
@@ -1138,8 +1140,8 @@ export default class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            const symbol = market['symbol'];
-            const ticker = tickers[id];
+            const symbol = this.safeString(market, 'symbol', '');
+            const ticker = this.safeDict(tickers, id, {});
             result[symbol] = this.parseTicker(ticker, market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -1163,8 +1165,8 @@ export default class kraken extends Exchange {
         };
         const response = await this.publicGetTicker(this.extend(request, params));
         const tickerResult = this.safeDict(response, 'result', {});
-        const ticker = this.safeValue(tickerResult, market['id']);
-        return this.parseTicker(ticker, market);
+        const marketId = this.safeString(market, 'id', '');
+        return this.parseTicker(this.safeDict(tickerResult, marketId, {}), market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1274,9 +1276,7 @@ export default class kraken extends Exchange {
         //
         const id = this.safeString(item, 'id');
         let direction = undefined;
-        const account = undefined;
         const referenceId = this.safeString(item, 'refid');
-        const referenceAccount = undefined;
         const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
         const currencyId = this.safeString(item, 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -1294,9 +1294,9 @@ export default class kraken extends Exchange {
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': undefined,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber(amount),
@@ -1360,7 +1360,7 @@ export default class kraken extends Exchange {
         const items = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = ledger[key];
+            const value = this.extend({}, ledger[key]);
             value['id'] = key;
             items.push(value);
         }
@@ -1390,7 +1390,7 @@ export default class kraken extends Exchange {
         const items = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = result[key];
+            const value = this.extend({}, result[key]);
             value['id'] = key;
             items.push(value);
         }
@@ -1474,12 +1474,14 @@ export default class kraken extends Exchange {
         let orderId = undefined;
         let fee = undefined;
         let symbol = undefined;
-        const isOrderTrade = (!Array.isArray(trade)) && (typeof trade !== 'string') && ('ordertxid' in trade);
+        const tradeIsList = Array.isArray(trade);
+        const tradeIsString = typeof trade === 'string';
+        const isOrderTrade = (!tradeIsList) && (!tradeIsString) && (this.safeString(trade, 'ordertxid') !== undefined);
         let marketResolved = market;
         if (isOrderTrade) {
             marketResolved = this.resolveMarketByAltnameOrId(this.safeString(trade, 'pair'), market);
         }
-        if (Array.isArray(trade)) {
+        if (tradeIsList) {
             timestamp = this.safeTimestamp(trade, 2);
             side = (this.safeString(trade, 3) === 's') ? 'sell' : 'buy';
             type = (this.safeString(trade, 4) === 'l') ? 'limit' : 'market';
@@ -1490,7 +1492,7 @@ export default class kraken extends Exchange {
                 id = this.safeString(trade, 6); // artificially added as per #1794
             }
         }
-        else if (typeof trade === 'string') {
+        else if (tradeIsString) {
             id = trade;
         }
         else if (isOrderTrade) {
@@ -1501,13 +1503,11 @@ export default class kraken extends Exchange {
             type = this.safeString(trade, 'ordertype');
             price = this.safeString(trade, 'price');
             amount = this.safeString(trade, 'vol');
-            if ('fee' in trade) {
-                let currency = undefined;
-                if (marketResolved !== undefined) {
-                    currency = this.safeString(marketResolved, 'quote');
-                }
+            const tradeFee = this.safeString(trade, 'fee');
+            if (tradeFee !== undefined) {
+                const currency = this.safeString(marketResolved, 'quote');
                 fee = {
-                    'cost': this.safeString(trade, 'fee'),
+                    'cost': tradeFee,
                     'currency': currency,
                 };
             }
@@ -1521,8 +1521,9 @@ export default class kraken extends Exchange {
             price = this.safeString(trade, 'price');
             amount = this.safeString(trade, 'qty');
         }
-        if (marketResolved !== undefined) {
-            symbol = this.safeString(marketResolved, 'symbol');
+        const resolvedSymbol = this.safeString(marketResolved, 'symbol');
+        if (resolvedSymbol !== undefined) {
+            symbol = resolvedSymbol;
         }
         const cost = this.safeString(trade, 'cost');
         const maker = this.safeBool(trade, 'maker');
@@ -1568,7 +1569,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['id'];
+        const id = this.safeString(market, 'id');
         const request = {
             'pair': id,
         };
@@ -1745,7 +1746,7 @@ export default class kraken extends Exchange {
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method
@@ -1779,10 +1780,10 @@ export default class kraken extends Exchange {
             orderSymbols.push(marketId);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
-            const parsedAmount = this.amountToPrecision(market['symbol'], amount);
+            const parsedAmount = this.amountToPrecision(this.safeString(market, 'symbol'), amount);
             const req = {
                 'type': side,
                 'ordertype': type,
@@ -1881,7 +1882,9 @@ export default class kraken extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
         };
-        this.options['delistedMarketsById'][id] = market;
+        const delistedMarketsByIdDict = this.safeDict(this.options, 'delistedMarketsById', {});
+        delistedMarketsByIdDict[id] = market;
+        this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
     }
     parseOrderStatus(status) {
@@ -2036,13 +2039,16 @@ export default class kraken extends Exchange {
                 descriptionType = part4; // eg, limit, market
             }
             else {
-                descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
+                const part4String = this.safeString(parts, 4, '');
+                const part5String = this.safeString(parts, 5, '');
+                descriptionType = part4String + ' ' + part5String; // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((part4 === 'stop' && part5 === 'loss') || (part4 === 'take' && part5 === 'profit')) {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
             }
-            else if (descriptionType === 'limit') {
+            else if (part4 === 'limit') {
                 price = this.safeString(parts, 5);
             }
         }
@@ -2051,7 +2057,9 @@ export default class kraken extends Exchange {
             side = descriptionSide;
         }
         const rawType = this.safeString(description, 'ordertype', descriptionType); // orderType has dash, e.g. trailing-stop
-        marketId = this.safeString(description, 'pair', marketId);
+        if (this.safeString(description, 'pair') !== undefined) {
+            marketId = this.safeString(description, 'pair');
+        }
         const marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp(orderOmitted, 'opentm');
@@ -2082,8 +2090,8 @@ export default class kraken extends Exchange {
         const average = this.safeNumber(orderOmitted, 'price');
         if (marketResolved !== undefined) {
             symbol = this.safeString(marketResolved, 'symbol');
-            if ('fee' in orderOmitted) {
-                const feeCost = this.safeString(orderOmitted, 'fee');
+            const feeCost = this.safeString(orderOmitted, 'fee');
+            if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -2107,12 +2115,12 @@ export default class kraken extends Exchange {
         const rawTrades = this.safeList(orderOmitted, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
-            const rawTrade = rawTrades[i];
-            if (typeof rawTrade === 'string') {
-                trades.push(this.safeTrade({ 'id': rawTrade, 'order': id, 'symbol': symbol, 'info': {} }));
+            const rawTradeId = this.safeString(rawTrades, i);
+            if (rawTradeId !== undefined) {
+                trades.push(this.safeTrade({ 'id': rawTradeId, 'order': id, 'symbol': symbol, 'info': {} }));
             }
             else {
-                trades.push(rawTrade);
+                trades.push(rawTrades[i]);
             }
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2252,7 +2260,11 @@ export default class kraken extends Exchange {
             }
             const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
             const offset = this.safeString(paramsOmitted2, 'offset', '-'); // can use + or - for this
-            const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString(trailingLimitAmount) : undefined;
+            let trailingLimitAmountString = undefined;
+            if (trailingLimitAmount !== undefined) {
+                const limitAmountString = this.numberToString(trailingLimitAmount);
+                trailingLimitAmountString = offset + limitAmountString;
+            }
             const trailingActivationPriceType = this.safeString(paramsOmitted2, 'trigger', 'last');
             request['trigger'] = trailingActivationPriceType;
             if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {
@@ -2288,11 +2300,11 @@ export default class kraken extends Exchange {
         const rawClose = this.safeDict(paramsOmitted2, 'close');
         if (rawClose !== undefined) {
             const close = this.extend({}, rawClose);
-            const closePrice = this.safeValue(close, 'price');
+            const closePrice = this.safeString(close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision(symbol, closePrice);
             }
-            const closePrice2 = this.safeValue(close, 'price2'); // stopPrice
+            const closePrice2 = this.safeString(close, 'price2'); // stopPrice
             if (closePrice2 !== undefined) {
                 close['price2'] = this.priceToPrecision(symbol, closePrice2);
             }
@@ -2390,7 +2402,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -2415,7 +2427,7 @@ export default class kraken extends Exchange {
         let query = params;
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
-            query = this.omit(params, ['userref', 'clientOrderId']);
+            query = this.omit(query, ['userref', 'clientOrderId']);
         }
         const response = await this.privatePostQueryOrders(this.extend(request, query));
         //
@@ -2455,7 +2467,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result', []);
+        const result = this.safeDict(response, 'result', {});
         if (!(id in result)) {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
@@ -2481,12 +2493,12 @@ export default class kraken extends Exchange {
         }
         else {
             for (let i = 0; i < orderTrades.length; i++) {
-                const orderTrade = orderTrades[i];
-                if (typeof orderTrade === 'string') {
-                    tradeIds.push(orderTrade);
+                const orderTradeId = this.safeString(orderTrades, i);
+                if (orderTradeId !== undefined) {
+                    tradeIds.push(orderTradeId);
                 }
                 else {
-                    tradeIds.push(this.safeString(orderTrade, 'id'));
+                    tradeIds.push(this.safeString(orderTrades[i], 'id'));
                 }
             }
         }
@@ -2501,18 +2513,19 @@ export default class kraken extends Exchange {
         const batches = [];
         let batch = [];
         for (let i = 0; i < numTradeIds; i++) {
-            batch.push(tradeIds[i]);
-            if (batch.length >= batchSize) {
-                batches.push(batch);
+            const tradeId = this.safeString(tradeIds, i, '');
+            batch.push(tradeId);
+            const batchLength = batch.length;
+            if (batchLength >= batchSize) {
+                batches.push(batch.join(','));
                 batch = [];
             }
         }
-        batches.push(batch);
+        batches.push(batch.join(','));
         let result = [];
         for (let j = 0; j < batches.length; j++) {
-            const requestIds = batches[j];
             const request = {
-                'txid': requestIds.join(','),
+                'txid': batches[j],
             };
             const response = await this.privatePostQueryTrades(request);
             //
@@ -2536,12 +2549,16 @@ export default class kraken extends Exchange {
             //         }
             //     }
             //
-            const rawTrades = this.safeValue(response, 'result');
+            const rawTrades = this.safeDict(response, 'result', {});
             const ids = Object.keys(rawTrades);
+            const rawTradesWithIds = {};
             for (let i = 0; i < ids.length; i++) {
-                rawTrades[ids[i]]['id'] = ids[i];
+                const rawTradeId = ids[i];
+                const rawTradeWithId = this.extend({}, rawTrades[rawTradeId]);
+                rawTradeWithId['id'] = rawTradeId;
+                rawTradesWithIds[rawTradeId] = rawTradeWithId;
             }
-            const trades = this.parseTrades(rawTrades, undefined, since, limit);
+            const trades = this.parseTrades(this.toArray(rawTradesWithIds), undefined, since, limit);
             const tradesFilteredBySymbol = this.filterBySymbol(trades, symbolResolved);
             result = this.arrayConcat(result, tradesFilteredBySymbol);
         }
@@ -2641,14 +2658,18 @@ export default class kraken extends Exchange {
         const tradesResult = this.safeDict(response, 'result', {});
         const trades = this.safeDict(tradesResult, 'trades', {});
         const ids = Object.keys(trades);
+        const tradesWithIds = {};
         for (let i = 0; i < ids.length; i++) {
-            trades[ids[i]]['id'] = ids[i];
+            const tradeId = ids[i];
+            const tradeWithId = this.extend({}, trades[tradeId]);
+            tradeWithId['id'] = tradeId;
+            tradesWithIds[tradeId] = tradeWithId;
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const tradesList = this.toArray(trades);
+        const tradesList = this.toArray(tradesWithIds);
         return this.parseTrades(tradesList, market, since, limit);
     }
     /**
@@ -3253,13 +3274,13 @@ export default class kraken extends Exchange {
         //        }
         //     }
         //
-        let rawWithdrawals = undefined;
-        const result = this.safeValue(response, 'result');
-        if (!Array.isArray(result)) {
-            rawWithdrawals = this.addPaginationCursorToResult(result);
+        let rawWithdrawals = [];
+        const resultList = this.safeList(response, 'result');
+        if (resultList !== undefined) {
+            rawWithdrawals = resultList;
         }
         else {
-            rawWithdrawals = result;
+            rawWithdrawals = this.addPaginationCursorToResult(this.safeDict(response, 'result', {}));
         }
         return this.parseTransactionsByType('withdrawal', rawWithdrawals, code, since, limit);
     }
@@ -3268,7 +3289,7 @@ export default class kraken extends Exchange {
         const data = this.safeList(result, 'withdrawals', []);
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
-            const last = data[dataLength - 1];
+            const last = this.extend({}, data[dataLength - 1]);
             last['next_cursor'] = cursor;
             data[dataLength - 1] = last;
         }
@@ -3412,7 +3433,7 @@ export default class kraken extends Exchange {
         const address = this.safeString(depositAddress, 'address');
         const tag = this.safeString(depositAddress, 'tag');
         const currencyResolved = this.safeCurrency(undefined, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString(currencyResolved, 'code');
         this.checkAddress(address);
         return {
             'info': depositAddress,
@@ -3748,33 +3769,31 @@ export default class kraken extends Exchange {
             return undefined;
         }
         if (this.safeString(body, 0) === '{') {
-            if (typeof response !== 'string') {
-                const message = this.id + ' ' + body;
-                const errors = this.safeList(response, 'error');
-                if (errors !== undefined) {
-                    const numErrors = errors.length;
-                    if (numErrors > 0) {
-                        for (let i = 0; i < numErrors; i++) {
-                            const error = errors[i];
+            const message = this.id + ' ' + body;
+            const errors = this.safeList(response, 'error');
+            if (errors !== undefined) {
+                const numErrors = errors.length;
+                if (numErrors > 0) {
+                    for (let i = 0; i < numErrors; i++) {
+                        const error = this.safeString(errors, i);
+                        this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
+                        this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
+                    }
+                    throw new ExchangeError(message);
+                }
+            }
+            // handleCreateOrdersErrors:
+            const result = this.safeDict(response, 'result');
+            if (result !== undefined) {
+                if ('orders' in result) {
+                    const orders = this.safeList(result, 'orders', []);
+                    for (let i = 0; i < orders.length; i++) {
+                        const order = this.safeDict(orders, i);
+                        const error = this.safeString(order, 'error');
+                        if (error !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
-                        }
-                        throw new ExchangeError(message);
-                    }
-                }
-                // handleCreateOrdersErrors:
-                if ('result' in response) {
-                    const result = this.safeDict(response, 'result', {});
-                    if ('orders' in result) {
-                        const orders = this.safeList(result, 'orders', []);
-                        for (let i = 0; i < orders.length; i++) {
-                            const order = this.safeDict(orders, i);
-                            const error = this.safeString(order, 'error');
-                            if (error !== undefined) {
-                                this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
-                                this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
-                                throw new ExchangeError(message);
-                            }
+                            throw new ExchangeError(message);
                         }
                     }
                 }

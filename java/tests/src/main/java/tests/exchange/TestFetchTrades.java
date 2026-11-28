@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -31,13 +32,13 @@ public class TestFetchTrades extends BaseTest {
         Boolean isPublicTrade = true;
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), (String) (symbol), now, isPublicTrade);
+            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), symbol, now, isPublicTrade);
         }
         //
         // test if both sides are being returned
         //
         Integer minTradesForBothSidesCheck = 99;
-        if (!(Helpers.inOp(skippedProperties, "requireBothSides")) && ((minTradesForBothSidesCheck == null || ((List<?>)trades).size() > minTradesForBothSidesCheck)))
+        if (!(TestHelpers.inOp(skippedProperties, "requireBothSides")) && ((minTradesForBothSidesCheck == null || ((List<?>)trades).size() > minTradesForBothSidesCheck)))
         {
             //
             //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
@@ -48,13 +49,13 @@ public class TestFetchTrades extends BaseTest {
             Assert((((Map<?, ?>)grouped).containsKey("buy")), msg);
             Assert((((Map<?, ?>)grouped).containsKey("sell")), msg);
         }
-        if (!(Helpers.inOp(skippedProperties, "timestampSort")))
+        if (!(TestHelpers.inOp(skippedProperties, "timestampSort")))
         {
-            TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), trades);
+            TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
         }
-        if (!(Helpers.inOp(skippedProperties, "side")) && !(Helpers.inOp(skippedProperties, "sideSequence")))
+        if (!(TestHelpers.inOp(skippedProperties, "side")) && !(TestHelpers.inOp(skippedProperties, "sideSequence")))
         {
-            (helperTestFetchTradesSideSequence(exchange, skippedProperties, (String) (symbol), method, trades)).join();
+            (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
         }
         return true;
         });
@@ -90,23 +91,23 @@ public class TestFetchTrades extends BaseTest {
             Object side = Helpers.GetValue(trade, "side");
             //
             Boolean isSameTs = Helpers.isEqual(ts, lastTs);
-            Object isSamePrice = Precise.stringEq(price, lastPrice);
+            Boolean isSamePrice = Precise.stringEq(price, lastPrice);
             Boolean isSameSide = Helpers.isEqual(side, lastSide);
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if (Boolean.TRUE.equals(isSameTs) && Boolean.TRUE.equals(isSameSide) && !Boolean.TRUE.equals(isSamePrice))
             {
-                Map<String, Object> pair = Helpers.newMap(
+                Map<String, Object> pair = TestHelpers.newMap(
                     "previous", lastTrade,
                     "current", trade
                 );
-                Object priceIncreasing = Precise.stringGt(price, lastPrice);
-                Object priceDecreasing = Precise.stringLt(price, lastPrice);
+                Boolean priceIncreasing = Precise.stringGt(price, lastPrice);
+                Boolean priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (Boolean.TRUE.equals(priceIncreasing))
                 {
-                    Assert(java.util.Objects.equals(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, (String) (method), pair)));
+                    Assert(java.util.Objects.equals(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));
                 } else if (Boolean.TRUE.equals(priceDecreasing))
                 {
-                    Assert(java.util.Objects.equals(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, (String) (method), pair)));
+                    Assert(java.util.Objects.equals(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));
                 }
             }
             lastPrice = price;

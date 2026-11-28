@@ -1,5 +1,5 @@
 import Exchange from './abstract/backpack.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, List, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, FundingHistory, OpenInterest, Conversion } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, List, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, FundingHistory, OpenInterest, Conversion } from './base/types.js';
 /**
  * @class backpack
  * @augments Exchange
@@ -40,7 +40,7 @@ export default class backpack extends Exchange {
      * @param {object} [market] resolved market
      * @returns {Array} stock flag and remaining parameters
      */
-    handleStockParams(methodName: string, params: Dict, market?: Market): List;
+    handleStockParams(methodName: string, params: Dict, market?: Market): [Bool, Dict];
     /**
      * @ignore
      * @method
@@ -64,7 +64,7 @@ export default class backpack extends Exchange {
      * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
      * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
      */
-    fetchStockIndicativeQuote(symbol: string, side: OrderSide, amount: number, params?: Dict): Promise<Dict>;
+    fetchStockIndicativeQuote(symbol: Str, side: OrderSide, amount: number, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -560,5 +560,5 @@ export default class backpack extends Exchange {
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     generateBatchPayload(params: any, ts: string, recvWindow: string, instruction: string): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

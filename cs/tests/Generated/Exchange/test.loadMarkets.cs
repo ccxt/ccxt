@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "loadMarkets";
         object markets = await invokeExchangeDynamically(exchange, "loadMarkets");
         assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
-        assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
+        assert(((exchange.symbols is IList<object>) || (exchange.symbols is not null && exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
         int symbolsLength = getArrayLength(exchange.symbols);
         assert(!isEqual(exchange.markets, null), ".markets is undefined");
         List<object> marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);

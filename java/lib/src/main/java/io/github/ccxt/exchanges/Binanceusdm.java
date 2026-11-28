@@ -7,6 +7,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.types.TransferEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,25 +62,29 @@ public class Binanceusdm extends BinanceusdmApi
         }});
     }
 
-    public CompletableFuture<Object> transferIn(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferIn(String code, Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.transferInCore(code, amount, parameters)).thenApply(TransferEntry::new);
+    }
+
+    private Object transferInCore(String code, Double amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            // transfer from spot wallet to usdm futures wallet
-            return (this.futuresTransfer(code, amount, 1L, parameters)).join();
-        });
+        // transfer from spot wallet to usdm futures wallet
+        return (this.futuresTransfer(code, amount, 1L, parameters)).join();
 
     }
 
-    public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferOut(String code, Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters)).thenApply(TransferEntry::new);
+    }
+
+    private Object transferOutCore(String code, Double amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            // transfer from usdm futures wallet to spot wallet
-            return (this.futuresTransfer(code, amount, 2L, parameters)).join();
-        });
+        // transfer from usdm futures wallet to spot wallet
+        return (this.futuresTransfer(code, amount, 2L, parameters)).join();
 
     }
 }

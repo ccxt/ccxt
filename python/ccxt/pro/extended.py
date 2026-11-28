@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
@@ -146,7 +146,7 @@ class extended(ccxt.async_support.extended):
                 },
             }
             self.extend_exchange_options(defaultOptions)
-            originalOptions = self.options['ws']['options']
+            originalOptions = self.safe_dict(self.options['ws'], 'options')
             originalHeaders = self.safe_dict(originalOptions, 'headers', {})
             self.options['ws']['options'] = self.extend(self.extend({}, originalOptions), {
                 'headers': self.extend(self.extend({
@@ -404,11 +404,10 @@ class extended(ccxt.async_support.extended):
         if first is None:
             return
         for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
-            marketId = self.safe_string(rawPosition, 'market')
+            marketId = self.safe_string(rawPositions[i], 'market')
             if marketId is None:
                 continue
-            position = self.parse_position(rawPosition)
+            position = self.parse_position(self.safe_dict(rawPositions, i, {}))
             newPositions.append(position)
             stored.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
@@ -458,12 +457,12 @@ class extended(ccxt.async_support.extended):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         data = self.safe_dict(message, 'data', {})
-        rawOrders = self.safe_list(data, 'orders')
+        rawOrders = self.safe_list(data, 'orders', [])
         symbols = {}
         first = self.safe_dict(rawOrders, 0)
         if first is None:
             return
-        for i in range(0, len((rawOrders))):
+        for i in range(0, len(rawOrders)):
             order = self.parse_order(self.safe_dict(rawOrders, i, {}))
             symbol = self.safe_string(order, 'symbol')
             symbols[symbol] = True
@@ -674,7 +673,7 @@ class extended(ccxt.async_support.extended):
             return
         subscription['nonce'] = nonce
         for i in range(0, len(data)):
-            trade = self.parse_trade(data[i], market)
+            trade = self.parse_trade(self.safe_dict(data, i, {}), market)
             stored.append(trade)
         client.resolve(stored, messageHash)
 
@@ -747,11 +746,9 @@ class extended(ccxt.async_support.extended):
         symbol = self.safe_string(subscription, 'symbol')
         timeframe = self.safe_string(subscription, 'timeframe', '')
         candleType = self.safe_string(subscription, 'candleType', '')
-        cacheKey = None
-        if candleType == 'trades':
-            cacheKey = timeframe
-        else:
-            cacheKey = timeframe + ':' + candleType
+        cacheKey = timeframe
+        if candleType != 'trades':
+            cacheKey = cacheKey + ':' + candleType
         messageHash = self.safe_string(subscription, 'messageHash')
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], cacheKey)
@@ -781,7 +778,7 @@ class extended(ccxt.async_support.extended):
                 return subscription
         return None
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         #

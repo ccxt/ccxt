@@ -178,7 +178,7 @@ class binance extends binance$1["default"] {
         const flatMarkets = [];
         const rawTopicsLength = rawTopics.length;
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent(rawTopics[i]);
+            const parsedEvent = this.parseEvent(this.extend({}, rawTopics[i]));
             parsedEvents.push(parsedEvent);
             const eventMarkets = this.safeList(parsedEvent, 'markets', []);
             const eventMarketsLength = eventMarkets.length;
@@ -214,7 +214,7 @@ class binance extends binance$1["default"] {
         let offset = 0;
         while (true) {
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining = this.parseToInt(maxTopicsResolved - collectedLength);
             const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
@@ -410,7 +410,7 @@ class binance extends binance$1["default"] {
         const rawTopicsLength = rawTopics.length;
         const result = [];
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent(rawTopics[i]);
+            const parsedEvent = this.parseEvent(this.extend({}, rawTopics[i]));
             result.push(parsedEvent);
             const parsedMarkets = this.safeList(parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
@@ -455,7 +455,7 @@ class binance extends binance$1["default"] {
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
-                'query': queries[qi],
+                'query': this.safeString(queries, qi),
             };
             request['topK'] = limitResolved;
             const response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));
@@ -862,7 +862,7 @@ class binance extends binance$1["default"] {
                 response = await this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, params));
                 responsesByMarketId[marketId] = response;
             }
-            const ticker = this.parsePredictionTicker(response, outcomeObj);
+            const ticker = this.parsePredictionTicker(this.extend({}, response), outcomeObj);
             const symbolKey = this.safeString(ticker, 'outcome', outcomes[i]);
             result[symbolKey] = ticker;
         }
@@ -983,12 +983,9 @@ class binance extends binance$1["default"] {
             const marketId = this.safeString(order, 'marketId');
             const outcome = this.safeStringUpper(order, 'outcome');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            const outcomeKey = marketName + ':' + outcome;
+            outcomeObjResolved = this.safeOutcome(outcomeKey);
         }
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'createTime');
@@ -1072,7 +1069,7 @@ class binance extends binance$1["default"] {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            const market = this.market(outcomeObj['market']);
+            const market = this.market(this.safeString(outcomeObj, 'market'));
             request['marketId'] = market['id'];
         }
         if (limit !== undefined) {
@@ -1314,8 +1311,8 @@ class binance extends binance$1["default"] {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            const market = this.market(outcomeObj['market']);
-            request['marketTopicId'] = market['info']['marketTopicId'];
+            const market = this.market(this.safeString(outcomeObj, 'market'));
+            request['marketTopicId'] = this.safeString(market['info'], 'marketTopicId');
         }
         const wallet = await this.fetchWallet('fetchOrders', params);
         request['walletAddress'] = this.safeString(wallet, 'walletAddress');
@@ -1342,12 +1339,8 @@ class binance extends binance$1["default"] {
             const marketId = this.safeString(position, 'marketId');
             const outcome = this.safeStringUpper(position, 'outcomeName');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger(position, 'createdTime');
         const totalCost = this.parseNumber(this.safeString(position, 'totalCost'));
@@ -1514,12 +1507,9 @@ class binance extends binance$1["default"] {
             const marketId = this.safeString(trade, 'marketId');
             const outcome = this.safeStringUpper(trade, 'outcome');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            const outcomeKey = marketName + ':' + outcome;
+            outcomeObjResolved = this.safeOutcome(outcomeKey);
         }
         const timestamp = this.safeInteger(trade, 'createTime');
         const filled = this.safeString(trade, 'filledShareQty');
@@ -1565,8 +1555,9 @@ class binance extends binance$1["default"] {
      * @returns {object} a wallet
      */
     async fetchWallet(methodName, params = {}) {
-        if (this.safeDict(this.options, 'wallet') !== undefined) {
-            return this.safeDict(this.options, 'wallet');
+        const cachedWallet = this.safeDict(this.options, 'wallet');
+        if (cachedWallet !== undefined) {
+            return cachedWallet;
         }
         const walletAddress = this.handleOptionStringAndParams(params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList();
@@ -1906,8 +1897,11 @@ class binance extends binance$1["default"] {
      */
     sign(path, api = ['sapi'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['sapi']);
+        const baseUrls = this.safeDict(this.urls, 'api', {});
+        let baseUrl = this.safeString(baseUrls, apiGroup, '');
+        if (baseUrl === '') {
+            baseUrl = this.safeString(baseUrls, 'sapi', '');
+        }
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         this.checkRequiredCredentials();
@@ -1918,11 +1912,11 @@ class binance extends binance$1["default"] {
         if (defaultRecvWindow !== undefined) {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
-        let querystring = this.urlencodeNested(extendedParams);
-        querystring = querystring.replaceAll('%5B', '[');
-        querystring = querystring.replaceAll('%5D', ']');
-        const signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha2_js.sha256);
-        querystring = querystring + '&signature=' + signature;
+        const rawQuery = this.urlencodeNested(extendedParams);
+        const bracketedQuery = rawQuery.replaceAll('%5B', '[');
+        const cleanQuery = bracketedQuery.replaceAll('%5D', ']');
+        const signature = this.hmac(this.encode(cleanQuery), this.encode(this.secret), sha2_js.sha256);
+        const querystring = cleanQuery + '&signature=' + signature;
         const headersValue = {
             'X-MBX-APIKEY': this.apiKey,
         };

@@ -7,7 +7,7 @@ import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint, List, NullableDict } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint, List, NullableDict, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -387,10 +387,11 @@ export default class btcbox extends Exchange {
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id', '');
             const free = currencyId + '_balance';
-            if (free in response) {
+            const freeValue = this.safeString (response, free);
+            if (freeValue !== undefined) {
                 const account = this.account ();
                 const used = currencyId + '_lock';
-                account['free'] = this.safeString (response, free);
+                account['free'] = freeValue;
                 account['used'] = this.safeString (response, used);
                 result[code] = account;
             }
@@ -521,7 +522,6 @@ export default class btcbox extends Exchange {
         const id = this.safeString (trade, 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const type = undefined;
         const side = this.safeString (trade, 'type');
         return this.safeTrade ({
             'info': trade,
@@ -530,7 +530,7 @@ export default class btcbox extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,
@@ -847,7 +847,7 @@ export default class btcbox extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // resort to defaultErrorHandler
         }

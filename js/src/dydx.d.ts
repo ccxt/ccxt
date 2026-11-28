@@ -1,5 +1,5 @@
 import Exchange from './abstract/dydx.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
 /**
  * @class dydx
  * @augments Exchange
@@ -149,10 +149,10 @@ export default class dydx extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): Dict;
-    signMessage(message: any, privateKey: any): Dict;
+    signHash(hash: string, privateKey: string): Dict;
+    signMessage(message: any, privateKey: string): Dict;
     signOnboardingAction(): object;
-    signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: Dict, authenticators: any, fee?: any): string;
+    signDydxTx(privateKey: string, message: Dict, memo: Str, chainId: Str, account: Dict, authenticators: any, fee?: NullableDict): string;
     retrieveCredentials(): Dict;
     fetchDydxAccount(): Promise<Dict>;
     pow(n: string, m: Str): Str;
@@ -346,6 +346,6 @@ export default class dydx extends Exchange {
     nonce(): int;
     getWalletAddress(): string;
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     setSandboxMode(enable: boolean): void;
 }

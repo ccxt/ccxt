@@ -176,7 +176,7 @@ export default class blofin extends blofinRest {
         }
     }
     parseWsTrade(trade, market = undefined) {
-        return this.parseTrade(trade, market);
+        return this.parseTrade(this.extend({}, trade), market);
     }
     /**
      * @method
@@ -323,7 +323,7 @@ export default class blofin extends blofinRest {
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseWsTicker(this.safeDict(data, i, {}));
+            const ticker = this.parseTicker(this.safeDict(data, i, {}));
             const symbol = this.safeString(ticker, 'symbol', '');
             this.tickers[symbol] = ticker;
             if (channelName !== undefined) {
@@ -331,9 +331,6 @@ export default class blofin extends blofinRest {
                 client.resolve(this.tickers[symbol], messageHash);
             }
         }
-    }
-    parseWsTicker(ticker, market = undefined) {
-        return this.parseTicker(ticker, market);
     }
     /**
      * @method
@@ -498,7 +495,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList(message, 'data');
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const interval = channelName.replace('candle', '');
         const unifiedTimeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
@@ -562,6 +559,7 @@ export default class blofin extends blofinRest {
         // the merged currencies by safeBalance
         this.balance[marketType] = this.safeDict(this.balance, marketType, {});
         const parsed = this.parseWsBalance(message);
+        const marketBalance = this.safeDict(this.balance, marketType, {});
         const reserved = ['free', 'used', 'total'];
         const keys = Object.keys(parsed);
         for (let i = 0; i < keys.length; i++) {
@@ -569,9 +567,10 @@ export default class blofin extends blofinRest {
             if (this.inArray(key, reserved)) {
                 continue;
             }
-            this.balance[marketType][key] = parsed[key];
+            marketBalance[key] = parsed[key];
         }
-        this.balance[marketType] = this.safeBalance(this.balance[marketType]);
+        this.balance[marketType] = marketBalance;
+        this.balance[marketType] = this.safeBalance(marketBalance);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
     }
@@ -593,11 +592,11 @@ export default class blofin extends blofinRest {
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray = [];
         if (symbol !== undefined) {
-            symbolsArray.push(symbol);
+            await this.loadMarkets();
+            return await this.watchOrdersForSymbols([this.symbol(symbol)], since, limit, params);
         }
-        return await this.watchOrdersForSymbols(symbolsArray, since, limit, params);
+        return await this.watchOrdersForSymbols([], since, limit, params);
     }
     /**
      * @method
@@ -687,13 +686,13 @@ export default class blofin extends blofinRest {
         // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for (let i = 0; i < symbols.length; i++) {
             if (channelName !== undefined) {
-                client.resolve(orders, channelName + ':' + symbols[i]);
+                client.resolve(orders, channelName + ':' + this.safeString(symbols, i, ''));
             }
             client.resolve(orders, channelName);
         }
     }
     parseWsOrder(order, market = undefined) {
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -735,16 +734,13 @@ export default class blofin extends blofinRest {
         const data = this.safeList(message, 'data');
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
-            const position = this.parseWsPosition(this.safeDict(data, i, {}));
+            const position = this.parsePosition(this.safeDict(data, i, {}));
             newPositions.push(position);
             cache.append(position);
             if (channelName !== undefined) {
                 client.resolve(position, channelName + ':' + this.safeString(position, 'symbol', ''));
             }
         }
-    }
-    parseWsPosition(position, market = undefined) {
-        return this.parsePosition(position, market);
     }
     /**
      * @method
@@ -821,16 +817,16 @@ export default class blofin extends blofinRest {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
                 let market = undefined;
-                let channel = channelName;
+                let interval = '';
                 if (isOHLCV) {
                     market = this.market(current);
-                    const tf = this.safeString(this.safeList(symbolsArray, i), 1);
-                    const interval = this.safeString(this.timeframes, tf, tf);
-                    channel = channel + interval;
+                    const tf = this.safeString(this.safeList(symbolsArray, i), 1, '');
+                    interval = this.safeString(this.timeframes, tf, tf);
                 }
                 else {
                     market = this.market(current);
                 }
+                const channel = '' + channelName + interval;
                 const topic = {
                     'channel': channel,
                     'instId': market['id'],
@@ -879,12 +875,12 @@ export default class blofin extends blofinRest {
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(this.safeString(symbols, i));
-            let channel = channelName;
+            let interval = '';
             if (isOHLCV) {
-                const tf = this.safeString(this.safeList(symbolsArray, i), 1);
-                const interval = this.safeString(this.timeframes, tf, tf);
-                channel = channel + interval;
+                const tf = this.safeString(this.safeList(symbolsArray, i), 1, '');
+                interval = this.safeString(this.timeframes, tf, tf);
             }
+            const channel = channelName + interval;
             const topic = {
                 'channel': channel,
                 'instId': market['id'],
@@ -896,7 +892,7 @@ export default class blofin extends blofinRest {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = (this.urls['api'])['ws'][marketType]['public'];
+        const url = this.safeString(this.urls['api']['ws'][marketType], 'public', '');
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
     handleUnsubscription(client, message) {

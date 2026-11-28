@@ -1276,7 +1276,7 @@ class derive extends Exchange {
         $settlements = $this->safe_list($result, 'settlements', array());
         $parsed = $this->parse_settlements($settlements, $market);
         $sorted = $this->sort_by($parsed, 'timestamp');
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 
@@ -1321,7 +1321,8 @@ class derive extends Exchange {
     public function parse_settlements(array $settlements, ?array $market = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($settlements[$i], $market);
+            $settlementRow = $this->extend(array(), $settlements[$i]);
+            $result[] = $this->parse_settlement($settlementRow, $market);
         }
         return $result;
     }
@@ -1544,13 +1545,13 @@ class derive extends Exchange {
         $result = array();
         for ($i = 0; $i < count($tradesArray); $i++) {
             $rawTrade = $tradesArray[$i];
-            $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
+            $isFetchTrades = ($this->safe_string($rawTrade, 'order_id') === null);
             $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
             if ($isFetchTrades && ($liquidityRole === 'maker')) {
                 // skip maker trades
                 continue;
             }
-            $parsed = $this->parse_trade($rawTrade, $market);
+            $parsed = $this->parse_trade($this->safe_dict($tradesArray, $i, array()), $market);
             $trade = $this->extend($parsed, $params);
             $result[] = $trade;
         }
@@ -1904,7 +1905,7 @@ class derive extends Exchange {
         );
     }
 
-    public function hash_order_message(mixed $order): string {
+    public function hash_order_message(array $order): string {
         $accountHash = $this->hash($this->eth_abi_encode(array(
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
@@ -1919,7 +1920,7 @@ class derive extends Exchange {
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order(mixed $order, string $privateKey): string {
+    public function sign_order(array $order, string $privateKey): string {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash($hashOrder, $privateKey);
     }
@@ -3617,9 +3618,10 @@ class derive extends Exchange {
             if (Precise::string_gt($used, $totalUsdc)) {
                 $used = $totalUsdc;
             }
-            $usdcAccount['used'] = $used;
-            $usdcAccount['free'] = Precise::string_sub($totalUsdc, $used);
-            $result['USDC'] = $usdcAccount;
+            $result['USDC'] = $this->extend($usdcAccount, array(
+                'used' => $used,
+                'free' => Precise::string_sub($totalUsdc, $used),
+            ));
         }
         return $this->safe_balance($result);
     }
@@ -3742,17 +3744,17 @@ class derive extends Exchange {
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch the spot transfer history of a subaccount
+         * fetch the spot $transfer history of a subaccount
          *
          * @see https://docs.derive.xyz/api-reference/history/privateget_erc20_transfer_history
          *
          * @param {string} [$code] unified currency $code
-         * @param {int} [$since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [$since] timestamp in ms of the earliest $transfer to fetch
          * @param {int} [$limit] the maximum number of $transfers to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] timestamp in ms of the latest transfer to fetch
+         * @param {int} [$params->until] timestamp in ms of the latest $transfer to fetch
          * @param {string} [$params->subaccount_id] *required* the subaccount id
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3798,7 +3800,8 @@ class derive extends Exchange {
         $transfers = $this->safe_list($result, 'transfers', array());
         $parsed = array();
         for ($i = 0; $i < count($transfers); $i++) {
-            $parsed[] = $this->parse_transfer($this->safe_dict($transfers, $i, array()));
+            $transfer = $this->extend($this->parse_transfer($this->safe_dict($transfers, $i, array())), array());
+            $parsed[] = $transfer;
         }
         $sorted = $this->sort_by($parsed, 'timestamp');
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
@@ -4282,7 +4285,7 @@ class derive extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

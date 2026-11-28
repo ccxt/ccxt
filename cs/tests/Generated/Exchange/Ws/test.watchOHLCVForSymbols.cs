@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             Int64 startTime = exchange.milliseconds();
             try
             {
-                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit));
+                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
                 if ((response == null))
                 {
                     throw new Exception (add(exchange.id, " watch returned undefined response")) ;
@@ -56,7 +56,7 @@ public partial class testMainClass : BaseTest
                 assert(exchange.isDictionary(symbolObj), ("Response.Symbol should be a dictionary. " + (assertionMessage)));
                 assert(inOp(symbolObj, chosenTimeframeKey), ("Response.symbol should contain the timeframe key. " + (assertionMessage)));
                 object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
-                assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("Response.symbol.timeframe should be an array. " + (assertionMessage)));
+                assert(((ohlcvs is IList<object>) || (ohlcvs is not null && ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("Response.symbol.timeframe should be an array. " + (assertionMessage)));
                 for (int i = 0; i < getArrayLength(ohlcvs); i++)
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);

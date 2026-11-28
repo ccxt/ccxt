@@ -1801,8 +1801,8 @@ public partial class gate : Exchange
                     { "maker", this.parseNumber("0.002") },
                     { "taker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1.5"), this.parseNumber("0.00185")}, new List<object> {this.parseNumber("3"), this.parseNumber("0.00175")}, new List<object> {this.parseNumber("6"), this.parseNumber("0.00165")}, new List<object> {this.parseNumber("12.5"), this.parseNumber("0.00155")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.00145")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.00135")}, new List<object> {this.parseNumber("200"), this.parseNumber("0.00125")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.00115")}, new List<object> {this.parseNumber("1250"), this.parseNumber("0.00105")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.00095")}, new List<object> {this.parseNumber("3000"), this.parseNumber("0.00085")}, new List<object> {this.parseNumber("6000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("11000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.00055")}, new List<object> {this.parseNumber("40000"), this.parseNumber("0.00055")}, new List<object> {this.parseNumber("75000"), this.parseNumber("0.00055")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1.5"), this.parseNumber("0.00195")}, new List<object> {this.parseNumber("3"), this.parseNumber("0.00185")}, new List<object> {this.parseNumber("6"), this.parseNumber("0.00175")}, new List<object> {this.parseNumber("12.5"), this.parseNumber("0.00165")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.00155")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.00145")}, new List<object> {this.parseNumber("200"), this.parseNumber("0.00135")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.00125")}, new List<object> {this.parseNumber("1250"), this.parseNumber("0.00115")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.00105")}, new List<object> {this.parseNumber("3000"), this.parseNumber("0.00095")}, new List<object> {this.parseNumber("6000"), this.parseNumber("0.00085")}, new List<object> {this.parseNumber("11000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("40000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("75000"), this.parseNumber("0.00065")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {1.5, 0.00185}, new List<object> {3.0, 0.00175}, new List<object> {6.0, 0.00165}, new List<object> {12.5, 0.00155}, new List<object> {25.0, 0.00145}, new List<object> {75.0, 0.00135}, new List<object> {200.0, 0.00125}, new List<object> {500.0, 0.00115}, new List<object> {1250.0, 0.00105}, new List<object> {2500.0, 0.00095}, new List<object> {3000.0, 0.00085}, new List<object> {6000.0, 0.00075}, new List<object> {11000.0, 0.00065}, new List<object> {20000.0, 0.00055}, new List<object> {40000.0, 0.00055}, new List<object> {75000.0, 0.00055}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {1.5, 0.00195}, new List<object> {3.0, 0.00185}, new List<object> {6.0, 0.00175}, new List<object> {12.5, 0.00165}, new List<object> {25.0, 0.00155}, new List<object> {75.0, 0.00145}, new List<object> {200.0, 0.00135}, new List<object> {500.0, 0.00125}, new List<object> {1250.0, 0.00115}, new List<object> {2500.0, 0.00105}, new List<object> {3000.0, 0.00095}, new List<object> {6000.0, 0.00085}, new List<object> {11000.0, 0.00075}, new List<object> {20000.0, 0.00065}, new List<object> {40000.0, 0.00065}, new List<object> {75000.0, 0.00065}} },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -1812,8 +1812,8 @@ public partial class gate : Exchange
                     { "maker", this.parseNumber("0.0") },
                     { "taker", this.parseNumber("0.0005") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0000")}, new List<object> {this.parseNumber("1.5"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("3"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("6"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("12.5"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("25"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("75"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("200"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("500"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("1250"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("2500"), this.parseNumber("-0.00005")}, new List<object> {this.parseNumber("3000"), this.parseNumber("-0.00008")}, new List<object> {this.parseNumber("6000"), this.parseNumber("-0.01000")}, new List<object> {this.parseNumber("11000"), this.parseNumber("-0.01002")}, new List<object> {this.parseNumber("20000"), this.parseNumber("-0.01005")}, new List<object> {this.parseNumber("40000"), this.parseNumber("-0.02000")}, new List<object> {this.parseNumber("75000"), this.parseNumber("-0.02005")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.00050")}, new List<object> {this.parseNumber("1.5"), this.parseNumber("0.00048")}, new List<object> {this.parseNumber("3"), this.parseNumber("0.00046")}, new List<object> {this.parseNumber("6"), this.parseNumber("0.00044")}, new List<object> {this.parseNumber("12.5"), this.parseNumber("0.00042")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.00040")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.00038")}, new List<object> {this.parseNumber("200"), this.parseNumber("0.00036")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.00034")}, new List<object> {this.parseNumber("1250"), this.parseNumber("0.00032")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("3000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("6000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("11000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("40000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("75000"), this.parseNumber("0.00030")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0000}, new List<object> {1.5, -0.00005}, new List<object> {3.0, -0.00005}, new List<object> {6.0, -0.00005}, new List<object> {12.5, -0.00005}, new List<object> {25.0, -0.00005}, new List<object> {75.0, -0.00005}, new List<object> {200.0, -0.00005}, new List<object> {500.0, -0.00005}, new List<object> {1250.0, -0.00005}, new List<object> {2500.0, -0.00005}, new List<object> {3000.0, -0.00008}, new List<object> {6000.0, -0.01000}, new List<object> {11000.0, -0.01002}, new List<object> {20000.0, -0.01005}, new List<object> {40000.0, -0.02000}, new List<object> {75000.0, -0.02005}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.00050}, new List<object> {1.5, 0.00048}, new List<object> {3.0, 0.00046}, new List<object> {6.0, 0.00044}, new List<object> {12.5, 0.00042}, new List<object> {25.0, 0.00040}, new List<object> {75.0, 0.00038}, new List<object> {200.0, 0.00036}, new List<object> {500.0, 0.00034}, new List<object> {1250.0, 0.00032}, new List<object> {2500.0, 0.00030}, new List<object> {3000.0, 0.00030}, new List<object> {6000.0, 0.00030}, new List<object> {11000.0, 0.00030}, new List<object> {20000.0, 0.00030}, new List<object> {40000.0, 0.00030}, new List<object> {75000.0, 0.00030}} },
                     } },
                 } },
             } },
@@ -2064,15 +2064,15 @@ public partial class gate : Exchange
         };
     }
 
-    public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
+    public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
-        bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0)))))
+        bool isOption = ((marketId != null)) && ((marketId.IndexOf("-C", StringComparison.Ordinal) > -1) || (marketId.IndexOf("-P", StringComparison.Ordinal) > -1));
+        if (((marketId != null)) && isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
-        return base.safeMarket(marketId, market, delimiter, marketType);
+        return base.safeMarket(marketId, market, delimiter,marketType);
     }
 
     /**
@@ -2129,7 +2129,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         Task<List<object>> marginPromise = this.publicMarginGetCurrencyPairs(parameters);
         Task<List<object>> spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
-        var marginResponsespotMarketsResponseVariable = new List<object>(await Task.WhenAll(new List<Task<List<object>>>() {marginPromise, spotMarketsPromise}));
+        List<object>[] marginResponsespotMarketsResponseVariable = await Task.WhenAll(new List<Task<List<object>>>() {marginPromise, spotMarketsPromise});
         var marginResponse = marginResponsespotMarketsResponseVariable[0];
         var spotMarketsResponse = marginResponsespotMarketsResponseVariable[1];
         Dictionary<string, object> marginMarkets = this.indexBy(marginResponse, "id");
@@ -2172,7 +2172,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(spotMarketsResponse); i++)
+        for (int i = 0; i < (spotMarketsResponse?.Count ?? 0); i++)
         {
             IDictionary<string, object> spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             string? id = this.safeString(spotMarket, "id");
@@ -2194,6 +2194,14 @@ public partial class gate : Exchange
             Int64? marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
             double? leverage = this.safeNumber(market, "leverage");
             bool margin = (leverage != null);
+            Dictionary<string, object> costLimits = new Dictionary<string, object>() {
+                { "min", this.safeNumber(market, "min_quote_amount") },
+                { "max", null },
+            };
+            if (margin)
+            {
+                costLimits["max"] = this.safeNumber(market, "max_quote_amount");
+            }
             Int64? buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             Int64? createdTs = ((buyStart != 0)) ? buyStart : null;
             bool active = (tradeStatus == "tradable") || (margin && ((marginStatus == 1)));
@@ -2240,10 +2248,7 @@ public partial class gate : Exchange
                         { "min", null },
                         { "max", null },
                     } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(market, "min_quote_amount") },
-                        { "max", margin ? this.safeNumber(market, "max_quote_amount") : null },
-                    } },
+                    { "cost", costLimits },
                 } },
                 { "created", createdTs },
                 { "info", market },
@@ -2310,7 +2315,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual Dictionary<string, object> parseContractMarket(IDictionary<string, object> market, object settleId)
+    public virtual Dictionary<string, object> parseContractMarket(IDictionary<string, object> market, string? settleId)
     {
         //
         //  Perpetual swap
@@ -2670,7 +2675,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        List<object> underlyings = new List<object>() {};
+        List<string> underlyings = new List<string>() {};
         for (int i = 0; i < (underlyingsResponse?.Count ?? 0); i++)
         {
             IDictionary<string, object> underlying = this.safeDict(underlyingsResponse, i, new Dictionary<string, object>() {});
@@ -2680,10 +2685,10 @@ public partial class gate : Exchange
                 underlyings.Add(name);
             }
         }
-        return ccxt.BaseExchange.ToStringList(underlyings);
+        return underlyings;
     }
 
-    public virtual List<object> prepareRequest(IDictionary<string, object> market = null, object type = null, IDictionary<string, object> parameters = null)
+    public virtual (Dictionary<string, object>, IDictionary<string, object>) prepareRequest(IDictionary<string, object> market = null, object type = null, IDictionary<string, object> parameters = null)
     {
         /**
         * @ignore
@@ -2724,13 +2729,13 @@ public partial class gate : Exchange
                 }
                 string? settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 request["settle"] = settle;
-                return new List<object>() {request, this.omit(parameters, "settle")};
+                return (request, this.omit(parameters, "settle"));
             }
         }
-        return new List<object>() {request, parameters};
+        return (request, parameters);
     }
 
-    public virtual List<object> spotOrderPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, IDictionary<string, object> parameters = null)
+    public virtual (Dictionary<string, object>, IDictionary<string, object>) spotOrderPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, IDictionary<string, object> parameters = null)
     {
         /**
         * @ignore
@@ -2744,9 +2749,9 @@ public partial class gate : Exchange
         */
         trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(trigger, parameters);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = (marginModequeryVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (trigger != true)
         {
@@ -2757,10 +2762,10 @@ public partial class gate : Exchange
             request["account"] = marginMode;
             request["currency_pair"] = (market != null && market.ContainsKey("id") ? market["id"] : null); // Should always be set for non-trigger
         }
-        return new List<object>() {request, query};
+        return (request, query);
     }
 
-    public virtual List<object> multiOrderSpotPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, IDictionary<string, object> parameters = null)
+    public virtual (Dictionary<string, object>, IDictionary<string, object>) multiOrderSpotPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, IDictionary<string, object> parameters = null)
     {
         /**
         * @ignore
@@ -2774,9 +2779,9 @@ public partial class gate : Exchange
         */
         trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(trigger, parameters);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = (marginModequeryVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", marginMode },
         };
@@ -2791,10 +2796,10 @@ public partial class gate : Exchange
                 request["currency_pair"] = (market != null && market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        return new List<object>() {request, query};
+        return (request, query);
     }
 
-    public virtual List<object> getMarginMode(bool? trigger, object parameters)
+    public virtual (string?, IDictionary<string, object>) getMarginMode(bool? trigger, IDictionary<string, object> parameters)
     {
         /**
          * @ignore
@@ -2807,7 +2812,7 @@ public partial class gate : Exchange
          */
         string? defaultMarginMode = this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
         string? marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"marginMode", "account"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"marginMode", "account"});
         if (marginMode == "cross")
         {
             marginMode = "cross_margin";
@@ -2837,7 +2842,7 @@ public partial class gate : Exchange
         {
             marginMode = "unified";
         }
-        return new List<object>() {marginMode, paramsUnifiedAccount};
+        return (marginMode, paramsUnifiedAccount);
     }
 
     public virtual List<object> getSettlementCurrencies(string? type, string? method)
@@ -2913,7 +2918,8 @@ public partial class gate : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         string type = "crypto";
-        if (this.isLeveragedCurrency(currencyId))
+        string? leveragedId = this.safeString(rawCurrency, "currency", "");
+        if (this.isLeveragedCurrency(leveragedId))
         {
             type = "leveraged";
         }
@@ -2984,9 +2990,9 @@ public partial class gate : Exchange
         {
             throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
-        var requestqueryVariable = this.prepareRequest(market, null, parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, null, parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         Dictionary<string, object> response = await this.publicFuturesGetSettleContractsContract(this.extend(request, query));
         //
         //    [
@@ -3058,9 +3064,9 @@ public partial class gate : Exchange
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
             market = this.market(firstSymbol);
         }
-        var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, "swap", parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         List<object> response = await this.publicFuturesGetSettleContracts(this.extend(request, query));
         //
         //    [
@@ -3109,7 +3115,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -3214,7 +3220,7 @@ public partial class gate : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < addresses.Count; i++)
         {
-            object entry = addresses[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)addresses[i]);
             //
             //    {
             //        "chain": "ETH",
@@ -3292,12 +3298,11 @@ public partial class gate : Exchange
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
-        Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
-        string? selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedById, selectedNetworkIdOrCode));
+        string? selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedByIdRaw, true);
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedByIdRaw, selectedNetworkIdOrCode));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3505,6 +3510,7 @@ public partial class gate : Exchange
                 withdrawFees = this.safeNumber(entry, "withdraw_fix");
             } else
             {
+                Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
                 List<object> networkIds = new List<object>(withdrawFixOnChains.Keys);
                 for (int j = 0; j < networkIds.Count; j++)
                 {
@@ -3512,9 +3518,10 @@ public partial class gate : Exchange
                     string? networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber((withdrawFixOnChains != null && networkId != null && withdrawFixOnChains.ContainsKey(networkId) ? withdrawFixOnChains[networkId] : null));
+                        networkFees[(string)networkCode] = this.safeNumber(withdrawFixOnChains, networkId);
                     }
                 }
+                withdrawFees = networkFees;
             }
             result[(string)code] = new Dictionary<string, object>() {
                 { "withdraw", withdrawFees },
@@ -3564,7 +3571,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "currency"));
     }
 
-    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -3596,6 +3603,7 @@ public partial class gate : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         if ((withdrawFixOnChains != null))
         {
             List<object> chainKeys = new List<object>(withdrawFixOnChains.Keys);
@@ -3607,7 +3615,7 @@ public partial class gate : Exchange
                 string? networkCode = this.networkIdToCode(chainKey, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    networkFees[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.parseNumber((withdrawFixOnChains != null && chainKey != null && withdrawFixOnChains.ContainsKey(chainKey) ? withdrawFixOnChains[chainKey] : null)) },
                             { "percentage", false },
@@ -3620,6 +3628,7 @@ public partial class gate : Exchange
                 }
             }
         }
+        result["networks"] = networkFees;
         return result;
     }
 
@@ -3648,13 +3657,13 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = this.prepareRequest(market, type, query);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestrequestParamsVariable[0];
-        IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = this.prepareRequest(market, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = (requestrequestParamsVariable.Item2);
         request["type"] = "fund"; // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if ((since != null))
         {
@@ -3691,20 +3700,20 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(response, symbolResolved, since, limit));
     }
 
-    public virtual object parseFundingHistories(IList<object> response, object symbol, Int64? since, Int64? limit)
+    public virtual IList<object> parseFundingHistories(IList<object> response, string? symbol, Int64? since, Int64? limit)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i);
-            IDictionary<string, object> funding = ((IDictionary<string, object>)this.parseFundingHistory(entry));
+            Dictionary<string, object> funding = this.parseFundingHistory(entry);
             result.Add(funding);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(sorted, symbol, since, limit))));
     }
 
-    public virtual object parseFundingHistory(IDictionary<string, object> info, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseFundingHistory(IDictionary<string, object> info, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -3758,15 +3767,15 @@ public partial class gate : Exchange
         //         'with_id': true, // return order book ID
         //     };
         //
-        var requestqueryVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         if ((limit != null))
         {
             // gateeu returns an empty book for a spot limit above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
             Int64? maxLimit = (this.safeBool(market, "spot", false) == true) ? maxSpotLimit : 300;
-            request["limit"] = mathMin(limit, maxLimit);
+            request["limit"] = Math.Min(limit.Value, maxLimit.GetValueOrDefault());
         }
         request["with_id"] = true;
         Dictionary<string, object> response = null;
@@ -3888,9 +3897,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        var requestqueryVariable = this.prepareRequest(market, null, parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, null, parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         List<object> response = null;
         if ((this.safeBool(market, "spot", false) == true) || (this.safeBool(market, "margin", false) == true))
         {
@@ -3903,7 +3912,7 @@ public partial class gate : Exchange
             response = await this.publicDeliveryGetSettleTickers(this.extend(request, query));
         } else if ((this.safeBool(market, "option", false) == true))
         {
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             request["underlying"] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, query));
@@ -3933,10 +3942,10 @@ public partial class gate : Exchange
         {
             throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, ticker), market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // SPOT
@@ -4008,7 +4017,7 @@ public partial class gate : Exchange
         //
         string? marketId = this.safeStringN(ticker, new List<object>() {"currency_pair", "contract", "name"});
         string marketType = "spot";
-        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("mark_price")))
+        if ((this.safeString(ticker, "mark_price") != null))
         {
             marketType = "contract";
         }
@@ -4077,7 +4086,7 @@ public partial class gate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -4087,9 +4096,9 @@ public partial class gate : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = this.prepareRequest(null, type, query);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestrequestParamsVariable[0];
-        IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = this.prepareRequest(null, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = (requestrequestParamsVariable.Item2);
         List<object> response = null;
         request["timezone"] = "utc0"; // default to utc
         if ((type == "spot") || (type == "margin"))
@@ -4121,9 +4130,10 @@ public partial class gate : Exchange
         account["used"] = this.safeString2(entry, "freeze", "locked");
         account["free"] = this.safeString(entry, "available");
         account["total"] = this.safeString(entry, "total");
-        if ((entry != null && ((IDictionary<string, object>)entry).ContainsKey("borrowed")))
+        string? borrowed = this.safeString(entry, "borrowed");
+        if ((borrowed != null))
         {
-            account["debt"] = this.safeString(entry, "borrowed");
+            account["debt"] = borrowed;
         }
         return account;
     }
@@ -4162,12 +4172,12 @@ public partial class gate : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsUnifiedAccount);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = this.prepareRequest(null, type, query);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestrequestParamsVariable[0];
-        IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
-        var marginModerequestQueryVariable = this.getMarginMode(false, requestParams);
-        string? marginMode = (string)marginModerequestQueryVariable[0];
-        IDictionary<string, object> requestQuery = ((IDictionary<string, object>)marginModerequestQueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = this.prepareRequest(null, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = (requestrequestParamsVariable.Item2);
+        (string?, IDictionary<string, object>) marginModerequestQueryVariable = this.getMarginMode(false, requestParams);
+        string? marginMode = marginModerequestQueryVariable.Item1;
+        IDictionary<string, object> requestQuery = (marginModerequestQueryVariable.Item2);
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
@@ -4410,17 +4420,17 @@ public partial class gate : Exchange
         };
         bool isolated = (marginMode == "margin") && (type == "spot");
         object data = response;
-        if (inOp(data, "balances"))
+        IDictionary<string, object> balances = this.safeDict(data, "balances");
+        if ((balances != null))
         {
             List<object> flatBalances = new List<object>() {};
-            IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             List<object> keys = new List<object>(balances.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currencyId = ((string)keys[i]);
-                IDictionary<string, object> content = ((IDictionary<string, object>)(currencyId != null && balances.ContainsKey(currencyId) ? balances[currencyId] : null));
+                Dictionary<string, object> content = this.extend(new Dictionary<string, object>() {}, this.safeDict(balances, currencyId, new Dictionary<string, object>() {}));
                 content["currency"] = currencyId;
                 flatBalances.Add(content);
             }
@@ -4486,18 +4496,13 @@ public partial class gate : Exchange
             return await this.FetchOptionOHLCV(symbol,timeframeVar, since, limit, paramsPaginate);
         }
         string? price = this.safeString(paramsPaginate, "price");
-        var requestparamsRequestVariable = this.prepareRequest(market, null, paramsPaginate);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestparamsRequestVariable[0];
-        IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestparamsRequestVariable = this.prepareRequest(market, null, paramsPaginate);
+        Dictionary<string, object> request = requestparamsRequestVariable.Item1;
+        IDictionary<string, object> paramsRequest = (requestparamsRequestVariable.Item2);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int maxLimit = (this.safeBool(market, "contract", false) == true) ? 1999 : 1000;
         Int64 limitValue = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);
         Int64? untilMs = this.safeInteger(paramsRequest, "until");
-        Int64? until = null;
-        if ((untilMs != null))
-        {
-            until = this.parseToInt(((double?)untilMs / 1000));
-        }
         Dictionary<string, object> paramsOmitted = this.omit(paramsRequest, "until");
         if ((since != null))
         {
@@ -4508,18 +4513,24 @@ public partial class gate : Exchange
             Int64 toTimestamp = this.sum(fromTimestamp, distance);
             Int64 currentTimestamp = this.seconds();
             Int64 to = ((Int64)Math.Min(toTimestamp, currentTimestamp));
-            if ((until != null))
+            if ((untilMs != null))
             {
-                request["to"] = mathMin(to, until);
+                Int64? untilSeconds = this.parseToInt(((double?)untilMs / 1000));
+                Int64? toValue = to;
+                if (untilSeconds.GetValueOrDefault() < to)
+                {
+                    toValue = untilSeconds;
+                }
+                request["to"] = toValue;
             } else
             {
                 request["to"] = to;
             }
         } else
         {
-            if ((until != null))
+            if ((untilMs != null))
             {
-                request["to"] = until;
+                request["to"] = this.parseToInt(((double?)untilMs / 1000));
             }
             request["limit"] = limitValue;
         }
@@ -4530,7 +4541,9 @@ public partial class gate : Exchange
             bool isIndex = (price == "index");
             if (isMark || isIndex)
             {
-                request["contract"] = (price == null ? null : price + "_" + (string)(object)((market.ContainsKey("id") ? market["id"] : null)));
+                string? marketId = this.safeString(market, "id", "");
+                string? contractId = ((string)(price == null ? null : price + "_" + marketId));
+                request["contract"] = contractId;
             }
             Dictionary<string, object> paramsContract = paramsOmitted;
             if (isMark || isIndex)
@@ -4548,10 +4561,10 @@ public partial class gate : Exchange
         {
             response = await this.publicSpotGetCandlesticks(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitValue));
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         string timeframeVar = timeframe;
         // separated option logic because the from, to and limit parameters weren't functioning
@@ -4562,12 +4575,12 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        var requestparamsValueVariable = this.prepareRequest(market, null, parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestparamsValueVariable[0];
-        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestparamsValueVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestparamsValueVariable = this.prepareRequest(market, null, parameters);
+        Dictionary<string, object> request = requestparamsValueVariable.Item1;
+        IDictionary<string, object> paramsValue = (requestparamsValueVariable.Item2);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         List<object> response = await this.publicOptionsGetCandlesticks(this.extend(request, paramsValue));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     /**
@@ -4606,9 +4619,9 @@ public partial class gate : Exchange
         {
             throw new BadSymbol ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        var requestparamsRequestVariable = this.prepareRequest(market, null, paramsPaginate);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestparamsRequestVariable[0];
-        IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestparamsRequestVariable = this.prepareRequest(market, null, paramsPaginate);
+        Dictionary<string, object> request = requestparamsRequestVariable.Item1;
+        IDictionary<string, object> paramsRequest = (requestparamsRequestVariable.Item2);
         if ((limit != null))
         {
             request["limit"] = limit;
@@ -4646,7 +4659,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         // Spot market candles
@@ -4672,7 +4685,7 @@ public partial class gate : Exchange
         //          "l": "40783.94"         // Lowest price
         //     }
         //
-        if (((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((ohlcv is IList<object>) || (ohlcv is not null && ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 5), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 6)};
         } else
@@ -4734,9 +4747,9 @@ public partial class gate : Exchange
         //         'to': this.seconds (), // end time in seconds, default to current time
         //     };
         //
-        var requestqueryVariable = this.prepareRequest(market, null, paramsPaginate);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, null, paramsPaginate);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         Int64? until = this.safeInteger2(paramsPaginate, "to", "until");
         if ((until != null))
         {
@@ -4917,9 +4930,9 @@ public partial class gate : Exchange
         if (contract)
         {
             Dictionary<string, object> contractQuery = null;
-            var requestcontractQueryVariable = this.prepareRequest(market, type, paramsMarketType);
-            request = (Dictionary<string, object>)requestcontractQueryVariable[0];
-            contractQuery = (Dictionary<string, object>)requestcontractQueryVariable[1];
+            (Dictionary<string, object>, IDictionary<string, object>) requestcontractQueryVariable = this.prepareRequest(market, type, paramsMarketType);
+            request = requestcontractQueryVariable.Item1;
+            contractQuery = (Dictionary<string, object>)requestcontractQueryVariable.Item2;
             query = ((type == "option")) ? this.omit(contractQuery, "order_id") : contractQuery;
         } else
         {
@@ -4927,9 +4940,9 @@ public partial class gate : Exchange
             {
                 request["currency_pair"] = (market.ContainsKey("id") ? market["id"] : null); // Should always be set for non-trigger
             }
-            var marginModequeryVariable = this.getMarginMode(false, paramsMarketType);
-            marginMode = (string)marginModequeryVariable[0];
-            query = marginModequeryVariable[1];
+            (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(false, paramsMarketType);
+            marginMode = marginModequeryVariable.Item1;
+            query = marginModequeryVariable.Item2;
             request["account"] = marginMode;
         }
         if ((limit != null))
@@ -5145,11 +5158,11 @@ public partial class gate : Exchange
         }
         string? marketId = this.safeString2(trade, "currency_pair", "contract");
         string marketType = "spot";
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("contract")))
+        if ((this.safeString(trade, "contract") != null))
         {
             marketType = "contract";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_",marketType);
         string? amountString = this.safeString2(trade, "amount", "size");
         string? priceString = this.safeString(trade, "price");
         string contractSide = "buy";
@@ -5254,7 +5267,7 @@ public partial class gate : Exchange
             request["from"] = start;
             request["to"] = this.sum(start, (((30L * 24L) * 60) * 60));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         List<object> response = await this.privateWalletGetDeposits(this.extend(requestUntil, paramsUntil));
@@ -5305,7 +5318,7 @@ public partial class gate : Exchange
             request["from"] = start;
             request["to"] = this.sum(start, (((30L * 24L) * 60) * 60));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         List<object> response = await this.privateWalletGetWithdrawals(this.extend(requestUntil, paramsUntil));
@@ -5385,16 +5398,16 @@ public partial class gate : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseTransactionType(object type)
+    public virtual string? parseTransactionType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "d", "deposit" },
             { "w", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -5468,7 +5481,8 @@ public partial class gate : Exchange
                 amountString = Precise.stringAbs(amountString);
             } else
             {
-                type = this.parseTransactionType((id != null && 0 < id.Length ? id[0].ToString () : null));
+                string? idPrefix = ((id == null) ? null : id.Substring(0, Math.Min(1, id.Length)));
+                type = this.parseTransactionType(idPrefix);
             }
         }
         string? feeCostString = this.safeString2(transaction, "fee", "fee_amount");
@@ -5686,12 +5700,12 @@ public partial class gate : Exchange
             orderSymbols.Add(marketId);
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            object triggerValue = this.safeValueN(orderParams, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
-            if ((triggerValue != null))
+            bool triggerValue = (this.safeValueN(orderParams, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})) != null;
+            if (triggerValue)
             {
                 throw new NotSupported ((this.id + " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
@@ -5727,8 +5741,15 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
-        IDictionary<string, object> firstOrder = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
-        Dictionary<string, object> market = this.market((firstOrder != null && firstOrder.ContainsKey("symbol") ? firstOrder["symbol"] : null));
+        string? symbol = null;
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        {
+            if ((i == 0))
+            {
+                symbol = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "symbol");
+            }
+        }
+        Dictionary<string, object> market = this.market(symbol);
         List<object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
@@ -5750,7 +5771,7 @@ public partial class gate : Exchange
 
     public virtual string? getGateFuturesSignedAmount(object symbol, object side, object amount)
     {
-        string? amountString = this.amountToPrecision(symbol, amount);
+        string? amountString = this.amountToPrecision(((string)symbol), amount);
         if ((side is "sell"))
         {
             return ((string?)((object)(Precise.stringNeg(amountString))));
@@ -5758,7 +5779,7 @@ public partial class gate : Exchange
         return amountString;
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -5801,7 +5822,7 @@ public partial class gate : Exchange
         bool isMarketOrder = ((type == "market"));
         if (isLimitOrder && (price == null))
         {
-            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + type) + " orders")) ;
         }
         if (isMarketOrder)
         {
@@ -5819,7 +5840,8 @@ public partial class gate : Exchange
             }
         }
         object priceResolved = price;
-        if (isMarketOrder && ((contract == true)))
+        bool zeroPrice = isMarketOrder && ((contract == true));
+        if (zeroPrice)
         {
             priceResolved = 0;
         }
@@ -5865,7 +5887,7 @@ public partial class gate : Exchange
                     request["price"] = "0"; // set to 0 for market orders
                 } else
                 {
-                    request["price"] = (isEqual(priceResolved, 0)) ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    request["price"] = zeroPrice ? "0" : this.priceToPrecision(((string)symbol), priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -5878,9 +5900,9 @@ public partial class gate : Exchange
             } else
             {
                 object marginMode = null;
-                var marginModequeryVariable = this.getMarginMode(false, query);
-                marginMode = marginModequeryVariable[0];
-                query = (IDictionary<string, object>)marginModequeryVariable[1];
+                (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(false, query);
+                marginMode = marginModequeryVariable.Item1;
+                query = marginModequeryVariable.Item2;
                 // spot order
                 request = new Dictionary<string, object>() {
                     { "currency_pair", (market.ContainsKey("id") ? market["id"] : null) },
@@ -5899,7 +5921,7 @@ public partial class gate : Exchange
                     query = this.omit(query, "cost");
                     if ((cost != null))
                     {
-                        quoteAmount = this.costToPrecision(symbol, cost);
+                        quoteAmount = this.costToPrecision(((string)symbol), cost);
                     } else if ((createMarketBuyOrderRequiresPrice == true))
                     {
                         if ((priceResolved == null))
@@ -5910,20 +5932,20 @@ public partial class gate : Exchange
                             string? amountString = this.numberToString(amountResolved);
                             string? priceString = this.numberToString(priceResolved);
                             string? costRequest = Precise.stringMul(amountString, priceString);
-                            quoteAmount = this.costToPrecision(symbol, costRequest);
+                            quoteAmount = this.costToPrecision(((string)symbol), costRequest);
                         }
                     } else
                     {
-                        quoteAmount = this.costToPrecision(symbol, amountResolved);
+                        quoteAmount = this.costToPrecision(((string)symbol), amountResolved);
                     }
                     request["amount"] = quoteAmount;
                 } else
                 {
-                    request["amount"] = this.amountToPrecision(symbol, amountResolved);
+                    request["amount"] = this.amountToPrecision(((string)symbol), amountResolved);
                 }
                 if (isLimitOrder)
                 {
-                    request["price"] = this.priceToPrecision(symbol, priceResolved);
+                    request["price"] = this.priceToPrecision(((string)symbol), priceResolved);
                 }
                 if ((timeInForce != null))
                 {
@@ -5979,7 +6001,7 @@ public partial class gate : Exchange
                     initial["price"] = "0";
                 } else
                 {
-                    initial["price"] = (isEqual(priceResolved, 0)) ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    initial["price"] = zeroPrice ? "0" : this.priceToPrecision(((string)symbol), priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -6006,21 +6028,21 @@ public partial class gate : Exchange
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = ((side == "buy")) ? 1 : 2;
-                        triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), stopLossPrice);
                     } else if (isTakeProfitOrder)
                     {
                         rule = ((side == "buy")) ? 2 : 1;
-                        triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), takeProfitPrice);
                     }
                     Int64? priceType = this.safeInteger(query, "price_type", 0);
-                    if (((priceType == null || priceType < 0)) || (priceType > 2))
+                    if (priceType.GetValueOrDefault() < 0 || priceType.GetValueOrDefault() > 2)
                     {
                         throw new BadRequest ((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
                     query = this.omit(query, new List<object>() {"price_type"});
                     request["trigger"] = new Dictionary<string, object>() {
                         { "price_type", priceType },
-                        { "price", this.priceToPrecision(symbol, triggerOrderPrice) },
+                        { "price", this.priceToPrecision(((string)symbol), triggerOrderPrice) },
                         { "rule", rule },
                     };
                 }
@@ -6029,9 +6051,9 @@ public partial class gate : Exchange
                 // spot conditional order
                 IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
                 object marginMode = null;
-                var marginModequeryVariable = this.getMarginMode(true, query);
-                marginMode = marginModequeryVariable[0];
-                query = (IDictionary<string, object>)marginModequeryVariable[1];
+                (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(true, query);
+                marginMode = marginModequeryVariable.Item1;
+                query = marginModequeryVariable.Item2;
                 if ((timeInForce == null))
                 {
                     timeInForce = "gtc";
@@ -6040,8 +6062,8 @@ public partial class gate : Exchange
                     { "put", new Dictionary<string, object>() {
                         { "type", type },
                         { "side", side },
-                        { "price", this.priceToPrecision(symbol, priceResolved) },
-                        { "amount", this.amountToPrecision(symbol, amountResolved) },
+                        { "price", this.priceToPrecision(((string)symbol), priceResolved) },
+                        { "amount", this.amountToPrecision(((string)symbol), amountResolved) },
                         { "account", marginMode },
                         { "time_in_force", timeInForce },
                     } },
@@ -6058,14 +6080,14 @@ public partial class gate : Exchange
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = ((side == "buy")) ? ">=" : "<=";
-                        triggerOrderPrice = this.priceToPrecision(symbol, stopLossPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), stopLossPrice);
                     } else if (isTakeProfitOrder)
                     {
                         rule = ((side == "buy")) ? "<=" : ">=";
-                        triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                        triggerOrderPrice = this.priceToPrecision(((string)symbol), takeProfitPrice);
                     }
                     Dictionary<string, object> triggerRequest = new Dictionary<string, object>() {
-                        { "price", this.priceToPrecision(symbol, triggerOrderPrice) },
+                        { "price", this.priceToPrecision(((string)symbol), triggerOrderPrice) },
                         { "rule", rule },
                         { "expiration", expiration },
                     };
@@ -6110,14 +6132,18 @@ public partial class gate : Exchange
         return await this.CreateOrder(symbol, "market", "buy", cost, null, paramsExtended);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("editOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        string? accountParsed = this.convertTypeToAccount(marketType);
+        string? accountParsed = null;
+        if ((marketType != null))
+        {
+            accountParsed = this.convertTypeToAccount(marketType);
+        }
         (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false);
         bool? isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.Item1;
         IDictionary<string, object> paramsUnifiedAccount = (isUnifiedAccountparamsUnifiedAccountVariable.Item2);
@@ -6249,7 +6275,7 @@ public partial class gate : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // SPOT
@@ -6529,7 +6555,7 @@ public partial class gate : Exchange
             }
         }
         string marketType = "contract";
-        if (((order != null && ((IDictionary<string, object>)order).ContainsKey("currency_pair"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("market"))))
+        if (((this.safeString(order, "currency_pair") != null)) || ((this.safeString(order, "market") != null)))
         {
             marketType = "spot";
         }
@@ -6594,10 +6620,10 @@ public partial class gate : Exchange
         string? clientOrderId = this.safeString(order, "text");
         if ((clientOrderId == null))
         {
-            if ((order != null && ((IDictionary<string, object>)order).ContainsKey("initial")))
+            if ((order != null && order.ContainsKey("initial")))
             {
                 clientOrderId = this.safeString(initial, "text");
-            } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("trigger")))
+            } else if ((order != null && order.ContainsKey("trigger")))
             {
                 IDictionary<string, object> triggerOrder = this.safeDict(order, "trigger", new Dictionary<string, object>() {});
                 clientOrderId = this.safeString(triggerOrder, "text");
@@ -6641,7 +6667,7 @@ public partial class gate : Exchange
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         string? clientOrderIdRaw = this.safeString2(paramsOmitted, "text", "clientOrderId");
-        object orderId = id;
+        string? orderId = id;
         if ((clientOrderIdRaw != null))
         {
             if (!clientOrderIdRaw.StartsWith("t"))
@@ -6657,11 +6683,23 @@ public partial class gate : Exchange
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
         bool contract = ((type == "swap")) || ((type == "future")) || ((type == "option"));
-        var requestrequestParamsVariable = contract ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        ((IDictionary<string,object>)request)["order_id"] = orderId.ToString();
-        return new List<object>() {request, requestParams};
+        if (contract)
+        {
+            (Dictionary<string, object>, IDictionary<string, object>) contractRequestcontractParamsVariable = this.prepareRequest(market, type, query);
+            Dictionary<string, object> contractRequest = contractRequestcontractParamsVariable.Item1;
+            IDictionary<string, object> contractParams = (contractRequestcontractParamsVariable.Item2);
+            Dictionary<string, object> contractOrder = this.extend(contractRequest, new Dictionary<string, object>() {
+                { "order_id", orderId },
+            });
+            return new List<object>() {contractOrder, contractParams};
+        }
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = this.spotOrderPrepareRequest(market, trigger, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = (requestrequestParamsVariable.Item2);
+        Dictionary<string, object> spotOrder = this.extend(request, new Dictionary<string, object>() {
+            { "order_id", orderId },
+        });
+        return new List<object>() {spotOrder, requestParams};
     }
 
     /**
@@ -6702,7 +6740,7 @@ public partial class gate : Exchange
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = requestrequestParamsVariable[0];
-        var requestParams = requestrequestParamsVariable[1];
+        IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
         Dictionary<string, object> response = null;
         if (type == "spot" || type == "margin")
         {
@@ -6817,9 +6855,9 @@ public partial class gate : Exchange
         {
             return await this.FetchOrdersByStatus("finished", symbolResolved, since, limit, paramsHistorical);
         }
-        var requestparamsRequestVariable = this.prepareRequest(market, type, this.omit(paramsHistorical, "type"));
-        Dictionary<string, object> request = (Dictionary<string, object>)requestparamsRequestVariable[0];
-        IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestparamsRequestVariable = this.prepareRequest(market, type, this.omit(paramsHistorical, "type"));
+        Dictionary<string, object> request = requestparamsRequestVariable.Item1;
+        IDictionary<string, object> paramsRequest = (requestparamsRequestVariable.Item2);
         if ((since != null))
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
@@ -6836,7 +6874,7 @@ public partial class gate : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
-    public virtual List<object> prepareOrdersByStatusRequest(string? status, object symbol = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public virtual List<object> prepareOrdersByStatusRequest(string? status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> market = null;
@@ -6853,14 +6891,19 @@ public partial class gate : Exchange
         bool spot = ((type == "spot")) || ((type == "margin"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> query = new Dictionary<string, object>() {};
-        var requestqueryVariable = spot ? this.multiOrderSpotPrepareRequest(market, trigger, paramsMarketType) : this.prepareRequest(market, type, paramsMarketType);
-        request = (Dictionary<string, object>)((IList<object>)requestqueryVariable)[0];
-        query = (Dictionary<string, object>)((IList<object>)requestqueryVariable)[1];
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = spot ? this.multiOrderSpotPrepareRequest(market, trigger, paramsMarketType) : this.prepareRequest(market, type, paramsMarketType);
+        request = requestqueryVariable.Item1;
+        query = (Dictionary<string, object>)requestqueryVariable.Item2;
         if (spot && ((trigger == true)))
         {
             request = this.omit(request, "account");
         }
-        request["status"] = ((status == "closed")) ? "finished" : status;
+        string? requestStatus = status;
+        if ((status == "closed"))
+        {
+            requestStatus = "finished";
+        }
+        request["status"] = requestStatus;
         if ((limit != null))
         {
             request["limit"] = limit;
@@ -6869,7 +6912,7 @@ public partial class gate : Exchange
         {
             if ((since != null))
             {
-                request["from"] = this.parseToInt(divide(since, 1000));
+                request["from"] = this.parseToInt(((double?)since / 1000));
             }
             Int64? until = this.safeInteger(query, "until");
             if ((until != null))
@@ -6888,7 +6931,7 @@ public partial class gate : Exchange
         return new List<object>() {request, finalParams};
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7150,9 +7193,9 @@ public partial class gate : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = ((type == "spot") || (type == "margin")) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = ((type == "spot") || (type == "margin")) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = requestrequestParamsVariable.Item2;
         ((IDictionary<string,object>)request)["order_id"] = id;
         Dictionary<string, object> response = null;
         if ((type == "spot") || (type == "margin"))
@@ -7298,13 +7341,13 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        object defaultSettle = null;
+        string? defaultSettle = null;
         if ((market == null))
         {
             defaultSettle = "usdt";
         } else
         {
-            defaultSettle = (market.ContainsKey("settle") ? market["settle"] : null);
+            defaultSettle = this.safeString(market, "settle");
         }
         string? settle = this.safeStringLower(parameters, "settle", defaultSettle);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrders", market, parameters);
@@ -7318,12 +7361,13 @@ public partial class gate : Exchange
         if (isSpot)
         {
             List<object> ordersRequests = new List<object>() {};
+            string? marketSymbol = this.safeString(market, "symbol", "");
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 string? id = this.safeString(ids, i, "");
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", symbol },
+                    { "symbol", marketSymbol },
                 };
                 ordersRequests.Add(orderItem);
             }
@@ -7423,9 +7467,9 @@ public partial class gate : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = ((type == "spot")) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = ((type == "spot")) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = requestrequestParamsVariable.Item2;
         List<object> response = null;
         if ((type == "spot") || (type == "margin"))
         {
@@ -7552,10 +7596,10 @@ public partial class gate : Exchange
             request["settle"] = (currency.ContainsKey("id") ? currency["id"] : null); // todo: currencies have network-junctions
         }
         bool isMarginTransfer = (fromId == "margin") || (toId == "margin");
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         if (isMarginTransfer)
         {
-            query = this.omit(parameters, "symbol");
+            query = this.omit(query, "symbol");
         }
         Dictionary<string, object> response = await this.privateWalletPostTransfers(this.extend(request, query));
         //
@@ -7572,7 +7616,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         //    {
@@ -7625,9 +7669,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        var requestqueryVariable = this.prepareRequest(market, null, parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, null, parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         string? defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
         string? crossLeverageLimit = this.safeString(query, "cross_leverage_limit");
         string? marginMode = this.safeString(query, "marginMode", defaultMarginMode);
@@ -7686,7 +7730,7 @@ public partial class gate : Exchange
         return response;
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // swap and future
@@ -7763,7 +7807,7 @@ public partial class gate : Exchange
         //    }
         //
         string? contract = this.safeString(position, "contract");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market, "_", "contract");
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market), "_", "contract");
         string? size = this.safeString2(position, "size", "accum_size");
         string? side = this.safeString(position, "side");
         if ((side == null))
@@ -7878,9 +7922,9 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((this.id + " fetchPosition() supports contract markets only")) ;
         }
-        var requestparamsValueVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestparamsValueVariable[0];
-        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestparamsValueVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestparamsValueVariable = this.prepareRequest(market, this.safeString(market, "type"), parameters);
+        Dictionary<string, object> request = requestparamsValueVariable.Item1;
+        IDictionary<string, object> paramsValue = (requestparamsValueVariable.Item2);
         Dictionary<string, object> extendedRequest = this.extend(request, paramsValue);
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "swap", false) == true))
@@ -7977,7 +8021,7 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -7995,9 +8039,9 @@ public partial class gate : Exchange
             type = "swap"; // default to swap
         }
         // prepareRequest leaves request empty and params untouched for options
-        var requestqueryVariable = this.prepareRequest(null, type, paramsMarketType);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(null, type, paramsMarketType);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         if (type == "option")
         {
             if ((symbolsNormalized != null))
@@ -8081,7 +8125,7 @@ public partial class gate : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbolsNormalized));
     }
@@ -8111,15 +8155,19 @@ public partial class gate : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = this.prepareRequest(null, type, query);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestrequestParamsVariable[0];
-        IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = this.prepareRequest(null, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = (requestrequestParamsVariable.Item2);
         if (!(type == "future") && !(type == "swap"))
         {
             throw new BadRequest ((this.id + " fetchLeverageTiers only supports swap and future")) ;
         }
         Int64? requestedLimit = this.safeInteger(requestParams, "limit", 100);
-        Int64? limit = this.parseToInt(((requestedLimit == null)) ? 100 : mathMax(1, Math.Min(requestedLimit.Value, 100)));
+        Int64? limit = 100;
+        if ((requestedLimit != null))
+        {
+            limit = this.parseToInt(Math.Max(1, Math.Min(requestedLimit.Value, 100)));
+        }
         object offset = this.safeInteger(requestParams, "offset", 0);
         string? contract = this.safeString(requestParams, "contract", "");
         Dictionary<string, object> paramsOmitted = this.omit(requestParams, new List<object>() {"limit", "offset"});
@@ -8148,7 +8196,7 @@ public partial class gate : Exchange
             tiers = this.extend(tiers, grouped);
             List<object> contracts = new List<object>(grouped.Keys);
             int numContracts = contracts.Count;
-            if ((contract != "") || ((numContracts < limit)))
+            if ((contract != "") || (numContracts < limit.GetValueOrDefault()))
             {
                 break;
             }
@@ -8178,9 +8226,9 @@ public partial class gate : Exchange
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, parameters);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = this.prepareRequest(market, type, query);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestrequestParamsVariable[0];
-        IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = this.prepareRequest(market, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = (requestrequestParamsVariable.Item2);
         if (!(type == "future") && !(type == "swap"))
         {
             throw new BadRequest ((this.id + " fetchMarketLeverageTiers only supports swap and future")) ;
@@ -8252,7 +8300,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        if (!((info is IList<object>) || (info.GetType().IsGenericType && info.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!((info is IList<object>) || (info is not null && info.GetType().IsGenericType && info.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return this.parseEmulatedLeverageTiers(info, market);
         }
@@ -8298,8 +8346,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> market = this.market(symbol);
@@ -8334,8 +8383,9 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "repayCrossMargin", "unifiedAccount", false);
@@ -8375,8 +8425,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> market = this.market(symbol);
@@ -8426,8 +8477,9 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "borrowCrossMargin", "unifiedAccount", false);
@@ -8518,7 +8570,7 @@ public partial class gate : Exchange
      * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8575,10 +8627,10 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "currency_pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         string marginMode = "cross";
         if ((marketId != null))
         {
@@ -8634,7 +8686,7 @@ public partial class gate : Exchange
                 newParams.Add(getValue(parameters, i));
             }
             query = newParams;
-        } else if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        } else if (((parameters is IList<object>) || (parameters is not null && parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
@@ -8711,7 +8763,7 @@ public partial class gate : Exchange
                 bodyJson = this.json(query);
             }
             string? bodyPayload = ((bodyJson == null)) ? "" : bodyJson;
-            string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
+            string bodySignature = ((string)this.hash(bodyPayload, sha512));
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(((double)nonce / 1000));
             string timestampString = ((object)timestamp).ToString();
@@ -8719,7 +8771,7 @@ public partial class gate : Exchange
             List<object> payloadArray = new List<object> {method.ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", payloadArray.ToArray());
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            string signature = this.hmac(payload, this.secret, sha512);
             signedHeaders = new Dictionary<string, object>() {
                 { "KEY", this.apiKey },
                 { "Timestamp", timestampString },
@@ -8745,7 +8797,7 @@ public partial class gate : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8753,9 +8805,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        var requestqueryVariable = this.prepareRequest(market, null, parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, null, parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         request["change"] = this.numberToString(amount);
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "swap", false) == true))
@@ -8771,7 +8823,7 @@ public partial class gate : Exchange
         return this.parseMarginModification(response, market);
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -8801,7 +8853,7 @@ public partial class gate : Exchange
         //     }
         //
         string? contract = this.safeString(data, "contract");
-        Dictionary<string, object> marketResolved = this.safeMarket(contract, market, "_", "contract");
+        Dictionary<string, object> marketResolved = this.safeMarket(contract,((IDictionary<string, object>)market), "_", "contract");
         double? total = this.safeNumber(data, "margin");
         return new Dictionary<string, object>() {
             { "info", data },
@@ -8985,7 +9037,7 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((this.id + " fetchSettlementHistory() supports option markets only")) ;
         }
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id", "");
         List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "underlying", this.safeString(optionParts, 0) },
@@ -9011,9 +9063,9 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        List<object> settlements = this.parseSettlements(response, market);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(response, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     /**
@@ -9050,9 +9102,9 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((this.id + " fetchMySettlementHistory() supports option and future markets only")) ;
         }
-        var requestqueryVariable = this.prepareRequest(market, type, paramsMarketType);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, type, paramsMarketType);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         if ((limit != null))
         {
             request["limit"] = limit;
@@ -9091,7 +9143,7 @@ public partial class gate : Exchange
                 }
             } else
             {
-                string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+                string? marketId = this.safeString(market, "id", "");
                 List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 request["underlying"] = this.safeString(optionParts, 0);
             }
@@ -9114,12 +9166,12 @@ public partial class gate : Exchange
         }
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        List<object> settlements = this.parseSettlements(data, market);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(data, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object>? market = null)
     {
         //
         // fetchSettlementHistory
@@ -9171,7 +9223,7 @@ public partial class gate : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
     {
         //
         // fetchSettlementHistory
@@ -9203,10 +9255,11 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
+            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, settlements[i]);
+            result.Add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -9354,7 +9407,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // spot
@@ -9413,14 +9466,15 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(item, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");
-        string? rawTimestamp = this.safeString(item, "time");
+        string? rawTimestamp = this.safeString(item, "time", "");
+        int rawTimestampLength = rawTimestamp.Length;
         Int64? timestamp = null;
-        if (rawTimestamp.Length > 10)
+        if (rawTimestampLength > 10)
         {
-            timestamp = JsParse.parseInt(rawTimestamp);
+            timestamp = this.safeInteger(item, "time");
         } else
         {
-            timestamp = (JsParse.parseInt(rawTimestamp) * 1000);
+            timestamp = this.safeTimestamp(item, "time");
         }
         string? balanceString = this.safeString(item, "balance");
         string? changeString = this.safeString(item, "change");
@@ -9508,9 +9562,9 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestqueryVariable = this.prepareRequest(market, "swap", parameters);
+        Dictionary<string, object> request = requestqueryVariable.Item1;
+        IDictionary<string, object> query = (requestqueryVariable.Item2);
         request["dual_mode"] = hedged;
         return await this.privateFuturesPostSettleDualMode(this.extend(request, query));
     }
@@ -9553,7 +9607,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        List<object> underlyings = new List<object>() {};
+        List<string> underlyings = new List<string>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> underlying = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -9563,7 +9617,7 @@ public partial class gate : Exchange
                 underlyings.Add(name);
             }
         }
-        return ccxt.BaseExchange.ToStringList(underlyings);
+        return underlyings;
     }
 
     /**
@@ -9618,7 +9672,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
     }
 
     /**
@@ -9659,7 +9713,7 @@ public partial class gate : Exchange
             request["settle"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
         } else if ((this.safeBool(market, "option", false) == true))
         {
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             request["underlying"] = this.safeString(optionParts, 0);
         }
@@ -9674,7 +9728,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetPositionClose(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         //
         // swap and future
@@ -9709,10 +9763,10 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
     }
 
-    public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         //
         // fetchLiquidations
@@ -9849,7 +9903,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -9862,7 +9916,7 @@ public partial class gate : Exchange
         throw new NullResponse (((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
     }
 
-    public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseGreeks(IDictionary<string, object> greeks, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10015,10 +10069,10 @@ public partial class gate : Exchange
         {
             response = await this.publicMarginGetCurrencyPairs(paramsOmitted); // deprecated
         }
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbolsNormalized, marketIdRequest, "spot"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbolsNormalized, marketIdRequest, "spot"));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLeverage(IDictionary<string, object> leverage, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString2(leverage, "currency_pair", "id");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
@@ -10115,7 +10169,7 @@ public partial class gate : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "underlying", add((currency.ContainsKey("code") ? currency["code"] : null), "_USDT") },
+            { "underlying", (this.safeString(currency, "code", "") + "_USDT") },
         };
         List<object> response = await this.publicOptionsGetContracts(this.extend(request, parameters));
         //
@@ -10160,10 +10214,10 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(this.toArray(response)), null, "name"));
+        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(response, null, "name"));
     }
 
-    public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseOption(IDictionary<string, object> chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -10206,7 +10260,7 @@ public partial class gate : Exchange
         //     }
         //
         string? marketId = this.safeString(chain, "name");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         Int64? timestamp = this.safeTimestamp(chain, "create_time");
         return new Dictionary<string, object>() {
             { "info", chain },
@@ -10268,9 +10322,9 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Int64? until = this.safeInteger(paramsMarketType, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, "until");
-        var requestparamsValueVariable = this.prepareRequest(market, marketType, paramsOmitted);
-        Dictionary<string, object> request = (Dictionary<string, object>)requestparamsValueVariable[0];
-        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestparamsValueVariable[1]);
+        (Dictionary<string, object>, IDictionary<string, object>) requestparamsValueVariable = this.prepareRequest(market, marketType, paramsOmitted);
+        Dictionary<string, object> request = requestparamsValueVariable.Item1;
+        IDictionary<string, object> paramsValue = (requestparamsValueVariable.Item2);
         if ((limit != null))
         {
             request["limit"] = limit;
@@ -10317,16 +10371,16 @@ public partial class gate : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, this.toArray(symbols), paramsValue));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
@@ -10339,10 +10393,10 @@ public partial class gate : Exchange
         string? label = this.safeString(response, "label");
         if ((label != null))
         {
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), label, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, label, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

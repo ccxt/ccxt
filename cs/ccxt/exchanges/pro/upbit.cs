@@ -33,15 +33,18 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public async virtual Task<object> watchPublicMultiple(object symbols, object channel, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPublicMultiple(IList<object> symbols, string? channel, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object symbolsRequested = ((symbols == null)) ? this.symbols : symbols;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbolsRequested));
+        IList<object> symbolsNormalized = this.symbols;
+        if ((symbols != null))
+        {
+            symbolsNormalized = this.marketSymbols(symbols);
+        }
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -58,9 +61,9 @@ public partial class upbit : ccxt.upbit
         {
             string? marketId = this.safeString(marketIds, i, "");
             string? symbol = this.safeString(symbolsNormalized, i, "");
-            string? messageHash = ((string)(add(add(channel, ":"), symbol)));
+            string messageHash = ((channel + ":") + symbol);
             messageHashes.Add(messageHash);
-            if (!(((messageHash != null) && (subscriptions?.ContainsKey(messageHash) == true))))
+            if (!(subscriptions.ContainsKey(messageHash)))
             {
                 subscriptions[(string)messageHash] = new Dictionary<string, object>() {
                     { "type", channel },
@@ -104,7 +107,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object newTickers = await this.watchPublicMultiple(symbols, "ticker");
@@ -152,15 +155,15 @@ public partial class upbit : ccxt.upbit
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object trades = await this.watchPublicMultiple(symbols, "trade");
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublicMultiple(symbols, "trade"));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -249,9 +252,9 @@ public partial class upbit : ccxt.upbit
         if ((symbol != null))
         {
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            string messageHash = ("ticker:" + symbol);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         }
-        string messageHash = ("ticker:" + symbol);
-        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -387,7 +390,7 @@ public partial class upbit : ccxt.upbit
                 { "access_key", this.apiKey },
                 { "nonce", this.uuid() },
             };
-            string token = jwt(auth, this.encode(this.secret), sha256, false);
+            string token = jwt(auth, this.secret, sha256, false);
             wsOptions["token"] = token;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {
@@ -398,7 +401,7 @@ public partial class upbit : ccxt.upbit
         }
     }
 
-    public async virtual Task<object> watchPrivate(object symbol, string channel, string messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(string? symbol, string channel, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.authenticate();
@@ -465,13 +468,13 @@ public partial class upbit : ccxt.upbit
         }
         string channel = "myOrder";
         string messageHash = "myOrder";
-        object orders = await this.watchPrivate(symbol, channel, messageHash);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchPrivate(symbol, channel, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = orders.getLimit(symbol, limit);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     /**
@@ -494,13 +497,13 @@ public partial class upbit : ccxt.upbit
         }
         string channel = "myOrder";
         string messageHash = "myTrades";
-        object trades = await this.watchPrivate(symbol, channel, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPrivate(symbol, channel, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
 
     public virtual string? parseWsOrderStatus(string? status)
@@ -816,7 +819,7 @@ public partial class upbit : ccxt.upbit
         client.resolve(this.balance, messageHash);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "ticker", this.handleTicker },

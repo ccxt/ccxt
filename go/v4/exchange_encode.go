@@ -187,11 +187,6 @@ func (e *BaseExchange) BinaryConcat(parts ...any) []byte {
 	return result
 }
 
-func (e *BaseExchange) numberToBE(n, padding any) string {
-	// return n.(string) // stub
-	return ""
-}
-
 func BinaryToHex(buff []byte) string {
 	return strings.ToLower(hex.EncodeToString(buff))
 }
@@ -327,7 +322,8 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 		if boolVal, ok := value.(bool); ok {
 			value = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
-		if IsNumber(value) {
+		// identity on strings, %v on every non-number kind; nil keeps printing as <nil>
+		if value != nil {
 			value = NumberToString(value)
 		}
 		outList = append(outList, fmt.Sprintf("%s=%v", key, value))
@@ -345,7 +341,9 @@ func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
 	encodeValue := func(value any) string {
 		value = derefScalar(value)
-		if IsNumber(value) {
+		// integers print the same through ToString, only floats need NumberToString
+		switch value.(type) {
+		case float32, float64:
 			return rfc3986Escape(NumberToString(value))
 		}
 		if boolVal, ok := value.(bool); ok {
@@ -356,6 +354,10 @@ func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	var outList []string
 	for key, value := range parameters {
 		if values, ok := value.([]any); ok {
+			for _, item := range values {
+				outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(item)))
+			}
+		} else if values, ok := value.([]string); ok {
 			for _, item := range values {
 				outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(item)))
 			}
@@ -457,9 +459,11 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 		encodedKey := rfc3986Escape(key)
 		finalValue := ""
 
-		if IsNumber(value) {
+		// integers print the same through ToString, only floats need NumberToString
+		switch value.(type) {
+		case float32, float64:
 			finalValue = NumberToString(value)
-		} else {
+		default:
 			finalValue = ToString(value)
 		}
 		if boolVal, ok := value.(bool); ok {

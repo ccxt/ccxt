@@ -27,12 +27,12 @@ public class TestOpenInterest extends BaseTest {
             put( "info", new HashMap<String, Object>() {{}} );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol");
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol");
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         //
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "openInterestAmount", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "openInterestValue", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "openInterestAmount", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "openInterestValue", "0");
     }
 
 }

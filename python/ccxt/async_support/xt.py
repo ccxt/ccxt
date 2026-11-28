@@ -8,7 +8,7 @@ from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1751,7 +1751,7 @@ class xt(Exchange, ImplicitAPI):
         #
         if self.safe_bool(market, 'spot', False):
             tickers = self.safe_list(response, 'result', [])
-            return self.parse_ticker(tickers[0], market)
+            return self.parse_ticker(self.safe_dict(tickers, 0, {}), market)
         ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
@@ -1771,7 +1771,9 @@ class xt(Exchange, ImplicitAPI):
         market = None
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         request = {}
         response = None
         type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -1833,8 +1835,8 @@ class xt(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i], market)
-            symbol = ticker['symbol']
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), market)
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1856,7 +1858,9 @@ class xt(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         type, paramsMarketType = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchBidsAsks', market, paramsMarketType)
         isInverse = (subType == 'inverse')
@@ -1909,16 +1913,15 @@ class xt(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            rawTicker = tickers[i]
             # the spot and contract payloads share the same field names, so
             # the market type cannot be inferred from the entry itself
-            marketId = self.safe_string(rawTicker, 's')
+            marketId = self.safe_string(tickers[i], 's')
             marketType = 'spot'
             if isContract:
                 marketType = 'contract'
             marketInner = self.safe_market(marketId, market, '_', marketType)
-            ticker = self.parse_ticker(rawTicker, marketInner)
-            symbol = ticker['symbol']
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), marketInner)
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1975,7 +1978,7 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         marketResolved = self.safe_market(marketId, market, '_', marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 't')
         open = self.safe_string(ticker, 'o')
         # spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -2421,7 +2424,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        balances = None
+        balances = []
         if (subType is not None) or isContractWallet:
             balances = self.safe_list(response, 'result', [])
         else:
@@ -2429,7 +2432,7 @@ class xt(Exchange, ImplicitAPI):
             balances = self.safe_list(data, 'assets', [])
         return self.parse_balance_list(balances)
 
-    def parse_balance_list(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list) -> Balances:
         #
         # spot
         #
@@ -2627,7 +2630,7 @@ class xt(Exchange, ImplicitAPI):
             if reduceOnly:
                 requestType = 'LONG'
             request['positionSide'] = requestType
-        response = {}
+        response = None
         triggerPrice = self.safe_number_2(paramsOmitted4, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_number_2(paramsOmitted4, 'stopLoss', 'triggerStopPrice')
         takeProfit = self.safe_number_2(paramsOmitted4, 'takeProfit', 'triggerProfitPrice')
@@ -2703,7 +2706,7 @@ class xt(Exchange, ImplicitAPI):
         #         "result": "206410760006650176"
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -3501,8 +3504,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isContractResponse = ((subType is not None) or (type == 'swap') or (type == 'future'))
-        order = response if isContractResponse else self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
+        if isContractResponse:
+            return self.parse_order(response, market)
+        return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3755,7 +3759,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketType = ('result' in order) or 'contract' if ('positionSide' in order) else 'spot'
+        resultId = self.safe_string(order, 'result')
+        orderPositionSide = self.safe_string(order, 'positionSide')
+        marketType = (resultId is not None) or 'contract' if (orderPositionSide is not None) else 'spot'
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = self.safe_symbol(marketId, marketResolved, None, marketType)
         timestamp = self.safe_integer_2(order, 'time', 'createdTime')
@@ -4327,7 +4333,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: str, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, addOrReduce: str, params: dict = {}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
         methodName = 'reduceMargin'
         if addOrReduce == 'ADD':
@@ -4902,7 +4908,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract: dict, market: Market = None):
+    def parse_funding_history(self, contract: dict, market: Market = None) -> dict:
         #
         #     {
         #         "id": "210804044057280512",
@@ -4940,7 +4946,8 @@ class xt(Exchange, ImplicitAPI):
             # endpoint, including here and on position/list; there is no one-way/net
             # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             # both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[self.safe_string(breakEntry, 'symbol', '') + '_' + self.safe_string(breakEntry, 'positionSide', '')] = breakEntry
+            breakKey = self.safe_string(breakEntry, 'symbol', '') + '_' + self.safe_string(breakEntry, 'positionSide', '')
+            breakBySymbolSide[breakKey] = breakEntry
         return breakBySymbolSide
 
     def merge_position_break_info(self, entry: dict, breakBySymbolSide: dict) -> dict:
@@ -4950,12 +4957,11 @@ class xt(Exchange, ImplicitAPI):
         :param dict breakBySymbolSide: the result of indexPositionBreakList()
         """
         breakEntry = self.safe_dict(breakBySymbolSide, self.safe_string(entry, 'symbol', '') + '_' + self.safe_string(entry, 'positionSide', ''))
-        if breakEntry is None:
-            return entry
-        return self.extend(entry, {
-            'breakPrice': self.safe_string(breakEntry, 'breakPrice'),
-            'calMarkPrice': self.safe_string(breakEntry, 'calMarkPrice'),
-        })
+        extra = {}
+        if breakEntry is not None:
+            extra['breakPrice'] = self.safe_string(breakEntry, 'breakPrice')
+            extra['calMarkPrice'] = self.safe_string(breakEntry, 'calMarkPrice')
+        return self.extend(entry, extra)
 
     async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
@@ -5471,10 +5477,11 @@ class xt(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        result = response if (self.safe_bool(market, 'swap', False)) else self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        if self.safe_bool(market, 'swap', False):
+            return self.parse_order(response, market)
+        return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         #
         # spot: error
         #

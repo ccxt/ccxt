@@ -845,7 +845,7 @@ export default class bitrue extends Exchange {
             types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString(types, i, '');
             if (marketType === 'spot') {
                 promisesRaw.push(this.spotV1PublicGetExchangeInfo(params));
             }
@@ -860,11 +860,9 @@ export default class bitrue extends Exchange {
             }
         }
         const promises = await Promise.all(promisesRaw);
-        const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
         const futureMarkets = this.safeList(promises, 1, []);
         const deliveryMarkets = this.safeList(promises, 2, []);
-        let markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
+        let markets = this.arrayConcat(this.safeList(this.safeDict(promises, 0), 'symbols', []), futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
         //
         // spot
@@ -1399,14 +1397,14 @@ export default class bitrue extends Exchange {
             else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, params));
             }
-            data = response;
+            data = this.extend(data, response);
         }
         else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-            data = this.safeDict(response, 0, {});
+            data = this.extend(data, this.safeDict(response, 0, {}));
         }
         else {
             throw new NotSupported(this.id + ' fetchTicker only support spot & swap markets');
@@ -1484,12 +1482,11 @@ export default class bitrue extends Exchange {
                 request['limit'] = limit;
             }
             if (this.safeBool(market, 'linear', false)) {
-                response = await this.fapiV1PublicGetKlines(this.extend(request, params));
+                data = await this.fapiV1PublicGetKlines(this.extend(request, params));
             }
             else if (this.safeBool(market, 'inverse', false)) {
-                response = await this.dapiV1PublicGetKlines(this.extend(request, params));
+                data = await this.dapiV1PublicGetKlines(this.extend(request, params));
             }
-            data = response;
         }
         else if (this.safeBool(market, 'spot', false)) {
             const timeframesSpot = this.safeDict(timeframes, 'spot', {});
@@ -1648,7 +1645,8 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data = {};
-        data[market['id']] = response;
+        const tickerKey = this.safeString(market, 'id', '');
+        data[tickerKey] = response;
         return this.parseTickers(data, symbolsNormalized);
     }
     /**
@@ -1743,7 +1741,8 @@ export default class bitrue extends Exchange {
                 continue;
             }
             const market = this.safeMarket(marketId);
-            tickers[market['id']] = ticker;
+            const tickerKey = this.safeString(market, 'id', '');
+            tickers[tickerKey] = ticker;
         }
         return this.parseTickers(tickers, symbolsNormalized);
     }
@@ -1961,19 +1960,22 @@ export default class bitrue extends Exchange {
         const filled = this.safeString(order, 'executedQty');
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger(order, 'time');
+        const time = this.safeInteger(order, 'time');
+        const transactTime = this.safeInteger(order, 'transactTime');
+        const updateTime = this.safeInteger(order, 'updateTime');
+        if (time !== undefined) {
+            timestamp = time;
         }
-        else if ('transactTime' in order) {
-            timestamp = this.safeInteger(order, 'transactTime');
+        else if (transactTime !== undefined) {
+            timestamp = transactTime;
         }
-        else if ('updateTime' in order) {
+        else if (updateTime !== undefined) {
             if (status === 'open') {
                 if (Precise.stringGt(filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger(order, 'updateTime');
+                    lastTradeTimestamp = updateTime;
                 }
                 else {
-                    timestamp = this.safeInteger(order, 'updateTime');
+                    timestamp = updateTime;
                 }
             }
         }
@@ -2091,7 +2093,7 @@ export default class bitrue extends Exchange {
         if (this.safeBool(market, 'swap', false)) {
             const isMarket = uppercaseType === 'MARKET';
             const timeInForce = this.safeStringLower(params, 'timeInForce');
-            const postOnly = this.isPostOnly(isMarket, undefined, params);
+            const postOnly = this.isPostOnly(isMarket, false, params);
             if (postOnly) {
                 request['type'] = 'POST_ONLY';
             }
@@ -2187,7 +2189,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -2286,7 +2288,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -2511,7 +2513,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -3257,17 +3259,10 @@ export default class bitrue extends Exchange {
         if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' setMargin only support swap markets');
         }
-        let response = undefined;
         const request = {
             'contractName': market['id'],
             'amount': this.parseToNumeric(amount),
         };
-        if (this.safeBool(market, 'linear', false)) {
-            response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
-        }
-        else if (this.safeBool(market, 'inverse', false)) {
-            response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
-        }
         //
         //     {
         //         "code": 0,
@@ -3275,7 +3270,15 @@ export default class bitrue extends Exchange {
         //         "data": null
         //     }
         //
-        return this.parseMarginModification(response, market);
+        if (this.safeBool(market, 'linear', false)) {
+            const response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
+            return this.parseMarginModification(response, market);
+        }
+        else if (this.safeBool(market, 'inverse', false)) {
+            const response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
+            return this.parseMarginModification(response, market);
+        }
+        throw new NotSupported(this.id + ' setMargin only support linear or inverse swap markets');
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
@@ -3426,10 +3429,12 @@ export default class bitrue extends Exchange {
         return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        const paramsSymbol = this.safeString(params, 'symbol');
+        const paramsLimit = this.safeString(params, 'limit');
+        if (('noSymbol' in config) && (paramsSymbol === undefined)) {
             return config['noSymbol'];
         }
-        else if (('byLimit' in config) && ('limit' in params)) {
+        else if (('byLimit' in config) && (paramsLimit !== undefined)) {
             const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {

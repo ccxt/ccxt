@@ -91,7 +91,8 @@ class polymarket extends polymarket$1["default"] {
         const hashesToCheck = (checkHashes === undefined) ? messageHashes : checkHashes;
         let willSend = false;
         for (let i = 0; i < hashesToCheck.length; i++) {
-            if (!(hashesToCheck[i] in client.subscriptions)) {
+            const hashToCheck = this.safeString(hashesToCheck, i, '');
+            if (!(hashToCheck in client.subscriptions)) {
                 willSend = true;
             }
         }
@@ -439,13 +440,13 @@ class polymarket extends polymarket$1["default"] {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        const data = this.safeValue(message, 'data');
+        const dataList = this.safeList(message, 'data');
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         }
         else {
-            rows.push(data);
+            rows.push(this.safeValue(message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -705,12 +706,9 @@ class polymarket extends polymarket$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data');
-        let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
-        }
-        else {
+        const data = this.safeDict(message, 'data');
+        const rows = [];
+        if (data !== undefined) {
             rows.push(data);
         }
         const rowsLength = rows.length;
@@ -798,13 +796,13 @@ class polymarket extends polymarket$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data');
+        const dataList = this.safeList(message, 'data');
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         }
         else {
-            rows.push(data);
+            rows.push(this.safeValue(message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -1026,8 +1024,8 @@ class polymarket extends polymarket$1["default"] {
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
         const id = this.safeString(message, 'id');
-        const data = this.safeValue(message, 'data');
-        if (!Array.isArray(data)) {
+        if (!Array.isArray(message['data'])) {
+            const data = this.safeDict(message, 'data', {});
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (id !== undefined) {
@@ -1073,8 +1071,10 @@ class polymarket extends polymarket$1["default"] {
         const subMessageHashes = this.safeList(pending, 'subMessageHashes', []);
         const action = this.safeString(pending, 'method');
         let errorMessage = undefined;
-        for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict(data, i, {});
+        const rows = this.safeList(message, 'data', []);
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const entry = this.safeDict(rows, i, {});
             const status = this.safeString(entry, 'status');
             if (status === 'err') {
                 errorMessage = this.safeString(entry, 'error');
@@ -1083,12 +1083,12 @@ class polymarket extends polymarket$1["default"] {
         if (errorMessage !== undefined) {
             const error = new errors.ExchangeError(this.id + ' ' + errorMessage);
             for (let i = 0; i < messageHashes.length; i++) {
-                client.reject(error, messageHashes[i]);
+                const messageHash = messageHashes[i];
+                client.reject(error, messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                const messageHash = messageHashes[i];
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
@@ -1130,7 +1130,7 @@ class polymarket extends polymarket$1["default"] {
                 }
             }
             for (let i = 0; i < messageHashes.length; i++) {
-                this.cleanUnsubscription(client, subMessageHashes[i], messageHashes[i]);
+                this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i]);
             }
         }
     }

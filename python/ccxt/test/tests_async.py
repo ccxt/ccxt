@@ -739,7 +739,7 @@ class testMainClass:
                     # derive one from the selected outcome handle (the market words with
                     # separators as spaces) so the scoped contract holds even without a pin
                     handle_parts = outcome_symbol.split(':')
-                    market_part = handle_parts[0]
+                    market_part = exchange.safe_string(handle_parts, 0, '')
                     lower_part = market_part.lower()
                     dedashed = lower_part.replace('-', ' ')
                     event_query = dedashed.replace('_', ' ')

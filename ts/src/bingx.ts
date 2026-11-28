@@ -6,7 +6,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
+import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 import type { Bool, Liquidation, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -976,7 +976,7 @@ export default class bingx extends Exchange {
         });
     }
 
-    async fetchSpotMarkets (params: any): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.spotV1PublicGetCommonSymbols (params);
         //
         //    {
@@ -1010,7 +1010,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchSwapMarkets (params: any): Promise<Market[]> {
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.swapV2PublicGetQuoteContracts (params);
         //
         //    {
@@ -1047,7 +1047,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchInverseSwapMarkets (params: any): Promise<Market[]> {
+    async fetchInverseSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.cswapV1PublicGetMarketContracts (params);
         //
         //     {
@@ -1245,7 +1245,10 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const requestLimit = (limit === undefined) ? 500 : Math.min (limit, maxLimit);
+        let requestLimit = 500;
+        if (limit !== undefined) {
+            requestLimit = this.parseToInt (Math.min (limit, maxLimit));
+        }
         if (since !== undefined) {
             request['startTime'] = Math.max (since - 1, 0);
         }
@@ -1255,13 +1258,13 @@ export default class bingx extends Exchange {
         const until = this.safeInteger2 (paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
         if (until !== undefined) {
-            let endTime = until;
             if (since !== undefined) {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                endTime = Math.min (until, this.sum (since, duration * requestLimit));
+                request['endTime'] = Math.min (until, this.sum (since, duration * requestLimit));
+            } else {
+                request['endTime'] = until;
             }
-            request['endTime'] = endTime;
         } else if ((this.safeBool (market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe (timeframe) * 1000;
             request['endTime'] = this.sum (since, duration * requestLimit);
@@ -1271,9 +1274,7 @@ export default class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             const [ timeZone, paramsTimeZone ] = this.handleOptionIntegerAndParams (paramsUntil, 'fetchOHLCV', 'timeZone', 0);
-            if (timeZone !== undefined) {
-                request['timeZone'] = timeZone;
-            }
+            request['timeZone'] = timeZone;
             response = await this.spotV1PublicGetMarketKline (this.extend (request, paramsTimeZone));
         } else {
             if (this.safeBool (market, 'inverse', false)) {
@@ -1323,9 +1324,9 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        let ohlcvs = this.safeValue (response, 'data', []);
-        if (!Array.isArray (ohlcvs)) {
-            ohlcvs = [ ohlcvs ];
+        let ohlcvs = this.safeList (response, 'data', []);
+        if (this.safeList (response, 'data') === undefined && this.safeDict (response, 'data') !== undefined) {
+            ohlcvs = [ this.safeDict (response, 'data') ];
         }
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
@@ -1601,10 +1602,11 @@ export default class bingx extends Exchange {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
         let amount = isSpotExecution ? this.safeString (trade, 'l') : this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
-        if ((market !== undefined) && (this.safeBool (market, 'swap', false)) && ('volume' in trade)) {
+        const volume = this.safeString (trade, 'volume');
+        if ((market !== undefined) && (this.safeBool (market, 'swap', false)) && (volume !== undefined)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            amount = this.safeString (trade, 'volume');
+            amount = volume;
         }
         let price = isSpotExecution ? this.safeString (trade, 'L') : this.safeStringN (trade, [ 'price', 'p', 'tradePrice' ]);
         if ((market !== undefined) && (this.safeBool (market, 'linear', false)) && (this.safeString (trade, 'x') === 'TRADE')) {
@@ -1934,7 +1936,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -2251,7 +2253,7 @@ export default class bingx extends Exchange {
         const rowMarket = (symbolsLength === 1) ? market : undefined;
         const results = [];
         for (let i = 0; i < rows.length; i++) {
-            results.push (this.parseTicker (rows[i], rowMarket));
+            results.push (this.parseTicker (this.safeDict (rows, i, {}), rowMarket));
         }
         return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
@@ -2362,6 +2364,8 @@ export default class bingx extends Exchange {
             //     ]
             // }
             //
+            const rows = this.safeList (response, 'data', []);
+            return this.parseTicker (this.safeDict (rows, 0, {}), market);
         } else {
             response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, paramsSubType));
             //
@@ -2378,10 +2382,7 @@ export default class bingx extends Exchange {
             // }
             //
         }
-        if (Array.isArray (response['data'])) {
-            return this.parseTicker (this.safeDict (response['data'], 0, {}) as Dict, market);
-        }
-        return this.parseTicker (response['data'], market);
+        return this.parseTicker (this.safeDict (response, 'data', {}), market);
     }
 
     /**
@@ -2500,12 +2501,12 @@ export default class bingx extends Exchange {
         const lastQty = this.safeString (ticker, 'lastQty');
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        let type: Str = 'swap';
+        let type: string = 'swap';
         if (lastQty === undefined) {
             type = 'spot';
         }
         if (market !== undefined) {
-            type = market['type'];
+            type = this.safeString (market, 'type', type);
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, type);
         const symbol = this.safeString (marketResolved, 'symbol');
@@ -3504,7 +3505,7 @@ export default class bingx extends Exchange {
         return this.extend (request, paramsRequest);
     }
 
-    encodeTriggerPriceType (triggerPriceType: Str) {
+    encodeTriggerPriceType (triggerPriceType: Str): Str {
         const types: Dict = {
             'last': 'CONTRACT_PRICE',
             'mark': 'MARK_PRICE',
@@ -3662,18 +3663,19 @@ export default class bingx extends Exchange {
             result = data as Dict;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        const fixedMembers: Dict = {};
         const stopLossDict = this.safeDict (result, 'stopLoss');
         const stopLoss = this.safeString (result, 'stopLoss');
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if ((stopLossDict === undefined) && (stopLoss !== undefined) && (stopLoss.indexOf ('{') === 0)) {
-            result['stopLoss'] = this.parseJson (stopLoss);
+            fixedMembers['stopLoss'] = this.parseJson (stopLoss);
         }
         const takeProfit = this.safeString (result, 'takeProfit');
         if ((takeProfit !== undefined) && (takeProfit.indexOf ('{') === 0)) {
-            result['takeProfit'] = this.parseJson (takeProfit);
+            fixedMembers['takeProfit'] = this.parseJson (takeProfit);
         }
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend (result, fixedMembers), market);
     }
 
     /**
@@ -3781,7 +3783,7 @@ export default class bingx extends Exchange {
             response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'orders', []) as List;
+        const result = this.safeList (data, 'orders', []);
         return this.parseOrders (result, market);
     }
 
@@ -4105,7 +4107,11 @@ export default class bingx extends Exchange {
             marketType = 'spot';
         }
         const marketId = this.safeString2 (orderData, 'symbol', 's');
-        const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market, undefined, marketType);
+        let marketIdOrUndefined: Str = undefined;
+        if (market === undefined) {
+            marketIdOrUndefined = marketId;
+        }
+        const marketResolved: Market = this.safeMarket (marketIdOrUndefined, market, undefined, marketType);
         const side = this.safeStringLower2 (orderData, 'side', 'S');
         let timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
         const transactTime = this.safeString (orderData, 'transactTime', '') as string;
@@ -4129,29 +4135,19 @@ export default class bingx extends Exchange {
                 feeCurrencyCode = this.safeString (marketResolved, feeKey);
             }
         }
-        let stopLoss = this.safeValue (orderData, 'stopLoss');
-        let stopLossPrice: Str = undefined;
-        if ((stopLoss !== undefined) && (stopLoss !== '')) {
-            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss'));
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        const stopLossString = this.safeString (orderData, 'stopLoss');
+        const stopLossIsDict = this.safeDict (orderData, 'stopLoss') !== undefined;
+        let stopLossPrice: Str = this.omitZero (this.safeString (this.safeDict (orderData, 'stopLoss', {}), 'stopPrice'));
+        if (!stopLossIsDict && (stopLossString !== undefined) && (stopLossString.indexOf ('{') === 0)) {
+            stopLossPrice = this.omitZero (this.safeString (this.parseJson (stopLossString), 'stopPrice'));
         }
-        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if (typeof stopLoss === 'string') {
-                stopLoss = this.parseJson (stopLoss);
-            }
-            stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice'));
-        }
-        let takeProfit = this.safeValue (orderData, 'takeProfit');
-        let takeProfitPrice: Str = undefined;
-        if (takeProfit !== undefined && (takeProfit !== '')) {
-            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit'));
-        }
-        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if (typeof takeProfit === 'string') {
-                takeProfit = this.parseJson (takeProfit);
-            }
-            takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'stopPrice'));
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        const takeProfitString = this.safeString (orderData, 'takeProfit');
+        const takeProfitIsDict = this.safeDict (orderData, 'takeProfit') !== undefined;
+        let takeProfitPrice: Str = this.omitZero (this.safeString (this.safeDict (orderData, 'takeProfit', {}), 'stopPrice'));
+        if (!takeProfitIsDict && (takeProfitString !== undefined) && (takeProfitString.indexOf ('{') === 0)) {
+            takeProfitPrice = this.omitZero (this.safeString (this.parseJson (takeProfitString), 'stopPrice'));
         }
         const rawType = this.safeStringLower2 (orderData, 'type', 'o') as string;
         const stopPrice = this.omitZero (this.safeString2 (orderData, 'StopPrice', 'stopPrice'));
@@ -4397,7 +4393,7 @@ export default class bingx extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const order = this.safeDict (data, 'order', data) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**
@@ -4576,13 +4572,15 @@ export default class bingx extends Exchange {
         };
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
         const paramsOmitted: Dict = this.omit (params, 'clientOrderIds');
-        let idsToParse = ids;
+        let idsCount = ids.length;
+        let idsToParse: string[] = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
+            idsCount = clientOrderIds.length;
             idsToParse = clientOrderIds;
         }
         const parsedIds: string[] = [];
-        for (let i = 0; i < idsToParse.length; i++) {
+        for (let i = 0; i < idsCount; i++) {
             const id = this.safeString (idsToParse, i, '');
             const stringId = id.toString ();
             parsedIds.push (stringId);
@@ -4895,7 +4893,7 @@ export default class bingx extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const order = this.safeDict (data, 'order', data) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**
@@ -5645,7 +5643,7 @@ export default class bingx extends Exchange {
         //     }
         //
         const data = this.safeList (this.safeDict (response, 'data'), 'data', []);
-        const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        const parsed = this.parseDepositAddresses (data, [ this.safeString (currency, 'code', '') ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
@@ -5889,7 +5887,7 @@ export default class bingx extends Exchange {
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString (transaction, 'transferType');
         let type: Str = 'withdrawal';
-        if ((rawType === '0') || ('insertTime' in transaction)) {
+        if ((rawType === '0') || (this.safeInteger (transaction, 'insertTime') !== undefined)) {
             type = 'deposit';
         }
         let internal: Bool = undefined;
@@ -6059,6 +6057,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const positionSide = this.safeString (params, 'positionSide');
         if ((market['inverse'] === true) && (positionSide === undefined)) {
             throw new ArgumentsRequired (this.id + ' setMargin() requires a positionSide parameter for Coin-M markets');
@@ -6067,7 +6066,7 @@ export default class bingx extends Exchange {
         if (market['inverse'] === true) {
             amountString = this.currencyToPrecision (market['settle'], amount);
         } else {
-            amountString = this.amountToPrecision (market['symbol'], amount);
+            amountString = this.amountToPrecision (precisionSymbol, amount);
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -6088,14 +6087,14 @@ export default class bingx extends Exchange {
         //        "type": 1
         //    }
         //
-        let responseData = response;
         if (market['inverse'] === true) {
-            responseData = this.extend ({
+            const inverseResult = this.parseMarginModification (this.extend ({
                 'amount': amountString,
                 'type': type,
-            }, this.safeDict (response, 'data', {}));
+            }, this.safeDict (response, 'data', {})), market);
+            return this.extend (inverseResult, { 'info': response });
         }
-        const result = this.parseMarginModification (responseData, market);
+        const result = this.parseMarginModification (response, market);
         result['info'] = response;
         return result;
     }
@@ -6464,11 +6463,12 @@ export default class bingx extends Exchange {
             },
             'networks': {},
         };
+        const networkFees: Dict = {};
         if (networksLength !== 0) {
             for (let i = 0; i < networksLength; i++) {
                 const networkCode = this.safeString (networkCodes, i, '');
                 const network = this.safeDict (networks, networkCode);
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber (network, 'fee'), 'percentage': false },
                 };
@@ -6480,6 +6480,7 @@ export default class bingx extends Exchange {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
 
@@ -6566,7 +6567,7 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params: Dict): Dict {
-        const copied: Dict = this.clone (params);
+        const copied: Dict = this.extend ({}, params);
         const sortedParams: Dict = this.keysort (params);
         const rawKeys = Object.keys (sortedParams);
         const rawKeysLength = rawKeys.length;
@@ -6623,7 +6624,7 @@ export default class bingx extends Exchange {
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, paramsUntil);
         let response: Dict;
-        let liquidations: NullableList = undefined;
+        let key = 'data';
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
             //
@@ -6653,9 +6654,8 @@ export default class bingx extends Exchange {
             //         ]
             //     }
             //
-            liquidations = this.safeList (response, 'data', []);
         } else {
-            response = await this.swapV2PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
+            const swapResponse = await this.swapV2PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6685,9 +6685,10 @@ export default class bingx extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeDict (response, 'data', {});
-            liquidations = this.safeList (data, 'orders', []);
+            response = this.safeDict (swapResponse, 'data', {});
+            key = 'orders';
         }
+        const liquidations = this.safeList (response, key, []);
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
@@ -6865,7 +6866,7 @@ export default class bingx extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const success = this.safeList (data, 'success', []) as List;
+        const success = this.safeList (data, 'success', []);
         const positions: Position[] = [];
         for (let i = 0; i < success.length; i++) {
             const position = this.parsePosition ({ 'positionId': success[i] });
@@ -6922,7 +6923,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         let market: Market = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets ();
@@ -7236,7 +7237,7 @@ export default class bingx extends Exchange {
                 commission = this.safeDict (data, 'commission', {}) as Dict;
             }
         }
-        return this.parseTradingFee (commission, market);
+        return this.parseTradingFee (this.extend ({}, commission), market);
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
@@ -7257,25 +7258,31 @@ export default class bingx extends Exchange {
         };
     }
 
-    customEncode (params: Dict): Str {
+    customEncode (params: Dict): string {
         const sortedParams: Dict = this.keysort (params);
         const rawKeys = Object.keys (sortedParams);
         const rawKeysLength = rawKeys.length;
         let adjustedValue: Str = undefined;
-        let result: Str = undefined;
+        let result: string = '';
         for (let i = 0; i < rawKeysLength; i++) {
             const key = rawKeys[i];
             let value = sortedParams[key];
+            let pair: string = this.safeString (sortedParams, key, '');
+            const flag = this.safeBool (sortedParams, key);
+            if (flag !== undefined) {
+                pair = flag ? 'true' : 'false';
+            }
             if (Array.isArray (value)) {
                 let arrStr: Str = undefined;
                 for (let j = 0; j < value.length; j++) {
                     const arrayElement = value[j];
                     const isString = (typeof arrayElement === 'string');
                     if (isString) {
+                        const elementStr = this.safeString (value, j, '');
                         if (j > 0) {
-                            arrStr += ',' + '"' + arrayElement.toString () + '"';
+                            arrStr += ',' + '"' + elementStr + '"';
                         } else {
-                            arrStr = '"' + arrayElement.toString () + '"';
+                            arrStr = '"' + elementStr + '"';
                         }
                     } else {
                         if (j > 0) {
@@ -7287,11 +7294,12 @@ export default class bingx extends Exchange {
                 }
                 adjustedValue = '[' + arrStr + ']';
                 value = adjustedValue;
+                pair = '[' + arrStr + ']';
             }
             if (i === 0) {
-                result = key + '=' + value;
+                result = key + '=' + pair;
             } else {
-                result += '&' + key + '=' + value;
+                result += '&' + key + '=' + pair;
             }
         }
         return result;
@@ -7451,7 +7459,7 @@ export default class bingx extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

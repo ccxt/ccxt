@@ -81,14 +81,6 @@ public partial class BaseTest
     // bridges to make auxiliary methods available in tests
     //
 
-    // the S57 typed twins mirror Exchange.TranspileHelpers.cs: a generated test file's
-    // numerically typed residue must resolve exactly like the library's copy of the
-    // same expression (the bridge is what the tests' bare calls bind to)
-    public static object mod(object a, object b) => Exchange.mod(a, b);
-    public static Int64 mod(Int64 a, Int64 b) => Exchange.mod(a, b);
-    public static Int64 mod(double a, double b) => Exchange.mod(a, b);
-    public static Int64? mod(Int64? a, Int64? b) => Exchange.mod(a, b);
-
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
     public virtual string numberToString(object number) => Exchange.NumberToString(number);
     public static Task<List<object>> promiseAll(object a) => ccxt.Exchange.PromiseAll(a);
@@ -103,72 +95,115 @@ public partial class BaseTest
     // typed twin mirroring Exchange.TranspileHelpers.cs (S58): Dictionary<string, object> + string
     // takes InOp's IDictionary branch (a Dictionary is not an IList), ContainsKey behind null guards
     public static bool inOp(Dictionary<string, object> a, string b) => Exchange.InOp(a, b);
-    public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
     public static int getArrayLength(object a) => Exchange.getArrayLength(a);
     // typed twins mirroring Exchange.TranspileHelpers.cs (S58): a generated test operand that is
     // statically List<object>/IList<object> must resolve to the library's own list branch
     public static int getArrayLength(List<object> a) => Exchange.getArrayLength(a);
     public static int getArrayLength(IList<object> a) => Exchange.getArrayLength(a);
-    public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
-    public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
-    public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
-    public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
-    public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
-    public static int postFixIncrement(ref int a) => Exchange.postFixIncrement(ref a);
-    public static Int64 postFixIncrement(ref Int64 a) => Exchange.postFixIncrement(ref a);
-    public static double postFixIncrement(ref double a) => Exchange.postFixIncrement(ref a);
-    public static double postFixDecrement(ref double a) => Exchange.postFixDecrement(ref a);
-    // the (ref object) prefix twins mirror Exchange.TranspileHelpers.cs: `-x` / `+x` on a
-    // local that cannot be typed (string?, Int64?, List/IDictionary, ...) print
-    // prefixUnaryNeg (ref x) / prefixUnaryPlus (ref x) with the local still `object`
-    public static object prefixUnaryNeg(ref object a) => Exchange.prefixUnaryNeg(ref a);
-    public static int prefixUnaryNeg(ref int a) => Exchange.prefixUnaryNeg(ref a);
-    public static Int64 prefixUnaryNeg(ref Int64 a) => Exchange.prefixUnaryNeg(ref a);
-    public static double prefixUnaryNeg(ref double a) => Exchange.prefixUnaryNeg(ref a);
-    public static object prefixUnaryPlus(ref object a) => Exchange.prefixUnaryPlus(ref a);
-    public static int prefixUnaryPlus(ref int a) => Exchange.prefixUnaryPlus(ref a);
-    public static Int64 prefixUnaryPlus(ref Int64 a) => Exchange.prefixUnaryPlus(ref a);
-    public static double prefixUnaryPlus(ref double a) => Exchange.prefixUnaryPlus(ref a);
-    // typed ref twins for `x--` counters, mirroring Exchange.TranspileHelpers.cs
-    public static object postFixDecrement(ref object a) => Exchange.postFixDecrement(ref a);
-    public static int postFixDecrement(ref int a) => Exchange.postFixDecrement(ref a);
-    public static Int64 postFixDecrement(ref Int64 a) => Exchange.postFixDecrement(ref a);
-    public static object mathMax(object a, object b) => Exchange.mathMax(a, b);
-    public static object add(object a, object b) => Exchange.add(a, b);
-    // the two string overloads of the base `add` family, so generated test locals that name
-    // their string result (`string feedback = add(add(this.id, " "), body)`) compile here as
-    // they do in the library. They forward through the object overload on purpose: the tests
-    // tier resolved every `add(...)` against add(object, object) before those locals existed,
-    // and the base string overloads use string-concat semantics where the object one keeps a
-    // null left operand as null — the casts keep every existing call's runtime value identical
-    public static string add(string a, string b) => (string)Exchange.add((object)a, (object)b);
-    public static string add(string a, object b) => (string)Exchange.add((object)a, b);
-    // typed numeric twins mirroring Exchange.TranspileHelpers.cs (S57's overload names): a
-    // generated test local whose `a + b` operands are all Int64/int/uint/double must resolve
-    // exactly like the library, and both forward to the same unchecked sum the object
-    // overload's Int64 / double branches compute
-    public static Int64 add(Int64 a, Int64 b) => Exchange.add(a, b);
-    public static double add(double a, double b) => Exchange.add(a, b);
-    public static object multiply(object a, object b) => Exchange.multiply(a, b);
-    // typed arithmetic twins mirroring Exchange.TranspileHelpers.cs: a generated test file
-    // whose operands are numerically typed must resolve exactly like the library (the same
-    // expression in cs/ccxt binds the typed overload there), so the mirror has to exist or
-    // a typed residue declaration would bind (object, object) and return the other box
-    public static Int64 multiply(Int64 a, Int64 b) => Exchange.multiply(a, b);
-    public static Int64? multiply(Int64? a, Int64? b) => Exchange.multiply(a, b);
-    public static object subtract(object a, object b) => Exchange.subtract(a, b);
-    public static int subtract(int a, int b) => Exchange.subtract(a, b);
-    public static Int64 subtract(Int64 a, Int64 b) => Exchange.subtract(a, b);
-    public static double subtract(double a, double b) => Exchange.subtract(a, b);
-    public static object divide(object a, object b) => Exchange.divide(a, b);
-    public static double divide(Int64 a, Int64 b) => Exchange.divide(a, b);
-    public static double divide(double a, double b) => Exchange.divide(a, b);
-    public static double? divide(Int64? a, Int64? b) => Exchange.divide(a, b);
-    public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
+    private static object normalizeIntIfNeeded(object a)
+    {
+        if (a == null) return null;
+        if (a is int || a is uint) return System.Convert.ToInt64(a);
+        return a;
+    }
+    public static bool isGreaterThan(object a, object b)
+    {
+        if (a != null && b == null) return true;
+        if (a == null || b == null) return false;
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64)) return Convert.ToInt64(a) > Convert.ToInt64(b);
+        if (a.GetType() == typeof(int) && b.GetType() == typeof(int)) return (int)a > (int)b;
+        if (a.GetType() == typeof(double) || b.GetType() == typeof(double)) return Convert.ToDouble(a) > Convert.ToDouble(b);
+        if (a.GetType() == typeof(string)) return ((string)a).CompareTo((string)b) > 0;
+        return false;
+    }
+    public static bool isLessThan(object a, object b) => !isGreaterThan(a, b) && !Exchange.isEqual(a, b);
+    public static bool isGreaterThanOrEqual(object a, object b) => isGreaterThan(a, b) || Exchange.isEqual(a, b);
+    public static bool isLessThanOrEqual(object a, object b) => isLessThan(a, b) || Exchange.isEqual(a, b);
+    public static object postFixIncrement(ref object a)
+    {
+        if (a is Int64) { a = (Int64)a + 1; }
+        else if (a is int) { a = (int)a + 1; }
+        else if (a is double) { a = (double)a + 1; }
+        else if (a is string) { a = (string)a + 1; }
+        else { return null; }
+        return a;
+    }
+    public static int postFixIncrement(ref int a) { a = a + 1; return a; }
+    public static Int64 postFixIncrement(ref Int64 a) { a = a + 1; return a; }
+    public static double postFixIncrement(ref double a) { a = a + 1; return a; }
+    public static object mathMax(object a, object b)
+    {
+        if (a == null || b == null) return null;
+        return Convert.ToDouble(a) > Convert.ToDouble(b) ? a : b;
+    }
+    public static object add(object a, object b)
+    {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a is Int64) { return (Int64)a + (Int64)b; }
+        if (a is double) { return (double)a + Convert.ToDouble(b); }
+        if (a is string) { return (string)a + (string)b; }
+        return null;
+    }
+    public static string add(string a, string b) => (string)add((object)a, (object)b);
+    public static string add(string a, object b) => (string)add((object)a, b);
+    public static Int64 add(Int64 a, Int64 b) => a + b;
+    public static double add(double a, double b) => a + b;
+    public static object multiply(object a, object b)
+    {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a == null || b == null) { return null; }
+        if (a is Int64 && b is Int64) { return (Int64)a * (Int64)b; }
+        var res = System.Convert.ToDouble(a) * System.Convert.ToDouble(b);
+        return Exchange.IsInteger(res) ? (object)System.Convert.ToInt64(res) : res;
+    }
+    public static Int64 multiply(Int64 a, Int64 b) => a * b;
+    public static Int64? multiply(Int64? a, Int64? b) => a * b;
+    public static object subtract(object a, object b)
+    {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a.GetType() == typeof(Int64)) { return (Int64)a - (Int64)b; }
+        if (a.GetType() == typeof(int)) { return (int)a - (int)b; }
+        if (a.GetType() == typeof(double)) { return (double)a - System.Convert.ToDouble(b); }
+        return null;
+    }
+    public static int subtract(int a, int b) => a - b;
+    public static Int64 subtract(Int64 a, Int64 b) => a - b;
+    public static double subtract(double a, double b) => a - b;
+    public static object divide(object a, object b)
+    {
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
+        if (a == null || b == null) { return null; }
+        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64)) { return (double)(Int64)a / (Int64)b; }
+        if (a.GetType() == typeof(double) && b.GetType() == typeof(double)) { return (double)a / (double)b; }
+        return System.Convert.ToDouble(a) / System.Convert.ToDouble(b);
+    }
+    public static double divide(Int64 a, Int64 b) => (double)a / b;
+    public static double divide(double a, double b) => a / b;
+    public static double? divide(Int64? a, Int64? b) => (double?)a / b;
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
-    public static bool isTrue(object a) => Exchange.isTrue(a);
-    // typed twin mirroring Exchange.TranspileHelpers.cs (S58): `isTrue` is the identity on a bool
-    public static bool isTrue(bool a) => Exchange.isTrue(a);
+    public static bool isTrue(bool a) => a;
+    public static bool isTrue(object value)
+    {
+        if (value == null) { return false; }
+        value = normalizeIntIfNeeded(value);
+        if (value is bool b) { return b; }
+        if (value is Int64 i) { return i != 0; }
+        if (value is double d) { return d != 0; }
+        if (value is string s) { return s != ""; }
+        if (value is IList<object> lo) { return lo.Count > 0; }
+        if (value is IList<string> ls) { return ls.Count > 0; }
+        if (value is IList<int> li) { return li.Count > 0; }
+        if (value is IList<Int64> l64) { return l64.Count > 0; }
+        if (value is IList<double> ld) { return ld.Count > 0; }
+        if (value is IDictionary<string, object>) { return true; }
+        return false;
+    }
     public static object encode(object a) => a;
     public static object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
     public static string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Exchange.Hmac(request2, secret2, algorithm2, digest);
@@ -185,9 +220,18 @@ public partial class BaseTest
     public static string ed25519() => "ed25519";
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
-    public static object parseFloat(object a) => Exchange.parseFloat(a);
+    public static object parseFloat(object a)
+    {
+        try
+        {
+            return Convert.ToDouble(a, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
     public static object callDynamically(object obj, object methodName, object[] args = null) => Exchange.callDynamically(obj, methodName, args);
-    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null) => await Exchange.callDynamicallyAsync(obj, methodName, args);
 
     public bool equals(object a, object b)
     {

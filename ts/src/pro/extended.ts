@@ -2,7 +2,7 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -153,7 +153,7 @@ export default class extended extends extendedRest {
                 },
             };
             this.extendExchangeOptions (defaultOptions);
-            const originalOptions = this.options['ws']['options'];
+            const originalOptions = this.safeDict (this.options['ws'], 'options');
             const originalHeaders = this.safeDict (originalOptions, 'headers', {});
             this.options['ws']['options'] = this.extend (this.extend ({}, originalOptions), {
                 'headers': this.extend (this.extend ({
@@ -190,7 +190,7 @@ export default class extended extends extendedRest {
             symbolResolved = this.safeString (market, 'symbol', '');
             messageHash = 'orders:' + this.safeString (market, 'symbol', '');
         }
-        const orders = await this.watchPrivate (messageHash, {
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
             'limit': limit,
         });
@@ -304,7 +304,7 @@ export default class extended extends extendedRest {
             symbolResolved = this.safeString (market, 'symbol', '');
             messageHash = 'myTrades:' + this.safeString (market, 'symbol', '');
         }
-        const trades = await this.watchPrivate (messageHash, {
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
             'limit': limit,
         });
@@ -442,12 +442,11 @@ export default class extended extends extendedRest {
             return;
         }
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const marketId = this.safeString (rawPosition, 'market');
+            const marketId = this.safeString (rawPositions[i], 'market');
             if (marketId === undefined) {
                 continue;
             }
-            const position = this.parsePosition (rawPosition);
+            const position = this.parsePosition (this.safeDict (rawPositions, i, {}));
             newPositions.push (position);
             stored.append (position);
         }
@@ -502,13 +501,13 @@ export default class extended extends extendedRest {
         }
         const orders = this.orders;
         const data = this.safeDict (message, 'data', {});
-        const rawOrders = this.safeList (data, 'orders');
+        const rawOrders = this.safeList (data, 'orders', []);
         const symbols: Dict = {};
         const first = this.safeDict (rawOrders, 0);
         if (first === undefined) {
             return;
         }
-        for (let i = 0; i < (rawOrders as any[]).length; i++) {
+        for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder (this.safeDict (rawOrders, i, {}));
             const symbol = this.safeString (order, 'symbol');
             symbols[symbol as string] = true;
@@ -741,7 +740,7 @@ export default class extended extends extendedRest {
         }
         subscription['nonce'] = nonce;
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade (data[i], market);
+            const trade = this.parseTrade (this.safeDict (data, i, {}), market);
             stored.append (trade);
         }
         client.resolve (stored, messageHash);
@@ -820,13 +819,11 @@ export default class extended extends extendedRest {
             return;
         }
         const symbol = this.safeString (subscription, 'symbol');
-        const timeframe = this.safeString (subscription, 'timeframe', '');
-        const candleType = this.safeString (subscription, 'candleType', '');
-        let cacheKey: Str = undefined;
-        if (candleType === 'trades') {
-            cacheKey = timeframe;
-        } else {
-            cacheKey = timeframe + ':' + candleType;
+        const timeframe: string = this.safeString (subscription, 'timeframe', '');
+        const candleType: string = this.safeString (subscription, 'candleType', '');
+        let cacheKey: string = timeframe;
+        if (candleType !== 'trades') {
+            cacheKey = cacheKey + ':' + candleType;
         }
         const messageHash = this.safeString (subscription, 'messageHash');
         this.ohlcvs[symbol as string] = this.safeDict (this.ohlcvs, symbol, {});
@@ -864,7 +861,7 @@ export default class extended extends extendedRest {
         return undefined;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //

@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status, Endpoint } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status, Endpoint, Bool } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -1013,11 +1013,7 @@ export default class ndax extends Exchange {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        let candles: List = [];
-        if (Array.isArray (response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     override parseTrade (trade: Dict | List, market: Market = undefined): Trade {
@@ -2391,7 +2387,7 @@ export default class ndax extends Exchange {
         //    ]"
         //
         if (typeof response === 'string') {
-            return this.parseTransactions (JSON.parse (response), currency, since, limit);
+            return this.parseTransactions (this.toArray (JSON.parse (response)), currency, since, limit);
         }
         return this.parseTransactions (response, currency, since, limit);
     }
@@ -2680,7 +2676,7 @@ export default class ndax extends Exchange {
         if (template === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template for ' + currency['code']);
         }
-        const withdrawTemplate = JSON.parse (template);
+        const withdrawTemplate: Dict = this.extend ({}, JSON.parse (template));
         withdrawTemplate['ExternalAddress'] = address;
         if (tagWithdrawTag !== undefined) {
             if ('Memo' in withdrawTemplate) {
@@ -2785,7 +2781,7 @@ export default class ndax extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (code === 404) {
             throw new AuthenticationError (this.id + ' ' + body);
         }

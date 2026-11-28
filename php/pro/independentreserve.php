@@ -245,7 +245,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-        if (($checksum) && ($receivedSnapshot)) {
+        if (($checksum === true) && ($receivedSnapshot)) {
             $storedAsks = $orderbook['asks'];
             $storedBids = $orderbook['bids'];
             $asksLength = count($storedAsks);
@@ -280,11 +280,10 @@ class independentreserve extends \ccxt\async\independentreserve {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        $result = $this->decimal_to_precision($value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        $result = str_replace('.', '', $result);
+        $padded = $this->decimal_to_precision($value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        $digits = str_replace('.', '', $padded);
         // remove leading zeros
-        $result = $this->parse_number($result);
-        $result = $this->number_to_string($result);
+        $result = $this->number_to_string($this->parse_number($digits));
         return $result;
     }
 

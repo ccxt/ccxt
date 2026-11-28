@@ -271,7 +271,7 @@ public partial class revolutx : Exchange
             }
             string requestPath = ("/api/" + implodedPath);
             string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + bodyString);
-            string signature = eddsa(this.encode(message), this.privateKey, ed25519);
+            string signature = eddsa(message, this.privateKey, ed25519);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },
@@ -544,7 +544,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? tickerSymbol = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(tickerSymbol, market, "/");
@@ -616,7 +616,7 @@ public partial class revolutx : Exchange
             {
                 string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
-                marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+                marketIds.Add(this.safeString(market, "id", ""));
             }
             request["symbols"] = String.Join(",", marketIds.ToArray());
         }
@@ -750,7 +750,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the candle is for
      * @returns {int[]} an [OHLCV structure]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(ohlcv, "start");
         double? open = this.safeNumber(ohlcv, "open");
@@ -934,7 +934,7 @@ public partial class revolutx : Exchange
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             result.Add(ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market)));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(this.sortBy(result, "timestamp")), symbol, since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit));
     }
 
     /**
@@ -960,7 +960,7 @@ public partial class revolutx : Exchange
         //     ]
         //
         object payload = response;
-        if (((payload is IList<object>) || (payload.GetType().IsGenericType && payload.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((payload is IList<object>) || (payload is not null && payload.GetType().IsGenericType && payload.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             payload = new Dictionary<string, object>() {
                 { "data", payload },
@@ -1027,7 +1027,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         string? orderId = this.safeString2(order, "id", "venue_order_id");
         string? clientOrderId = this.safeString(order, "client_order_id");
@@ -1295,16 +1295,16 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> orderData = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderData = ((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? venueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
         ccxt.Order order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
-            { "id", venueOrderId },
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "status", state },
-            { "side", side },
-            { "type", type },
-        }), market);
+    { "id", venueOrderId },
+    { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+    { "status", state },
+    { "side", side },
+    { "type", type },
+}), market);
         return order;
     }
 
@@ -1321,7 +1321,7 @@ public partial class revolutx : Exchange
      * @param {boolean} singleLeg whether the order has only this leg
      * @returns {object} the leg request
      */
-    public virtual object createTriggerLegRequest(object symbol, object type, object price, object triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
+    public virtual Dictionary<string, object> createTriggerLegRequest(object symbol, object type, double? price, string? triggerPrice, IDictionary<string, object> leg, bool? singleLeg)
     {
         string? legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
         if ((legTriggerPrice == null))
@@ -1329,7 +1329,7 @@ public partial class revolutx : Exchange
             throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "trigger_price", this.priceToPrecision(symbol, legTriggerPrice) },
+            { "trigger_price", this.priceToPrecision(((string)symbol), legTriggerPrice) },
         };
         string? legPrice = this.safeString(leg, "price");
         if (((legPrice == null)) && ((type is "limit")))
@@ -1342,7 +1342,7 @@ public partial class revolutx : Exchange
         }
         if ((legPrice != null))
         {
-            result["limit_price"] = this.priceToPrecision(symbol, legPrice);
+            result["limit_price"] = this.priceToPrecision(((string)symbol), legPrice);
         }
         return result;
     }
@@ -1621,7 +1621,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         string? id = this.safeString(trade, "tid");
         string? orderId = this.safeString(trade, "oid");
@@ -1796,40 +1796,36 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> orderData = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderData = ((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? newVenueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
         ccxt.Order order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
-            { "id", newVenueOrderId },
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "status", state },
-            { "side", side },
-            { "type", type },
-        }), market);
+    { "id", newVenueOrderId },
+    { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+    { "status", state },
+    { "side", side },
+    { "type", type },
+}), market);
         return order;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 400))
+        if (statusCode >= 400)
         {
             if ((response == null))
             {
-                return null;
+                return ((bool?)((object)(null)));
             }
-            string feedback = ((this.id + " ") + (body));
-            string? errorMessage = null;
-            if ((response is IDictionary<string, object>))
-            {
-                errorMessage = this.safeString2(response, "message", "error");
-            }
+            string feedback = ((this.id + " ") + body);
+            string? errorMessage = this.safeString2(response, "message", "error");
             if ((errorMessage != null))
             {
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             }
-            return null;
+            return ((bool?)((object)(null)));
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

@@ -12,7 +12,6 @@ type Delta struct {
 
 func newDelta() *Delta {
 	p := &Delta{}
-	setDefaults(p)
 	return p
 }
 
@@ -308,8 +307,8 @@ func (this *Delta) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0015"),
 				"maker":      this.ParseNumber("0.0010"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("250"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.00065")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("100"), this.ParseNumber("0.001")}, []any{this.ParseNumber("250"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0005")}},
+					"taker": []any{[]any{0.0, 0.0015}, []any{100.0, 0.0013}, []any{250.0, 0.0013}, []any{1000.0, 0.001}, []any{5000.0, 0.0009}, []any{10000.0, 0.00075}, []any{20000.0, 0.00065}},
+					"maker": []any{[]any{0.0, 0.001}, []any{100.0, 0.001}, []any{250.0, 0.0009}, []any{1000.0, 0.00075}, []any{5000.0, 0.0006}, []any{10000.0, 0.0005}, []any{20000.0, 0.0005}},
 				},
 			},
 		},
@@ -428,12 +427,12 @@ func (this *Delta) Describe() map[string]any {
 		},
 	})
 }
-func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
+func (this *Delta) CreateExpiredOptionMarket(symbol string) map[string]any {
 	// support expired option contracts
 	var quote string = "USDT"
-	var optionParts []string = Split(symbol, "-")
-	var symbolBase []string = Split(symbol, "/")
-	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
+	var optionParts []string = strings.Split(symbol, "-")
+	var symbolBase []string = strings.Split(symbol, "/")
+	var hasSlash bool = (strings.Index(symbol, "/") > -1)
 	var base *string = this.SafeString(optionParts, 1, "")
 	if hasSlash {
 		base = this.SafeString(symbolBase, 0, "")
@@ -450,28 +449,28 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		}
 		return 3
 	}(), "")
-	var expiry string = func() string {
-		if rawExpiry == nil {
-			return ""
-		}
+	var rawExpiryPart string
+	if rawExpiry != nil {
 		str := *rawExpiry
-		return str[4:]
-	}() + func() string {
-		if rawExpiry == nil {
-			return ""
-		}
+		rawExpiryPart = str[4:]
+	}
+	var expiryYear string = rawExpiryPart
+	var rawExpiryPart2 string
+	if rawExpiry != nil {
 		str := *rawExpiry
-		return str[2:min(4, len(str))]
-	}() + func() string {
-		if rawExpiry == nil {
-			return ""
-		}
+		rawExpiryPart2 = str[2:min(4, len(str))]
+	}
+	var expiryMonth string = rawExpiryPart2
+	var rawExpiryPart3 string
+	if rawExpiry != nil {
 		str := *rawExpiry
-		return str[0:min(2, len(str))]
-	}()
+		rawExpiryPart3 = str[0:min(2, len(str))]
+	}
+	var expiryDay string = rawExpiryPart3
+	var expiry string = expiryYear + expiryMonth + expiryDay
 	var settle string = quote
 	var strike string = *this.SafeString(optionParts, 2, "")
-	var datetime any = this.ConvertExpireDate(expiry)
+	var datetime *string = this.ConvertExpireDate(&expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
 	if optionType == "C" {
@@ -523,7 +522,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	})
 }
 func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
@@ -531,10 +530,14 @@ func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
-	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	var isOption bool = (marketId != nil) && ((strings.HasSuffix(*marketId, "-C")) || (strings.HasSuffix(*marketId, "-P")) || (strings.HasPrefix(*marketId, "C-")) || (strings.HasPrefix(*marketId, "P-")))
+	var marketIdKnown bool
+	if marketId != nil {
+		_, marketIdKnown = this.Markets_by_id[*marketId]
+	}
+	if (marketId != nil) && isOption && ((this.Markets_by_id == nil) || !marketIdKnown) {
 		// handle expired option contracts
-		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
+		return MarketTyped(this.CreateExpiredOptionMarket(*marketId))
 	}
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
@@ -563,7 +566,7 @@ func (this *Delta) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...an
 	}
 	var response map[string]any = r.Value
 	// full response sample under `fetchStatus`
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[*int64]{Value: this.SafeIntegerProduct(result, "server_time", 0.001)}
 	return nil
@@ -587,11 +590,11 @@ func (this *Delta) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetSettings(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetSettings(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "result": {
@@ -645,7 +648,7 @@ func (this *Delta) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var underMaintenance *string = this.SafeString(result, "under_maintenance")
 	var status string = "ok"
 	if underMaintenance != nil && *underMaintenance == "true" {
@@ -658,7 +661,7 @@ func (this *Delta) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 		"updated": updated,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -735,7 +738,11 @@ func (this *Delta) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 	//         "success":true
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "result", []any{})
+	var currencies []any
+	currencies, _ = response["result"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -815,12 +822,12 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var markets map[string]any = r.Value
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
-	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
+	var marketsByNumericId, _ = this.Options["marketsByNumericId"].(map[string]any)
 	if (marketsByNumericId == nil) || (reload == true) {
 		this.Options["marketsByNumericId"] = this.IndexByStringifiedNumericId(this.Markets)
 	}
@@ -828,12 +835,18 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 	ch <- AsyncResult[map[string]any]{Value: markets}
 	return nil
 }
-func (this *Delta) IndexByStringifiedNumericId(input any) any {
+func (this *Delta) IndexByStringifiedNumericId(input map[string]any) any {
 	var result map[string]any = map[string]any{}
-	if IsEqual(input, nil) {
+	if input == nil {
 		return nil
 	}
-	var keys []string = ObjectKeys(input)
+	var keys []string = nil
+	if input != nil {
+		keys = make([]string, 0, len(input))
+		for objectKey := range input {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var item map[string]any = this.SafeDictMap(input, key, map[string]any{})
@@ -1057,10 +1070,10 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			continue
 		}
 		// const settlingAsset = this.safeValue (market, 'settling_asset', {});
-		var quotingAsset map[string]any = SafeMapTyped(market, "quoting_asset")
-		var underlyingAsset map[string]any = SafeMapTyped(market, "underlying_asset")
-		var settlingAsset map[string]any = SafeMapTyped(market, "settling_asset")
-		var productSpecs map[string]any = SafeMapTyped(market, "product_specs")
+		var quotingAsset, _ = market["quoting_asset"].(map[string]any)
+		var underlyingAsset, _ = market["underlying_asset"].(map[string]any)
+		var settlingAsset, _ = market["settling_asset"].(map[string]any)
+		var productSpecs, _ = market["product_specs"].(map[string]any)
 		var baseId *string = this.SafeString(underlyingAsset, "symbol")
 		var quoteId *string = this.SafeString(quotingAsset, "symbol")
 		var settleId *string = this.SafeString(settlingAsset, "symbol")
@@ -1092,73 +1105,67 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		}
 		var linear bool = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
 		var optionType *string = nil
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		if swap || future || option {
-			symbol = Add(Add(symbol, ":"), settle)
+			var settleCode *string = this.SafeCurrencyCode(settleId)
+			symbol = symbol + ":" + *settleCode
 			if future || option {
-				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
+				var expiryCode string = this.Yymmdd(expiry)
+				symbol = symbol + "-" + expiryCode
 				if option {
-					typeVar = SafeStringPtr("option")
+					typeVarStr := "option"
+					typeVar = &typeVarStr
 					var letter string = "C"
-					optionType = SafeStringPtr("call")
+					optionTypeStr := "call"
+					optionType = &optionTypeStr
 					if putOptions {
 						letter = "P"
-						optionType = SafeStringPtr("put")
+						optionTypeStr2 := "put"
+						optionType = &optionTypeStr2
 					} else if moveOptions {
 						letter = "M"
-						optionType = SafeStringPtr("move")
+						optionTypeStr3 := "move"
+						optionType = &optionTypeStr3
 					}
-					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
+					var strikeString string = *this.SafeString(market, "strike_price", "")
+					symbol = symbol + "-" + strikeString + "-" + letter
 				} else {
-					typeVar = SafeStringPtr("future")
+					typeVarStr2 := "future"
+					typeVar = &typeVarStr2
 				}
 			} else {
-				typeVar = SafeStringPtr("swap")
+				typeVarStr3 := "swap"
+				typeVar = &typeVarStr3
 			}
 		}
 		var state *string = this.SafeString(market, "state")
-		result = append(result, this.SafeMarketStructure(map[string]any{
-			"id":        id,
-			"numericId": numericId,
-			"symbol":    symbol,
-			"base":      base,
-			"quote":     quote,
-			"settle":    settle,
-			"baseId":    baseId,
-			"quoteId":   quoteId,
-			"settleId":  settleId,
-			"type":      typeVar,
-			"spot":      spot,
-			"margin":    false,
-			"swap":      swap,
-			"future":    future,
-			"option":    option,
-			"active":    (state != nil && *state == "live"),
-			"contract":  !spot,
-			"linear": func() any {
-				if spot {
-					return nil
-				}
-				return linear
-			}(),
-			"inverse": func() any {
-				if spot {
-					return nil
-				}
-				return !linear
-			}(),
-			"taker": this.SafeNumber(market, "taker_commission_rate"),
-			"maker": this.SafeNumber(market, "maker_commission_rate"),
-			"contractSize": func() any {
-				if spot {
-					return nil
-				}
-				return contractSize
-			}(),
+		var marketStructure map[string]any = map[string]any{
+			"id":             id,
+			"numericId":      numericId,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           spot,
+			"margin":         false,
+			"swap":           swap,
+			"future":         future,
+			"option":         option,
+			"active":         (state != nil && *state == "live"),
+			"contract":       !spot,
+			"linear":         nil,
+			"inverse":        nil,
+			"taker":          this.SafeNumber(market, "taker_commission_rate"),
+			"maker":          this.SafeNumber(market, "maker_commission_rate"),
+			"contractSize":   nil,
 			"expiry":         expiry,
 			"expiryDatetime": this.Iso8601(expiry),
 			"strike":         this.ParseNumber(strike),
-			"optionType":     optionType,
+			"optionType":     nil,
 			"precision": map[string]any{
 				"amount": amountPrecision,
 				"price":  this.SafeNumber(market, "tick_size"),
@@ -1183,13 +1190,22 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			},
 			"created": this.Parse8601(this.SafeString(market, "launch_time")),
 			"info":    market,
-		}))
+		}
+		if optionType != nil {
+			marketStructure["optionType"] = *optionType
+		}
+		if !spot {
+			marketStructure["linear"] = linear
+			marketStructure["inverse"] = !linear
+			marketStructure["contractSize"] = contractSize
+		}
+		result = append(result, this.SafeMarketStructure(marketStructure))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Delta) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -1310,9 +1326,9 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var last *string = this.SafeString(ticker, "close")
-	var quotes map[string]any = SafeMapTyped(ticker, "quotes")
+	var quotes, _ = ticker["quotes"].(map[string]any)
 	// turnover_symbol names the currency turnover is denominated in, and on
 	// spot markets that is the base currency rather than the quote
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
@@ -1374,7 +1390,7 @@ func (this *Delta) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1508,7 +1524,11 @@ func (this *Delta) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
@@ -1677,16 +1697,20 @@ func (this *Delta) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	//         "success":true
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "result")
+	var tickers []any
+	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var rawTicker any = tickers[i]
-		var contractType *string = this.SafeString(rawTicker, "contract_type")
+		var contractType *string = this.SafeString(tickers[i], "contract_type")
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
-		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		tickersDict144045, _ := tickers[i].(map[string]any)
+		if tickersDict144045 == nil {
+			tickersDict144045 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickersDict144045))
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}
@@ -1723,12 +1747,15 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetL2orderbookSymbol(this.Extend(request, params))
@@ -1754,9 +1781,13 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market.Symbol, nil, "buy", "sell", "price", "size"))}
 	return nil
 }
 func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1822,21 +1853,24 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeString(trade, "side")
 	if side == nil {
 		if sellerRole != nil && *sellerRole == "taker" {
-			side = SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else if sellerRole != nil && *sellerRole == "maker" {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var metaData map[string]any = SafeMapTyped(trade, "meta_data")
 	var typeVar *string = this.SafeString(metaData, "order_type")
 	if typeVar != nil {
-		typeVar = SafeStringPtr(strings.Replace(*typeVar, "_order", "", 1))
+		typeVarStr := strings.Replace(*typeVar, "_order", "", 1)
+		typeVar = &typeVarStr
 	}
 	var feeCostString *string = this.SafeString(trade, "commission")
 	var fee map[string]any = nil
 	if feeCostString != nil {
-		var settlingAsset map[string]any = SafeMapTyped(product, "settling_asset")
+		var settlingAsset, _ = product["settling_asset"].(map[string]any)
 		var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
@@ -1872,12 +1906,12 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Delta) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Delta) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1891,7 +1925,7 @@ func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1916,7 +1950,11 @@ func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	//         "success":true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -1971,15 +2009,15 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var limitValue any = 2000
+	var limitValue int64 = 2000
 	var windowSeconds int64 = 2000 * duration
 	if (limit != nil) && (limit == nil || *limit != 0) {
-		limitValue = limit // max 2000
+		limitValue = *limit // max 2000
 		windowSeconds = *limit * duration
 	}
 	var until *int64 = this.SafeIntegerProduct(params, "until", 0.001)
@@ -2004,8 +2042,8 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	if price != nil && *price == "mark" {
 		request["symbol"] = "MARK:" + *marketId
 	} else if price != nil && *price == "index" {
-		var marketInfo map[string]any = SafeMapTyped(market, "info")
-		var spotIndex map[string]any = SafeMapTyped(marketInfo, "spot_index")
+		var marketInfo, _ = market["info"].(map[string]any)
+		var spotIndex, _ = marketInfo["spot_index"].(map[string]any)
 		request["symbol"] = this.SafeString(spotIndex, "symbol")
 	} else {
 		request["symbol"] = marketId
@@ -2027,31 +2065,39 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limitValue))}
 	return nil
 }
-func (this *Delta) ParseBalance(response any) map[string]any {
-	var balances []any = SafeListTyped(response, "result")
+func (this *Delta) ParseBalance(response map[string]any) map[string]any {
+	var balances []any
+	balances, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset_id")
-		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
-		var code any = func() any {
-			if currency == nil {
-				return currencyId
-			}
-			return currency["code"]
-		}()
+		var currency map[string]any = nil
+		if currencyId != nil {
+			currency, _ = currenciesByNumericId[*currencyId].(map[string]any)
+		}
+		var code *string = currencyId
+		if currency != nil {
+			code = this.SafeString(currency, "code")
+		}
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "balance")
 		account["free"] = this.SafeString(balance, "available_balance")
-		AddElementToObject(result, code, account)
+		if code != nil {
+			result[*code] = account
+		}
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
@@ -2120,12 +2166,12 @@ func (this *Delta) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Delta) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Delta) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2135,7 +2181,7 @@ func (this *Delta) fetchPositionBody(ch chan AsyncResult[Position], symbol any, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
@@ -2155,7 +2201,11 @@ func (this *Delta) fetchPositionBody(ch chan AsyncResult[Position], symbol any, 
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(result, market)}
 	return nil
@@ -2214,12 +2264,16 @@ func (this *Delta) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbols))}
 	return nil
 }
-func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Delta) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPosition
 	//
@@ -2251,18 +2305,20 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "product_symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeIntegerProduct(position, "timestamp", 0.001)
 	var sizeString *string = this.SafeString(position, "size")
 	var side *string = nil
 	if sizeString != nil {
 		if Precise.StringGt(sizeString, "0") {
-			side = SafeStringPtr("long")
+			sideStr := "long"
+			side = &sideStr
 		} else if Precise.StringLt(sizeString, "0") {
-			side = SafeStringPtr("short")
+			sideStr2 := "short"
+			side = &sideStr2
 		}
 	}
-	return this.SafePosition(map[string]any{
+	var literal188034 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      symbol,
@@ -2275,7 +2331,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
 		"contracts":                   this.ParseNumber(sizeString),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"markPrice":                   nil,
-		"side":                        side,
+		"side":                        nil,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -2289,7 +2345,11 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
 		"marginRatio":                 nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	})
+	}
+	if side != nil {
+		literal188034["side"] = *side
+	}
+	return this.SafePosition(literal188034)
 }
 func (this *Delta) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2300,7 +2360,7 @@ func (this *Delta) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Delta) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
 	//
@@ -2372,10 +2432,10 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var marketId *string = this.SafeString(order, "product_id")
-	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
-	var marketValue any = this.SafeDict(marketsByNumericId, marketId, market)
+	var marketsByNumericId, _ = this.Options["marketsByNumericId"].(map[string]any)
+	var marketValue map[string]any = this.SafeDictMap(marketsByNumericId, marketId, market)
 	var symbol *string = nil
-	if IsEqual(marketValue, nil) {
+	if marketValue == nil {
 		symbol = marketId
 	} else {
 		symbol = this.SafeString(marketValue, "symbol")
@@ -2384,7 +2444,8 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "order_type")
 	if typeVar != nil {
-		typeVar = SafeStringPtr(strings.Replace(*typeVar, "_order", "", 1))
+		typeVarStr := strings.Replace(*typeVar, "_order", "", 1)
+		typeVar = &typeVarStr
 	}
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "size")
@@ -2394,9 +2455,9 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	var feeCostString *string = this.SafeString(order, "paid_commission")
 	if feeCostString != nil {
 		var feeCurrencyCode *string = nil
-		if !IsEqual(marketValue, nil) {
-			var marketInfo map[string]any = SafeMapTyped(marketValue, "info")
-			var settlingAsset map[string]any = SafeMapTyped(marketInfo, "settling_asset")
+		if marketValue != nil {
+			var marketInfo, _ = marketValue["info"].(map[string]any)
+			var settlingAsset, _ = marketInfo["settling_asset"].(map[string]any)
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
 		}
@@ -2405,14 +2466,14 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal202331 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               typeVar,
 		"side":               side,
 		"price":              price,
@@ -2424,7 +2485,11 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketValue)
+	}
+	if symbol != nil {
+		literal202331["symbol"] = *symbol
+	}
+	return this.SafeOrder(literal202331, marketValue)
 }
 
 /**
@@ -2459,15 +2524,16 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(r.Err)
 	}
 	var orderType string = typeVar + "_order"
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
-		"size":       this.AmountToPrecision(market["symbol"], amount),
+		"size":       this.AmountToPrecision(&precisionSymbol, amount),
 		"side":       side,
 		"order_type": orderType,
 	}
 	if typeVar == "limit" {
-		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
+		request["limit_price"] = this.PriceToPrecision(&precisionSymbol, price)
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_order_id"})
@@ -2478,12 +2544,12 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	if reduceOnly != nil && *reduceOnly == true {
 		request["reduce_only"] = reduceOnly
 	}
-	var paramsOmitted2 map[string]any = func() map[string]any {
-		if reduceOnly != nil && *reduceOnly == true {
-			return this.OmitDict(paramsOmitted, "reduceOnly")
-		}
-		return paramsOmitted
-	}()
+	var paramsOmitted2 map[string]any
+	if reduceOnly != nil && *reduceOnly == true {
+		paramsOmitted2 = this.OmitDict(paramsOmitted, "reduceOnly")
+	} else {
+		paramsOmitted2 = paramsOmitted
+	}
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))
 	if r1.Err != nil {
@@ -2526,7 +2592,11 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -2546,12 +2616,12 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Delta) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2565,20 +2635,21 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"id":         this.ParseToInt(id),
 		"product_id": market["numericId"],
 	}
 	if amount != nil {
-		var sizeString *string = this.AmountToPrecision(symbol, amount)
+		var sizeString *string = this.AmountToPrecision(&symbol, amount)
 		if sizeString == nil {
-			sizeString = SafeStringPtr("0")
+			sizeStringValue := "0"
+			sizeString = &sizeStringValue
 		}
 		request["size"] = this.ParseToInt(sizeString)
 	}
 	if price != nil {
-		request["limit_price"] = this.PriceToPrecision(symbol, price)
+		request["limit_price"] = this.PriceToPrecision(&symbol, price)
 	}
 
 	r1 := <-this.PrivatePutOrders(this.Extend(request, params))
@@ -2603,7 +2674,11 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -2686,7 +2761,11 @@ func (this *Delta) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -2817,7 +2896,11 @@ func (this *Delta) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -2855,11 +2938,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233115 []any = OrdersToList(r.Value)
-	if retRes233115 == nil {
+	var retRes234815 []any = OrdersToList(r.Value)
+	if retRes234815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234815)}
 	}
 	return nil
 }
@@ -2896,11 +2979,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes234615 []any = OrdersToList(r.Value)
-	if retRes234615 == nil {
+	var retRes236315 []any = OrdersToList(r.Value)
+	if retRes236315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes236315)}
 	}
 	return nil
 }
@@ -2935,7 +3018,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 		request["start_time"] = this.NumberToString(*since * 1000)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	var response map[string]any = nil
 	if method == "privateGetOrders" {
@@ -2976,7 +3059,11 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 	//         }
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
@@ -3024,7 +3111,7 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["start_time"] = this.NumberToString(*since * 1000)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetFills(this.Extend(request, params))
@@ -3077,7 +3164,11 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	//         "success":true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -3122,7 +3213,7 @@ func (this *Delta) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		request["asset_id"] = currency["numericId"]
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
@@ -3151,7 +3242,11 @@ func (this *Delta) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	//         "success":true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(result, currency, since, limit))}
 	return nil
@@ -3168,7 +3263,7 @@ func (this *Delta) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Delta) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "amount":"29.889184",
@@ -3188,19 +3283,19 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	_ = currency
 	var id *string = this.SafeString(item, "uuid")
 	var direction *string = nil
-	var account any = nil
-	var metaData map[string]any = SafeMapTyped(item, "meta_data")
+	var metaData, _ = item["meta_data"].(map[string]any)
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
-	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")
 	if (typeVar != nil && *typeVar == "deposit") || (typeVar != nil && *typeVar == "commission_rebate") || (typeVar != nil && *typeVar == "referral_bonus") || (typeVar != nil && *typeVar == "pnl") || (typeVar != nil && *typeVar == "withdrawal_cancellation") || (typeVar != nil && *typeVar == "promo_credit") {
-		direction = SafeStringPtr("in")
+		directionStr := "in"
+		direction = &directionStr
 	} else if (typeVar != nil && *typeVar == "withdrawal") || (typeVar != nil && *typeVar == "commission") || (typeVar != nil && *typeVar == "conversion") || (typeVar != nil && *typeVar == "perpetual_futures_funding") {
-		direction = SafeStringPtr("out")
+		directionStr2 := "out"
+		direction = &directionStr2
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
 	var currencyId *string = this.SafeString(item, "asset_id")
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	var currencyValue any = this.SafeValue(currenciesByNumericId, currencyId, currency)
 	var code *string = this.SafeString(currencyValue, "code")
 	var amount *string = this.SafeString(item, "amount")
@@ -3212,9 +3307,9 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 		"info":             item,
 		"id":               id,
 		"direction":        direction,
-		"account":          account,
+		"account":          nil,
 		"referenceId":      referenceId,
-		"referenceAccount": referenceAccount,
+		"referenceAccount": nil,
 		"type":             typeVar,
 		"currency":         code,
 		"amount":           this.ParseNumber(amount),
@@ -3259,12 +3354,12 @@ func (this *Delta) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, code)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if networkCode != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if networkCode != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivateGetDepositsAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -3288,12 +3383,16 @@ func (this *Delta) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
 }
-func (this *Delta) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Delta) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//    {
 	//        "id": 1915615,
@@ -3348,7 +3447,7 @@ func (this *Delta) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
@@ -3406,7 +3505,11 @@ func (this *Delta) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(result, market)}
 	return nil
@@ -3495,12 +3598,16 @@ func (this *Delta) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         "success":true
 	//     }
 	//
-	var rates []any = SafeListTypedDefault(response, "result", []any{})
+	var rates []any
+	rates, _ = response["result"].([]any)
+	if rates == nil {
+		rates = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rates, symbolsNormalized))}
 	return nil
 }
-func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Delta) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "close": 30600.5,
@@ -3581,12 +3688,12 @@ func (this *Delta) ParseFundingRate(contract any, optionalArgs ...any) FundingRa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Delta) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Delta) AddMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Delta) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3610,12 +3717,12 @@ func (this *Delta) addMarginBody(ch chan AsyncResult[MarginModification], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Delta) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Delta) ReduceMarginAsync(symbol string, amount float64, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
+func (this *Delta) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3628,12 +3735,12 @@ func (this *Delta) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Delta) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Delta) ModifyMarginHelperAsync(symbol string, amount float64, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount float64, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3643,7 +3750,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var amountString *string = this.NumberToString(amount)
 	var deltaMargin *string
 	if typeVar == "reduce" {
@@ -3684,12 +3791,16 @@ func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(result, market))}
 	return nil
 }
-func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Delta) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "auto_topup": false,
@@ -3752,7 +3863,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
@@ -3817,7 +3928,11 @@ func (this *Delta) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(result, market)}
 	return nil
@@ -3897,12 +4012,12 @@ func (this *Delta) ParseOpenInterest(interest any, optionalArgs ...any) OpenInte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Delta) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Delta) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3912,7 +4027,7 @@ func (this *Delta) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
@@ -3935,12 +4050,16 @@ func (this *Delta) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, 
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(result, market)}
 	return nil
 }
-func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+func (this *Delta) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "index_symbol")
@@ -4041,7 +4160,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4049,7 +4168,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 		"states": "expired",
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.PublicGetProducts(this.Extend(request, params))
@@ -4115,14 +4234,18 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	//         "success": true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 	var settlements []any = this.ParseSettlements(result, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
+func (this *Delta) ParseSettlement(settlement map[string]any, market map[string]any) map[string]any {
 	//
 	//     {
 	//         "contract_value": "0.001",
@@ -4186,10 +4309,11 @@ func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
 		"datetime":  datetime,
 	}
 }
-func (this *Delta) ParseSettlements(settlements []any, market any) []any {
+func (this *Delta) ParseSettlements(settlements []any, market map[string]any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(DerefScalar(settlements[i]), market))
+		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])
+		result = append(result, this.ParseSettlement(settlementRow, market))
 	}
 	return result
 }
@@ -4218,7 +4342,7 @@ func (this *Delta) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4280,12 +4404,16 @@ func (this *Delta) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(result, market)}
 	return nil
 }
-func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Delta) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "close": 6793.0,
@@ -4340,8 +4468,8 @@ func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 	var timestamp *int64 = this.SafeIntegerProduct(greeks, "timestamp", 0.001)
 	var marketId *string = this.SafeString(greeks, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var stats map[string]any = SafeMapTyped(greeks, "greeks")
-	var quotes map[string]any = SafeMapTyped(greeks, "quotes")
+	var stats, _ = greeks["greeks"].(map[string]any)
+	var quotes, _ = greeks["quotes"].(map[string]any)
 	return GreeksFromMap(map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,
@@ -4402,7 +4530,12 @@ func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
 	//
 	// {"result":{},"success":true}
 	//
-	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(response, "result", map[string]any{})))
+	var positionRow map[string]any
+	positionRow, _ = response["result"].(map[string]any)
+	if positionRow == nil {
+		positionRow = map[string]any{}
+	}
+	var position map[string]any = PositionToMap(this.ParsePosition(positionRow))
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList([]any{position})}
 	return nil
@@ -4417,12 +4550,12 @@ func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Delta) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Delta) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4433,8 +4566,8 @@ func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol a
 		panic(r.Err)
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
-		market = this.Market(symbol)
+	if true {
+		market = this.Market(&symbol)
 	}
 
 	r1 := <-this.PrivateGetProfile(params)
@@ -4505,12 +4638,16 @@ func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol a
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(result, market)}
 	return nil
 }
-func (this *Delta) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Delta) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = nil
@@ -4586,7 +4723,7 @@ func (this *Delta) fetchOptionBody(ch chan AsyncResult[Option], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4648,12 +4785,16 @@ func (this *Delta) fetchOptionBody(ch chan AsyncResult[Option], symbol string, o
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Option]{Value: this.ParseOption(result, nil, market)}
 	return nil
 }
-func (this *Delta) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Delta) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "close": 6793.0,
@@ -4709,7 +4850,7 @@ func (this *Delta) ParseOption(chain any, optionalArgs ...any) Option {
 	_ = market
 	var marketId *string = this.SafeString(chain, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var quotes map[string]any = SafeMapTyped(chain, "quotes")
+	var quotes, _ = chain["quotes"].(map[string]any)
 	var timestamp *int64 = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return OptionFromMap(map[string]any{
 		"info":              chain,
@@ -4935,12 +5076,16 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optiona
 	//         "success": true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(result, symbolsNormalized))}
 	return nil
 }
-func (this *Delta) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Delta) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionsADLRank
 	//
@@ -5137,7 +5282,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if apiName == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
@@ -5167,7 +5312,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 		requestHeaders = privateHeaders
 	}
 	var bodyResult *string = requestBody
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -5175,7 +5320,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Delta) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Delta) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

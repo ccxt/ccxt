@@ -155,14 +155,15 @@ class htx extends htx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol');
         const options = this.safeDict(this.options, 'watchTicker', {});
         const topic = this.safeString(options, 'name', 'market.{marketId}.detail');
         if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
             throw new errors.BadRequest(this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
         }
         const messageHash = this.implodeParams(topic, { 'marketId': market['id'] });
-        const url = this.getUrlByMarketType(market['type'], market['linear']);
+        const isLinearMarket = (market['linear'] === true);
+        const url = this.getUrlByMarketType(market['type'], isLinearMarket);
         return await this.subscribePublic(url, symbolValue, messageHash, undefined, params);
     }
     /**
@@ -234,7 +235,7 @@ class htx extends htx$1["default"] {
         const timestamp = this.safeInteger(message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
@@ -259,10 +260,11 @@ class htx extends htx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol');
         const marketId = this.safeString(market, 'id', '');
         const messageHash = 'market.' + marketId + '.trade.detail';
-        const url = this.getUrlByMarketType(market['type'], market['linear']);
+        const isLinearMarket = (market['linear'] === true);
+        const url = this.getUrlByMarketType(market['type'], isLinearMarket);
         const trades = await this.subscribePublic(url, symbolValue, messageHash, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -322,7 +324,7 @@ class htx extends htx$1["default"] {
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let tradesCache = this.safeValue(this.trades, symbol);
         if (tradesCache === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -330,7 +332,7 @@ class htx extends htx$1["default"] {
             this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
-            const trade = this.parseTrade(data[i], market);
+            const trade = this.parseTrade(this.safeDict(data, i, {}), market);
             tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
@@ -355,11 +357,12 @@ class htx extends htx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const marketId = this.safeString(market, 'id', '');
         const messageHash = 'market.' + marketId + '.kline.' + interval;
-        const url = this.getUrlByMarketType(market['type'], market['linear']);
+        const isLinearMarket = (market['linear'] === true);
+        const url = this.getUrlByMarketType(market['type'], isLinearMarket);
         const ohlcv = await this.subscribePublic(url, symbolValue, messageHash, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -416,7 +419,7 @@ class htx extends htx$1["default"] {
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
@@ -450,14 +453,18 @@ class htx extends htx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol');
         const allowedLimits = [5, 20, 150, 400];
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const limitResolved = this.parseToInt((limit === undefined) ? this.safeInteger(options, 'depth', 150) : limit);
+        let limitValue = limit;
+        if (limit === undefined) {
+            limitValue = this.safeInteger(options, 'depth', 150);
+        }
+        const limitResolved = this.parseToInt(limitValue);
         if (!this.inArray(limitResolved, allowedLimits)) {
             throw new errors.ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
@@ -469,7 +476,8 @@ class htx extends htx$1["default"] {
         else {
             messageHash = 'market.' + marketId + '.depth.size_' + limitResolved.toString() + '.high_freq';
         }
-        const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
+        const isLinearMarket = (market['linear'] === true);
+        const url = this.getUrlByMarketType(market['type'], isLinearMarket, false, true);
         let method = this.handleOrderBookSubscription;
         let paramsExtended = params;
         if (!this.safeBool(market, 'spot', false)) {
@@ -549,7 +557,7 @@ class htx extends htx$1["default"] {
             const messages = orderbook.cache;
             const firstMessage = this.safeDict(messages, 0, {});
             const snapshot = this.parseOrderBook(data, symbol);
-            const tick = this.safeDict(firstMessage, 'tick');
+            const tick = this.safeDict(firstMessage, 'tick', {});
             const sequence = this.safeInteger(tick, 'prevSeqNum');
             const nonce = this.safeInteger(data, 'seqNum');
             if (nonce === undefined) {
@@ -587,7 +595,8 @@ class htx extends htx$1["default"] {
                 orderbook.reset(snapshot);
                 // unroll the accumulated deltas
                 for (let i = 0; i < messages.length; i++) {
-                    this.handleOrderBookMessage(client, messages[i]);
+                    const messageItem = this.safeDict(messages, i, {});
+                    this.handleOrderBookMessage(client, messageItem);
                 }
                 orderbook.cache = [];
                 if (symbol !== undefined) {
@@ -614,7 +623,8 @@ class htx extends htx$1["default"] {
         const params = this.safeDict(subscription, 'params');
         const attempts = this.safeInteger(subscription, 'numAttempts', 0);
         const market = this.market(symbol);
-        const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
+        const isLinearMarket = (market['linear'] === true);
+        const url = this.getUrlByMarketType(market['type'], isLinearMarket, false, true);
         const requestId = this.requestId();
         const request = {
             'req': messageHash,
@@ -725,10 +735,9 @@ class htx extends htx$1["default"] {
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const orderbook = this.orderbooks[symbol];
         const tick = this.safeDict(message, 'tick', {});
-        const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
         const event = this.safeString(tick, 'event');
         const version = this.safeInteger(tick, 'version');
@@ -745,14 +754,19 @@ class htx extends htx$1["default"] {
                 throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
             }
         }
-        const spotConditon = (market['spot'] === true) && (prevSeqNum === this.safeInteger(orderbook, 'nonce'));
-        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === this.safeInteger(orderbook, 'nonce'));
+        const currentNonce = this.safeInteger(orderbook, 'nonce');
+        const spotConditon = (market['spot'] === true) && (prevSeqNum === currentNonce);
+        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === currentNonce);
         if ((spotConditon) || (nonSpotCondition)) {
             const asks = this.safeList(tick, 'asks', []);
             const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = (spotConditon) ? seqNum : version;
+            let nonceKey = 'version';
+            if (spotConditon) {
+                nonceKey = 'seqNum';
+            }
+            orderbook['nonce'] = this.safeInteger(tick, nonceKey);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
@@ -929,10 +943,8 @@ class htx extends htx$1["default"] {
         return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     getOrderChannelAndMessageHash(type, subType, market = undefined, params = {}) {
-        let messageHash = undefined;
-        let channel = undefined;
-        let orderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
-        orderType = this.safeString(params, 'orderType', orderType);
+        const defaultOrderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
+        const orderType = this.safeString(params, 'orderType', defaultOrderType);
         const paramsOmitted = this.omit(params, 'orderType');
         let marketCode = undefined;
         if (market !== undefined) {
@@ -940,10 +952,11 @@ class htx extends htx$1["default"] {
         }
         let baseId = undefined;
         if (market !== undefined) {
-            baseId = market['baseId'];
+            baseId = this.safeString(market, 'baseId');
         }
         const prefix = orderType;
-        messageHash = prefix;
+        let messageHash = prefix;
+        let channel = prefix + '.' + '*';
         if (subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             const marginMode = this.safeString(paramsOmitted, 'margin', 'cross');
@@ -953,8 +966,9 @@ class htx extends htx$1["default"] {
             }
             messageHash = marginPrefix;
             if (marketCode !== undefined) {
-                messageHash = marginPrefix + '.' + marketCode;
-                channel = messageHash;
+                const marketTopic = marginPrefix + '.' + marketCode;
+                messageHash = marketTopic;
+                channel = marketTopic;
             }
             else {
                 channel = marginPrefix + '.' + '*';
@@ -963,8 +977,10 @@ class htx extends htx$1["default"] {
         else if (type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId !== undefined) {
-                channel = prefix + '.' + baseId.toLowerCase();
-                messageHash = channel;
+                const lowerBaseId = baseId.toLowerCase();
+                const baseTopic = prefix + '.' + lowerBaseId;
+                channel = baseTopic;
+                messageHash = baseTopic;
             }
             else {
                 channel = prefix + '.' + '*';
@@ -973,8 +989,9 @@ class htx extends htx$1["default"] {
         else {
             // inverse swaps: Example: BTC/USD:BTC
             if (marketCode !== undefined) {
-                channel = prefix + '.' + marketCode;
-                messageHash = channel;
+                const swapTopic = prefix + '.' + marketCode;
+                channel = swapTopic;
+                messageHash = swapTopic;
             }
             else {
                 channel = prefix + '.' + '*';
@@ -985,7 +1002,7 @@ class htx extends htx$1["default"] {
     getV5LinearChannelAndMessageHash(topic, market = undefined, params = {}) {
         let contractCode = undefined;
         if (market !== undefined) {
-            contractCode = market['id'];
+            contractCode = this.safeString(market, 'id');
         }
         else {
             contractCode = this.safeString(params, 'contract_code', '*');
@@ -1036,7 +1053,7 @@ class htx extends htx$1["default"] {
             subType = this.safeString2(this.options, 'subType', 'defaultSubType', 'linear');
             subType = this.safeString(params, 'subType', subType);
         }
-        const symbolResolved = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         let paramsRequest = (symbol !== undefined) ? params : this.omit(params, ['type', 'subType']);
         const linear = (subType === 'linear');
         const swap = (type === 'swap');
@@ -1574,7 +1591,7 @@ class htx extends htx$1["default"] {
         //
         const marketResolved = this.safeMarket(undefined, market);
         const marketValue = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const tradeId = this.safeString(trade, 'tradeId');
         const price = this.safeString(trade, 'tradePrice');
         const amount = this.safeString(trade, 'tradeVolume');
@@ -1584,8 +1601,8 @@ class htx extends htx$1["default"] {
         let side = undefined;
         if (type !== undefined) {
             const typeParts = type.split('-');
-            side = typeParts[0];
-            type = typeParts[1];
+            side = this.safeString(typeParts, 0);
+            type = this.safeString(typeParts, 1);
         }
         const aggressor = this.safeBool(trade, 'aggressor');
         let takerOrMaker = undefined;
@@ -1627,14 +1644,15 @@ class htx extends htx$1["default"] {
         }
         let market = undefined;
         let messageHash = '';
-        if ((!this.isEmpty(symbols)) && (symbols !== undefined)) {
+        const hasMarket = (!this.isEmpty(symbols)) && (symbols !== undefined);
+        if (hasMarket) {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
         let type = undefined;
         let subType = undefined;
         let paramsSubType = {};
-        if (market !== undefined) {
+        if (hasMarket) {
             type = this.safeString(market, 'type');
             if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
@@ -1649,7 +1667,7 @@ class htx extends htx$1["default"] {
             [subType, paramsSubType] = this.handleOptionStringAndParams(paramsMarketType, 'watchPositions', 'subType', subType);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const paramsPositions = (market !== undefined) ? params : paramsSubType;
+        const paramsPositions = hasMarket ? params : paramsSubType;
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchPositions', paramsPositions, 'cross');
         let paramsRequest = paramsMarginMode;
         const linear = (subType === 'linear');
@@ -1666,8 +1684,11 @@ class htx extends htx$1["default"] {
         }
         if (isV5Linear) {
             let v5Market = undefined;
-            if ((symbolsNormalized !== undefined) && (symbolsNormalized.length === 1)) {
-                v5Market = market;
+            if (symbolsNormalized !== undefined) {
+                const symbolsNormalizedLength = symbolsNormalized.length;
+                if (symbolsNormalizedLength === 1) {
+                    v5Market = market;
+                }
             }
             const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash('positions', v5Market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);
@@ -1779,11 +1800,11 @@ class htx extends htx$1["default"] {
             }
             return;
         }
-        const positionsByMarginMode = {};
+        const crossPositions = [];
+        const isolatedPositions = [];
         const timestamp = this.safeInteger(message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601(timestamp);
             let marginMode = this.safeStringLower(position, 'marginMode', defaultMarginMode);
@@ -1795,27 +1816,36 @@ class htx extends htx$1["default"] {
                 cache = new Cache.ArrayCacheBySymbolBySide();
                 this.positionsByType[marginMode] = cache;
             }
-            positionsByMarginMode[marginMode] = this.safeList(positionsByMarginMode, marginMode, []);
-            positionsByMarginMode[marginMode].push(position);
+            if (marginMode === 'cross') {
+                crossPositions.push(position);
+            }
+            else {
+                isolatedPositions.push(position);
+            }
             cache.append(position);
         }
-        const marginModes = Object.keys(positionsByMarginMode);
-        for (let i = 0; i < marginModes.length; i++) {
-            const marginMode = marginModes[i];
-            const marginModePositions = this.safeList(positionsByMarginMode, marginMode, []);
-            const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
-            for (let j = 0; j < messageHashes.length; j++) {
-                const messageHash = messageHashes[j];
-                const parts = messageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                const positions = this.filterByArray(marginModePositions, 'symbol', symbols, false);
-                if (!this.isEmpty(positions)) {
-                    client.resolve(positions, messageHash);
-                }
-            }
-            client.resolve(marginModePositions, marginMode + ':positions');
+        const crossLength = crossPositions.length;
+        if (crossLength > 0) {
+            this.resolvePositionsByMarginMode(client, 'cross', crossPositions);
         }
+        const isolatedLength = isolatedPositions.length;
+        if (isolatedLength > 0) {
+            this.resolvePositionsByMarginMode(client, 'isolated', isolatedPositions);
+        }
+    }
+    resolvePositionsByMarginMode(client, marginMode, marginModePositions) {
+        const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
+        for (let j = 0; j < messageHashes.length; j++) {
+            const messageHash = messageHashes[j];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(marginModePositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(marginModePositions, marginMode + ':positions');
     }
     /**
      * @method
@@ -1884,7 +1914,7 @@ class htx extends htx$1["default"] {
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
                         if ((symbol !== undefined) && (market !== undefined)) {
-                            messageHash += '.' + this.safeString(market, 'id', '');
+                            messageHash = prefix + '.' + this.safeString(market, 'id', '');
                             channel = messageHash;
                         }
                         else {
@@ -1908,7 +1938,7 @@ class htx extends htx$1["default"] {
             else if (type === 'future') {
                 // inverse futures account
                 if (currencyCode !== undefined) {
-                    messageHash += '.' + this.safeString(currencyCode, 'id', '');
+                    messageHash = prefix + '.' + this.safeString(currencyCode, 'id', '');
                     channel = messageHash;
                 }
                 else {
@@ -1919,7 +1949,7 @@ class htx extends htx$1["default"] {
             else {
                 // inverse swaps account
                 if (market !== undefined) {
-                    messageHash += '.' + this.safeString(market, 'id', '');
+                    messageHash = prefix + '.' + this.safeString(market, 'id', '');
                     channel = messageHash;
                 }
                 else {
@@ -2106,7 +2136,7 @@ class htx extends htx$1["default"] {
             }
             const first = this.safeDict(data, 0, {});
             const splitTopic = topic.split('.');
-            let messageHash = this.safeString(splitTopic, 0);
+            let messageHash = this.safeString(splitTopic, 0, '');
             let subscription = this.safeDict2(client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2238,12 +2268,14 @@ class htx extends htx$1["default"] {
         }
     }
     handleUnSubscription(client, subscription) {
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const messageHashes = this.safeStringList(subscription, ['messageHashes']);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const unsubHash = messageHashes[i];
-            const subHash = subMessageHashes[i];
-            this.cleanUnsubscription(client, subHash, unsubHash);
+        if (messageHashes !== undefined) {
+            for (let i = 0; i < messageHashes.length; i++) {
+                const unsubHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription(client, subHash, unsubHash);
+            }
         }
         this.cleanCache(subscription);
     }
@@ -2493,7 +2525,7 @@ class htx extends htx$1["default"] {
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
                 try {
-                    this.throwExactlyMatchedException(wsExceptions['exact'], errorCode, this.json(message));
+                    this.throwExactlyMatchedException(this.safeDict(wsExceptions, 'exact', {}), errorCode, this.json(message));
                     throw new errors.ExchangeError(this.json(message));
                 }
                 catch (e) {
@@ -2726,18 +2758,17 @@ class htx extends htx$1["default"] {
             if (data !== undefined) {
                 const contractCode = this.safeString(message, 'contract_code');
                 const market = (contractCode !== undefined) ? this.safeMarket(contractCode) : undefined;
-                if (Array.isArray(data)) {
-                    const dataList = this.safeList(message, 'data', []);
-                    for (let i = 0; i < dataList.length; i++) {
-                        const parsed = this.parseWsTrade(dataList[i], market);
-                        const symbol = this.safeString(parsed, 'symbol');
-                        if (symbol !== undefined) {
-                            cachedTrades.append(parsed);
-                        }
+                const dataList = this.safeList(message, 'data', []);
+                for (let i = 0; i < dataList.length; i++) {
+                    const parsed = this.parseWsTrade(dataList[i], market);
+                    const symbol = this.safeString(parsed, 'symbol');
+                    if (symbol !== undefined) {
+                        cachedTrades.append(parsed);
                     }
                 }
-                else {
-                    const parsed = this.parseWsTrade(data, market);
+                const dataDict = this.safeDict(message, 'data');
+                if (dataDict !== undefined) {
+                    const parsed = this.parseWsTrade(dataDict, market);
                     const symbol = this.safeString(parsed, 'symbol');
                     if (symbol !== undefined) {
                         cachedTrades.append(parsed);
@@ -2756,8 +2787,7 @@ class htx extends htx$1["default"] {
                 const marketId = this.safeString(message, 'symbol');
                 const market = this.market(marketId);
                 for (let i = 0; i < rawTrades.length; i++) {
-                    const trade = rawTrades[i];
-                    let parsedTrade = this.parseTrade(trade, market);
+                    let parsedTrade = this.parseTrade(this.safeDict(rawTrades, i, {}), market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
                     cachedTrades.append(parsedTrade);
@@ -2882,14 +2912,14 @@ class htx extends htx$1["default"] {
         if (type === 'spot') {
             const spotUrls = this.safeDict(typeUrlsByApi, 'spot', {});
             if (isPrivate) {
-                hostnameURL = spotUrls['private'];
+                hostnameURL = this.safeString(spotUrls, 'private');
             }
             else {
                 if (isFeed) {
-                    hostnameURL = spotUrls['feed'];
+                    hostnameURL = this.safeString(spotUrls, 'feed');
                 }
                 else {
-                    hostnameURL = spotUrls['public'];
+                    hostnameURL = this.safeString(spotUrls, 'public');
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
@@ -2905,14 +2935,14 @@ class htx extends htx$1["default"] {
             }
             if (isPrivate) {
                 if (isV5 && isLinear) {
-                    url = this.safeString(subTypeUrl, 'privateV5', subTypeUrl['private']);
+                    url = this.safeString2(subTypeUrl, 'privateV5', 'private');
                 }
                 else {
-                    url = subTypeUrl['private'];
+                    url = this.safeString(subTypeUrl, 'private');
                 }
             }
             else {
-                url = subTypeUrl['public'];
+                url = this.safeString(subTypeUrl, 'public');
             }
         }
         return url;
@@ -2945,7 +2975,8 @@ class htx extends htx$1["default"] {
         if (market === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' unsubscribePublic() market is required');
         }
-        const url = this.getUrlByMarketType(market['type'], market['linear'], false, isFeed);
+        const isLinearMarket = (market['linear'] === true);
+        const url = this.getUrlByMarketType(market['type'], isLinearMarket, false, isFeed);
         const subscription = {
             'unsubscribe': true,
             'id': requestId.toString(),
@@ -2989,10 +3020,10 @@ class htx extends htx$1["default"] {
         const hostnames = this.safeDict(this.urls, 'hostnames', {});
         let hostname = undefined;
         if (type === 'spot') {
-            hostname = hostnames['spot'];
+            hostname = this.safeString(hostnames, 'spot');
         }
         else {
-            hostname = hostnames['contract'];
+            hostname = this.safeString(hostnames, 'contract');
         }
         const authParams = {
             'type': type,

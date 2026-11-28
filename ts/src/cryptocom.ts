@@ -893,15 +893,11 @@ export default class cryptocom extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             let symbol: Str = undefined;
-            if (Array.isArray (symbols)) {
-                const symbolsLength = symbols.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = this.safeString (symbols, 0);
-            } else {
-                symbol = symbols;
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
             }
+            symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
@@ -1356,7 +1352,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const order = this.safeDict (response, 'result', {});
-        return this.parseOrder (order as Dict, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     createOrderRequest (symbol: string, type: string, side: string, amount: number, price: Num = undefined, params: Dict = {}): Dict {
@@ -1492,7 +1488,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result as Dict, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -1720,10 +1716,10 @@ export default class cryptocom extends Exchange {
         const request = this.editOrderRequest (id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder (request);
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result as Dict);
+        return this.parseOrder (this.extend ({}, result));
     }
 
-    editOrderRequest (id: Str, symbol: string, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -1802,7 +1798,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result as Dict, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -2018,7 +2014,8 @@ export default class cryptocom extends Exchange {
             const address = addressParts[0];
             const rawTag = addressParts[1];
             const splitted = rawTag.split ('=');
-            return [ address, splitted[1] ];
+            const tag = this.safeString (splitted, 1);
+            return [ address, tag ];
         }
         return [ addressString, undefined ];
     }
@@ -2162,7 +2159,8 @@ export default class cryptocom extends Exchange {
                 return this.safeDict (depositAddresses, network) as DepositAddress;
             }
         }
-        const keys = Object.keys (depositAddresses);
+        const addressesCopy: Dict = this.extend ({}, depositAddresses);
+        const keys = Object.keys (addressesCopy);
         return this.safeDict (depositAddresses, this.safeString (keys, 0)) as DepositAddress;
     }
 
@@ -2958,7 +2956,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const masterAccount = this.safeDict (result, 'master_account', {});
-        const accounts = this.safeList (result, 'sub_account_list', []);
+        const accounts: Dict[] = this.safeList (result, 'sub_account_list', []);
         accounts.push (masterAccount);
         return this.parseAccounts (accounts, params);
     }
@@ -3085,7 +3083,8 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (this.safeDict (settlements, i, {}), market));
+            const settlementRow: Dict = this.extend ({}, settlements[i]);
+            result.push (this.parseSettlement (settlementRow, market));
         }
         return result;
     }
@@ -3290,7 +3289,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
-        return this.parsePosition (this.safeDict (data, 0) as Dict, market);
+        return this.parsePosition (this.safeDict (data, 0, {}), market);
     }
 
     /**
@@ -3310,16 +3309,11 @@ export default class cryptocom extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol: Str = undefined;
-            if (Array.isArray (symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                symbol = symbolsNormalized[0];
-            } else {
-                symbol = symbolsNormalized;
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            const symbol = this.safeString (symbolsNormalized, 0);
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
@@ -3350,10 +3344,10 @@ export default class cryptocom extends Exchange {
         const positions: Dict[] = this.safeList (responseResult, 'data', []);
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
-            const entry = positions[i];
-            const marketId = this.safeString (entry, 'instrument_name');
+            const marketId = this.safeString (positions[i], 'instrument_name');
             const marketInner = this.safeMarket (marketId, undefined, undefined, 'contract');
-            result.push (this.parsePosition (entry, marketInner));
+            const position = this.parsePosition (this.safeDict (positions, i, {}), marketInner);
+            result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', undefined);
     }
@@ -3413,22 +3407,20 @@ export default class cryptocom extends Exchange {
     paramsToString (object: any, level: number): string {
         const maxLevel = 3;
         const depth: int = this.parseToInt (level);
-        if (depth >= maxLevel) {
+        if ((depth >= maxLevel) || (typeof object === 'string')) {
             return object.toString ();
-        }
-        if (typeof object === 'string') {
-            return object;
         }
         let returnString: string = '';
         let paramsKeys: Strings = undefined;
         if (Array.isArray (object)) {
             paramsKeys = object;
         } else {
-            const objectKeys = Object.keys (object);
+            const objectDict: Dict = this.extend ({}, object);
+            const objectKeys = Object.keys (objectDict);
             paramsKeys = this.sort (objectKeys);
         }
         for (let i = 0; i < (paramsKeys as string[]).length; i++) {
-            const key = this.safeString (paramsKeys, i, '');
+            const key: string = this.safeString (paramsKeys, i, '');
             returnString += key;
             const value = object[key];
             if (value === 'undefined') {
@@ -3463,6 +3455,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'instrument_name': market['id'],
             'type': 'MARKET',
@@ -3473,7 +3466,7 @@ export default class cryptocom extends Exchange {
             request['type'] = type;
         }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            request['price'] = this.priceToPrecision (precisionSymbol, price);
         }
         const response = await this.v1PrivatePostPrivateClosePosition (this.extend (request, params));
         //
@@ -3488,7 +3481,7 @@ export default class cryptocom extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result');
-        return this.parseOrder (result as Dict, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -3642,7 +3635,7 @@ export default class cryptocom extends Exchange {
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const paramsKeysLength = paramsKeys.length;
-            requestBody = this.json ({
+            let jsonBody: string = this.json ({
                 'id': nonce,
                 'method': path,
                 'params': params,
@@ -3658,8 +3651,9 @@ export default class cryptocom extends Exchange {
             if (paramsKeysLength === 0) {
                 const paramsString = '{}';
                 const arrayString = '[]';
-                requestBody = requestBody.replace (arrayString, paramsString);
+                jsonBody = jsonBody.replace (arrayString, paramsString);
             }
+            requestBody = jsonBody;
             requestHeaders = {
                 'Content-Type': 'application/json',
             };
@@ -3667,7 +3661,7 @@ export default class cryptocom extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== '0') {
             const feedback = this.id + ' ' + body;

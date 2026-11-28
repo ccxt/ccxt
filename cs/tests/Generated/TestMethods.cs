@@ -273,7 +273,7 @@ public partial class testMainClass
         return add(message, res);
     }
 
-    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, object isPublic)
+    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, bool? isPublic)
     {
         // todo: temporary skip for c#
         if (((string)methodName).IndexOf("OrderBook", StringComparison.Ordinal) >= 0 && isEqual(this.ext, "cs"))
@@ -292,7 +292,7 @@ public partial class testMainClass
         bool isConstructorTest = (isEqual(methodName, "afterConstruct"));
         bool isFeatureTest = (isEqual(methodName, "features"));
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isTrue(isPublic) && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
+        if (isPublic != true && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
         {
             return true;
         }
@@ -341,7 +341,7 @@ public partial class testMainClass
         }
         dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         // add to the list of successed tests
-        if (isTrue(isPublic))
+        if (isPublic == true)
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
         }
@@ -412,7 +412,7 @@ public partial class testMainClass
         return finalSkips;
     }
 
-    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, object isPublic = null)
+    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, bool? isPublic = null)
     {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
@@ -505,7 +505,7 @@ public partial class testMainClass
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                    if (isTrue(isPublic) && isTrue(isAuthError))
+                    if (isPublic == true && isTrue(isAuthError))
                     {
                         if (isTrue(this.info))
                         {
@@ -594,7 +594,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runTests(BaseExchange exchange, object tests, object isPublicTest)
+    public async virtual Task<object> runTests(BaseExchange exchange, object tests, bool? isPublicTest)
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         List<object> promises = new List<object>() {};
@@ -618,7 +618,7 @@ public partial class testMainClass
                 failedMethods.Add(testName);
             }
         }
-        string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+        string testPrefixString = isPublicTest == true ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
         if ((failedMethods?.Count ?? 0) > 0)
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
@@ -689,7 +689,7 @@ public partial class testMainClass
         return code;
     }
 
-    public virtual object getMarketsFromExchange(BaseExchange exchange, object spot = null)
+    public virtual object getMarketsFromExchange(BaseExchange exchange, bool? spot = null)
     {
         spot ??= true;
         Dictionary<string, object> res = new Dictionary<string, object>() {};
@@ -699,10 +699,10 @@ public partial class testMainClass
         {
             string? key = ((string)keys[i]);
             object market = getValue(markets, key);
-            if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
+            if (spot == true && (isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
-            } else if (!isTrue(spot) && (!isEqual(getValue(market, "spot"), true)))
+            } else if (spot != true && (!isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
             }
@@ -710,14 +710,14 @@ public partial class testMainClass
         return res;
     }
 
-    public virtual object getValidSymbol(BaseExchange exchange, object spot = null)
+    public virtual object getValidSymbol(BaseExchange exchange, bool? spot = null)
     {
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         List<object> codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
         List<object> spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
         List<object> swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
-        List<object> targetSymbols = isTrue(spot) ? spotSymbols : swapSymbols;
+        List<object> targetSymbols = spot == true ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if ((symbol == null))
@@ -1080,8 +1080,8 @@ public partial class testMainClass
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
                     List<object> handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-                    string? marketPart = ((string)(handleParts != null && 0 < handleParts.Count ? handleParts[0] : null));
-                    string lowerPart = marketPart.ToLower();
+                    object marketPart = exchange.safeString(handleParts, 0, "");
+                    string lowerPart = ((string)marketPart).ToLower();
                     string dedashed = lowerPart.Replace((string)"-", (string)" ");
                     eventQuery = dedashed.Replace((string)"_", (string)" ");
                 }
@@ -1225,7 +1225,7 @@ public partial class testMainClass
 
     public virtual object assertPredictionEvents(BaseExchange exchange, object events)
     {
-        assert(((events is IList<object>) || (events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
+        assert(((events is IList<object>) || (events is not null && events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
         int eventsLength = getArrayLength(events);
         for (int i = 0; i < eventsLength; i++)
         {
@@ -1272,7 +1272,7 @@ public partial class testMainClass
         object tags = exchange.safeValue(eventVar, "tags");
         if ((tags != null))
         {
-            assert(((tags is IList<object>) || (tags.GetType().IsGenericType && tags.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(exchange.id, " event tags must be a list"), logText));
+            assert(((tags is IList<object>) || (tags is not null && tags.GetType().IsGenericType && tags.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(exchange.id, " event tags must be a list"), logText));
         }
         object info = exchange.safeValue(eventVar, "info");
         assert((info != null), add(add(exchange.id, " event missing info"), logText));
@@ -1592,7 +1592,7 @@ public partial class testMainClass
         }
     }
 
-    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
+    public virtual void assertStaticError(bool? cond, object message, object calculatedOutput, object storedOutput, object key = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1603,7 +1603,7 @@ public partial class testMainClass
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (isTrue(cond))
+        if (cond == true)
         {
             return;
         }
@@ -1744,7 +1744,7 @@ public partial class testMainClass
         {
             return true;
         }
-        if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return false;  // a non-empty container, `!value` is false for containers in js
         }
@@ -1772,7 +1772,7 @@ public partial class testMainClass
         {
             return true;
         }
-        if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(value); i++)
             {
@@ -1798,7 +1798,7 @@ public partial class testMainClass
         return false;
     }
 
-    public virtual object countSignificantKeys(BaseExchange exchange, object target, object otherKeys)
+    public virtual object countSignificantKeys(BaseExchange exchange, object target, IList<object> otherKeys)
     {
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
@@ -1906,7 +1906,7 @@ public partial class testMainClass
                 // top-level wrapper.
                 this.assertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (((storedOutput != null)) && ((newOutput != null)) && ((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        } else if (((storedOutput != null)) && ((newOutput != null)) && ((storedOutput is IList<object>) || (storedOutput is not null && storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (((newOutput is IList<object>) || (newOutput is not null && newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             int storedArrayLength = getArrayLength(storedOutput);
             int newArrayLength = getArrayLength(newOutput);
@@ -2030,7 +2030,7 @@ public partial class testMainClass
         return true;  // c# requ
     }
 
-    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, bool? strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         object res = true;
@@ -2202,7 +2202,7 @@ public partial class testMainClass
     {
         if ((isEqual(method, "fetchPosition")) || (isEqual(method, "fetchPositions")) || (isEqual(method, "fetchPositionsForSymbol")) || (isEqual(method, "fetchPositionsRisk")))
         {
-            if (((output is IList<object>) || (output.GetType().IsGenericType && output.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((output is IList<object>) || (output is not null && output.GetType().IsGenericType && output.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 int outputLength = getArrayLength(output);
                 for (int i = 0; i < outputLength; i++)
@@ -2355,7 +2355,7 @@ public partial class testMainClass
         return false;
     }
 
-    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
+    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, bool? sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
@@ -2398,7 +2398,7 @@ public partial class testMainClass
             }
         }
         await exchange.sleep(50);
-        if (isTrue(sequential))
+        if (sequential == true)
         {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side
@@ -2601,7 +2601,7 @@ public partial class testMainClass
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public virtual BaseExchange initOfflineExchange(object exchangeName, object isWs = null)
+    public virtual BaseExchange initOfflineExchange(object exchangeName, bool? isWs = null)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the

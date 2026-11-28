@@ -444,38 +444,75 @@ fn bigint_to_precise_string(integer: &num_bigint::BigInt, decimals: i32) -> Stri
     format!("{sign}{result}")
 }
 
-/// A struct wrapper matching CCXT Precise class usage (e.g. `Precise::string_add`).
-pub struct Precise;
+/// TS `Precise`: a decimal `integer` digit string scaled by `10^-decimals`; the `Precise::string*` entry points
+/// below are its static methods.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Precise {
+    pub integer: String,
+    pub decimals: i64,
+}
 
 impl Precise {
-    /// TS-style `new Precise(s)` — parses `s` into an `integer` (the
-    /// digit string) + `decimals` (count of digits to the right of the
-    /// decimal point). Returns a `Value::Map` carrying those two
-    /// fields plus a `__precise` marker that `stringify_param` /
-    /// `Value::reduce` recognise — that's what makes
-    /// `precise.decimals = subtract(...)` followed by `precise.reduce()`
-    /// (as transpiled phemex's `toEn` does) work end-to-end.
-    pub fn new(v: crate::Value) -> crate::Value {
-        let s = crate::runtime::stringify_param(&v);
-        let mut sign = "";
-        let mut body: &str = s.trim_start_matches('+');
-        if let Some(stripped) = body.strip_prefix('-') {
-            sign = "-";
-            body = stripped;
-        }
-        let (integer, decimals): (String, i64) = match body.find('.') {
-            None => (format!("{sign}{body}"), 0),
-            Some(dot) => {
-                let before = &body[..dot];
-                let after  = &body[dot + 1..];
-                (format!("{sign}{before}{after}"), after.len() as i64)
-            }
+    /// TS `new Precise(s)`: the digits of `s` without the point, `decimals` the count after it minus any exponent.
+    pub fn new(v: crate::Value) -> Precise {
+        let text = crate::runtime::stringify_param(&v);
+        let (body, modifier) = match text.find(['e', 'E']) {
+            Some(e) => (&text[..e], text[e + 1..].parse::<i64>().unwrap_or(0)),
+            None => (text.as_str(), 0),
         };
-        let mut m = indexmap::IndexMap::new();
-        m.insert("integer".to_string(),  crate::Value::Str(integer.into()));
-        m.insert("decimals".to_string(), crate::Value::Int(decimals));
-        m.insert("__precise".to_string(), crate::Value::Bool(true));
-        crate::Value::Map(m)
+        let (digits, decimals) = match body.find('.') {
+            Some(dot) => (format!("{}{}", &body[..dot], &body[dot + 1..]), (body.len() - dot - 1) as i64 - modifier),
+            None => (body.to_string(), -modifier),
+        };
+        Precise { integer: Self::normalize(&digits), decimals }
+    }
+
+    /// The decimal text `BigInt(digits).toString()` gives: sign kept, `+` and leading zeros dropped, `-0` is `0`.
+    fn normalize(digits: &str) -> String {
+        let (sign, rest) = match digits.strip_prefix('-') { Some(r) => ("-", r), None => ("", digits.trim_start_matches('+')) };
+        let trimmed = rest.trim_start_matches('0');
+        if trimmed.is_empty() { return if rest.is_empty() { digits.to_string() } else { "0".to_string() }; }
+        format!("{sign}{trimmed}")
+    }
+
+    /// TS `reduceDigits`: strips trailing zeros from `integer`, lowering `decimals` by as many.
+    fn reduce_digits(&mut self) {
+        if self.integer.len() <= 1 {
+            if self.integer == "0" { self.decimals = 0; }
+            return;
+        }
+        let kept = self.integer.trim_end_matches('0').len();
+        let difference = self.integer.len() - kept;
+        if difference == 0 || kept == 0 { return; }
+        self.decimals -= difference as i64;
+        self.integer.truncate(kept);
+    }
+
+    /// TS `reduce ()`.
+    pub fn reduce(&mut self) -> &mut Precise {
+        self.reduce_digits();
+        self
+    }
+}
+
+/// TS `toString ()`.
+impl std::fmt::Display for Precise {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // reduceDigits on borrowed text: trailing zeros off the digits, decimals lowered by as many
+        let (mut integer, mut decimals) = (self.integer.as_str(), self.decimals);
+        if integer == "0" { decimals = 0; }
+        let kept = integer.trim_end_matches('0').len();
+        if integer.len() > 1 && kept > 0 { decimals -= (integer.len() - kept) as i64; integer = &integer[..kept]; }
+        let (sign, digits) = match integer.strip_prefix('-') { Some(d) => ("-", d), None => ("", integer) };
+        if decimals <= 0 {
+            return write!(f, "{sign}{digits}{}", "0".repeat((-decimals) as usize));
+        }
+        let d = decimals as usize;
+        if digits.len() <= d {
+            return write!(f, "{sign}0.{digits:0>d$}");
+        }
+        let index = digits.len() - d;
+        write!(f, "{sign}{}.{}", &digits[..index], &digits[index..])
     }
 }
 
@@ -514,15 +551,15 @@ pub trait PreciseArg {
 }
 impl PreciseArg for crate::Value {
     fn precise_null(&self) -> bool { matches!(self, crate::Value::Null) }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Owned(crate::runtime::stringify_param(self)) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { match self.as_str() { Some(s) => s.into(), None => crate::runtime::stringify_param(self).into() } }
 }
 impl PreciseArg for Option<String> {
     fn precise_null(&self) -> bool { self.is_none() }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { self.as_deref().unwrap_or("null").into() }
 }
 impl PreciseArg for String {
     fn precise_null(&self) -> bool { false }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_str()) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { self.as_str().into() }
 }
 impl<T: PreciseArg + ?Sized> PreciseArg for &T {
     fn precise_null(&self) -> bool { (**self).precise_null() }
@@ -530,12 +567,11 @@ impl<T: PreciseArg + ?Sized> PreciseArg for &T {
 }
 impl PreciseArg for str {
     fn precise_null(&self) -> bool { false }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { self.into() }
 }
 
 #[allow(non_snake_case)]
 impl Precise {
-    fn vstr(v: &crate::Value) -> String { crate::runtime::stringify_param(v) }
     fn vopt(s: Option<String>) -> crate::Value { match s { Some(s) => crate::Value::Str(s.into()), None => crate::Value::Null } }
     fn vbool(b: Option<bool>)  -> crate::Value { match b { Some(b) => crate::Value::Bool(b), None => crate::Value::Null } }
 
@@ -623,7 +659,7 @@ impl Precise {
         // Split each into (sign, integer-string, decimal-count). Mirrors
         // the constructor in TS Precise — chop at `.`, count fractional
         // digits, drop the `.` so the integer parses as a single number.
-        fn split(s: &str) -> Option<(i64, i64, u32)> {
+        fn split_parts(s: &str) -> Option<(i64, i64, u32)> {
             let (sign, body) = if let Some(rest) = s.strip_prefix('-') { (-1i64, rest) } else { (1i64, s) };
             let (int_part, frac_part) = match body.find('.') {
                 Some(i) => (&body[..i], &body[i + 1..]),
@@ -633,8 +669,8 @@ impl Precise {
             let n: i64 = joined.parse().ok()?;
             Some((sign, n, frac_part.len() as u32))
         }
-        let (sga, ia, da) = match split(&sa) { Some(t) => t, None => return crate::Value::Null };
-        let (sgb, ib, db) = match split(&sb) { Some(t) => t, None => return crate::Value::Null };
+        let (sga, ia, da) = match split_parts(&sa) { Some(t) => t, None => return crate::Value::Null };
+        let (sgb, ib, db) = match split_parts(&sb) { Some(t) => t, None => return crate::Value::Null };
         // Shift the smaller-decimal side up to match.
         let dmax = da.max(db);
         let ia_s = sga * ia * 10i64.pow(dmax - da);
@@ -974,5 +1010,27 @@ mod decimal_path_tests {
                 assert_eq!(string_to_precision(a, 2, m), None, "string_to_precision({a:?}, 2, {m})");
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod precise_struct_tests {
+    use super::Precise;
+    use crate::Value;
+
+    #[test]
+    fn decimals_shift_and_text_match_ts() {
+        let mut p = Precise::new(Value::from("0.1"));
+        p.decimals += 8;
+        assert_eq!(p.reduce().to_string(), "0.000000001");
+        let mut q = Precise::new(Value::from("0.1"));
+        q.decimals += -8;
+        assert_eq!(q.to_string(), "10000000");
+        let mut r = Precise::new(Value::from("0.0100"));
+        r.decimals = i64::max(r.decimals, 6);
+        assert_eq!(r.to_string(), "0.0001");
+        assert_eq!(Precise::new(Value::from("5e-3")).to_string(), "0.005");
+        assert_eq!(Precise::new(Value::from("-12.50")).to_string(), "-12.5");
+        assert_eq!(Precise::new(Value::from("0")).to_string(), "0");
     }
 }

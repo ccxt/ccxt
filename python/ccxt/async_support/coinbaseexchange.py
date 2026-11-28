@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbaseexchange import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -851,7 +851,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
-    def parse_ticker(self, ticker: dict | list, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #
@@ -895,17 +895,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         open = None
         volume = None
         symbol = self.safe_string(market, 'symbol')
-        if isinstance(ticker, list):
-            last = self.safe_string(ticker, 4)
-        else:
-            timestamp = self.parse8601(self.safe_string(ticker, 'time'))
-            bid = self.safe_string(ticker, 'bid')
-            ask = self.safe_string(ticker, 'ask')
-            high = self.safe_string(ticker, 'high')
-            low = self.safe_string(ticker, 'low')
-            open = self.safe_string(ticker, 'open')
-            last = self.safe_string_2(ticker, 'price', 'last')
-            volume = self.safe_string(ticker, 'volume')
+        timestamp = self.parse8601(self.safe_string(ticker, 'time'))
+        bid = self.safe_string(ticker, 'bid')
+        ask = self.safe_string(ticker, 'ask')
+        high = self.safe_string(ticker, 'high')
+        low = self.safe_string(ticker, 'low')
+        open = self.safe_string(ticker, 'open')
+        last = self.safe_string_2(ticker, 'price', 'last')
+        volume = self.safe_string(ticker, 'volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -925,6 +922,39 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': volume,
+            'quoteVolume': None,
+            'info': ticker,
+        }, market)
+
+    def parse_ticker_list(self, ticker: list, market: Market = None) -> Ticker:
+        #
+        #      [
+        #         1639472400, // timestamp
+        #         4.26, // low
+        #         4.38, // high
+        #         4.35, // open
+        #         4.27 // close
+        #      ]
+        #
+        return self.safe_ticker({
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': None,
+            'datetime': None,
+            'high': None,
+            'low': None,
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': self.safe_string(ticker, 4),
+            'last': self.safe_string(ticker, 4),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
         }, market)
@@ -971,8 +1001,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             marketId = marketIds[i]
             entry = self.safe_list(response, marketId, [])
             market = self.safe_market(marketId, None, delimiter)
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(self.safe_list(entry, 0, []), market)
+            symbol = self.safe_string(market, 'symbol', '')
+            result[symbol] = self.parse_ticker_list(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1078,7 +1108,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             side = 'buy' if (rawSide == 'buy') else 'sell'
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'size')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_trade({
             'id': id,
             'order': orderId,
@@ -1252,7 +1282,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         until = self.safe_integer_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
+        cappedLimit = 300
+        if limit is not None:
+            cappedLimit = self.parse_to_int(min(limit, 300))
         limitResolved = cappedLimit if (since is not None) else limit
         if since is not None:
             request['start'] = self.iso8601(since)
@@ -1552,7 +1584,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             if costParam is not None:
                 request['funds'] = self.cost_to_precision(symbol, costParam)
             elif price is not None:
-                request['funds'] = self.cost_to_precision(symbol, amount * price)
+                request['funds'] = self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price)))
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, paramsCost))
@@ -1598,7 +1630,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['id'] = id
         else:
             request['client_oid'] = clientOrderId
-        paramsOmitted = self.omit(params, ['clientOrderId', 'client_oid']) if (clientOrderId is not None) else params
+        paramsOmitted = self.omit(params, ['clientOrderId', 'client_oid'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1790,12 +1822,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         until = self.safe_integer_2(params, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
-        paramsUntil = self.omit(params, ['until']) if (until is not None) else params
+        paramsUntil = self.omit(params, ['until'])
         response = await self.privateGetAccountsIdLedger(self.extend(request, paramsUntil))
         entries = self.to_array(response)
+        entriesWithCurrency = []
         for i in range(0, len(entries)):
-            entries[i]['currency'] = code
-        return self.parse_ledger(entries, currency, since, limit)
+            entriesWithCurrency.append(self.extend(entries[i], {'currency': code}))
+        return self.parse_ledger(entriesWithCurrency, currency, since, limit)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1860,12 +1893,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             #        }
             #    ]
             #
-            response = self.to_array(transfers)
-            for i in range(0, len(response)):
-                account_id = self.safe_string(response[i], 'account_id')
+            transferRows = self.to_array(transfers)
+            response = []
+            for i in range(0, len(transferRows)):
+                row = self.extend({}, transferRows[i])
+                account_id = self.safe_string(row, 'account_id')
                 account = self.safe_dict(self.accountsById, account_id)
-                codeInner = self.safe_string(account, 'code')
-                response[i]['currency'] = codeInner
+                row['currency'] = self.safe_string(account, 'code')
+                response.append(row)
         else:
             accountTransfers = await self.privateGetAccountsIdTransfers(self.extend(request, params))
             #
@@ -1894,9 +1929,12 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             #        }
             #    ]
             #
-            response = self.to_array(accountTransfers)
-            for i in range(0, len(response)):
-                response[i]['currency'] = code
+            transferRows = self.to_array(accountTransfers)
+            response = []
+            for i in range(0, len(transferRows)):
+                row = self.extend({}, transferRows[i])
+                row['currency'] = code
+                response.append(row)
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -2095,7 +2133,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (code == 400) or (code == 404):
             if body.startswith('{'):
                 message = self.safe_string(response, 'message')
@@ -2108,7 +2146,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         response = await self.fetch2(path, api, method, params, config)
-        if not isinstance(response, str):
-            if 'message' in response:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+        message = self.safe_string(response, 'message')
+        if message is not None:
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response

@@ -27,7 +27,7 @@ func TestAddElementToObjectOrderBookPointerFields(t *testing.T) {
 
 	nonce := int64(42)
 	AddElementToObject(ob, "nonce", &nonce)
-	if ob.Nonce != nonce {
+	if ob.Nonce == nil || *ob.Nonce != nonce {
 		t.Fatalf("nonce from *int64: got %v want %d", ob.Nonce, nonce)
 	}
 

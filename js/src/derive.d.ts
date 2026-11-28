@@ -1,5 +1,5 @@
 import Exchange from './abstract/derive.js';
-import type { NullableDict, Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
+import type { NullableDict, Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
 /**
  * @class derive
  * @augments Exchange
@@ -127,7 +127,7 @@ export default class derive extends Exchange {
      */
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseSettlement(settlement: Dict, market?: Market): Dict;
-    parseSettlements(settlements: any[], market?: Market): List;
+    parseSettlements(settlements: Dict[], market?: Market): List;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -186,8 +186,8 @@ export default class derive extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
-    hashOrderMessage(order: any): string;
-    signOrder(order: any, privateKey: string): string;
+    hashOrderMessage(order: List): string;
+    signOrder(order: List, privateKey: string): string;
     /**
      * @method
      * @ignore
@@ -508,7 +508,7 @@ export default class derive extends Exchange {
     parseTransactionStatus(status: Str): Str;
     handleDeriveSubaccountId(methodName: string, params: Dict): [Int, Dict];
     handleDeriveWalletAddress(methodName: string, params: Dict): [Str, Dict];
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

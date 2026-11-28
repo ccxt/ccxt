@@ -645,8 +645,8 @@ func WithFetchLongShortRatioHistoryParams(params map[string]any) FetchLongShortR
 type FetchMarginAdjustmentHistoryOptionsStruct struct {
 	Symbol *string
 	Type   *string
-	Since  *float64
-	Limit  *float64
+	Since  *int64
+	Limit  *int64
 	Params *map[string]any
 }
 
@@ -664,13 +664,13 @@ func WithFetchMarginAdjustmentHistoryType(typeVar string) FetchMarginAdjustmentH
 	}
 }
 
-func WithFetchMarginAdjustmentHistorySince(since float64) FetchMarginAdjustmentHistoryOptions {
+func WithFetchMarginAdjustmentHistorySince(since int64) FetchMarginAdjustmentHistoryOptions {
 	return func(opts *FetchMarginAdjustmentHistoryOptionsStruct) {
 		opts.Since = &since
 	}
 }
 
-func WithFetchMarginAdjustmentHistoryLimit(limit float64) FetchMarginAdjustmentHistoryOptions {
+func WithFetchMarginAdjustmentHistoryLimit(limit int64) FetchMarginAdjustmentHistoryOptions {
 	return func(opts *FetchMarginAdjustmentHistoryOptionsStruct) {
 		opts.Limit = &limit
 	}

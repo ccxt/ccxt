@@ -156,7 +156,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrdersByIds(ids: any, outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
+    fetchOrdersByIds(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchOrder
@@ -326,7 +326,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
-    getPositionFromClobEntry(label: Str, entry?: NullableDict): PredictionPosition | undefined;
+    getPositionFromClobEntry(label: Str, entry: Dict): PredictionPosition | undefined;
     /**
      * @ignore
      * @method
@@ -397,5 +397,5 @@ export default class limitless extends Exchange {
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

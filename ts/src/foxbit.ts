@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status, Endpoint, List, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -678,7 +678,7 @@ export default class foxbit extends Exchange {
             const entry = data[i];
             const marketId = this.safeString (entry, 'market_symbol');
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             result[symbol] = this.parseTradingFee (entry, market);
         }
         return result;
@@ -1923,7 +1923,7 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override parseTransaction (transaction: any, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         const cryptoDetails = this.safeDict (transaction, 'details_crypto');
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');
@@ -2063,7 +2063,8 @@ export default class foxbit extends Exchange {
         let query = '';
         let signatureQuery = '';
         if (method === 'GET') {
-            const paramKeys = Object.keys (paramsOmitted);
+            const paramsCopy: Dict = this.extend ({}, paramsOmitted);
+            const paramKeys = Object.keys (paramsCopy);
             const paramKeysLength = paramKeys.length;
             const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
@@ -2082,12 +2083,11 @@ export default class foxbit extends Exchange {
             }
         }
         let requestBody = undefined;
-        if (method === 'POST' || method === 'PUT') {
-            requestBody = this.json (paramsOmitted);
-        }
         let bodyToSignature = '';
-        if (requestBody !== undefined) {
-            bodyToSignature = requestBody;
+        if (method === 'POST' || method === 'PUT') {
+            const jsonBody = this.json (paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
@@ -2105,7 +2105,7 @@ export default class foxbit extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

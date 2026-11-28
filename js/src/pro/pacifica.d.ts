@@ -1,6 +1,6 @@
 import pacificaRest from '../pacifica.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool, type int } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type int } from '../base/types.js';
 export default class pacifica extends pacificaRest {
     describe(): Dict;
     setupApiKeyHeaders(key?: Str): void;
@@ -172,7 +172,6 @@ export default class pacifica extends pacificaRest {
      */
     unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
     handleWsTickers(client: Client, message: Dict): boolean;
-    parseWsTicker(rawTicker: Dict, market?: Market): Ticker;
     handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -248,7 +247,7 @@ export default class pacifica extends pacificaRest {
      */
     unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
     handleOrder(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;

@@ -295,7 +295,7 @@ export default class coinspot extends Exchange {
         const result = { 'info': response };
         const balances = this.safeValue2(response, 'balance', 'balances');
         if (Array.isArray(balances)) {
-            const rows = this.toArray(balances);
+            const rows = this.safeList2(response, 'balance', 'balances', []);
             const numRows = rows.length;
             for (let i = 0; i < numRows; i++) {
                 const currencies = this.safeDict(rows, i, {});
@@ -313,7 +313,8 @@ export default class coinspot extends Exchange {
             }
         }
         else {
-            const currencyIdsMap = Object.keys(balances);
+            const balancesDict = this.safeDict2(response, 'balance', 'balances', {});
+            const currencyIdsMap = Object.keys(balancesDict);
             for (let i = 0; i < currencyIdsMap.length; i++) {
                 const currencyId = currencyIdsMap[i];
                 const code = this.safeCurrencyCode(currencyId);
@@ -491,9 +492,8 @@ export default class coinspot extends Exchange {
             const id = ids[i];
             const market = this.safeMarket(id);
             if (this.safeBool(market, 'spot', false)) {
-                const symbol = market['symbol'];
-                const ticker = prices[id];
-                result[symbol] = this.parseTicker(ticker, market);
+                const symbol = this.safeString(market, 'symbol', '');
+                result[symbol] = this.parseTicker(this.safeDict(prices, id, {}), market);
             }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);

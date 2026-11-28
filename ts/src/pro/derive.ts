@@ -4,7 +4,7 @@ import deriveRest from '../derive.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, List, int } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -55,7 +55,8 @@ export default class derive extends deriveRest {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
 
@@ -509,7 +510,7 @@ export default class derive extends deriveRest {
             'symbol': symbol,
             'params': params,
         };
-        const trades = await this.watchPublic (topic, request, subscription);
+        const trades: ArrayCache = await this.watchPublic (topic, request, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
@@ -521,7 +522,7 @@ export default class derive extends deriveRest {
         //
         //
         const params = this.safeDict (message, 'params');
-        const data = this.safeDict (params, 'data', {});
+        const data = this.safeList (params, 'data', []);
         const topic = this.safeString (params, 'channel', '');
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
@@ -532,8 +533,8 @@ export default class derive extends deriveRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (limit);
         }
-        for (let i = 0; i < (data as List).length; i++) {
-            const trade = this.parseTrade (data[i]);
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseTrade (this.safeDict (data, i, {}));
             tradesArray.append (trade);
         }
         this.trades[symbol] = tradesArray;
@@ -626,7 +627,7 @@ export default class derive extends deriveRest {
             'params': paramsDeriveSubaccountId,
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
-        const orders = await this.watchPrivate (messageHash, message, subscription);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, message, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -701,7 +702,7 @@ export default class derive extends deriveRest {
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }
-                    (parsed as Dict)['trades'] = this.safeList (order, 'trades');
+                    parsed['trades'] = this.safeList (order, 'trades') as Trade[];
                     parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                     parsed['datetime'] = this.safeString (order, 'datetime');
                 }
@@ -786,7 +787,7 @@ export default class derive extends deriveRest {
             'params': paramsDeriveSubaccountId,
         };
         const message = this.extend (request, paramsDeriveSubaccountId);
-        const trades = await this.watchPrivate (messageHash, message, subscription);
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, message, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -807,7 +808,7 @@ export default class derive extends deriveRest {
         const topic = this.safeString (params, 'channel');
         const rawTrades = this.safeList (params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade (rawTrades[i]);
+            const trade = this.parseTrade (this.safeDict (rawTrades, i, {}));
             myTrades.append (trade);
             client.resolve (myTrades, topic);
             if (topic !== undefined) {
@@ -1067,7 +1068,7 @@ export default class derive extends deriveRest {
             updated = true;
         }
         if (updated) {
-            this.balance[subaccountIdKey] = this.safeBalance (subBalance as any);
+            this.balance[subaccountIdKey] = this.safeBalance (subBalance);
             client.resolve (this.safeValue (this.balance, subaccountIdKey), topic);
         }
         const positionUpdatesLength = positionUpdates.length;

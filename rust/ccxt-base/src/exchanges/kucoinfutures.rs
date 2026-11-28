@@ -21,7 +21,8 @@ pub struct Kucoinfutures {
 }
 
 impl Kucoinfutures {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = Self { parent: crate::exchanges::kucoin::Kucoin::new(config) };
         s.init();
         s
@@ -29,7 +30,7 @@ impl Kucoinfutures {
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -53,7 +54,7 @@ impl crate::exchange::DerivedExchange for Kucoinfutures {
 }
 
 impl crate::exchange_generated::ExchangeBase for Kucoinfutures {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -78,8 +79,8 @@ impl std::ops::DerefMut for Kucoinfutures {
 }
 
 impl Kucoinfutures {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("kucoinfutures".into()));
         m.insert("name".to_string(), Value::Str("KuCoin Futures".into()));
@@ -117,8 +118,6 @@ impl Kucoinfutures {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -136,16 +135,13 @@ impl Kucoinfutures {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let mut extendedRequest: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let extendedRequest: crate::value::Dict = self.extend_t(Value::Map(request), &[&params]);
         return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), Value::Dict(extendedRequest)).await);
         Value::Null
         }).await?))
@@ -165,46 +161,40 @@ impl Kucoinfutures {
     pub async fn transfer(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transfer> {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
-        let mut fromAccount = __it.next().unwrap_or_default();
-        let mut toAccount = __it.next().unwrap_or_default();
+        let code = __it.next().unwrap_or_default();
+        let _ = __it.next();
+        let fromAccount = __it.next().unwrap_or_default();
+        let toAccount = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if (self.markets.clone() == Value::Null) {
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut amountToPrecision: Option<String> = self.currency_to_precision(code, amount, &[]);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let amountToPrecision: Option<String> = self.currency_to_precision(code.as_str(), Value::from(amount), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_string_k(&currency, "id", &[]));
-                m.insert("amount".to_string(), amountToPrecision.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount".to_string(), Value::from(amountToPrecision.as_deref()));
             m
         });
-        let mut toAccountString: Option<String> = self.parse_transfer_type(toAccount.as_str());
+        let toAccountString: Option<String> = self.parse_transfer_type(toAccount.as_str());
         let mut response: Option<crate::value::Dict> = None;
         if (toAccountString.as_deref() == Some("TRADE")) || (toAccountString.as_deref() == Some("MAIN")) {
             request.insert("recAccountType".into(), toAccountString.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.parent.futures_private_post_transfer_out(&[__ws_arg_0]).await.into_opt_dict();
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
+            response = self.parent.futures_private_post_transfer_out(&[&__ws_arg_0]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
             request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.as_str()).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            response = self.parent.futures_private_post_transfer_in(&[__ws_arg_1]).await.into_opt_dict();
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
+            response = self.parent.futures_private_post_transfer_in(&[&__ws_arg_1]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " transfer() only supports transfers between future/swap, spot and funding accounts")));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports transfers between future/swap, spot and funding accounts")));
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let __ws_arg_2 = self.parse_transfer(Value::Dict(data), Some(&currency));
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let __ws_arg_2 = Value::Dict(self.parse_transfer(Value::Dict(data), Some(&currency)));
         let __ws_arg_3 = self.parse_number(amountToPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
         return self.extend(__ws_arg_2, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -218,13 +208,12 @@ impl Kucoinfutures {
     }
 
     pub fn parse_transfer_type(&self, transferType: Option<&str>) -> Option<String> {
-        let mut transferType: Value = transferType.into();
-        let mut transferTypes: indexmap::IndexMap<String, Value> = ({
+        let transferTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("TRADE".into()));
                 m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
-        return self.safe_string_upper_opt(&transferTypes, transferType.clone(), &[transferType.clone()]);
+        return self.safe_string_upper_opt(&transferTypes, Value::from(transferType), &[Value::from(transferType)]);
 }
 }

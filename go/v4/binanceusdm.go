@@ -9,7 +9,6 @@ type Binanceusdm struct {
 
 func newBinanceusdm() *Binanceusdm {
 	p := &Binanceusdm{}
-	setDefaults(p)
 	return p
 }
 
@@ -49,12 +48,12 @@ func (this *Binanceusdm) Describe() map[string]any {
 		},
 	})
 }
-func (this *Binanceusdm) TransferInAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Binanceusdm) TransferInAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferInBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binanceusdm) transferInBody(ch chan AsyncResult[TransferEntry], code string, amount any, optionalArgs ...any) any {
+func (this *Binanceusdm) transferInBody(ch chan AsyncResult[TransferEntry], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from spot wallet to usdm futures wallet
@@ -68,12 +67,12 @@ func (this *Binanceusdm) transferInBody(ch chan AsyncResult[TransferEntry], code
 	ch <- AsyncResult[TransferEntry]{Value: r.Value}
 	return nil
 }
-func (this *Binanceusdm) TransferOutAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Binanceusdm) TransferOutAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[TransferEntry], code string, amount any, optionalArgs ...any) any {
+func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[TransferEntry], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from usdm futures wallet to spot wallet

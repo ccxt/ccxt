@@ -264,8 +264,7 @@ class myriad extends myriad$1["default"] {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const found = this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString(raw, 'networkId', '');
@@ -310,8 +309,7 @@ class myriad extends myriad$1["default"] {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const rawMarkets = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const rawMarkets = this.safeList(response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -341,7 +339,7 @@ class myriad extends myriad$1["default"] {
     async fetchEvent(id, params = {}) {
         if (id.indexOf(':') < 0) {
             const rawQuestion = await this.fetchRawQuestionById(id, params);
-            const orderBookEvent = this.parseEvent(rawQuestion);
+            const orderBookEvent = this.parseEvent(this.extend({}, rawQuestion));
             this.indexEventOutcomes(orderBookEvent);
             return orderBookEvent;
         }
@@ -437,8 +435,7 @@ class myriad extends myriad$1["default"] {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const found = this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString(raw, 'id');
@@ -477,8 +474,7 @@ class myriad extends myriad$1["default"] {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            const responseIsArray = Array.isArray(response);
-            const rawQuestions = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const rawQuestions = this.safeList(response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -569,7 +565,7 @@ class myriad extends myriad$1["default"] {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            const position = this.parsePredictionPosition(data[i]);
+            const position = this.parsePredictionPosition(this.safeDict(data, i, {}));
             if ((outcomes === undefined) || this.inArray(position['outcome'], outcomes)) {
                 result.push(position);
             }
@@ -732,22 +728,16 @@ class myriad extends myriad$1["default"] {
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        if (rHex === undefined) {
+        const rHexRaw = this.safeString(signature, 'r', '');
+        if (rHexRaw === '') {
             throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing rHex');
         }
-        const rHexLength = rHex.length;
-        if ((rHexLength % 2) !== 0) {
-            rHex = '0' + rHex;
-        }
-        if (sHex === undefined) {
+        const sHexRaw = this.safeString(signature, 's', '');
+        if (sHexRaw === '') {
             throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing sHex');
         }
-        const sHexLength = sHex.length;
-        if ((sHexLength % 2) !== 0) {
-            sHex = '0' + sHex;
-        }
+        const rHex = this.padHexToEven(rHexRaw);
+        const sHex = this.padHexToEven(sHexRaw);
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {
@@ -1067,8 +1057,11 @@ class myriad extends myriad$1["default"] {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         const skipWaitForReceipt = this.safeBool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
-        let txHash = txHashParam;
-        if (txHash === undefined) {
+        let txHash = undefined;
+        if (txHashParam !== undefined) {
+            txHash = txHashParam;
+        }
+        else {
             txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         }
         if (!skipWaitForReceipt) {
@@ -1117,8 +1110,8 @@ class myriad extends myriad$1["default"] {
         const encoded = this.ethEncodeStructuredData(domain, types, message);
         const digest = this.hash(encoded, sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1_js.secp256k1, undefined);
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.sum(27, signature['v']);
@@ -1412,8 +1405,7 @@ class myriad extends myriad$1["default"] {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        const traderParam = this.safeString2(params, 'trader', 'address');
-        const trader = (traderParam !== undefined) ? traderParam : this.walletAddressOrUndefined();
+        const trader = this.safeString2(params, 'trader', 'address', this.walletAddressOrUndefined());
         if (trader === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2002,9 +1994,9 @@ class myriad extends myriad$1["default"] {
         const state = this.safeString(raw, 'state', 'open');
         const endDate = this.safeString(raw, 'expiresAt');
         return {
-            'id': market['id'],
+            'id': this.safeString(market, 'id', ''),
             'slug': slug,
-            'event': market['market'],
+            'event': this.safeString(market, 'market', ''),
             'title': this.safeString2(raw, 'title', 'shortName'),
             'description': this.safeString(raw, 'description'),
             'markets': [market],
@@ -2124,15 +2116,17 @@ class myriad extends myriad$1["default"] {
         const outcomesLength = outcomes.length;
         // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
+        const compositeId = this.safeString(raw, 'networkId', '') + ':' + this.safeString(raw, 'id', '');
+        const compositeBaseId = this.safeString(raw, 'networkId', '') + ':' + this.safeString(raw, 'id', '');
         return {
-            'id': networkId + ':' + marketId,
+            'id': compositeId,
             'market': marketSymbol,
             'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel': marketExecutionModel,
             'base': slug,
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': networkId + ':' + marketId,
+            'baseId': compositeBaseId,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
@@ -2149,7 +2143,7 @@ class myriad extends myriad$1["default"] {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601(endDate) : undefined,
+            'expiry': this.parse8601(endDate),
             'expiryDatetime': endDate,
             'strike': undefined,
             'optionType': undefined,
@@ -2393,7 +2387,7 @@ class myriad extends myriad$1["default"] {
         //         "externalSources": []
         //     }
         //
-        const outcomeId = (market !== undefined && market !== null) ? this.safeString(market['info'], 'outcomeId') : undefined;
+        const outcomeId = this.safeString(this.safeDict(market, 'info'), 'outcomeId');
         const outcomes = this.safeList(raw, 'outcomes', []);
         let price = undefined;
         let change = undefined;
@@ -2402,7 +2396,8 @@ class myriad extends myriad$1["default"] {
         let percentage = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict(outcomes, i);
-            if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
+            const entryOutcomeId = this.safeString(o, 'outcomeId', this.safeString(o, 'id'));
+            if (entryOutcomeId === outcomeId) {
                 const priceValue = this.safeNumber(o, 'price');
                 const changeValue = this.safeNumber(o, 'priceChange24h');
                 price = priceValue;
@@ -2410,7 +2405,7 @@ class myriad extends myriad$1["default"] {
                 if ((priceValue !== undefined) && (changeValue !== undefined)) {
                     const previousCloseValue = priceValue - changeValue;
                     previousClose = previousCloseValue;
-                    if (previousCloseValue !== 0) {
+                    if (priceValue !== changeValue) {
                         percentage = changeValue / previousCloseValue * 100;
                     }
                 }
@@ -2561,7 +2556,8 @@ class myriad extends myriad$1["default"] {
         let ask = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict(outcomes, i);
-            if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
+            const entryOutcomeId = this.safeString(o, 'outcomeId', this.safeString(o, 'id'));
+            if (entryOutcomeId === outcomeId) {
                 const price = this.safeNumber(o, 'price');
                 if (price !== undefined) {
                     if (price > 0.001) {
@@ -2692,6 +2688,7 @@ class myriad extends myriad$1["default"] {
         //
         const outcomes = this.safeList(response, 'outcomes', []);
         let selectedOutcome = undefined;
+        let outcomeSelected = false;
         for (let i = 0; i < outcomes.length; i++) {
             const oc = outcomes[i];
             const currentId = this.safeString(oc, 'id', this.safeString(oc, 'outcomeId'));
@@ -2700,8 +2697,9 @@ class myriad extends myriad$1["default"] {
                 selectedOutcome = oc;
                 break;
             }
-            if ((selectedOutcome === undefined) && (outcomeTitle !== undefined) && (currentTitle === outcomeTitle)) {
+            if ((!outcomeSelected) && (outcomeTitle !== undefined) && (currentTitle === outcomeTitle)) {
                 selectedOutcome = oc;
+                outcomeSelected = true;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
@@ -2822,7 +2820,7 @@ class myriad extends myriad$1["default"] {
         const responses = await Promise.all(promises);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            const response = responses[i];
+            const response = this.safeDict(responses, i, {});
             const grouped = outcomesByMarket[key];
             for (let j = 0; j < grouped.length; j++) {
                 const outcomeObj = grouped[j];
@@ -2882,8 +2880,7 @@ class myriad extends myriad$1["default"] {
         //         ]
         //     }
         //
-        const responseIsArray = Array.isArray(response);
-        const rows = (responseIsArray) ? response : this.safeList(response, 'data', []);
+        const rows = this.safeList(response, 'data', []);
         const trades = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict(rows, i);
@@ -3001,7 +2998,7 @@ class myriad extends myriad$1["default"] {
                 const tagQueries = [];
                 for (let i = 0; i < requestedTagsLength; i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    const tagSlug = requestedTags[i];
+                    const tagSlug = this.safeString(requestedTags, i, '');
                     tagQueries.push(tagSlug.replaceAll('-', ' '));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -3021,8 +3018,7 @@ class myriad extends myriad$1["default"] {
         const result = [];
         const rawQuestionsLength = rawQuestions.length;
         for (let i = 0; i < rawQuestionsLength; i++) {
-            const rawQuestion = rawQuestions[i];
-            const ev = this.parseEvent(rawQuestion);
+            const ev = this.parseEvent(this.extend({}, rawQuestions[i]));
             const evMarkets = this.safeList(ev, 'markets', []);
             const evMarketsLength = evMarkets.length;
             const filteredMarkets = [];
@@ -3116,11 +3112,12 @@ class myriad extends myriad$1["default"] {
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary();
         }
-        const options = this.options['requestId'];
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         if (url !== undefined) {
-            this.options['requestId'][url] = newValue;
+            options[url] = newValue;
+            this.options['requestId'] = options;
         }
         return newValue;
     }
@@ -3176,7 +3173,7 @@ class myriad extends myriad$1["default"] {
         const linesLength = lines.length;
         for (let i = 0; i < linesLength; i++) {
             const line = lines[i];
-            if (line.length > 0) {
+            if (line !== '') {
                 const parsed = JSON.parse(line);
                 this.handleCentrifugoFrame(client, parsed);
             }
@@ -3191,7 +3188,7 @@ class myriad extends myriad$1["default"] {
         const keys = Object.keys(msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn(this.pong, client, msg);
+            this.spawn(this.pong, client);
             return;
         }
         const connectReply = this.safeDict(msg, 'connect');
@@ -3350,7 +3347,7 @@ class myriad extends myriad$1["default"] {
         const info = this.safeDict(outcomeObj, 'info', {});
         const networkId = this.safeString(info, 'networkId', '');
         const marketId = this.safeString(info, 'marketId', '');
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
         const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
@@ -3509,12 +3506,12 @@ class myriad extends myriad$1["default"] {
         const seenChannels = {};
         const resolvedSymbols = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const outcomeObj = this.outcome(outcomes[i]);
+            const outcomeObj = this.outcome(this.safeString(outcomes, i, ''));
             const info = this.safeDict(outcomeObj, 'info', {});
             const networkId = this.safeString(info, 'networkId', '');
             const marketId = this.safeString(info, 'marketId', '');
             const channel = 'prices:' + networkId + ':' + marketId;
-            resolvedSymbols.push(this.safeOutcomeSymbol(outcomes[i], outcomeObj));
+            resolvedSymbols.push(this.safeOutcomeSymbol(this.safeString(outcomes, i, ''), outcomeObj));
             if (!(channel in seenChannels)) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId(url);
@@ -3616,12 +3613,12 @@ class myriad extends myriad$1["default"] {
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             const info = this.safeDict(outcomeObj, 'info', {});
             networkId = this.safeString(info, 'networkId', networkId);
-            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
         }
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
         const orders = await this.subscribeMyriadChannel(messageHash, channel, params);
-        return this.filterByValueSinceLimit(orders, 'outcome', outcomeResolved, since, limit, 'timestamp', true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limit, true);
     }
     handleOrder(client, data) {
         if (this.orders === undefined) {

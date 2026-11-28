@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Endpoint } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Endpoint, Bool } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -1221,7 +1221,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): Dict {
+    signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = this.safeString (signature, 'r', '');
         const s = this.safeString (signature, 's', '');
@@ -1232,7 +1232,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message: any, privateKey: any): Dict {
+    signMessage (message: any, privateKey: string): Dict {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1256,7 +1256,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: Dict, authenticators: any, fee: any = undefined): string {
+    signDydxTx (privateKey: string, message: Dict, memo: Str, chainId: Str, account: Dict, authenticators: any, fee: NullableDict = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         const signatureR = this.safeString (signature, 'r', '');
@@ -1267,7 +1267,7 @@ export default class dydx extends Exchange {
     retrieveCredentials (): Dict {
         let credentials = this.safeDict (this.options, 'dydxCredentials');
         if (credentials !== undefined) {
-            return credentials;
+            return this.safeDict (this.options, 'dydxCredentials', {});
         }
         const privateKeyOption = this.safeString (this.options, 'privateKey');
         if (privateKeyOption !== undefined) {
@@ -1281,7 +1281,7 @@ export default class dydx extends Exchange {
             'publicKey': this.binaryToBase16 (credentials['publicKey']),
         };
         this.options['dydxCredentials'] = credentials;
-        return credentials;
+        return this.safeDict (this.options, 'dydxCredentials', {});
     }
 
     async fetchDydxAccount (): Promise<Dict> {
@@ -1356,7 +1356,7 @@ export default class dydx extends Exchange {
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (paramsSubAccountId, 'timeInForce', 'GTT');
-        const postOnly = this.isPostOnly (isMarket, undefined, paramsSubAccountId);
+        const postOnly = this.isPostOnly (isMarket, false, paramsSubAccountId);
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info', {});
@@ -1370,6 +1370,7 @@ export default class dydx extends Exchange {
         let conditionalType = 0;
         let conditionalOrderTriggerSubticks: Str = '0';
         let orderFlag: Int = undefined;
+        let isShortTerm = false;
         let timeInForceNumber: Int = undefined;
         if (timeInForce === 'FOK') {
             throw new InvalidOrder (this.id + ' timeInForce fok has been deprecated');
@@ -1377,6 +1378,7 @@ export default class dydx extends Exchange {
         if (orderType === 'MARKET') {
             // short-term
             orderFlag = 0;
+            isShortTerm = true;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce !== undefined) {
                 // default is ioc
@@ -1386,6 +1388,7 @@ export default class dydx extends Exchange {
             if (timeInForce === 'GTT') {
                 // long-term
                 orderFlag = 64;
+                isShortTerm = false;
                 if (postOnly) {
                     timeInForceNumber = 2;
                 } else {
@@ -1393,6 +1396,7 @@ export default class dydx extends Exchange {
                 }
             } else {
                 orderFlag = 0;
+                isShortTerm = true;
                 if (timeInForce === 'IOC') {
                     timeInForceNumber = 1;
                 } else {
@@ -1403,6 +1407,7 @@ export default class dydx extends Exchange {
         if (isConditional) {
             // conditional
             orderFlag = 32;
+            isShortTerm = false;
             if (stopLossPrice !== undefined) {
                 conditionalType = 1;
                 conditionalOrderTriggerSubticks = this.priceToPrecision (symbol, stopLossPrice);
@@ -1418,7 +1423,7 @@ export default class dydx extends Exchange {
         const goodTillBlockTimeInSeconds = 2592000;
         // default is 30 days
         const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
-        if (orderFlag === 0) {
+        if (isShortTerm) {
             if (goodTillBlock === undefined) {
                 // short term order
                 if (latestBlockHeight === undefined) {
@@ -1464,11 +1469,17 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         const paramsOmitted = this.omit (paramsGoodTillBlockTimeInSeconds, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
-        const walletAddress = this.getWalletAddress ();
+        const walletAddress: string = this.getWalletAddress ();
         const clobPairId = this.safeInteger (marketInfo, 'clobPairId', 0);
-        const subaccountIdValue = (subaccountIdOption === undefined) ? 0 : subaccountIdOption;
+        let subaccountIdValue: Int = 0;
+        if (subaccountIdOption !== undefined) {
+            subaccountIdValue = subaccountIdOption;
+        }
         const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
-        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        let orderFlagValue: Int = 0;
+        if (orderFlag !== undefined) {
+            orderFlagValue = orderFlag;
+        }
         const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
         const orderId = this.createOrderIdFromParts (walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [ orderId, this.extend (signingPayload, paramsOmitted) ];
@@ -1542,7 +1553,8 @@ export default class dydx extends Exchange {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, orderRequest, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1614,8 +1626,7 @@ export default class dydx extends Exchange {
         let goodTillBlockTime: Num = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
-        const subAccountId = 0;
-        const [ subAccountIdOption ] = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
+        const [ subAccountIdOption ] = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', 0);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
@@ -1654,7 +1665,8 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1699,8 +1711,7 @@ export default class dydx extends Exchange {
         if (clientOrderIds === undefined) {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
-        const subAccountId = 0;
-        const [ subAccountIdOption, paramsSubAccountId ] = this.handleOptionIntegerAndParams (params, 'cancelOrders', 'subAccountId', subAccountId);
+        const [ subAccountIdOption, paramsSubAccountId ] = this.handleOptionIntegerAndParams (params, 'cancelOrders', 'subAccountId', 0);
         let goodTillBlock = this.safeInteger (paramsSubAccountId, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight ();
@@ -1726,7 +1737,8 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1875,8 +1887,9 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, this.omit (params, 'methodName'));
-        return this.parseLedger (response, currency, since, limit);
+        let rows: Dict[] = [];
+        rows = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, this.omit (params, 'methodName'));
+        return this.parseLedger (rows, currency, since, limit);
     }
 
     async estimateTxFee (message: Dict, memo: Str, account: Dict): Promise<Dict> {
@@ -1913,13 +1926,20 @@ export default class dydx extends Exchange {
             gasPrice = this.safeString (feeDenom, 'CHAINTOKEN_GAS_PRICE');
             denom = this.safeString (feeDenom, 'CHAINTOKEN_DENOM');
         }
-        const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
+        const gasLimitNum = this.parseNumber (Precise.stringMul (gasUsed, defaultFeeMultiplier));
+        if (gasLimitNum === undefined) {
+            throw new ExchangeError (this.id + ' estimateTxFee() missing gasLimit');
+        }
+        const gasLimit = Math.ceil (gasLimitNum);
         let feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);
         if (feeAmount === undefined) {
             throw new ExchangeError (this.id + ' estimateTxFee() missing feeAmount');
         }
         if (feeAmount.indexOf ('.') >= 0) {
-            feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
+            const feeAmountNum = this.parseNumber (feeAmount);
+            if (feeAmountNum !== undefined) {
+                feeAmount = this.numberToString (Math.ceil (feeAmountNum));
+            }
         }
         const feeObj: Dict = {
             'amount': feeAmount,
@@ -2006,7 +2026,8 @@ export default class dydx extends Exchange {
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, '', chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -2164,7 +2185,8 @@ export default class dydx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        const [ tag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        const tag = this.safeString (params, 'tag');
+        const paramsWithdrawTag = this.omit (params, 'tag');
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
@@ -2195,7 +2217,8 @@ export default class dydx extends Exchange {
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, tag, chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -2550,7 +2573,7 @@ export default class dydx extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
@@ -2583,6 +2606,8 @@ export default class dydx extends Exchange {
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';
         this.options['chainId'] = 11155111;
-        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        const feeDenomDict = this.safeDict (this.options, 'feeDenom', {});
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        this.options['feeDenom'] = feeDenomDict;
     }
 }

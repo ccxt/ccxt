@@ -32,7 +32,7 @@ public class TestFetchLedgerEntry extends BaseTest {
             {
                 Object item = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id, (String) null, new HashMap<String, Object>() {{}}})).join();
                 Object now = exchange.milliseconds();
-                TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, (String) (code), now);
+                TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
             }
         }
         return true;

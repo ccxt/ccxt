@@ -26,7 +26,7 @@ func testFetchCurrenciesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 		currencies = r.Value
 	}
 	// todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-	var numInactiveCurrencies any = 0
+	var numInactiveCurrencies int = 0
 	var maxInactiveCurrenciesPercentage any = ccxt.DerefScalar(exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50)) // no more than X% currencies should be inactive
 	var requiredActiveCurrencies []any = []any{"BTC", "ETH", "USDT", "USDC"}
 	var features any = exchange.GetFeatures()
@@ -50,7 +50,7 @@ func testFetchCurrenciesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 			// detailed check for deposit/withdraw
 			var active any = ccxt.DerefScalar(exchange.SafeBool(currency, "active"))
 			if active == false {
-				numInactiveCurrencies = Add(numInactiveCurrencies, 1)
+				numInactiveCurrencies = numInactiveCurrencies + 1
 			}
 			// ensure that major currencies are active and enabled for deposit and withdrawal
 			var code any = ccxt.DerefScalar(exchange.SafeString(currency, "code"))

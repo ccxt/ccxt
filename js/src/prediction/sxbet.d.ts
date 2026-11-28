@@ -1,6 +1,6 @@
 import Exchange from '../abstract/prediction/sxbet.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, Bool } from '../base/types.js';
 /**
  * @class sxbet
  * @augments Exchange
@@ -489,7 +489,7 @@ export default class sxbet extends Exchange {
      */
     fetchSxbetRealtimeToken(): Promise<Str>;
     connectSxbetCentrifugo(url: Str): Promise<any>;
-    pong(client: Client, message?: any): Promise<void>;
+    pong(client: Client): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;
@@ -514,7 +514,7 @@ export default class sxbet extends Exchange {
      * @returns {string[]} the outcome handles whose books were refreshed
      */
     applySxbetWsSnapshot(snapshot: Dict): string[];
-    handleOrderBook(client: Client, rows: any[]): void;
+    handleOrderBook(client: Client, rows: Dict[]): void;
     /**
      * @method
      * @name sxbet#watchTicker
@@ -547,7 +547,7 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parseSxbetV3PublicTrade(trade: Dict): PredictionTrade;
-    handleTrades(client: Client, rows: any[]): void;
+    handleTrades(client: Client, rows: Dict[]): void;
     /**
      * @method
      * @name sxbet#watchMyTrades
@@ -560,7 +560,7 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
-    handleMyTrade(client: Client, rows: any[]): void;
+    handleMyTrade(client: Client, rows: Dict[]): void;
     /**
      * @method
      * @name sxbet#watchOrders
@@ -573,8 +573,8 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
-    handleOrder(client: Client, rows: any[]): void;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleOrder(client: Client, rows: Dict[]): void;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore
      * @method

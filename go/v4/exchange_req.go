@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -210,7 +211,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		// }
 
 		//set default headers
-		defaultHeaders := this.Headers.(map[string]any)
+		defaultHeaders := this.Headers
 		for key, value := range defaultHeaders {
 			req.Header.Set(key, derefScalar(value).(string))
 		}
@@ -294,7 +295,16 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
-		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
+		requestHeaders := make(map[string]any, len(headersStrMap))
+		for k, v := range headersStrMap {
+			requestHeaders[k] = v
+		}
+		// the sent body as a nullable string (a map body was sent as JSON, so handleErrors gets nil for it)
+		var requestBody *string
+		if bodyStr, ok := body.(string); ok {
+			requestBody = &bodyStr
+		}
+		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, requestHeaders, requestBody)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {
@@ -317,13 +327,13 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 	return ch
 }
 
-func (this *BaseExchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
+func (this *BaseExchange) HandleHttpStatusCode(code int, reason string, url string, method string, body any) {
 
-	codeString := ToString(code)
+	codeString := strconv.Itoa(code)
 	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)
 
 	if codeinHttpExceptions != nil {
-		errorMessage := this.Id + " " + ToString(method) + " " + ToString(url) + " " + ToString(code) + " " + ToString(reason) + " " + ToString(body)
+		errorMessage := this.Id + " " + method + " " + url + " " + codeString + " " + reason + " " + ToString(body)
 		functionError := codeinHttpExceptions.(func(...any) error)
 		panic(functionError(errorMessage))
 	}

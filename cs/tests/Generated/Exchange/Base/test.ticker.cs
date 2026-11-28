@@ -161,7 +161,7 @@ public partial class testMainClass : BaseTest
                 // each side - big enough to forgive rounding, far too small to
                 // hide a real bug like mismatched units or a wrong-field parse
                 int quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
-                string? quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
+                string? quoteQuantum = exchange.parsePrecision(((string)exchange.numberToString(quoteVolumeDecimals)));
                 baseLow = Precise.stringSub(baseLow, quoteQuantum);
                 baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
                 assert(Precise.stringGe(quoteVolume, baseLow), ("quoteVolume should be => baseVolume * low" + (logText)));
@@ -189,7 +189,7 @@ public partial class testMainClass : BaseTest
             string? changeWindow = pricePart;
             if (changeDecimals >= 0)
             {
-                string? changeQuantum = exchange.parsePrecision(exchange.numberToString(changeDecimals));
+                string? changeQuantum = exchange.parsePrecision(((string)exchange.numberToString(changeDecimals)));
                 // a change of "0" prints no decimals, so its apparent step is a whole unit
                 // and accepts anything on a micro-priced asset. a per cent of the price
                 // caps it, and covers whole units on a price in the tens of thousands

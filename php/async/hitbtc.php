@@ -1084,7 +1084,7 @@ class hitbtc extends Exchange {
         }
         $paramsOmitted = $params;
         if (($network !== null) && ($code === 'USDT')) {
-            $paramsOmitted = $this->omit($params, 'network');
+            $paramsOmitted = $this->omit($paramsOmitted, 'network');
         }
         $response = Async\await($this->privatePostWalletCryptoAddress($this->extend($request, $paramsOmitted)));
         //
@@ -1132,7 +1132,7 @@ class hitbtc extends Exchange {
         }
         $paramsOmitted = $params;
         if (($network !== null) && ($code === 'USDT')) {
-            $paramsOmitted = $this->omit($params, 'network');
+            $paramsOmitted = $this->omit($paramsOmitted, 'network');
         }
         $response = Async\await($this->privateGetWalletCryptoAddress($this->extend($request, $paramsOmitted)));
         //
@@ -1550,11 +1550,11 @@ class hitbtc extends Exchange {
         ), $marketResolved);
     }
 
-    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params): PromiseInterface {
+    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($types, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params) {
+    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1668,8 +1668,7 @@ class hitbtc extends Exchange {
         $addressTo = $address;
         $tag = $this->safe_string($native, 'payment_id');
         $tagTo = $tag;
-        $sender = $this->safe_list($native, 'senders');
-        $addressFrom = $this->safe_string($sender, 0);
+        $addressFrom = $this->safe_string($this->safe_list($native, 'senders', array()), 0);
         $amount = $this->safe_number($native, 'amount');
         $subType = $this->safe_string($transaction, 'subtype');
         $internal = $subType === 'OFFCHAIN';
@@ -1933,8 +1932,8 @@ class hitbtc extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $fee = $this->parse_trading_fee($this->safe_dict($response, $i, array()));
-            $symbol = $fee['symbol'];
+            $fee = $this->parse_trading_fee($this->extend(array(), $this->safe_dict($response, $i, array())));
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -2128,18 +2127,18 @@ class hitbtc extends Exchange {
 
     private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * fetches information on an $order made by the user
+         * fetches information on an order made by the user
          *
          * @see https://api.hitbtc.com/#spot-orders-history
          * @see https://api.hitbtc.com/#futures-orders-history
          * @see https://api.hitbtc.com/#margin-orders-history
          *
-         * @param {string} $id $order $id
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool} [$params->margin] true for fetching a margin $order
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         * @param {bool} [$params->margin] true for fetching a margin order
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2186,8 +2185,7 @@ class hitbtc extends Exchange {
         //       }
         //     ]
         //
-        $order = $this->safe_dict($response, 0, array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->safe_dict($response, 0, array()), $market);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2576,12 +2574,13 @@ class hitbtc extends Exchange {
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
-        $isPostOnly = $this->is_post_only($type === 'market', null, $params);
+        $isPostOnly = $this->is_post_only($type === 'market', false, $params);
         $resolvedMarketType = $this->safe_string($market, 'type');
+        $marketSymbol = $this->safe_string($market, 'symbol');
         $request = array(
             'type' => $type,
             'side' => $side,
-            'quantity' => $this->amount_to_precision($market['symbol'], $amount),
+            'quantity' => $this->amount_to_precision($marketSymbol, $amount),
             'symbol' => $this->safe_string($market, 'id'),
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
@@ -2597,7 +2596,8 @@ class hitbtc extends Exchange {
         );
         if ($reduceOnly !== null) {
             if (($resolvedMarketType !== 'swap') && ($resolvedMarketType !== 'margin')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
+                $marketTypeString = $this->safe_string($market, 'type', '');
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $marketTypeString . ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
         if ($reduceOnly === true) {
@@ -2613,7 +2613,7 @@ class hitbtc extends Exchange {
             if ($price === null) {
                 throw new ExchangeError($this->id . ' createOrder() requires a price argument for limit orders');
             }
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['price'] = $this->price_to_precision($marketSymbol, $price);
         }
         if (($timeInForce === 'GTD')) {
             $expireTime = $this->safe_string($params, 'expire_time');
@@ -2622,7 +2622,7 @@ class hitbtc extends Exchange {
             }
         }
         if ($triggerPrice !== null) {
-            $request['stop_price'] = $this->price_to_precision($market['symbol'], $triggerPrice);
+            $request['stop_price'] = $this->price_to_precision($marketSymbol, $triggerPrice);
             if ($isLimit) {
                 $request['type'] = 'stopLimit';
             } elseif ($type === 'market') {
@@ -2794,7 +2794,10 @@ class hitbtc extends Exchange {
         $market = null;
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMarginMode', $market, $params);
         if ($marketType === 'margin') {
@@ -2894,10 +2897,13 @@ class hitbtc extends Exchange {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
-        return $this->parse_transfer($response, $currency);
+        return $this->extend($this->parse_transfer(array(), $currency), array(
+            'id' => $this->safe_string($response, 0),
+            'info' => $response,
+        ));
     }
 
-    public function parse_transfer(mixed $transfer, ?array $currency = null): array {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // transfer
         //
@@ -3034,9 +3040,12 @@ class hitbtc extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
-            $queryMarketIds = $this->market_ids($symbolsNormalized);
-            $request['symbols'] = implode(',', $queryMarketIds);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+                $queryMarketIds = $this->market_ids($symbolsNormalized);
+                $request['symbols'] = implode(',', $queryMarketIds);
+            }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);
         if ($type !== 'swap') {
@@ -3067,7 +3076,7 @@ class hitbtc extends Exchange {
             if ($marketId === null) {
                 continue;
             }
-            $rawFundingRate = $this->safe_dict($response, $marketId);
+            $rawFundingRate = $this->safe_dict($response, $marketId, array());
             $marketInner = $this->market($marketId);
             $symbol = $this->safe_symbol($marketId, $marketInner);
             $fundingRate = $this->parse_funding_rate($rawFundingRate, $marketInner);
@@ -3178,7 +3187,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin positions
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3191,6 +3200,7 @@ class hitbtc extends Exchange {
         }
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchPositions', $paramsMarketType);
         $paramsOmitted = $this->omit($paramsMarginMode, array( 'marginMode', 'margin' ));
+        $response = array();
         if ($marginMode !== null) {
             $response = Async\await($this->privateGetMarginAccount($this->extend($request, $paramsOmitted)));
         } else {
@@ -3236,7 +3246,8 @@ class hitbtc extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $result[] = $this->parse_position($this->safe_dict($response, $i, array()));
+            $position = $this->parse_position($this->safe_dict($response, $i, array()));
+            $result[] = $position;
         }
         return $result;
     }
@@ -3865,7 +3876,8 @@ class hitbtc extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
-        if (($leverage < 1) || ($leverage > $maxLeverage)) {
+        $leverageNum = $this->parse_number($leverage);
+        if (($leverageNum < 1) || ($leverageNum > $maxLeverage)) {
             throw new BadRequest($this->id . ' setLeverage() leverage should be between 1 and ' . (string) $maxLeverage . ' for ' . $symbol);
         }
         $request = array(
@@ -3949,6 +3961,7 @@ class hitbtc extends Exchange {
         //
         $networks = $this->safe_list($fee, 'networks', array());
         $result = $this->deposit_withdraw_fee($fee);
+        $networkFees = array();
         for ($j = 0; $j < count($networks); $j++) {
             $networkEntry = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
@@ -3969,7 +3982,7 @@ class hitbtc extends Exchange {
                 $result['withdraw'] = $withdrawResult;
             }
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networkFees[$networkCode] = array(
                     'withdraw' => $withdrawResult,
                     'deposit' => array(
                         'fee' => null,
@@ -3978,6 +3991,7 @@ class hitbtc extends Exchange {
                 );
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 
@@ -4042,7 +4056,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $paramsMarginMode );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         //
         //     {
         //       "error": {

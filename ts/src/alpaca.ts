@@ -1184,7 +1184,11 @@ export default class alpaca extends Exchange {
         const paramsCost = (cost !== undefined) ? this.omit (params, 'cost') : params;
         const [ defaultTIF, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsCost, 'createOrder', 'timeInForce');
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request['time_in_force'] = (defaultTIF !== undefined) ? defaultTIF.toLowerCase () : defaultTIF;
+        if (defaultTIF !== undefined) {
+            request['time_in_force'] = defaultTIF.toLowerCase ();
+        } else {
+            request['time_in_force'] = undefined;
+        }
         const paramsOmitted = this.omit (paramsTimeInForce, [ 'timeInForce', 'triggerPrice' ]);
         request['client_order_id'] = this.generateClientOrderId (paramsOmitted);
         const order = await this.traderPrivatePostV2Orders (this.extend (request, this.omit (paramsOmitted, [ 'clientOrderId' ])));
@@ -1265,15 +1269,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.traderPrivateDeleteV2Orders (params);
-        if (Array.isArray (response)) {
-            return this.parseOrders (response);
-        } else {
-            return [
-                this.safeOrder ({
-                    'info': response,
-                }),
-            ];
-        }
+        return this.parseOrders (response);
     }
 
     /**
@@ -2248,7 +2244,7 @@ export default class alpaca extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // default error handler
         }

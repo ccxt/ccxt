@@ -400,7 +400,7 @@ public partial class btcbox : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -412,11 +412,12 @@ public partial class btcbox : Exchange
             Dictionary<string, object> currency = this.currency(code);
             string currencyId = this.safeString(currency, "id", "");
             string free = (currencyId + "_balance");
-            if (inOp(response, free))
+            string? freeValue = this.safeString(response, free);
+            if ((freeValue != null))
             {
                 Dictionary<string, object> account = this.account();
                 string used = (currencyId + "_lock");
-                account["free"] = this.safeString(response, free);
+                account["free"] = freeValue;
                 account["used"] = this.safeString(response, used);
                 result[(string)code] = account;
             }
@@ -471,7 +472,7 @@ public partial class btcbox : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null));
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? last = this.safeString(ticker, "last");
@@ -542,7 +543,7 @@ public partial class btcbox : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -559,11 +560,10 @@ public partial class btcbox : Exchange
         //      }
         //
         Int64? timestamp = this.safeTimestamp(trade, "date");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
-        string? type = null;
         string? side = this.safeString(trade, "type");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -572,7 +572,7 @@ public partial class btcbox : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", null },
             { "price", priceString },
@@ -706,7 +706,7 @@ public partial class btcbox : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -741,7 +741,7 @@ public partial class btcbox : Exchange
             }
         }
         string? trades = null; // todo: this.parseTrades (order['trades']);
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? side = this.safeString(order, "type");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -808,7 +808,7 @@ public partial class btcbox : Exchange
         return this.parseOrder(response, market);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string? type, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string type, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -914,8 +914,8 @@ public partial class btcbox : Exchange
                 { "nonce", nonce },
             }, parameters);
             string request = this.urlencode(query);
-            string secret = ((string)this.hash(this.encode(this.secret), md5));
-            query["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
+            string secret = ((string)this.hash(this.secret, md5));
+            query["signature"] = this.hmac(request, secret, sha256);
             string signedBody = this.urlencode(query);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
@@ -935,24 +935,24 @@ public partial class btcbox : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // resort to defaultErrorHandler
+            return ((bool?)((object)(null)));  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((code >= 400))
+        if (code >= 400)
         {
-            return null;  // resort to defaultErrorHandler
+            return ((bool?)((object)(null)));  // resort to defaultErrorHandler
         }
         bool? result = this.safeBool(response, "result");
         if ((result == null) || (result == true))
         {
-            return null;  // either public API (no error codes expected) or success
+            return ((bool?)((object)(null)));  // either public API (no error codes expected) or success
         }
         string? codeError = this.safeString(response, "code");
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new ExchangeError (feedback) ;
     }

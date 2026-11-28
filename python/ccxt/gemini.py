@@ -685,7 +685,7 @@ class gemini(Exchange, ImplicitAPI):
         fetchUsdtMarkets = self.safe_list(self.options, 'fetchUsdtMarkets', [])
         result = []
         for i in range(0, len(fetchUsdtMarkets)):
-            marketId = fetchUsdtMarkets[i]
+            marketId = self.safe_string(fetchUsdtMarkets, i, '')
             request = {
                 'symbol': marketId,
             }
@@ -710,7 +710,7 @@ class gemini(Exchange, ImplicitAPI):
         brokenPairs = self.safe_list(self.options, 'brokenPairs', [])
         marketIds = []
         allMarketIds = []
-        if isinstance(marketIdsRaw, list):
+        if marketIdsRaw is not None:
             allMarketIds = marketIdsRaw
         for i in range(0, len(allMarketIds)):
             if not self.in_array(allMarketIds[i], brokenPairs):
@@ -718,7 +718,7 @@ class gemini(Exchange, ImplicitAPI):
         if self.safe_bool(options, 'fetchDetailsForAllSymbols', False):
             promises = []
             for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
+                marketId = self.safe_string(marketIds, i, '')
                 request = {
                     'symbol': marketId,
                 }
@@ -746,7 +746,7 @@ class gemini(Exchange, ImplicitAPI):
             if tradingPairs is not None:
                 indexedTradingPairs = self.index_by(tradingPairs, 0)
                 for i in range(0, len(marketIds)):
-                    marketId = marketIds[i]
+                    marketId = self.safe_string(marketIds, i, '')
                     pairInfo = self.safe_list(indexedTradingPairs, marketId.upper())
                     if pairInfo is not None and not self.in_array(marketId, brokenPairs):
                         parsed = self.parse_market(pairInfo)
@@ -818,13 +818,15 @@ class gemini(Exchange, ImplicitAPI):
             settleId = self.safe_string(response, 'contract_price_currency')
         else:
             # if no detailed API was called, then parse either string or array
-            if isString:
+            if isinstance(response, str):
                 marketId = response
             else:
                 marketId = self.safe_string_lower(response, 0)
                 tickSize = self.parse_number(self.parse_precision(self.safe_string(response, 1)))  # priceTickDecimalPlaces
                 amountPrecision = self.parse_number(self.parse_precision(self.safe_string(response, 2)))  # quantityTickDecimalPlaces
                 minSize = self.safe_number(response, 3)  # quantityMinimum
+            if marketId is None:
+                raise ExchangeError(self.id + ' parseMarket() missing marketId')
             marketIdUpper = marketId.upper()
             isPerp = (marketIdUpper.find('PERP') >= 0)
             marketIdWithoutPerp = marketIdUpper.replace('PERP', '')
@@ -982,6 +984,7 @@ class gemini(Exchange, ImplicitAPI):
         return self.parse_ticker(response, market)
 
     def fetch_ticker_v1_and_v2(self, symbol: str, params: dict = {}) -> Ticker:
+        self.load_markets()
         tickerPromiseA = self.fetch_ticker_v1(symbol, params)
         tickerPromiseB = self.fetch_ticker_v2(symbol, params)
         tickerA, tickerB = [tickerPromiseA, tickerPromiseB]
@@ -1061,7 +1064,7 @@ class gemini(Exchange, ImplicitAPI):
         base = None
         quote = None
         if (marketId is not None) and (marketResolved is None):
-            idLength = len(marketId) - 0
+            idLength = len(marketId)
             if idLength == 7:
                 baseId = marketId[0:4]
                 quoteId = marketId[4:7]
@@ -1441,7 +1444,6 @@ class gemini(Exchange, ImplicitAPI):
             type = 'market'
         else:
             type = self.safe_string(order, 'type')
-        fee = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         id = self.safe_string(order, 'order_id')
@@ -1479,7 +1481,7 @@ class gemini(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': fee,
+            'fee': None,
             'trades': None,
         }, market)
 
@@ -1921,7 +1923,7 @@ class gemini(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        codeValue = currency['code']
+        codeValue = self.safe_string(currency, 'code', '')
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
@@ -1973,7 +1975,7 @@ class gemini(Exchange, ImplicitAPI):
             bodyResolved = self.json(query)
         return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             if isinstance(body, str):
                 feedback = self.id + ' ' + body
@@ -2053,10 +2055,7 @@ class gemini(Exchange, ImplicitAPI):
         #         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """

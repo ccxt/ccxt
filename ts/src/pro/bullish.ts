@@ -120,7 +120,7 @@ export default class bullish extends bullishRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unsubscribePublic (url: string, topic: string, messageHash: string, symbol: string, request = {}, params = {}): Promise<any> {
+    async unsubscribePublic (url: string, topic: string, messageHash: string, symbol: string, request: Dict = {}, params: Dict = {}): Promise<any> {
         const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' unsubscribePublic() has no public websocket url');
@@ -147,7 +147,7 @@ export default class bullish extends bullishRest {
         return await this.watch (wsUrl + url, unsubHash, this.deepExtend (message, params), requestId, subscription);
     }
 
-    handleUnSubscription (client: Client, subscription: Dict) {
+    handleUnSubscription (client: Client, subscription: Dict): void {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -176,7 +176,9 @@ export default class bullish extends bullishRest {
         const cookies: Dict = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict (this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const id = this.requestId ().toString ();
         const message: Dict = {
             'jsonrpc': '2.0',
@@ -201,13 +203,15 @@ export default class bullish extends bullishRest {
      * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
      * @returns {any} status of the unwatch request
      */
-    async unsubscribePrivate (topic: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
+    async unsubscribePrivate (topic: string, subscribeHash: string, request: Dict = {}, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const token = await this.handleToken ();
         const cookies: Dict = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict (this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const tradingAccountId = this.safeString (params, 'tradingAccountId');
         let paramsOmitted = params;
         let requestParams = request;
@@ -415,7 +419,7 @@ export default class bullish extends bullishRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         let parsed = this.parseTicker (data, market);
         if (updateType === 'update') {
             const ticker = this.safeDict (this.tickers, symbol, {});
@@ -516,8 +520,9 @@ export default class bullish extends bullishRest {
         };
         const parsed = this.parseOrderBook (snapshot, symbol, timestamp);
         const sequenceNumberRange = this.safeList (data, 'sequenceNumberRange', []);
-        if (sequenceNumberRange.length > 0) {
-            const lastIndex = sequenceNumberRange.length - 1;
+        const sequenceNumberRangeLength = sequenceNumberRange.length;
+        if (sequenceNumberRangeLength > 0) {
+            const lastIndex = sequenceNumberRangeLength - 1;
             parsed['nonce'] = this.safeInteger (sequenceNumberRange, lastIndex);
         }
         orderbook.reset (parsed);
@@ -572,7 +577,7 @@ export default class bullish extends bullishRest {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         }
-        const orders = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -662,7 +667,7 @@ export default class bullish extends bullishRest {
             const orders = this.orders;
             const symbols: Dict = {};
             for (let i = 0; i < rawOrders.length; i++) {
-                const parsedOrder = this.parseOrder (rawOrders[i]);
+                const parsedOrder = this.parseOrder (this.safeDict (rawOrders, i, {}));
                 orders.append (parsedOrder);
                 const symbol = this.safeString (parsedOrder, 'symbol');
                 if (symbol !== undefined) {
@@ -711,7 +716,7 @@ export default class bullish extends bullishRest {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         }
-        const trades = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -794,7 +799,7 @@ export default class bullish extends bullishRest {
             const trades = this.myTrades;
             const symbols: Dict = {};
             for (let i = 0; i < rawTrades.length; i++) {
-                const parsedTrade = this.parseTrade (rawTrades[i]);
+                const parsedTrade = this.parseTrade (this.safeDict (rawTrades, i, {}));
                 trades.append (parsedTrade);
                 const symbol = this.safeString (parsedTrade, 'symbol');
                 if (symbol !== undefined) {
@@ -892,11 +897,12 @@ export default class bullish extends bullishRest {
             const data = this.safeList (message, 'data', []);
             const parsed = this.parseBalanceList (data);
             const parsedKeys = Object.keys (parsed);
+            const balance = this.safeDict (this.balance, tradingAccountId, {});
             for (let i = 0; i < parsedKeys.length; i++) {
                 const parsedKey = parsedKeys[i];
-                this.balance[tradingAccountId][parsedKey] = parsed[parsedKey];
+                balance[parsedKey] = parsed[parsedKey];
             }
-            this.balance[tradingAccountId] = this.safeBalance (this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance (balance);
         } else {
             const data = this.safeDict (message, 'data', {});
             const assetId = this.safeString (data, 'assetSymbol');
@@ -904,11 +910,12 @@ export default class bullish extends bullishRest {
             account['total'] = this.safeString (data, 'availableQuantity');
             account['used'] = this.safeString (data, 'lockedQuantity');
             const code = this.safeCurrencyCode (assetId);
+            const deltaBalance: Dict = this.safeDict (this.balance, tradingAccountId, {});
+            deltaBalance['info'] = message;
             if ((tradingAccountId !== undefined) && (code !== undefined)) {
-                this.balance[tradingAccountId][code] = account;
+                deltaBalance[code] = account;
             }
-            this.balance[tradingAccountId]['info'] = message;
-            this.balance[tradingAccountId] = this.safeBalance (this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance (deltaBalance);
         }
         const messageHash = 'balance';
         const tradingAccountIdHash = '::' + tradingAccountId;
@@ -934,11 +941,9 @@ export default class bullish extends bullishRest {
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
         const hasSymbols = (symbols !== undefined) && !this.isEmpty (symbols);
-        let symbolsNormalized = symbols;
+        let symbolsNormalized: Strings = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols (symbols);
-        }
-        if (hasSymbols && (symbolsNormalized !== undefined)) {
             messageHash += '::' + symbolsNormalized.join (',');
         }
         const request: Dict = {
@@ -989,7 +994,7 @@ export default class bullish extends bullishRest {
         const positions = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const position = this.parsePosition (rawPositions[i]);
+            const position = this.parsePosition (this.safeDict (rawPositions, i, {}));
             positions.append (position);
             newPositions.push (position);
         }
@@ -1007,7 +1012,7 @@ export default class bullish extends bullishRest {
         client.resolve (positions, 'positions');
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "data": {
@@ -1030,9 +1035,10 @@ export default class bullish extends bullishRest {
         } catch (e) {
             client.reject (e);
         }
+        return false;
     }
 
-    handleUnSubscriptionError (client: Client, message: Dict) {
+    handleUnSubscriptionError (client: Client, message: Dict): void {
         //
         //     {
         //         "jsonrpc": "2.0",

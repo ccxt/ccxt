@@ -15,5 +15,5 @@ func TestInArray() {
 	Assert(exchange.InArray(1, array))
 	Assert(exchange.InArray(2, array))
 	Assert(exchange.InArray(3, array))
-	Assert(!ccxt.EvalTruthy(exchange.InArray(4, array)))
+	Assert(!EvalTruthy(exchange.InArray(4, array)))
 }

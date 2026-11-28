@@ -25,7 +25,7 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
         let shouldReturn = false;
         const startTime = exchange.milliseconds();
         try {
-            response = await exchange.watchTickers(argSymbols, argParams);
+            response = await exchange.watchTickers(argSymbols);
         }
         catch (e) {
             // for some exchanges, specifically watchTickers method not subscribe

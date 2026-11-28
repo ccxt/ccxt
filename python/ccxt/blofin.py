@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, LeverageTier, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import ADL, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, LeverageTier, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -661,9 +661,6 @@ class blofin(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         if swap:
             symbol = base + '/' + quote + ':' + settle
-        expiry = None
-        strikePrice = None
-        optionType = None
         tickSize = self.safe_string(market, 'tickSize')
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         taker = self.safe_number(fees, 'taker')
@@ -674,6 +671,12 @@ class blofin(Exchange, ImplicitAPI):
         contractType = self.safe_string(market, 'contractType')
         maxLimitAmount = self.safe_number(market, 'maxLimitSize')
         maxSpotCost = self.safe_number(market, 'maxMarketSize')  # for spot, market-buy size is denominated in the quote currency, i.e. cost
+        costLimits = {
+            'min': None,
+            'max': maxSpotCost,
+        }
+        if contract:
+            costLimits['max'] = None
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -696,10 +699,10 @@ class blofin(Exchange, ImplicitAPI):
             'linear': (contractType == 'linear') if contract else None,
             'inverse': (contractType == 'inverse') if contract else None,
             'contractSize': self.safe_number(market, 'contractValue') if contract else None,
-            'expiry': expiry,
-            'expiryDatetime': expiry,
-            'strike': strikePrice,
-            'optionType': optionType,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
             'created': self.safe_integer(market, 'listTime'),
             'precision': {
                 'amount': self.safe_number(market, 'lotSize'),
@@ -718,10 +721,7 @@ class blofin(Exchange, ImplicitAPI):
                     'min': None,
                     'max': None,
                 },
-                'cost': {
-                    'min': None,
-                    'max': None if contract else maxSpotCost,
-                },
+                'cost': costLimits,
             },
             'info': market,
         })
@@ -795,7 +795,7 @@ class blofin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         spot = self.safe_bool(marketResolved, 'spot', False)
@@ -934,7 +934,7 @@ class blofin(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'tradeId')
         marketId = self.safe_string(trade, 'instId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(trade, 'ts')
         price = self.safe_string_2(trade, 'price', 'fillPrice')
         amount = self.safe_string_2(trade, 'size', 'fillSize')
@@ -1594,10 +1594,10 @@ class blofin(Exchange, ImplicitAPI):
             response = self.privatePostTradeOrder(request)
         if isCombinedSlTp or isSlOrTp or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
-            return self.parse_order(dataDict, market)
+            return self.parse_order(self.extend({}, dataDict), market)
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
-        order = self.parse_order(first, market)
+        order = self.parse_order(self.extend({}, first), market)
         order['type'] = type
         order['side'] = side
         return order
@@ -1691,11 +1691,11 @@ class blofin(Exchange, ImplicitAPI):
         elif isTrigger:
             triggerResponse = self.privatePostTradeCancelAlgo(self.extend(request, query))
             triggerData = self.safe_dict(triggerResponse, 'data')
-            return self.parse_order(triggerData, market)
+            return self.parse_order(self.extend({}, triggerData), market)
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -1770,7 +1770,20 @@ class blofin(Exchange, ImplicitAPI):
         if amount is not None:
             request['newSize'] = self.amount_to_precision(symbol, amount)
         query = self.omit(params, ['clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice'])
-        response = None
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "Order modified",
+        #         "data": {
+        #             "orderId": "6000004088576",
+        #             "clientOrderId": "",
+        #             "requestId": "",
+        #             "msg": "Order modified",
+        #             "code": "0",
+        #             "ts": "1795184228537"
+        #         }
+        #     }
+        #
         if isTpsl:
             stopLossPrice = self.safe_string(params, 'stopLossPrice')
             if stopLossPrice is not None:
@@ -1788,7 +1801,8 @@ class blofin(Exchange, ImplicitAPI):
                     request['newTpOrderPrice'] = '-1'
                 elif tpLimitPrice is not None:
                     request['newTpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
-            response = self.privatePostTradeAmendTpsl(self.extend(request, query))
+            tpslResponse = self.privatePostTradeAmendTpsl(self.extend(request, query))
+            return self.parse_order(self.safe_dict(tpslResponse, 'data', {}), market)
         elif isTrigger:
             triggerPrice = self.safe_string(params, 'triggerPrice')
             if triggerPrice is not None:
@@ -1797,27 +1811,13 @@ class blofin(Exchange, ImplicitAPI):
                 request['newOrderPrice'] = '-1'
             elif price is not None:
                 request['newOrderPrice'] = self.price_to_precision(symbol, price)
-            response = self.privatePostTradeAmendAlgo(self.extend(request, query))
+            algoResponse = self.privatePostTradeAmendAlgo(self.extend(request, query))
+            return self.parse_order(self.safe_dict(algoResponse, 'data', {}), market)
         else:
             if price is not None:
                 request['newPrice'] = self.price_to_precision(symbol, price)
             response = self.privatePostTradeAmendOrder(self.extend(request, query))
-        #
-        #     {
-        #         "code": "0",
-        #         "msg": "Order modified",
-        #         "data": {
-        #             "orderId": "6000004088576",
-        #             "clientOrderId": "",
-        #             "requestId": "",
-        #             "msg": "Order modified",
-        #             "code": "0",
-        #             "ts": "1795184228537"
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+            return self.parse_order(self.safe_dict(response, 'data', {}), market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2279,12 +2279,13 @@ class blofin(Exchange, ImplicitAPI):
         #
         result = self.deposit_withdraw_fee(fee)
         chainsLength = len(fee)
+        networkFees = {}
         for i in range(0, chainsLength):
             chain = self.safe_dict(fee, i)
             networkCode = self.chain_id_to_network_code(self.safe_string(chain, 'chain'))
             if networkCode is None:
                 continue
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'percentage': False,
@@ -2294,6 +2295,7 @@ class blofin(Exchange, ImplicitAPI):
                     'percentage': None,
                 },
             }
+        result['networks'] = networkFees
         if chainsLength == 1:
             # a single network means the currency-level fee is unambiguous
             networks = self.safe_dict(result, 'networks', {})
@@ -2323,6 +2325,7 @@ class blofin(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
+        depositId = self.safe_string(request, 'depositId', '')
         response = self.privateGetAssetDepositHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         # only accept a row that matches the requested id, in case the
@@ -2330,11 +2333,11 @@ class blofin(Exchange, ImplicitAPI):
         dataLength = len(data)
         for i in range(0, dataLength):
             entry = self.safe_dict(data, i, {})
-            if self.safe_string(entry, 'depositId') == id:
+            if self.safe_string(entry, 'depositId') == depositId:
                 return self.parse_transaction(entry, currency)
-        raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
+        raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + depositId)
 
-    def fetch_withdrawal(self, id: Str, code: Str = None, params: dict = {}) -> Transaction:
+    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -2343,20 +2346,25 @@ class blofin(Exchange, ImplicitAPI):
         :param str id: withdrawal id
         :param str [code]: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.clientId]: look up by the client-supplied id instead, with id set to None
+        :param str [params.clientId]: look up by the client-supplied id instead, with id set to None or ''
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         clientId = self.safe_string(params, 'clientId')
-        if (id is None) and (clientId is None):
+        # an undefined or empty id looks the withdrawal up by params['clientId']
+        hasId = (id is not None) and (id != '')
+        if not hasId and (clientId is None):
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]')
         self.load_markets()
         request = {}
-        if id is not None:
-            request['withdrawId'] = id
+        if hasId:
+            request = {
+                'withdrawId': id,
+            }
         currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
+        withdrawId = self.safe_string(request, 'withdrawId', '')
         response = self.privateGetAssetWithdrawalHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         # only accept a row that matches the requested id (or clientId), in
@@ -2365,13 +2373,15 @@ class blofin(Exchange, ImplicitAPI):
         for i in range(0, dataLength):
             entry = self.safe_dict(data, i, {})
             matches = False
-            if id is not None:
-                matches = (self.safe_string(entry, 'withdrawId') == id)
+            if hasId:
+                matches = (self.safe_string(entry, 'withdrawId') == withdrawId)
             else:
                 matches = (self.safe_string(entry, 'clientId') == clientId)
             if matches:
                 return self.parse_transaction(entry, currency)
-        reference = id if (id is not None) else clientId
+        reference = withdrawId
+        if not hasId:
+            reference = self.safe_string(params, 'clientId', '')
         raise ExchangeError(self.id + ' fetchWithdrawal() could not find withdrawal ' + reference)
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
@@ -2651,7 +2661,7 @@ class blofin(Exchange, ImplicitAPI):
         if isinstance(ids, str):
             return ids.split(',')
         else:
-            return ids
+            return self.safe_string_list([ids], [0])
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -2679,22 +2689,21 @@ class blofin(Exchange, ImplicitAPI):
         if trigger is True:
             method = 'privatePostTradeCancelTpsl'
         if clientOrderIds is None:
-            orderIds = self.parse_ids(ids)
             if tpslIds is not None:
                 for i in range(0, len(tpslIds)):
                     request.append({
                         'tpslId': self.safe_string(tpslIds, i),
                         'instId': market['id'],
                     })
-            for i in range(0, len(orderIds)):
+            for i in range(0, len(ids)):
                 if trigger is True:
                     request.append({
-                        'tpslId': self.safe_string(orderIds, i),
+                        'tpslId': self.safe_string(ids, i),
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'orderId': self.safe_string(orderIds, i),
+                        'orderId': self.safe_string(ids, i),
                         'instId': market['id'],
                     })
         else:
@@ -2817,7 +2826,7 @@ class blofin(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             symbolsLength = len(symbols)
-            if symbolsLength == 0:
+            if symbolsLength > 0:
                 market = self.market(symbols[0])
                 request['instId'] = market['id']
         if limit is not None:
@@ -2909,7 +2918,7 @@ class blofin(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'instId')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         pos = self.safe_string(position, 'positions')
         contractsAbs = Precise.string_abs(pos)
         side = self.safe_string(position, 'positionSide')
@@ -3086,8 +3095,9 @@ class blofin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbolsNormalized = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbolsNormalized)
         request = {
-            'instId': ','.join(self.market_ids(symbolsNormalized)),
+            'instId': ','.join(marketIds),
             'marginMode': marginMode,
         }
         response = self.privateGetAccountBatchLeverageInfo(self.extend(request, query))
@@ -3358,7 +3368,7 @@ class blofin(Exchange, ImplicitAPI):
             'hedged': positionMode == 'long_short_mode',
         }
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 
@@ -3467,7 +3477,7 @@ class blofin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

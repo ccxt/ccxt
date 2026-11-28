@@ -29,6 +29,7 @@ use tokio::sync::{mpsc, watch};
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::Value;
+use crate::pro::cache::OhlcvTick;
 
 /// Handle to one per-connection state. The state itself lives on the client
 /// store's owner thread; a handle carries only the key (`url`) and the wakeup
@@ -56,6 +57,8 @@ struct ClientCore {
     incoming: VecDeque<Value>,
     /// messageHash → resolved value (set by `handle_message` via `resolve`).
     resolved: HashMap<String, Value>,
+    /// messageHash → typed OHLCV value (set via `resolve_ohlcv`).
+    resolved_ohlcv: HashMap<String, OhlcvTick>,
     /// messageHash → error (set by `reject`; delivered before/instead of value).
     rejections: HashMap<String, Value>,
     /// subscribeHash → subscription object (TS `client.subscriptions[hash]`).
@@ -84,6 +87,17 @@ struct ClientCore {
     /// Wakeup channel for this client's waiters (`next_message`,
     /// `ws_await_flight`, `ensure_client` joiners).
     gen_tx: watch::Sender<u64>,
+}
+
+/// A watch result type: picks which resolved store a drive loop reads.
+pub trait Settled: Default + Send + 'static {
+    fn take_from(values: &mut HashMap<String, Value>, ohlcv: &mut HashMap<String, OhlcvTick>, hash: &str) -> Option<Self>;
+}
+impl Settled for Value {
+    fn take_from(values: &mut HashMap<String, Value>, _: &mut HashMap<String, OhlcvTick>, hash: &str) -> Option<Value> { values.remove(hash) }
+}
+impl Settled for OhlcvTick {
+    fn take_from(_: &mut HashMap<String, Value>, ohlcv: &mut HashMap<String, OhlcvTick>, hash: &str) -> Option<OhlcvTick> { ohlcv.remove(hash) }
 }
 
 /// One single-flight slot. `settled` stays populated after the flight closes so
@@ -349,9 +363,20 @@ impl ClientState {
         });
     }
 
+    /// Store a typed OHLCV value for `hash`; the waiter takes it with `take_settled_as::<OhlcvTick>`.
+    pub fn resolve_ohlcv(&self, hash: &str, tick: OhlcvTick) {
+        let h = hash.to_string();
+        self.with_mut(move |c| { c.resolved_ohlcv.insert(h, tick); });
+    }
+
     /// If any of `hashes` has a resolved value or rejection, remove and return
     /// it (`Ok` for value, `Err` for rejection). Rejections take priority.
     pub fn take_settled(&self, hashes: &[String]) -> Option<Result<Value, Value>> {
+        self.take_settled_as::<Value>(hashes)
+    }
+
+    /// `take_settled` reading the store of result type `T` (rejections are shared by both).
+    pub fn take_settled_as<T: Settled>(&self, hashes: &[String]) -> Option<Result<T, Value>> {
         let hs = hashes.to_vec();
         self.with(move |c| {
             for h in &hs {
@@ -360,7 +385,11 @@ impl ClientState {
                 }
             }
             for h in &hs {
-                if let Some(v) = c.resolved.remove(h) {
+                if let Some(v) = T::take_from(&mut c.resolved, &mut c.resolved_ohlcv, h) {
+                    // the other hashes of this watch settled too (TS race): drop them
+                    for other in &hs {
+                        let _ = T::take_from(&mut c.resolved, &mut c.resolved_ohlcv, other);
+                    }
                     return Some(Ok(v));
                 }
             }
@@ -541,6 +570,7 @@ impl ClientState {
     pub fn reset(&self) {
         self.with(|c| {
             c.resolved.clear();
+            c.resolved_ohlcv.clear();
             c.rejections.clear();
             c.subscriptions.clear();
             c.futures.clear();
@@ -560,7 +590,7 @@ impl ClientState {
         self.with_mut(move |c| {
             let hashes: Vec<String> = c.futures.iter().cloned().collect();
             for h in &hashes {
-                if c.resolved.contains_key(h) {
+                if c.resolved.contains_key(h) || c.resolved_ohlcv.contains_key(h) {
                     continue;
                 }
                 core_flight_settle(c, h, Err(error.clone()));
@@ -616,6 +646,11 @@ impl ClientState {
                 c.subscriptions.insert(h, Value::Dict(std::sync::Arc::new(inner)));
             }
         });
+    }
+
+    /// Snapshot of `rejections` as a `Value::Map { hash: error }`.
+    pub fn rejections_value(&self) -> Value {
+        self.with(|c| Value::Map(c.rejections.iter().map(|(h, e)| (h.to_owned(), e.to_owned())).collect()))
     }
 
     /// Snapshot of `futures` as a `Value::Map { hash: true }`.
@@ -937,6 +972,7 @@ pub async fn ensure_client_with_options(
 pub fn client_field_live(url: &str, field: &str) -> Value {
     match get_client(url) {
         Some(c) if field == "futures" => c.futures_value(),
+        Some(c) if field == "rejections" => c.rejections_value(),
         Some(c) => c.subscriptions_value(),
         None => Value::Map(indexmap::IndexMap::new()),
     }
@@ -962,6 +998,7 @@ fn ensure_slot(url: &str) -> Arc<ClientState> {
             connecting: false,
             incoming: VecDeque::new(),
             resolved: HashMap::new(),
+            resolved_ohlcv: HashMap::new(),
             rejections: HashMap::new(),
             subscriptions: HashMap::new(),
             futures: HashSet::new(),
@@ -1007,6 +1044,7 @@ pub fn mock_setup(url: &str) {
     let c = ensure_slot(url);
     c.with_mut(|core| {
         core.resolved.clear();
+        core.resolved_ohlcv.clear();
         core.rejections.clear();
         core.subscriptions.clear();
         core.futures.clear();
@@ -1084,14 +1122,14 @@ pub struct ClientHandle {
 
 #[allow(dead_code)]
 impl ClientHandle {
-    pub fn from_value(value: Value) -> ClientHandle {
-        let read = |k: &str| crate::get_value(&value, &Value::Str(k.to_string().into()));
+    pub fn from_value(value: &Value) -> ClientHandle {
+        let read = |k: &str| crate::get_value(value, &Value::Str(k.to_string().into()));
         ClientHandle {
             url: read("url"),
             subscriptions: read("subscriptions"),
             futures: read("futures"),
             rejections: read("rejections"),
-            value,
+            value: value.clone(),
         }
     }
 
@@ -1101,9 +1139,12 @@ impl ClientHandle {
 
     /// The `Value` handle the untyped generated handlers take.
     pub fn as_value(&self) -> Value { self.value.clone() }
+    /// Is this handle's url still served by a registered, open client (`this.clients[client.url] === client`)?
+    pub fn is_current(&self) -> bool { self.url.as_str().is_some_and(|u| get_client(u).is_some()) }
 
     pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_resolve(&self.value, value.into(), hash.into()) }
     pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_reject(&self.value, err.into(), hash.into()) }
+    pub fn resolve_ohlcv<'k>(&self, tick: OhlcvTick, hash: impl Into<Option<&'k str>>) { value_resolve_ohlcv(&self.value, tick, hash.into()) }
     pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
     pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
     pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
@@ -1112,11 +1153,41 @@ impl ClientHandle {
     }
 
     /// `delete client.subscriptions[key]`: drops the live client's entry and
-    /// the handle's snapshot entry (what `remove(&mut subscriptions, key)` did).
+    /// the handle's snapshot entry.
     pub fn remove_subscription<'k>(&mut self, key: impl Into<Option<&'k str>>) {
         if let (Value::Dict(m), Some(k)) = (&mut self.subscriptions, key.into()) {
             crate::value::try_ws_subs_remove(m, k);
             Arc::make_mut(m).shift_remove(k);
+        }
+    }
+
+    /// `delete client.futures[key]`: drops the live client's entry and the handle's snapshot entry.
+    pub fn remove_future<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let Some(k) = key.into() {
+            if let Value::Str(u) = &self.url {
+                if let Some(c) = get_client(u) {
+                    let ks = k.to_string();
+                    c.with_mut(move |core| { core.futures.remove(&ks); });
+                }
+            }
+            if let Value::Dict(m) = &mut self.futures {
+                Arc::make_mut(m).shift_remove(k);
+            }
+        }
+    }
+
+    /// `delete client.rejections[key]`: drops the live client's entry and the handle's snapshot entry.
+    pub fn remove_rejection<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let Some(k) = key.into() {
+            if let Value::Str(u) = &self.url {
+                if let Some(c) = get_client(u) {
+                    let ks = k.to_string();
+                    c.with_mut(move |core| { core.rejections.remove(&ks); });
+                }
+            }
+            if let Value::Dict(m) = &mut self.rejections {
+                Arc::make_mut(m).shift_remove(k);
+            }
         }
     }
 
@@ -1127,27 +1198,48 @@ impl ClientHandle {
         key.with_key(|key| match (&mut self.subscriptions, key) {
             (Value::Dict(m), Value::Str(k)) => {
                 crate::value::try_ws_subs_write(m, k, &val);
+                // keep the snapshot entry what the live read serves: a dict carries its `__ws_sub_ref` back-reference
+                let val = match (val, &self.url) {
+                    (Value::Dict(mut d), Value::Str(u)) => { Arc::make_mut(&mut d).insert("__ws_sub_ref".to_string(), Value::Str(format!("{}\u{1}{}", u, k).into())); Value::Dict(d) }
+                    (v, _) => v,
+                };
                 Arc::make_mut(m).insert(k.to_string(), val);
             }
             (other, _) => crate::runtime::add_element_to_object(other, key, val),
         })
     }
-    /// `key in client.subscriptions`, read from the handle's snapshot.
-    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.subscriptions, key.into()) }
+    /// `client.subscriptions|futures` as the live registry serves it now (what `get_value(&client, ..)` reads),
+    /// so a key test after another writer touched the client sees that write; the snapshot without a url.
+    fn field(&self, k: &str) -> Option<Value> {
+        match &self.url { Value::Str(u) => Some(client_field_live(u, k)), _ => None }
+    }
+    /// `key in client.subscriptions`, read live.
+    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions), key.into()) }
     /// `client.subscriptions[key]` (Null when absent).
-    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.subscriptions, key.into()) }
+    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions), key.into()) }
     /// `Object.keys(client.subscriptions)` (internal tags filtered).
     pub fn subscription_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(&self.subscriptions).as_array().cloned().unwrap_or_default()
+        let live = self.field("subscriptions");
+        let src = live.as_ref().unwrap_or(&self.subscriptions);
+        src.as_map().map(|m| m.keys().filter(|k| k.as_str() != "__ws_subs_url" && k.as_str() != "__ws_sub_ref").cloned().map(Value::from).collect()).unwrap_or_default()
+    }
+    /// `Object.values(client.subscriptions)` (internal tags filtered), read live.
+    pub fn subscription_values(&self) -> Vec<Value> {
+        let live = self.field("subscriptions");
+        let src = live.as_ref().unwrap_or(&self.subscriptions);
+        src.as_map().map(|m| m.iter().filter(|(k, _)| k.as_str() != "__ws_subs_url" && k.as_str() != "__ws_sub_ref").map(|(_, v)| v.to_owned()).collect()).unwrap_or_default()
     }
     /// `key in client.futures`, read from the handle's snapshot.
-    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.futures, key.into()) }
+    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("futures").as_ref().unwrap_or(&self.futures), key.into()) }
     /// `client.futures[key]` (Null when absent).
-    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(&self.futures, key.into())) }
+    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(self.field("futures").as_ref().unwrap_or(&self.futures), key.into())) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
+        let live = self.field("futures");
+        live.as_ref().unwrap_or(&self.futures).as_map().into_iter().flat_map(indexmap::IndexMap::keys).cloned().map(Value::from).collect()
     }
+    /// `key in client.rejections`, read live.
+    pub fn has_rejection<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("rejections").as_ref().unwrap_or(&self.rejections), key.into()) }
     pub fn future(&self, hash: impl Into<Value>) -> Flight {
         self.value.future(hash)
     }
@@ -1217,8 +1309,8 @@ impl From<Flight> for Value {
 
 impl From<&Value> for Flight {
     fn from(v: &Value) -> Flight {
-        let led = matches!(crate::get_value(v, &Value::Str("__ws_flight_led".into())), Value::Bool(true));
-        let entry = crate::get_value(v, &Value::Str("__ws_flight_hash".into())).is_null() && future_hash_of(v).is_some();
+        let led = matches!(v.at("__ws_flight_led"), Value::Bool(true));
+        let entry = v.at("__ws_flight_hash").is_null() && future_hash_of(v).is_some();
         Flight { url: url_of(v), hash: flight_hash_of(v), led, entry }
     }
 }
@@ -1231,7 +1323,7 @@ impl From<&Flight> for Flight {
 /// shape too, so `client.futures[hash]` entries can be awaited as well.
 fn flight_hash_of(handle: &Value) -> Option<String> {
     for key in ["__ws_flight_hash", "__ws_future_hash"] {
-        if let Value::Str(h) = crate::get_value(handle, &Value::Str(key.to_string().into())) {
+        if let Value::Str(h) = handle.at(key) {
             return Some(h.to_string());
         }
     }
@@ -1313,7 +1405,7 @@ pub async fn ws_await_flight(handle: impl Into<Flight>) -> Value {
 
 /// Extract the `url` from a client-handle `Value` (`Map{"url": ...}`).
 pub fn url_of(client: &Value) -> Option<String> {
-    match crate::get_value(client, &Value::Str("url".into())) {
+    match client.at("url") {
         Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
@@ -1327,8 +1419,17 @@ fn handle_has(map: &Value, key: Option<&str>) -> bool {
 /// `client.subscriptions|futures[k]` on the handle's snapshot (Null when absent).
 fn handle_get(map: &Value, key: Option<&str>) -> Value {
     match key {
-        Some(k) => crate::get_value(map, &Value::from(k)),
+        Some(k) => map.at(k).to_owned(),
         None => Value::Null,
+    }
+}
+
+/// `client.resolve_ohlcv(tick, messageHash)` routed by URL (no-op without a url or hash).
+pub fn value_resolve_ohlcv(client: &Value, tick: OhlcvTick, hash: Option<&str>) {
+    if let (Some(url), Some(hash)) = (url_of(client), hash) {
+        if let Some(c) = get_client(&url) {
+            c.resolve_ohlcv(hash, tick);
+        }
     }
 }
 
@@ -1352,7 +1453,7 @@ pub fn value_resolve(client: &Value, value: Value, hash: Option<&str>) -> Value 
 
 /// Extract the hash a future handle (`client.futures[hash]`) resolves/rejects.
 fn future_hash_of(client: &Value) -> Option<String> {
-    match crate::get_value(client, &Value::Str("__ws_future_hash".into())) {
+    match client.at("__ws_future_hash") {
         Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
@@ -1427,9 +1528,9 @@ mod tests {
     // ral-51s: a typed `&str` / `Option<&str>` key writes the same entry the boxed `&Value` key wrote
     #[test]
     fn add_subscription_str_key_matches_the_boxed_key() {
-        let mut boxed = ClientHandle::from_value(Value::Null);
+        let mut boxed = ClientHandle::from_value(&Value::Null);
         boxed.subscriptions = Value::Map(Default::default());
-        let mut typed = ClientHandle::from_value(Value::Null);
+        let mut typed = ClientHandle::from_value(&Value::Null);
         typed.subscriptions = Value::Map(Default::default());
         let key = String::from("unsubscribe:7");
         boxed.add_subscription(&Value::from(key.as_str()), Value::Bool(true));
@@ -1507,6 +1608,117 @@ mod tests {
         drop_client(url);
     }
 
+    // One frame settling two hashes of a multi-hash watch: the read returns one,
+    // and the next read waits for a new frame instead of returning the other.
+    #[test]
+    fn take_settled_drops_other_hashes_of_the_same_watch() {
+        let url = "ws://multi-hash-take.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let hashes = vec!["orders:BTC".to_string(), "orders:ETH".to_string()];
+        client.note_futures(&hashes);
+        client.resolve("orders:BTC", Value::Int(1));
+        client.resolve("orders:ETH", Value::Int(1));
+        assert_eq!(client.take_settled(&hashes), Some(Ok(Value::Int(1))));
+        assert_eq!(client.take_settled(&hashes), None);
+        // a hash outside the watch keeps its value
+        client.resolve("orders:XRP", Value::Int(2));
+        client.resolve("orders:BTC", Value::Int(3));
+        assert_eq!(client.take_settled(&hashes), Some(Ok(Value::Int(3))));
+        assert_eq!(client.take_settled(&["orders:XRP".to_string()]), Some(Ok(Value::Int(2))));
+        drop_client(url);
+    }
+
+    fn ohlcv_tick(symbol: &str) -> OhlcvTick {
+        let mut stored = crate::pro::cache::ArrayCacheByTimestamp::new(Value::Int(10));
+        stored.append(Value::List(vec![Value::Int(1), Value::Float(2.5)]));
+        OhlcvTick { symbol: Some(symbol.into()), timeframe: Some("1m".into()), stored: Some(stored) }
+    }
+
+    // A typed OHLCV resolve reaches only a typed waiter, intact, and is consumed once.
+    #[test]
+    fn resolve_ohlcv_settles_typed_waiter_only() {
+        let url = "ws://ohlcv-resolve.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let hashes = vec!["ohlcv::BTC/USDT::1m".to_string()];
+        client.note_futures(&hashes);
+        ClientHandle::from_value(&client_value(url)).resolve_ohlcv(ohlcv_tick("BTC/USDT"), hashes[0].as_str());
+        assert_eq!(client.take_settled(&hashes), None);
+        let t = client.take_settled_as::<OhlcvTick>(&hashes).expect("settled").expect("resolved");
+        assert_eq!((t.symbol.as_deref(), t.timeframe.as_deref()), (Some("BTC/USDT"), Some("1m")));
+        assert_eq!(t.stored.map(|c| c.size()), Some(1));
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&hashes), None);
+        // and a Value resolve on the same hash is not seen by a typed waiter
+        client.resolve(&hashes[0], Value::Int(7));
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&hashes), None);
+        assert_eq!(client.take_settled(&hashes), Some(Ok(Value::Int(7))));
+        drop_client(url);
+    }
+
+    // Rejections are shared: reject, reject-all and reset(error) wake a typed waiter with the error.
+    #[test]
+    fn ohlcv_waiter_observes_rejections() {
+        let url = "ws://ohlcv-reject.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let h = vec!["ohlcv::a".to_string()];
+        client.note_futures(&h);
+        let err = || Value::Str("[ExchangeError] boom".into());
+        client.resolve_ohlcv(&h[0], ohlcv_tick("A"));
+        client.reject(&h[0], err());
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), Some(Err(err())));
+        // as with `resolve`, the value under the rejection is still delivered next
+        let t = client.take_settled_as::<OhlcvTick>(&h).expect("kept").expect("value");
+        assert_eq!(t.symbol.as_deref(), Some("A"));
+        client.note_futures(&h);
+        client.reject_pending_futures(err());
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), Some(Err(err())));
+        client.note_futures(&h);
+        value_reset(&client_value(url), err());
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), Some(Err(err())));
+        drop_client(url);
+    }
+
+    // reset(error) keeps a delivered-but-not-taken typed value; reset() and mock_setup drop it.
+    #[test]
+    fn ohlcv_store_cleared_with_resolved() {
+        let url = "ws://ohlcv-reset.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let h = vec!["ohlcv::late".to_string()];
+        client.note_futures(&h);
+        client.resolve_ohlcv(&h[0], ohlcv_tick("LATE"));
+        client.reset_with_error(Value::Str("[NetworkError] gap".into()));
+        let t = client.take_settled_as::<OhlcvTick>(&h).expect("kept").expect("value");
+        assert_eq!(t.symbol.as_deref(), Some("LATE"));
+        client.resolve_ohlcv(&h[0], ohlcv_tick("X"));
+        client.reset();
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), None);
+        client.resolve_ohlcv(&h[0], ohlcv_tick("Y"));
+        mock_setup(url);
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), None);
+        drop_client(url);
+    }
+
+    // A late await (resolve before the waiter polls) still gets the value; a handle without a hash is a no-op.
+    #[test]
+    fn ohlcv_late_await_and_missing_hash() {
+        let url = "ws://ohlcv-late.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let h = vec!["ohlcv::x".to_string(), "ohlcv::y".to_string()];
+        client_value(url).resolve_ohlcv(ohlcv_tick("Y"), "ohlcv::y");
+        client_value(url).resolve_ohlcv(ohlcv_tick("Z"), None::<&str>);
+        Value::Null.resolve_ohlcv(ohlcv_tick("N"), "ohlcv::x");
+        client.note_futures(&h);
+        let t = client.take_settled_as::<OhlcvTick>(&h).expect("late").expect("value");
+        assert_eq!(t.symbol.as_deref(), Some("Y"));
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), None);
+        assert_eq!(OhlcvTick::default(), OhlcvTick { symbol: None, timeframe: None, stored: None });
+        drop_client(url);
+    }
+
     #[tokio::test]
     async fn upgrade_request_carries_option_headers() {
         use tokio_tungstenite::tungstenite::handshake::server::{Request, Response};
@@ -1547,7 +1759,7 @@ mod tests {
         let mut lasts = Vec::new();
         while lasts.len() < 3 {
             let msg = client.next_message().await.expect("message before close");
-            let last = crate::get_value(&msg, &Value::Str("last".into()));
+            let last = msg.at("last").to_owned();
             if let Value::Str(s) = &last {
                 client.resolve("ticker", Value::Str(s.clone()));
             }
@@ -1559,10 +1771,7 @@ mod tests {
 
         // Field snapshots the transpiled code reads off the client handle.
         let subs = client.subscriptions_value();
-        assert!(crate::runtime::is_true(&crate::get_value(
-            &subs,
-            &Value::Str("ticker:BTC/USDT".into())
-        )));
+        assert!(subs.at("ticker:BTC/USDT").is_truthy());
 
         drop_client(&url);
     }
@@ -1591,14 +1800,14 @@ mod tests {
         fn call_dynamic<'a>(
             &'a mut self,
             method: &'a str,
-            args: Vec<Value>,
+            args: &'a [Value],
         ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>> {
             Box::pin(async move {
                 match method {
                     "handle_message" => {
                         let client = args.get(0).cloned().unwrap_or(Value::Null);
                         let message = args.get(1).cloned().unwrap_or(Value::Null);
-                        let last = crate::get_value(&message, &Value::Str("last".into()));
+                        let last = message.at("last").to_owned();
                         // `client.resolve(value, messageHash)` — routes to the registry.
                         client.resolve(last, "ticker");
                         Value::Null
@@ -1731,7 +1940,7 @@ mod tests {
     /// The transpiled follower test, `messageHash in client.futures`.
     fn in_op_futures(c: &Arc<ClientState>, hash: &str) -> bool {
         !matches!(
-            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string().into())),
+            c.futures_value().at(hash),
             Value::Null
         )
     }

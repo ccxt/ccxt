@@ -219,8 +219,8 @@ class deribit(ccxt.async_support.deribit):
         if interval == 'raw':
             await self.authenticate()
         channels = []
-        for i in range(0, len((symbolsNormalized))):
-            market = self.market((symbolsNormalized)[i])
+        for i in range(0, len(symbolsNormalized)):
+            market = self.market(symbolsNormalized[i])
             channels.append('ticker.' + self.safe_string(market, 'id', '') + '.' + interval)
         message = {
             'jsonrpc': '2.0',
@@ -294,8 +294,8 @@ class deribit(ccxt.async_support.deribit):
         symbolsNormalized = self.market_symbols(symbols, None, False)
         url = self.urls['api']['ws']
         channels = []
-        for i in range(0, len((symbolsNormalized))):
-            market = self.market((symbolsNormalized)[i])
+        for i in range(0, len(symbolsNormalized)):
+            market = self.market(symbolsNormalized[i])
             channels.append('quote.' + self.safe_string(market, 'id', ''))
         message = {
             'jsonrpc': '2.0',
@@ -430,8 +430,7 @@ class deribit(ccxt.async_support.deribit):
             self.trades[symbol] = ArrayCache(limit)
         stored = self.trades[symbol]
         for i in range(0, len(trades)):
-            trade = trades[i]
-            parsed = self.parse_trade(trade, market)
+            parsed = self.parse_trade(self.safe_dict(trades, i, {}), market)
             stored.append(parsed)
         self.trades[symbol] = stored
         interval = self.safe_string(parts, 2, '')
@@ -654,8 +653,8 @@ class deribit(ccxt.async_support.deribit):
         return data
 
     def handle_delta(self, bookside: object, delta: object):
-        price = self.safe_value(delta, 1)
-        amount = self.safe_value(delta, 2)
+        price = self.safe_number(delta, 1)
+        amount = self.safe_number(delta, 2)
         action = self.safe_string(delta, 0)
         if action == 'new' or action == 'change':
             bookside.storeArray([price, amount, 1])
@@ -743,11 +742,12 @@ class deribit(ccxt.async_support.deribit):
             self.orders = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel', '')
-        data = self.safe_value(params, 'data', {})
+        dataList = self.safe_list(params, 'data')
         orders = []
-        if isinstance(data, list):
-            orders = self.parse_orders(data)
+        if dataList is not None:
+            orders = self.parse_orders(dataList)
         else:
+            data = self.safe_dict(params, 'data', {})
             order = self.parse_order(data)
             orders = [order]
         cachedOrders = self.orders
@@ -772,7 +772,8 @@ class deribit(ccxt.async_support.deribit):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return ohlcvs[symbolValue][timeframe]
+        bySymbol = ohlcvs[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -821,7 +822,7 @@ class deribit(ccxt.async_support.deribit):
         marketId = self.safe_string(parts, 2)
         rawTimeframe = self.safe_string(parts, 3)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         wsOptions = self.safe_dict(self.options, 'ws', {})
         timeframes = self.safe_dict(wsOptions, 'timeframes', {})
         unifiedTimeframe = self.find_timeframe(rawTimeframe, timeframes)

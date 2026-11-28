@@ -859,7 +859,7 @@ class cex(Exchange, ImplicitAPI):
             market = None
             if useKeyAsId:
                 market = self.safe_market(key)
-            parsed = self.parse_trading_fee(response[key], market)
+            parsed = self.parse_trading_fee(self.safe_dict(response, key, {}), market)
             parsedSymbol = self.safe_string(parsed, 'symbol')
             if parsedSymbol is not None:
                 result[parsedSymbol] = parsed
@@ -1182,7 +1182,7 @@ class cex(Exchange, ImplicitAPI):
         if currency1 is not None and currency2 is not None:
             marketId = currency1 + '-' + currency2
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = {}
         feeAmount = self.safe_number(order, 'feeAmount')
@@ -1747,7 +1747,7 @@ class cex(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # in some cases, like from createOrder, exchange returns nested escaped JSON string:
         #      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         # and because of `.parseJson` bug, we need extra fix

@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMarkets(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMarkets".into());
-    let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_markets", vec![]).await;
+    let method: Value = Value::Str("fetchMarkets".into());
+    let markets: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_markets", vec![]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), markets.clone()]);
-    let mut marketValues: Value = object_values(&markets);
+    let marketValues: Value = object_values(&markets);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marketValues.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1649: bool = true;
-        while { if !__for_first_1649 { i += 1; } __for_first_1649 = false; i < (marketValues.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (marketValues.len() as i64) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
     }
     }
@@ -30,20 +30,20 @@ pub async fn testFetchMarkets(mut exchange: Value, mut skippedProperties: Value)
 fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value {
     // detect if there are markets with different ids for the same symbol
     let mut ids: Value = Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     });
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1650: bool = true;
-        while { if !__for_first_1650 { i += 1; } __for_first_1650 = false; i < (marketValues.len() as i64) } {
-        let mut market: Value = marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".into()));
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (marketValues.len() as i64) } {
+        let market: Value = marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+        let symbol: Value = get_value(&market, &Value::Str("symbol".into()));
         if !(ids.as_map().is_some_and(|__m| symbol.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&symbol), get_value(&market, &Value::Str("id".into()))); }
         }  else {
-            let mut isDifferent: Value = Value::Bool(!is_equal(&ids.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &get_value(&market, &Value::Str("id".into()))));
-            assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));
+            let isDifferent: Value = Value::Bool(!is_equal(&ids.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &get_value(&market, &Value::Str("id".into()))));
+            assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&isDifferent)))));
         }
     }
     }

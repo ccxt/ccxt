@@ -5031,9 +5031,9 @@ public class BinancecoinmApi extends Binance
      * Calls the dapiPublicGetTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     * @return a JSON array
      */
-    public CompletableFuture<Object>  dapiPublicGetTicker24hr (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  dapiPublicGetTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("dapiPublicGetTicker24hr", optionalArgs);
     }
@@ -7011,9 +7011,9 @@ public class BinancecoinmApi extends Binance
      * Calls the eapiPublicGetOpenInterest endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  eapiPublicGetOpenInterest (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetOpenInterest", optionalArgs);
     }

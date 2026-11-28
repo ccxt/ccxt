@@ -113,7 +113,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -166,7 +166,7 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), "crypto");
@@ -186,7 +186,7 @@ public partial class alpaca : ccxt.alpaca
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -215,7 +215,7 @@ public partial class alpaca : ccxt.alpaca
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["1m"] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)["1m"] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message);
         stored.append(parsed);
@@ -304,7 +304,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleDelta(object bookside, object delta)
+    public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
     {
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
         (bookside as IOrderBookSide).storeArray(bidAsk);
@@ -341,7 +341,7 @@ public partial class alpaca : ccxt.alpaca
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -414,7 +414,7 @@ public partial class alpaca : ccxt.alpaca
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -457,7 +457,7 @@ public partial class alpaca : ccxt.alpaca
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -592,7 +592,7 @@ public partial class alpaca : ccxt.alpaca
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object trade = this.parseMyTrade(rawOrder);
+        Dictionary<string, object> trade = this.parseMyTrade(rawOrder);
         if ((trade == null))
         {
             return;
@@ -605,7 +605,7 @@ public partial class alpaca : ccxt.alpaca
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -649,7 +649,7 @@ public partial class alpaca : ccxt.alpaca
         string? type = this.safeString(trade, "type");
         if ((type == null))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         if (type.IndexOf("limit", StringComparison.Ordinal) >= 0)
         {
@@ -680,8 +680,8 @@ public partial class alpaca : ccxt.alpaca
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             object request = new Dictionary<string, object>() {
                 { "action", "auth" },
@@ -704,7 +704,7 @@ public partial class alpaca : ccxt.alpaca
         return await (future as Exchange.Future);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -735,11 +735,11 @@ public partial class alpaca : ccxt.alpaca
         return message;
     }
 
-    public virtual void handleCryptoMessage(WebSocketClient client, object message)
+    public virtual void handleCryptoMessage(WebSocketClient client, IList<object> message)
     {
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (message?.Count ?? 0); i++)
         {
-            object data = getValue(message, i);
+            object data = (message != null && i < message.Count ? message[i] : null);
             string? T = this.safeString(data, "T");
             string? msg = this.safeString(data, "msg");
             if (T == "subscription")
@@ -772,7 +772,7 @@ public partial class alpaca : ccxt.alpaca
         }
     }
 
-    public virtual void handleTradingMessage(WebSocketClient client, object message)
+    public virtual void handleTradingMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? stream = this.safeString(message, "stream");
         Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -787,12 +787,12 @@ public partial class alpaca : ccxt.alpaca
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleTradingMessage(client, message);
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         this.handleCryptoMessage(client, message);
     }

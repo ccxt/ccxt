@@ -1069,7 +1069,11 @@ export default class weex extends Exchange {
             amountPrecision = this.parseNumber (amountPrecisionString);
             pricePrecision = this.parseNumber (pricePrecisionString);
         }
-        const fees = this.safeDict (this.fees, isSpot ? 'spot' : 'contract', {});
+        let feesKey: string = 'contract';
+        if (isSpot) {
+            feesKey = 'spot';
+        }
+        const fees = this.safeDict (this.fees, feesKey, {});
         if (id === undefined) {
             throw new ExchangeError (this.id + ' method() missing id');
         }
@@ -1796,7 +1800,11 @@ export default class weex extends Exchange {
         if (realizedPnl !== undefined) {
             tradeMarketType = 'swap';
         }
-        const marketResolved: Market = this.safeMarket ((market === undefined) ? tradeMarketId : undefined, market, undefined, tradeMarketType);
+        let tradeMarketIdArg = tradeMarketId;
+        if (market !== undefined) {
+            tradeMarketIdArg = undefined;
+        }
+        const marketResolved: Market = this.safeMarket (tradeMarketIdArg, market, undefined, tradeMarketType);
         let isSpot: boolean = false;
         if (market === undefined) {
             isSpot = tradeMarketType === 'spot';
@@ -1995,7 +2003,7 @@ export default class weex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -2450,7 +2458,6 @@ export default class weex extends Exchange {
                 throw new BadRequest (this.id + ' createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time');
             }
             request['clientAlgoId'] = clientOrderId;
-            let orderType: Str = undefined;
             if (isStopLoss) {
                 const stopLossPriceType = this.safeString2 (params, 'stopLossPriceType', 'triggerPriceType');
                 if (stopLossPriceType !== undefined) {
@@ -2458,9 +2465,9 @@ export default class weex extends Exchange {
                 }
                 params['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
                 if (isMarketOrder) {
-                    orderType = 'STOP_MARKET';
+                    params['type'] = 'STOP_MARKET';
                 } else {
-                    orderType = 'STOP';
+                    params['type'] = 'STOP';
                 }
             } else if (isTakeProfit) {
                 const takeProfitPriceType = this.safeString2 (params, 'takeProfitPriceType', 'triggerPriceType');
@@ -2469,12 +2476,11 @@ export default class weex extends Exchange {
                 }
                 params['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 if (isMarketOrder) {
-                    orderType = 'TAKE_PROFIT_MARKET';
+                    params['type'] = 'TAKE_PROFIT_MARKET';
                 } else {
-                    orderType = 'TAKE_PROFIT';
+                    params['type'] = 'TAKE_PROFIT';
                 }
             }
-            params['type'] = orderType;
         } else {
             if (!isMarketOrder && timeInForce === undefined) {
                 request['timeInForce'] = 'GTC';
@@ -3198,7 +3204,11 @@ export default class weex extends Exchange {
         if (positionSide === undefined) {
             orderMarketType = 'spot';
         }
-        const marketResolved: Market = this.safeMarket ((market === undefined) ? orderMarketId : undefined, market, undefined, orderMarketType);
+        let orderMarketIdArg = orderMarketId;
+        if (market !== undefined) {
+            orderMarketIdArg = undefined;
+        }
+        const marketResolved: Market = this.safeMarket (orderMarketIdArg, market, undefined, orderMarketType);
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
         const rawStatus = this.safeStringLower2 (order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
@@ -3436,7 +3446,6 @@ export default class weex extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const accountType = this.safeString (accountsByType, marketType, marketType);
         const request: Dict = {};
-        let items: NullableList = undefined;
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3453,7 +3462,8 @@ export default class weex extends Exchange {
             }
             const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
             const contractResponse = await this.contractPrivatePostCapiV3AccountIncome (this.extend (requestUntil, paramsUntil));
-            items = this.safeList (contractResponse, 'items', []);
+            const contractItems: Dict[] = this.safeList (contractResponse, 'items', []);
+            return this.parseLedger (contractItems, currency, since, limit);
         } else if (accountType === 'funding') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -3463,7 +3473,8 @@ export default class weex extends Exchange {
             }
             const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsMarketType);
             const fundingResponse = await this.privatePostApiV3AccountFundingBills (this.extend (requestUntil, paramsUntil));
-            items = this.safeList (fundingResponse, 'items', []);
+            const fundingItems: Dict[] = this.safeList (fundingResponse, 'items', []);
+            return this.parseLedger (fundingItems, currency, since, limit);
         } else {
             if (since !== undefined) {
                 request['after'] = since;
@@ -3473,9 +3484,9 @@ export default class weex extends Exchange {
             }
             const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMarketType);
             const billsResponse = await this.privatePostApiV3AccountBills (this.extend (requestUntil, paramsUntil));
-            items = this.toArray (billsResponse);
+            const billsItems = this.toArray (billsResponse);
+            return this.parseLedger (billsItems, currency, since, limit);
         }
-        return this.parseLedger (items, currency, since, limit);
     }
 
     override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -3736,16 +3747,17 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         if (sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
-            return await this.fetchPositions ([ market['symbol'] ], params);
+            return await this.fetchPositions ([ marketSymbol ], params);
         }
         const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.contractPrivateGetCapiV3AccountPositionSinglePosition (this.extend (request, params));
-        return this.parsePositions (response, [ market['symbol'] ]);
+        return this.parsePositions (response, [ marketSymbol ]);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -4410,9 +4422,9 @@ export default class weex extends Exchange {
             }
             this.checkRequiredCredentials ();
             const timestamp = this.numberToString (this.nonce ());
-            let payload = timestamp + method + '/' + endpoint;
+            let payload: string = timestamp + method + '/' + endpoint;
             if (hasJsonBody) {
-                payload += requestBody;
+                payload = payload + this.json (query);
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             requestHeaders = {
@@ -4438,7 +4450,7 @@ export default class weex extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         //
         //     {
         //         "code": -1140,

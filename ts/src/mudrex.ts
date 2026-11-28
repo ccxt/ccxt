@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, FeeString, Endpoint } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, FeeString, Endpoint, Bool } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -218,8 +218,8 @@ export default class mudrex extends Exchange {
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
-        if (response === undefined || typeof response !== 'object') {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
+        if (response === undefined) {
             return undefined;
         }
         const success = this.safeBool (response, 'success', true);
@@ -299,12 +299,18 @@ export default class mudrex extends Exchange {
         const now = this.seconds ();
         const windowLength = duration * requestLimit;
         const defaultStart = now - windowLength;
-        const startTime = this.parseToInt ((since !== undefined) ? (since / 1000) : defaultStart);
+        let startTime = this.parseToInt (defaultStart);
+        if (since !== undefined) {
+            startTime = this.parseToInt (since / 1000);
+        }
         const windowEnd = this.parseToInt (startTime + duration * requestLimit);
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         const cappedEnd = (windowEnd > now) ? now : windowEnd;
-        const endTime = this.parseToInt ((until !== undefined) ? (until / 1000) : cappedEnd);
+        let endTime = this.parseToInt (cappedEnd);
+        if (until !== undefined) {
+            endTime = this.parseToInt (until / 1000);
+        }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
         let response: Dict;
@@ -383,12 +389,11 @@ export default class mudrex extends Exchange {
         }
         const request: Dict = {};
         const response = await this.privateGetFutures (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
         let rows: Dict[] = [];
-        if (Array.isArray (data)) {
-            rows = this.toArray (data);
-        } else {
-            rows = this.safeList (data, 'items', []);
+        rows = this.safeList (response, 'data', []);
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            rows = this.safeList (this.safeDict (response, 'data', {}), 'items', []);
         }
         const resultTickers: Dict = {};
         for (let i = 0; i < rows.length; i++) {
@@ -398,11 +403,11 @@ export default class mudrex extends Exchange {
                 continue;
             }
             const m = this.safeMarket (sym);
-            const symbol = m['symbol'];
+            const symbol: string = this.safeString (m, 'symbol', '');
             if (symbols !== undefined && !this.inArray (symbol, symbols)) {
                 continue;
             }
-            resultTickers[symbol] = this.parseTicker (t, m);
+            resultTickers[symbol] = this.parseTicker (this.safeDict (rows, i, {}), m);
         }
         return this.filterByArrayTickers (resultTickers, 'symbol', symbols);
     }
@@ -410,7 +415,7 @@ export default class mudrex extends Exchange {
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const ms = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (ms, market);
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const pct = this.safeNumber (ticker, 'change_perc');
         return this.safeTicker ({
             'symbol': symbol,
@@ -452,21 +457,21 @@ export default class mudrex extends Exchange {
         while (paging) {
             const q = this.extend ({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures (q);
-            const data = this.safeValue (response, 'data', []);
+            const dataDict = this.safeDict (response, 'data');
             let items: Dict[] = [];
-            if (typeof data === 'object' && !Array.isArray (data)) {
-                items = this.safeList (data, 'items', []);
+            if (dataDict !== undefined) {
+                items = this.safeList (dataDict, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
                 if (itemsLength === 0) {
-                    items = this.safeList (data, 'results', []);
+                    items = this.safeList (dataDict, 'results', []);
                     itemsLength = items.length;
                 }
-                if ((itemsLength === 0) && ('symbol' in data)) {
-                    items = [ data ];
+                if ((itemsLength === 0) && ('symbol' in dataDict)) {
+                    items = [ dataDict ];
                 }
             } else {
-                items = this.toArray (data);
+                items = this.safeList (response, 'data', []);
             }
             const numItems = items.length;
             if (numItems === 0) {
@@ -726,7 +731,7 @@ export default class mudrex extends Exchange {
             }
             const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, paramsOmitted));
             const riskData = this.safeDict (riskResponse, 'data', riskResponse);
-            return this.parseOrder (riskData, market);
+            return this.parseOrder (this.extend ({}, riskData), market);
         }
         const lev = this.safeInteger (params, 'leverage', 1);
         if ((type === 'market') && (price === undefined)) {
@@ -796,7 +801,7 @@ export default class mudrex extends Exchange {
         }
         const response = await this.privatePatchFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -852,7 +857,7 @@ export default class mudrex extends Exchange {
         }
         const ts = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
-        const sym = marketResolved['symbol'];
+        const sym: string = this.safeString (marketResolved, 'symbol', '');
         return this.safeOrder ({
             'info': order,
             'id': oid,
@@ -906,7 +911,7 @@ export default class mudrex extends Exchange {
         };
         const response = await this.privateDeleteFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -932,7 +937,7 @@ export default class mudrex extends Exchange {
         };
         const response = await this.privateGetFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -962,15 +967,14 @@ export default class mudrex extends Exchange {
         } else {
             response = await this.privateGetFuturesOrders (request);
         }
-        const data = this.safeValue (response, 'data', []);
-        const rows = this.toArray (data);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const orders: Order[] = [];
         for (let i = 0; i < rows.length; i++) {
-            orders.push (this.parseOrder (rows[i], market));
+            orders.push (this.parseOrder (this.safeDict (rows, i, {}), market));
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
@@ -1036,17 +1040,12 @@ export default class mudrex extends Exchange {
         }
         const q: Dict = {};
         const response = await this.privateGetFuturesPositions (this.extend (q, params));
-        const data = this.safeValue (response, 'data', []);
-        if (data === undefined) {
-            return [];
-        }
-        const rows: Dict[] = this.toArray (data);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         const outPos: Position[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const p = rows[i];
-            const symRaw = this.safeString (p, 'symbol');
+            const symRaw = this.safeString (rows[i], 'symbol');
             const m = this.safeMarket (symRaw);
-            const pos = this.parsePosition (p, m);
+            const pos = this.parsePosition (this.safeDict (rows, i, {}), m);
             outPos.push (pos);
         }
         return this.filterByArrayPositions (outPos, 'symbol', symbols);
@@ -1202,12 +1201,12 @@ export default class mudrex extends Exchange {
             const partialParams: Dict = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
             const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, partialParams));
             const partialData = this.safeDict (partialResponse, 'data', partialResponse);
-            return this.parseOrder (partialData, market);
+            return this.parseOrder (this.extend ({}, partialData), market);
         }
         const closeParams: Dict = this.omit (params, [ 'position_id' ]);
         const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, closeParams));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -1304,7 +1303,7 @@ export default class mudrex extends Exchange {
                 allRows.push (entry);
                 if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
+                    if ((market === undefined) || (this.safeString (entry, 'symbol') === this.safeString (market, 'id'))) {
                         transactionsCount = transactionsCount + 1;
                     }
                 }
@@ -1340,8 +1339,9 @@ export default class mudrex extends Exchange {
         const rows: Dict[] = [];
         for (let i = 0; i < transactions.length; i++) {
             let rebate: Str = undefined;
+            const transactionKey = this.safeString (transactionKeys, i);
             for (let j = 0; j < rebateKeys.length; j++) {
-                if (rebateKeys[j] === transactionKeys[i]) {
+                if (this.safeString (rebateKeys, j) === transactionKey) {
                     rebate = this.safeString (rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = '';
@@ -1375,7 +1375,7 @@ export default class mudrex extends Exchange {
         //
         const ms = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (ms, market);
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const ts = this.parse8601 (this.safeString (trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         const side = this.safeStringLower (trade, 'order_type');

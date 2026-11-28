@@ -341,7 +341,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction settlement structures
      */
     fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionSettlement[]>;
-    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: Dict | undefined): PredictionOrder;
+    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: Market): PredictionOrder;
     safePredictionTrade(trade: Dict, outcomeObj?: Dict | undefined): PredictionTrade;
     safePredictionTicker(ticker: Dict, outcomeObj?: Dict | undefined): PredictionTicker;
     safePredictionPosition(position: Dict): PredictionPosition;
@@ -363,7 +363,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parsePredictionTrades(trades: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: Dict): PredictionTrade[];
+    parsePredictionTrades(trades: any[], outcomeObj?: Market, since?: Int, limit?: Int, params?: Dict): PredictionTrade[];
     /**
      * @ignore
      * @method
@@ -376,7 +376,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parsePredictionOrders(orders: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: Dict): PredictionOrder[];
+    parsePredictionOrders(orders: any[], outcomeObj?: Market, since?: Int, limit?: Int, params?: Dict): PredictionOrder[];
     /**
      * @ignore
      * @method
@@ -392,14 +392,14 @@ export default class PredictionExchange extends BaseExchange {
     amountToPredictionPrecision(outcome: Str, amount: any): Str;
     priceToPredictionPrecision(outcome: Str, price: any): Str;
     costToPredictionPrecision(outcome: Str, cost: any): Str;
-    padHexToEven(hex: Str): string;
+    padHexToEven(hex: string): string;
     padHexAddress(address: Str): string;
-    rlpEncodeBytes(hex: Str): string;
+    rlpEncodeBytes(hex: string): string;
     rlpEncodeList(items: string[]): string;
     intToRlpHex(value: Int): string;
     hexToRlpBytes(hexValue: Str): string;
     signEvmTransaction(tx: Dict, privateKey: string): string;
     ethRpc(rpcUrl: Str, method: string, rpcParams: any[]): Promise<any>;
     sendEvmTransaction(rpcUrl: Str, chainId: number, fromAddress: Str, to: Str, value: Str, data: Str, gasLimit: Str): Promise<string>;
-    waitForTransactionReceipt(rpcUrl: Str, txHash: Str, timeout?: number): Promise<any>;
+    waitForTransactionReceipt(rpcUrl: Str, txHash: Str, timeout?: Int): Promise<any>;
 }

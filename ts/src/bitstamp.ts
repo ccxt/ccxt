@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, FeeString, FeeStringInterface, DepositWithdrawFees, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1175,13 +1175,13 @@ export default class bitstamp extends Exchange {
         let side: Str = undefined;
         let priceString = this.safeString (trade, 'price');
         let amountString = this.safeString (trade, 'amount');
-        const type = undefined;
         let costString = this.safeString (trade, 'cost');
         let rawMarketId: Str = undefined;
         // resolved in the key scan below, falling back to the passed market
         let marketResolved: Market = market;
         if (market === undefined) {
-            const keys = Object.keys (trade);
+            const tradeCopy: Dict = this.extend ({}, trade);
+            const keys = Object.keys (tradeCopy);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
@@ -1192,7 +1192,7 @@ export default class bitstamp extends Exchange {
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (marketResolved === undefined) {
+        if (this.safeString (marketResolved, 'id') === undefined) {
             marketResolved = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
@@ -1233,7 +1233,8 @@ export default class bitstamp extends Exchange {
             }
         }
         // if it is a private trade
-        if ('id' in trade) {
+        const tradeId = this.safeString (trade, 'id');
+        if (tradeId !== undefined) {
             if (amountString !== undefined) {
                 const isAmountNeg = Precise.stringLt (amountString, '0');
                 if (isAmountNeg) {
@@ -1270,7 +1271,7 @@ export default class bitstamp extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': this.safeString (trade, 'order_id'),
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,
@@ -1531,8 +1532,9 @@ export default class bitstamp extends Exchange {
         const result: Dict = { 'info': fees };
         const feesList = this.toArray (fees);
         for (let i = 0; i < feesList.length; i++) {
-            const fee = this.parseTradingFee (feesList[i]);
-            const symbol = fee['symbol'];
+            const feeRow = this.safeDict (feesList, i, {});
+            const fee = this.parseTradingFee (feeRow);
+            const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -1580,7 +1582,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}) {
+    override async fetchTransactionFees (codes: Strings = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1652,6 +1654,7 @@ export default class bitstamp extends Exchange {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         const feeEntries = this.toArray (fee);
+        const networks: Dict = {};
         for (let j = 0; j < feeEntries.length; j++) {
             const networkEntry = this.safeDict (feeEntries, j);
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'network'), code);
@@ -1661,7 +1664,7 @@ export default class bitstamp extends Exchange {
                 'percentage': undefined,
             };
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -1673,6 +1676,7 @@ export default class bitstamp extends Exchange {
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
 
@@ -2009,7 +2013,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRateHistories (values, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "funding_rate": "0.0024",
@@ -2175,11 +2179,12 @@ export default class bitstamp extends Exchange {
         const feeCost = this.safeString (transaction, 'fee');
         let feeCurrency: Str = undefined;
         let amount: Str = undefined;
-        if ('amount' in transaction) {
-            amount = this.safeString (transaction, 'amount');
+        const transactionAmount = this.safeString (transaction, 'amount');
+        if (transactionAmount !== undefined) {
+            amount = transactionAmount;
         } else if (currency !== undefined) {
             amount = this.safeString (transaction, currency['id']);
-            feeCurrency = currency['code'];
+            feeCurrency = this.safeString (currency, 'code');
         } else if ((code !== undefined) && (currencyId !== undefined)) {
             amount = this.safeString (transaction, currencyId);
             feeCurrency = code;
@@ -2189,13 +2194,14 @@ export default class bitstamp extends Exchange {
             amount = Precise.stringAbs (amount);
         }
         let status: Str = 'ok';
-        if ('status' in transaction) {
-            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const rawStatus = this.safeString (transaction, 'status');
+        if (rawStatus !== undefined) {
+            status = this.parseTransactionStatus (rawStatus);
         }
         let type: Str = undefined;
-        if ('type' in transaction) {
+        const rawType = this.safeString (transaction, 'type');
+        if (rawType !== undefined) {
             // from fetchDepositsWithdrawals
-            const rawType = this.safeString (transaction, 'type');
             if (rawType === '0') {
                 type = 'deposit';
             } else if (rawType === '1') {
@@ -2212,7 +2218,8 @@ export default class bitstamp extends Exchange {
             // dt (destination tag) is embedded into the address field
             const addressParts = addressRaw.split ('?dt=');
             address = this.safeString (addressParts, 0);
-            if (addressParts.length > 1) {
+            const addressPartsLength = addressParts.length;
+            if (addressPartsLength > 1) {
                 tag = this.safeString (addressParts, 1);
             }
         }
@@ -2411,7 +2418,8 @@ export default class bitstamp extends Exchange {
         if (type === 'trade') {
             const parsedTrade = this.parseTrade (item);
             let market: Market = undefined;
-            const keys = Object.keys (item);
+            const itemDict: Dict = this.extend ({}, item);
+            const keys = Object.keys (itemDict);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey: string = keys[i];
                 if (currentKey.indexOf ('_') >= 0) {
@@ -2421,7 +2429,7 @@ export default class bitstamp extends Exchange {
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if (market === undefined) {
+            if (this.safeString (market, 'id') === undefined) {
                 market = this.getMarketFromTrade (item);
             }
             const direction = (this.safeString (parsedTrade, 'side') === 'buy') ? 'in' : 'out';
@@ -2446,14 +2454,14 @@ export default class bitstamp extends Exchange {
             const parsedTransaction = this.parseTransaction (item, currency);
             let direction: Str = undefined;
             const transactionCurrency = this.safeString (parsedTransaction, 'currency');
-            const hasTransactionCurrency = !('amount' in item) && (transactionCurrency !== undefined);
+            const itemAmount = this.safeString (item, 'amount');
+            const hasTransactionCurrency = (itemAmount === undefined) && (transactionCurrency !== undefined);
             let currencyResolved = currency;
             if (hasTransactionCurrency) {
                 currencyResolved = this.currency (this.safeString (parsedTransaction, 'currency'));
             }
-            if ('amount' in item) {
-                const amount = this.safeString (item, 'amount');
-                direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
+            if (itemAmount !== undefined) {
+                direction = Precise.stringGt (itemAmount, '0') ? 'in' : 'out';
             } else if (transactionCurrency !== undefined) {
                 const amount = this.safeString (item, this.safeString (currencyResolved, 'id'));
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
@@ -2698,7 +2706,7 @@ export default class bitstamp extends Exchange {
             request['account_currency'] = currency['id'];
             response = await this.privatePostWithdrawalOpen (this.extend (request, paramsWithdrawTag));
         }
-        return this.parseTransaction (response, currency);
+        return this.parseTransaction (this.extend ({}, response), currency);
     }
 
     /**
@@ -2833,7 +2841,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }
@@ -2849,7 +2857,8 @@ export default class bitstamp extends Exchange {
             if (typeof error === 'string') {
                 errors.push (error);
             } else if (error !== undefined) {
-                const keys = Object.keys (error);
+                const errorDict: Dict = this.extend ({}, error);
+                const keys = Object.keys (errorDict);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
                     const value = this.safeValue (error, key);

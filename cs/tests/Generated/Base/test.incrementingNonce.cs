@@ -14,11 +14,11 @@ public partial class BaseTest
             });
             // seed lastNonce above the current clock so two successive calls land in the same
             // tick and must return n and n + 1 deterministically (avoids a second-boundary flake)
-            Int64? seed = 9999999999999;
+            Int64 seed = 9999999999999;
             ((IDictionary<string,object>)exchange.options)["lastNonce"] = seed;
             Int64? first = exchange.incrementingNonce();
             Int64? second = exchange.incrementingNonce();
-            Assert((first != null && (seed == null || first > seed)), "incrementingNonce should bump past the stored lastNonce");
+            Assert(first > seed, "incrementingNonce should bump past the stored lastNonce");
             Assert(isEqual(second, (first + 1)), "two incrementingNonce calls in the same tick should return n and n + 1");
             Assert((second != null && (first == null || second > first)), "incrementingNonce should be strictly increasing");
         }

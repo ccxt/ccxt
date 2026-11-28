@@ -133,7 +133,7 @@ class grvt extends \ccxt\async\grvt {
         if ($publicOrPrivate) {
             $apiPart = 'publicMarket';
         }
-        return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
+        return Async\await($this->watch_multiple($this->safe_string($this->urls['api']['ws'], $apiPart), $messageHashes, $payload, $rawHashes));
     }
 
     public function request_id(): int {
@@ -410,7 +410,7 @@ class grvt extends \ccxt\async\grvt {
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         // same as REST api
-        return $this->parse_trade($trade, $market);
+        return $this->parse_trade($this->extend(array(), $trade), $market);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -436,7 +436,8 @@ class grvt extends \ccxt\async\grvt {
         $symbolValue = $this->symbol($symbol);
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -582,17 +583,17 @@ class grvt extends \ccxt\async\grvt {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         list($limitOption, $paramsLimitOption) = $this->handle_option_integer_and_params($paramsChannel, 'watchOrderBook', 'limit', 100);
-        $limitResolved = $limitOption;
+        $limitString = (string) $limitOption;
         $paramsLimit = $paramsLimitOption;
         if ($limit !== null) {
-            $limitResolved = $limit;
+            $limitString = (string) $limit;
             $paramsLimit = $paramsChannel;
         }
         list($interval, $paramsInterval) = $this->handle_option_integer_and_params($paramsLimit, 'watchOrderBook', 'interval', 500);
         $symbolsNormalized = $this->market_symbols($symbols);
         $extraPart = null;
         if ($isSnapshot) {
-            $extraPart = (string) $interval . '-' . (string) $limitResolved;
+            $extraPart = (string) $interval . '-' . $limitString;
         } else {
             $extraPart = (string) $interval;
         }
@@ -705,7 +706,7 @@ class grvt extends \ccxt\async\grvt {
                 ),
             );
             $this->extend_exchange_options($defaultOptions);
-            $this->client($this->urls['api']['ws']['privateTrading']);
+            $this->client($this->safe_string($this->urls['api']['ws'], 'privateTrading'));
         }
     }
 
@@ -735,7 +736,7 @@ class grvt extends \ccxt\async\grvt {
         $rawHashes = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $rawHashes[] = $subAccountId . '-' . $market['id'];
+            $rawHashes[] = $subAccountId . '-' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'myTrades::' . $market['symbol'];
         } else {
             $messageHashes[] = 'myTrades';
@@ -832,7 +833,7 @@ class grvt extends \ccxt\async\grvt {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
-                $rawHashes[] = $subAccountId . '-' . $market['id'];
+                $rawHashes[] = $subAccountId . '-' . $this->safe_string($market, 'id', '');
                 $messageHashes[] = 'positions::' . $market['symbol'];
             }
         } else {
@@ -882,18 +883,13 @@ class grvt extends \ccxt\async\grvt {
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
-        $data = $this->safe_dict($message, 'feed');
-        $position = $this->parse_ws_position($data);
+        $data = $this->safe_dict($message, 'feed', array());
+        $position = $this->parse_position($data);
         $this->positions->append($position);
         $newPositions = array();
         $newPositions[] = $position;
         $client->resolve($newPositions, 'positions::' . $this->safe_string($position, 'symbol', ''));
         $client->resolve($newPositions, 'positions');
-    }
-
-    public function parse_ws_position(mixed $position, ?array $market = null): array {
-        // same as REST api
-        return $this->parse_position($position, $market);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -925,7 +921,7 @@ class grvt extends \ccxt\async\grvt {
         } else {
             $market = $this->market($symbol);
             $messageHashes[] = 'order::' . $market['symbol'];
-            $rawHashes[] = $subAccountId . '-' . $market['id'];
+            $rawHashes[] = $subAccountId . '-' . $this->safe_string($market, 'id', '');
         }
         $request = array(
             'stream' => 'v1.order',
@@ -1004,7 +1000,7 @@ class grvt extends \ccxt\async\grvt {
         //        "prev_sequence_number": "16"
         //    }
         //
-        $data = $this->safe_dict($message, 'feed');
+        $data = $this->safe_dict($message, 'feed', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -1015,12 +1011,12 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($this->orders, 'order::' . $this->safe_string($order, 'symbol', ''));
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null): array {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         // same as REST api
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
-    public function handle_error_message(Client $client, array $response): ?bool {
+    public function handle_error_message(Client $client, array $response): bool {
         //
         //    {
         //        "jsonrpc": "2.0",

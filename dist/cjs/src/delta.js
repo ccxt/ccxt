@@ -355,7 +355,10 @@ class delta extends delta$1["default"] {
         }
         const optionType = this.safeString(optionParts, hasSlash ? 3 : 0, '');
         const rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3, '');
-        const expiry = rawExpiry.slice(4) + rawExpiry.slice(2, 4) + rawExpiry.slice(0, 2);
+        const expiryYear = rawExpiry.slice(4);
+        const expiryMonth = rawExpiry.slice(2, 4);
+        const expiryDay = rawExpiry.slice(0, 2);
+        const expiry = expiryYear + expiryMonth + expiryDay;
         const settle = quote;
         const strike = this.safeString(optionParts, 2, '');
         const datetime = this.convertExpireDate(expiry);
@@ -411,7 +414,7 @@ class delta extends delta$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')) || (marketId.startsWith('C-')) || (marketId.startsWith('P-')));
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if ((marketId !== undefined) && isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -889,9 +892,11 @@ class delta extends delta$1["default"] {
             let optionType = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
-                symbol = symbol + ':' + settle;
+                const settleCode = this.safeCurrencyCode(settleId);
+                symbol = symbol + ':' + settleCode;
                 if (future || option) {
-                    symbol = symbol + '-' + this.yymmdd(expiry);
+                    const expiryCode = this.yymmdd(expiry);
+                    symbol = symbol + '-' + expiryCode;
                     if (option) {
                         type = 'option';
                         let letter = 'C';
@@ -904,7 +909,8 @@ class delta extends delta$1["default"] {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + '-' + strike + '-' + letter;
+                        const strikeString = this.safeString(market, 'strike_price', '');
+                        symbol = symbol + '-' + strikeString + '-' + letter;
                     }
                     else {
                         type = 'future';
@@ -915,7 +921,7 @@ class delta extends delta$1["default"] {
                 }
             }
             const state = this.safeString(market, 'state');
-            result.push(this.safeMarketStructure({
+            const marketStructure = {
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -933,11 +939,11 @@ class delta extends delta$1["default"] {
                 'option': option,
                 'active': (state === 'live'),
                 'contract': !spot,
-                'linear': spot ? undefined : linear,
-                'inverse': spot ? undefined : !linear,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber(market, 'taker_commission_rate'),
                 'maker': this.safeNumber(market, 'maker_commission_rate'),
-                'contractSize': spot ? undefined : contractSize,
+                'contractSize': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry), // do not use raw expiry string
                 'strike': this.parseNumber(strike),
@@ -966,7 +972,13 @@ class delta extends delta$1["default"] {
                 },
                 'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
-            }));
+            };
+            if (!spot) {
+                marketStructure['linear'] = linear;
+                marketStructure['inverse'] = !linear;
+                marketStructure['contractSize'] = contractSize;
+            }
+            result.push(this.safeMarketStructure(marketStructure));
         }
         return result;
     }
@@ -1089,7 +1101,7 @@ class delta extends delta$1["default"] {
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.001);
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'close');
         const quotes = this.safeDict(ticker, 'quotes', {});
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -1412,14 +1424,13 @@ class delta extends delta$1["default"] {
         const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const rawTicker = tickers[i];
-            const contractType = this.safeString(rawTicker, 'contract_type');
+            const contractType = this.safeString(tickers[i], 'contract_type');
             if ((contractType === 'options_combos') || (contractType === 'binary_call_options') || (contractType === 'binary_put_options')) {
                 // these instruments are excluded from the unified markets, see fetchMarkets
                 continue;
             }
-            const ticker = this.parseTicker(rawTicker);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker(this.safeDict(tickers, i, {}));
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1699,11 +1710,16 @@ class delta extends delta$1["default"] {
             const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'asset_id');
             const currency = this.safeDict(currenciesByNumericId, currencyId);
-            const code = (currency === undefined) ? currencyId : currency['code'];
+            let code = currencyId;
+            if (currency !== undefined) {
+                code = this.safeString(currency, 'code');
+            }
             const account = this.account();
             account['total'] = this.safeString(balance, 'balance');
             account['free'] = this.safeString(balance, 'available_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1836,7 +1852,7 @@ class delta extends delta$1["default"] {
         //
         const marketId = this.safeString(position, 'product_symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct(position, 'timestamp', 0.001);
         const sizeString = this.safeString(position, 'size');
         let side = undefined;
@@ -2030,10 +2046,11 @@ class delta extends delta$1["default"] {
         await this.loadMarkets();
         const orderType = type + '_order';
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'product_id': market['numericId'],
             // 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size': this.amountToPrecision(market['symbol'], amount),
+            'size': this.amountToPrecision(precisionSymbol, amount),
             'side': side,
             'order_type': orderType,
             // 'client_order_id': 'string',
@@ -2042,7 +2059,7 @@ class delta extends delta$1["default"] {
             // 'reduce_only': 'false', // 'true',
         };
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision(market['symbol'], price);
+            request['limit_price'] = this.priceToPrecision(precisionSymbol, price);
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         const paramsOmitted = this.omit(params, ['clientOrderId', 'client_order_id']);
@@ -2550,10 +2567,8 @@ class delta extends delta$1["default"] {
         //
         const id = this.safeString(item, 'uuid');
         let direction = undefined;
-        const account = undefined;
         const metaData = this.safeDict(item, 'meta_data', {});
         const referenceId = this.safeString(metaData, 'transaction_id');
-        const referenceAccount = undefined;
         let type = this.safeString(item, 'transaction_type');
         if ((type === 'deposit') || (type === 'commission_rebate') || (type === 'referral_bonus') || (type === 'pnl') || (type === 'withdrawal_cancellation') || (type === 'promo_credit')) {
             direction = 'in';
@@ -2575,9 +2590,9 @@ class delta extends delta$1["default"] {
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': undefined,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber(amount),
@@ -3324,7 +3339,8 @@ class delta extends delta$1["default"] {
     parseSettlements(settlements, market) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(settlements[i], market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -3496,7 +3512,8 @@ class delta extends delta$1["default"] {
         //
         // {"result":{},"success":true}
         //
-        const position = this.parsePosition(this.safeDict(response, 'result', {}));
+        const positionRow = this.safeDict(response, 'result', {});
+        const position = this.parsePosition(positionRow);
         return [position];
     }
     /**

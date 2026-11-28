@@ -1269,7 +1269,7 @@ export default class aster extends Exchange {
         const id = this.safeString2(trade, 'id', 'a');
         const marketId = this.safeString(trade, 'symbol');
         let marketType = 'spot';
-        if ('positionSide' in trade) {
+        if (this.safeString(trade, 'positionSide') !== undefined) {
             marketType = 'swap';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
@@ -1345,16 +1345,17 @@ export default class aster extends Exchange {
         if (sinceDefined) {
             request['startTime'] = since;
         }
+        let paramsUntil = params;
         if (untilDefined) {
-            request = this.handleUntilOption('endTime', request, params);
+            [request, paramsUntil] = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
             else {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
             //
             // both FAPI and SAPI have same response format
@@ -1374,10 +1375,10 @@ export default class aster extends Exchange {
         }
         else {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
             else {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
             //
             // SAPI & FAPI have only one field difference
@@ -1561,13 +1562,13 @@ export default class aster extends Exchange {
         const baseVolume = this.safeString(ticker, 'volume');
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
-        const isTickerResponse = ('priceChange' in ticker);
+        const isTickerResponse = (this.safeString(ticker, 'priceChange') !== undefined);
         let marketType = undefined;
         if (isTickerResponse) {
-            marketType = ('baseAsset' in ticker) ? 'spot' : 'swap';
+            marketType = (this.safeString(ticker, 'baseAsset') !== undefined) ? 'spot' : 'swap';
         }
         else {
-            marketType = ('lastUpdateId' in ticker) ? 'swap' : 'spot';
+            marketType = (this.safeInteger(ticker, 'lastUpdateId') !== undefined) ? 'swap' : 'spot';
         }
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
@@ -1649,7 +1650,7 @@ export default class aster extends Exchange {
         //        "askQty": "0.32399"            // only in SPOT
         //    }
         //
-        return this.parseTicker(response, market);
+        return this.parseTicker(this.extend({}, response), market);
     }
     /**
      * @method
@@ -1752,7 +1753,7 @@ export default class aster extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const marketId = this.safeString(rows[i], 'symbol');
             const safeMarket = this.safeMarket(marketId, undefined, undefined, marketType);
-            const priceData = this.extend(this.parseLastPrice(rows[i], safeMarket), paramsMarketType);
+            const priceData = this.extend(this.parseLastPrice(this.extend({}, rows[i]), safeMarket), paramsMarketType);
             results.push(priceData);
         }
         const symbolsNormalized2 = this.marketSymbols(symbolsNormalized);
@@ -1907,7 +1908,7 @@ export default class aster extends Exchange {
         //         "time": 1750146970000
         //     }
         //
-        return this.parseFundingRate(response, market);
+        return this.parseFundingRate(this.extend({}, response), market);
     }
     /**
      * @method
@@ -2812,7 +2813,7 @@ export default class aster extends Exchange {
                 uppercaseType = 'TAKE_PROFIT';
             }
         }
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, params);
+        const postOnly = this.isPostOnly(isMarketOrder, false, params);
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }
@@ -3356,7 +3357,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
             'amount': amountValue,
         };
-        const code = market['quote'];
+        const code = this.safeString(market, 'quote');
         const response = await this.fapiPrivatePostV3PositionMargin(this.extend(request, params));
         //
         //     {
@@ -3586,11 +3587,10 @@ export default class aster extends Exchange {
         const notionalStringAbs = Precise.stringAbs(notionalString);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
-            const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0))) {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         const notional = this.parseNumber(notionalStringAbs);
         const contractsAbs = Precise.stringAbs(this.safeString(position, 'positionAmt'));
@@ -3616,7 +3616,7 @@ export default class aster extends Exchange {
         const contractSize = this.safeNumber(marketResolved, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        const linear = ('notional' in position);
+        const linear = (this.safeString(position, 'notional') !== undefined);
         if (marginMode === 'cross') {
             // calculate collateral
             const precision = this.safeDict(marketResolved, 'precision', {});
@@ -3896,11 +3896,10 @@ export default class aster extends Exchange {
         const leverageBracket = this.safeList(leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
-            const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0))) {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         const maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString(position, 'unrealizedProfit');
@@ -4104,7 +4103,9 @@ export default class aster extends Exchange {
                     const maintenanceMarginPercentage = this.safeString(bracket, 'maintMarginRatio');
                     result.push([floorValue, maintenanceMarginPercentage]);
                 }
-                this.options['leverageBrackets'][symbol] = result;
+                const leverageBracketsDict = this.safeDict(this.options, 'leverageBrackets', {});
+                leverageBracketsDict[symbol] = result;
+                this.options['leverageBrackets'] = leverageBracketsDict;
             }
         }
         return this.options['leverageBrackets'];
@@ -4301,8 +4302,8 @@ export default class aster extends Exchange {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }

@@ -609,12 +609,12 @@ public partial class coinone : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(IDictionary<string, object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        Dictionary<string, object> balances = ((Dictionary<string, object>)this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"}));
+        Dictionary<string, object> balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
         List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
@@ -722,7 +722,7 @@ public partial class coinone : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "quote_currency", "KRW" },
         };
@@ -836,7 +836,7 @@ public partial class coinone : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -927,7 +927,7 @@ public partial class coinone : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if ((isSellerMaker != null))
@@ -1140,7 +1140,7 @@ public partial class coinone : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -1477,7 +1477,7 @@ public partial class coinone : Exchange
                 result[(string)code] = depositAddress;
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
+        return ccxt.BaseExchange.ToDepositAddressList((result == null ? null : new List<object>(result.Values)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
@@ -1548,7 +1548,7 @@ public partial class coinone : Exchange
             }, parameters));
             string payload = this.stringToBase64(json);
             requestBody = payload;
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret.ToUpper()), sha512);
+            string signature = this.hmac(payload, this.secret.ToUpper(), sha512);
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-COINONE-PAYLOAD", payload },
@@ -1565,11 +1565,11 @@ public partial class coinone : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
@@ -1578,10 +1578,10 @@ public partial class coinone : Exchange
         string? errorCode = this.safeString(response, "error_code");
         if ((errorCode != null) && errorCode != "0")
         {
-            string feedback = ((this.id + " ") + (body));
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

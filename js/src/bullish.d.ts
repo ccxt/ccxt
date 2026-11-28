@@ -1,5 +1,5 @@
 import Exchange from './abstract/bullish.js';
-import { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 /**
  * @class bullish
  * @augments Exchange
@@ -432,5 +432,5 @@ export default class bullish extends Exchange {
      */
     signIn(params?: Dict): Promise<string>;
     handleToken(params?: Dict): Promise<string>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

@@ -607,7 +607,7 @@ export default class deribit extends Exchange {
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')));
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if ((marketId !== undefined) && isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -981,7 +981,7 @@ export default class deribit extends Exchange {
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike: Num = undefined;
                 let optionType: Str = undefined;
-                let symbol = id;
+                let symbol: Str = id;
                 let type = 'swap';
                 if (future) {
                     type = 'future';
@@ -997,7 +997,7 @@ export default class deribit extends Exchange {
                 } else if (!isComboMarket) {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
-                        symbol = symbol + '-' + this.yymmdd (expiry, '');
+                        symbol = symbol + ('-' + this.yymmdd (expiry, ''));
                         if (option) {
                             strike = this.safeNumber (market, 'strike');
                             optionType = this.safeString (market, 'option_type');
@@ -1311,7 +1311,7 @@ export default class deribit extends Exchange {
         const marketId = this.safeString (ticker, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString2 (ticker, 'last_price', 'last');
-        const stats = this.safeDict (ticker, 'stats', ticker);
+        const stats: Dict = this.safeDict (ticker, 'stats', ticker);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1469,8 +1469,8 @@ export default class deribit extends Exchange {
         const result: Dict[] = this.safeList (response, 'result', []);
         const tickers: Dict = {};
         for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
-            const symbol = ticker['symbol'];
+            const ticker = this.parseTicker (this.safeDict (result, i, {}));
+            const symbol: Str = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
             }
@@ -1511,7 +1511,10 @@ export default class deribit extends Exchange {
         const defaultLimit = 1000;
         const windowLimit: int = (limit === undefined) ? defaultLimit : limit;
         const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
-        const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
+        let sinceResolved: Int = undefined;
+        if (since !== undefined) {
+            sinceResolved = Math.max (since - 1, 0);
+        }
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
             request['end_timestamp'] = now;
@@ -1672,7 +1675,10 @@ export default class deribit extends Exchange {
             request['count'] = Math.min (limit, 1000); // default 10
         }
         const until = this.safeInteger2 (params, 'until', 'end_timestamp');
-        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
+        let paramsOmitted: Dict = this.omit (params, []);
+        if (until !== undefined) {
+            paramsOmitted = this.omit (params, [ 'until' ]);
+        }
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
@@ -2080,7 +2086,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {}) as Dict;
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -2141,7 +2147,7 @@ export default class deribit extends Exchange {
         const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
         const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
         const exchangeSpecificPostOnly = this.safeBool (params, 'post_only');
-        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly === true, params);
         if (isLimitOrder) {
             request['type'] = 'limit';
             request['price'] = this.priceToPrecision (symbol, price);
@@ -2292,9 +2298,9 @@ export default class deribit extends Exchange {
         }
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        let paramsOmitted: Dict = params;
+        let paramsOmitted: Dict = this.omit (params, []);
         if (isTrailingAmountOrder) {
-            paramsOmitted = this.omit (params, 'trigger_offset');
+            paramsOmitted = this.omit (paramsOmitted, 'trigger_offset');
         }
         if (isTrailingAmountOrder) {
             request['trigger_offset'] = this.parseToNumeric (trailingAmount);
@@ -2324,7 +2330,7 @@ export default class deribit extends Exchange {
         };
         const response = await this.privateGetCancel (this.extend (request, params));
         const result = this.safeDict (response, 'result', {}) as Dict;
-        return this.parseOrder (result);
+        return this.parseOrder (this.extend ({}, result));
     }
 
     /**
@@ -3327,8 +3333,7 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         const now = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const defaultSince = now - month;
-        const sinceResolved: int = (since === undefined) ? defaultSince : since;
+        const sinceResolved: int = (since === undefined) ? (now - month) : since;
         let time = now;
         if (since !== undefined) {
             time = this.parseToInt (since + month);
@@ -3375,7 +3380,7 @@ export default class deribit extends Exchange {
         const rates: List = [];
         const result: Dict[] = this.safeList (response, 'result', []);
         for (let i = 0; i < result.length; i++) {
-            const fr = this.safeDict (result, i);
+            const fr = this.safeDict (result, i, {});
             const rate = this.parseFundingRate (fr, market);
             rates.push (rate);
         }
@@ -3488,7 +3493,7 @@ export default class deribit extends Exchange {
         const result: Dict = this.safeDict (response, 'result', {});
         const cursor = this.safeString (result, 'continuation');
         const settlements: Dict[] = this.safeList (result, 'settlements', []);
-        const settlementsWithCursor = this.addPaginationCursorToResult (cursor, settlements);
+        const settlementsWithCursor: List = this.addPaginationCursorToResult (cursor, settlements);
         return this.parseLiquidations (settlementsWithCursor, market, since, limit);
     }
 
@@ -3781,8 +3786,8 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeList (response, 'result', []);
-        const chain = this.safeDict (result, 0, {}) as Dict;
+        const result: Dict[] = this.safeList (response, 'result', []);
+        const chain: Dict = this.safeDict (result, 0, {});
         return this.parseOption (chain, undefined, market);
     }
 
@@ -4035,7 +4040,7 @@ export default class deribit extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

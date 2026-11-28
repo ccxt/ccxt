@@ -363,58 +363,54 @@ class digifinex extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                'exact' => array(
-                    '10001' => array( '\\ccxt\\BadRequest', "Wrong request method, please check it's a GET ot POST request" ),
-                    '10002' => array( '\\ccxt\\AuthenticationError', 'Invalid ApiKey' ),
-                    '10003' => array( '\\ccxt\\AuthenticationError', "Sign doesn't match" ),
-                    '10004' => array( '\\ccxt\\BadRequest', 'Illegal request parameters' ),
-                    '10005' => array( '\\ccxt\\DDoSProtection', 'Request frequency exceeds the limit' ),
-                    '10006' => array( '\\ccxt\\PermissionDenied', 'Unauthorized to execute this request' ),
-                    '10007' => array( '\\ccxt\\PermissionDenied', 'IP address Unauthorized' ),
-                    '10008' => array( '\\ccxt\\InvalidNonce', 'Timestamp for this request is invalid, timestamp must within 1 minute' ),
-                    '10009' => array( '\\ccxt\\NetworkError', 'Unexist endpoint, please check endpoint URL' ),
-                    '10011' => array( '\\ccxt\\AccountSuspended', 'ApiKey expired. Please go to client side to re-create an ApiKey' ),
-                    '20001' => array( '\\ccxt\\PermissionDenied', 'Trade is not open for this trading pair' ),
-                    '20002' => array( '\\ccxt\\PermissionDenied', 'Trade of this trading pair is suspended' ),
-                    '20003' => array( '\\ccxt\\InvalidOrder', 'Invalid price or amount' ),
-                    '20007' => array( '\\ccxt\\InvalidOrder', 'Price precision error' ),
-                    '20008' => array( '\\ccxt\\InvalidOrder', 'Amount precision error' ),
-                    '20009' => array( '\\ccxt\\InvalidOrder', 'Amount is less than the minimum requirement' ),
-                    '20010' => array( '\\ccxt\\InvalidOrder', 'Cash Amount is less than the minimum requirement' ),
-                    '20011' => array( '\\ccxt\\InsufficientFunds', 'Insufficient balance' ),
-                    '20012' => array( '\\ccxt\\BadRequest', 'Invalid trade type, valid value => buy/sell)' ),
-                    '20013' => array( '\\ccxt\\InvalidOrder', 'No order info found' ),
-                    '20014' => array( '\\ccxt\\BadRequest', 'Invalid date, Valid format => 2018-07-25)' ),
-                    '20015' => array( '\\ccxt\\BadRequest', 'Date exceeds the limit' ),
-                    '20018' => array( '\\ccxt\\PermissionDenied', 'Your trading rights have been banned by the system' ),
-                    '20019' => array( '\\ccxt\\BadSymbol', 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ),
-                    '20020' => array( '\\ccxt\\DDoSProtection', "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ),
-                    '50000' => array( '\\ccxt\\ExchangeError', 'Exception error' ),
-                    '20021' => array( '\\ccxt\\BadRequest', 'Invalid currency' ),
-                    '20022' => array( '\\ccxt\\BadRequest', 'The ending timestamp must be larger than the starting timestamp' ),
-                    '20023' => array( '\\ccxt\\BadRequest', 'Invalid transfer type' ),
-                    '20024' => array( '\\ccxt\\BadRequest', 'Invalid amount' ),
-                    '20025' => array( '\\ccxt\\BadRequest', 'This currency is not transferable at the moment' ),
-                    '20026' => array( '\\ccxt\\InsufficientFunds', 'Transfer amount exceed your balance' ),
-                    '20027' => array( '\\ccxt\\PermissionDenied', 'Abnormal account status' ),
-                    '20028' => array( '\\ccxt\\PermissionDenied', 'Blacklist for transfer' ),
-                    '20029' => array( '\\ccxt\\PermissionDenied', 'Transfer amount exceed your daily limit' ),
-                    '20030' => array( '\\ccxt\\BadRequest', 'You have no position on this trading pair' ),
-                    '20032' => array( '\\ccxt\\PermissionDenied', 'Withdrawal limited' ),
-                    '20033' => array( '\\ccxt\\BadRequest', 'Wrong Withdrawal ID' ),
-                    '20034' => array( '\\ccxt\\PermissionDenied', 'Withdrawal service of this crypto has been closed' ),
-                    '20035' => array( '\\ccxt\\PermissionDenied', 'Withdrawal limit' ),
-                    '20036' => array( '\\ccxt\\ExchangeError', 'Withdrawal cancellation failed' ),
-                    '20037' => array( '\\ccxt\\InvalidAddress', 'The withdrawal address, Tag or chain type is not included in the withdrawal management list' ),
-                    '20038' => array( '\\ccxt\\InvalidAddress', 'The withdrawal address is not on the white list' ),
-                    '20039' => array( '\\ccxt\\ExchangeError', "Can't be canceled in current status" ),
-                    '20040' => array( '\\ccxt\\RateLimitExceeded', 'Withdraw too frequently; limitation => 3 times a minute, 100 times a day' ),
-                    '20041' => array( '\\ccxt\\PermissionDenied', 'Beyond the daily withdrawal limit' ),
-                    '20042' => array( '\\ccxt\\BadSymbol', 'Current trading pair does not support API trading' ),
-                    '400002' => array( '\\ccxt\\BadRequest', 'Invalid Parameter' ),
-                ),
-                'broad' => array(
-                ),
+                '10001' => '\\ccxt\\BadRequest',
+                '10002' => '\\ccxt\\AuthenticationError',
+                '10003' => '\\ccxt\\AuthenticationError',
+                '10004' => '\\ccxt\\BadRequest',
+                '10005' => '\\ccxt\\DDoSProtection',
+                '10006' => '\\ccxt\\PermissionDenied',
+                '10007' => '\\ccxt\\PermissionDenied',
+                '10008' => '\\ccxt\\InvalidNonce',
+                '10009' => '\\ccxt\\NetworkError',
+                '10011' => '\\ccxt\\AccountSuspended',
+                '20001' => '\\ccxt\\PermissionDenied',
+                '20002' => '\\ccxt\\PermissionDenied',
+                '20003' => '\\ccxt\\InvalidOrder',
+                '20007' => '\\ccxt\\InvalidOrder',
+                '20008' => '\\ccxt\\InvalidOrder',
+                '20009' => '\\ccxt\\InvalidOrder',
+                '20010' => '\\ccxt\\InvalidOrder',
+                '20011' => '\\ccxt\\InsufficientFunds',
+                '20012' => '\\ccxt\\BadRequest',
+                '20013' => '\\ccxt\\InvalidOrder',
+                '20014' => '\\ccxt\\BadRequest',
+                '20015' => '\\ccxt\\BadRequest',
+                '20018' => '\\ccxt\\PermissionDenied',
+                '20019' => '\\ccxt\\BadSymbol',
+                '20020' => '\\ccxt\\DDoSProtection',
+                '50000' => '\\ccxt\\ExchangeError',
+                '20021' => '\\ccxt\\BadRequest',
+                '20022' => '\\ccxt\\BadRequest',
+                '20023' => '\\ccxt\\BadRequest',
+                '20024' => '\\ccxt\\BadRequest',
+                '20025' => '\\ccxt\\BadRequest',
+                '20026' => '\\ccxt\\InsufficientFunds',
+                '20027' => '\\ccxt\\PermissionDenied',
+                '20028' => '\\ccxt\\PermissionDenied',
+                '20029' => '\\ccxt\\PermissionDenied',
+                '20030' => '\\ccxt\\BadRequest',
+                '20032' => '\\ccxt\\PermissionDenied',
+                '20033' => '\\ccxt\\BadRequest',
+                '20034' => '\\ccxt\\PermissionDenied',
+                '20035' => '\\ccxt\\PermissionDenied',
+                '20036' => '\\ccxt\\ExchangeError',
+                '20037' => '\\ccxt\\InvalidAddress',
+                '20038' => '\\ccxt\\InvalidAddress',
+                '20039' => '\\ccxt\\ExchangeError',
+                '20040' => '\\ccxt\\RateLimitExceeded',
+                '20041' => '\\ccxt\\PermissionDenied',
+                '20042' => '\\ccxt\\BadSymbol',
+                '400002' => '\\ccxt\\BadRequest',
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -1148,7 +1144,7 @@ class digifinex extends Exchange {
                 'date' => $date,
             ), $this->safe_dict($tickers, $i));
             $ticker = $this->parse_ticker($rawTicker);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -1384,7 +1380,11 @@ class digifinex extends Exchange {
         $amountString = $this->safe_string_n($trade, array( 'amount', 'volume', 'size' ));
         $marketId = $this->safe_string_upper_2($trade, 'symbol', 'instrument_id');
         $symbol = $this->safe_symbol($marketId, $market);
-        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market);
+        $marketIdResolved = null;
+        if ($market === null) {
+            $marketIdResolved = $marketId;
+        }
+        $marketResolved = $this->safe_market($marketIdResolved, $market);
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
         $type = null;
@@ -2132,7 +2132,7 @@ class digifinex extends Exchange {
         $error = $this->safe_list($response, 'error', array());
         $result = array();
         for ($i = 0; $i < count($success); $i++) {
-            $order = $success[$i];
+            $order = $this->safe_string($success, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
@@ -2141,7 +2141,7 @@ class digifinex extends Exchange {
             ));
         }
         for ($i = 0; $i < count($error); $i++) {
-            $order = $error[$i];
+            $order = $this->safe_string($error, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
@@ -2181,7 +2181,7 @@ class digifinex extends Exchange {
             if ($market === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument for swap markets');
             }
-            $marketSymbol = $market['symbol'];
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
             $orders = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $orderItem = array(
@@ -2220,13 +2220,13 @@ class digifinex extends Exchange {
         /**
          * cancel multiple $orders for multiple $symbols
          *
-         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-$order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
          *
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, all $orders must be of the same $market type (spot or swap), example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
+         * @param {CancellationRequest[]} $orders each order should contain the parameters required by cancelOrder namely $id and $symbol, all $orders must be of the same $market type (spot or swap), example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the $request body is an array)
          * @param {string} [$params->type] 'spot' or 'margin' for spot markets, defaults to 'spot'
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2236,17 +2236,16 @@ class digifinex extends Exchange {
         $symbolsById = array();
         $marketType = null;
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
-            $id = $this->safe_string($order, 'id');
+            $id = $this->safe_string($orders[$i], 'id');
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires an id for each order');
             }
-            $symbol = $this->safe_string($order, 'symbol');
+            $symbol = $this->safe_string($orders[$i], 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a symbol for each order');
             }
             $market = $this->market($symbol);
-            $orderMarketType = $market['type'];
+            $orderMarketType = $this->safe_string($market, 'type');
             if ($marketType === null) {
                 $marketType = $orderMarketType;
             } elseif ($marketType !== $orderMarketType) {
@@ -2263,8 +2262,8 @@ class digifinex extends Exchange {
             }
             $ordersRequests = array();
             for ($i = 0; $i < count($ids); $i++) {
-                $market = $this->market($symbols[$i]);
-                $marketId = $market['id'];
+                $market = $this->market($this->safe_string($symbols, $i));
+                $marketId = $this->safe_string($market, 'id');
                 $orderId = $ids[$i];
                 $ordersRequests[] = array(
                     'instrument_id' => $marketId,
@@ -2291,7 +2290,7 @@ class digifinex extends Exchange {
                 $result[] = $this->safe_order(array(
                     'info' => $orderId,
                     'id' => $orderId,
-                    'symbol' => $symbols[$i],
+                    'symbol' => $this->safe_string($symbols, $i),
                     'status' => $status,
                 ));
             }
@@ -2808,7 +2807,7 @@ class digifinex extends Exchange {
         if ($order === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() order ' . $idValue . ' not found');
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3138,7 +3137,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $addresses = $this->index_by($this->parse_deposit_addresses($data, array( $currency['code'] ), false), 'currency');
+        $addresses = $this->index_by($this->parse_deposit_addresses($data, array( $this->safe_string($currency, 'code', '') ), false), 'currency');
         $address = $this->safe_dict($addresses, $code);
         if ($address === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() did not return an address for ' . $code . ' - create the deposit address in the user settings on the exchange website first.');
@@ -3396,7 +3395,7 @@ class digifinex extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $currencyId = $currency['id'];
+        $currencyId = $this->safe_string($currency, 'id');
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
@@ -3594,9 +3593,9 @@ class digifinex extends Exchange {
         $data = $this->safe_list($response, 'list', array());
         $result = null;
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            if ($this->safe_string($entry, 'currency') === $code) {
-                $result = $entry;
+            $entryCurrency = $this->safe_string($data[$i], 'currency', '');
+            if ($entryCurrency === $code) {
+                $result = $data[$i];
             }
         }
         $currency = $this->currency($code);
@@ -3661,7 +3660,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function parse_borrow_rates(array $info, ?string $codeKey): array {
+    public function parse_borrow_rates(array $info, string $codeKey): array {
         //
         //     {
         //         "valuation_rate": 1,
@@ -3943,16 +3942,11 @@ class digifinex extends Exchange {
         $market = null;
         $marketType = null;
         if ($symbolsNormalized !== null) {
-            $symbol = null;
-            if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
-                $symbolsLength = count($symbolsNormalized);
-                if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                $symbol = $symbolsNormalized[0];
-            } else {
-                $symbol = $symbolsNormalized;
+            $symbolsLength = count($symbolsNormalized);
+            if ($symbolsLength > 1) {
+                throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            $symbol = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($symbol);
         }
         $paramsMarketType = null;
@@ -4036,7 +4030,8 @@ class digifinex extends Exchange {
         $positions = $this->safe_list($response, $positionRequest, array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i], $market);
+            $parsedPosition = $this->parse_position($this->safe_dict($positions, $i, array()), $market);
+            $result[] = $parsedPosition;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
@@ -4137,7 +4132,7 @@ class digifinex extends Exchange {
             $dataRequest = 'data';
         }
         $data = $this->safe_list($response, $dataRequest, array());
-        $position = $this->parse_position($data[0], $market);
+        $position = $this->parse_position($this->safe_dict($data, 0, array()), $market);
         if ($marketType === 'swap') {
             return $position;
         } else {
@@ -4188,7 +4183,7 @@ class digifinex extends Exchange {
         //
         $marketId = $this->safe_string_2($position, 'instrument_id', 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $marginMode = $this->safe_string($position, 'margin_mode');
         if ($marginMode !== null) {
             $marginMode = ($marginMode === 'crossed') ? 'cross' : 'isolated';
@@ -4659,8 +4654,10 @@ class digifinex extends Exchange {
                         );
                     }
                 } else {
-                    $depositWithdrawFee['withdraw'] = $withdrawResult;
-                    $depositWithdrawFee['deposit'] = $depositResult;
+                    $depositWithdrawFees[$code] = $this->extend($depositWithdrawFee, array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    ));
                 }
             }
         }
@@ -4901,7 +4898,7 @@ class digifinex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = '';
         if ($signed && ($pathPart === '/swap/v2') && ($method === 'POST')) {
-            $urlencoded = json_encode($params);
+            $urlencoded = $this->json($params);
         } else {
             $urlencoded = $this->urlencode($this->keysort($query));
         }
@@ -4947,7 +4944,7 @@ class digifinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fall back to default error handler
         }
@@ -4959,8 +4956,57 @@ class digifinex extends Exchange {
         if ($codeError === null) {
             throw new BadResponse($feedback);
         }
-        $unknownError = array( '\\ccxt\\ExchangeError', $feedback );
-        list($ExceptionClass, $message) = $this->safe_value($this->exceptions['exact'], $codeError, $unknownError);
-        throw new $ExceptionClass($message);
+        $message = $this->safe_string(array(
+            '10001' => "Wrong request method, please check it's a GET ot POST request",
+            '10002' => 'Invalid ApiKey',
+            '10003' => "Sign doesn't match",
+            '10004' => 'Illegal request parameters',
+            '10005' => 'Request frequency exceeds the limit',
+            '10006' => 'Unauthorized to execute this request',
+            '10007' => 'IP address Unauthorized',
+            '10008' => 'Timestamp for this request is invalid, timestamp must within 1 minute',
+            '10009' => 'Unexist endpoint, please check endpoint URL',
+            '10011' => 'ApiKey expired. Please go to client side to re-create an ApiKey',
+            '20001' => 'Trade is not open for this trading pair',
+            '20002' => 'Trade of this trading pair is suspended',
+            '20003' => 'Invalid price or amount',
+            '20007' => 'Price precision error',
+            '20008' => 'Amount precision error',
+            '20009' => 'Amount is less than the minimum requirement',
+            '20010' => 'Cash Amount is less than the minimum requirement',
+            '20011' => 'Insufficient balance',
+            '20012' => 'Invalid trade type, valid value => buy/sell)',
+            '20013' => 'No order info found',
+            '20014' => 'Invalid date, Valid format => 2018-07-25)',
+            '20015' => 'Date exceeds the limit',
+            '20018' => 'Your trading rights have been banned by the system',
+            '20019' => 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front',
+            '20020' => "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.",
+            '50000' => 'Exception error',
+            '20021' => 'Invalid currency',
+            '20022' => 'The ending timestamp must be larger than the starting timestamp',
+            '20023' => 'Invalid transfer type',
+            '20024' => 'Invalid amount',
+            '20025' => 'This currency is not transferable at the moment',
+            '20026' => 'Transfer amount exceed your balance',
+            '20027' => 'Abnormal account status',
+            '20028' => 'Blacklist for transfer',
+            '20029' => 'Transfer amount exceed your daily limit',
+            '20030' => 'You have no position on this trading pair',
+            '20032' => 'Withdrawal limited',
+            '20033' => 'Wrong Withdrawal ID',
+            '20034' => 'Withdrawal service of this crypto has been closed',
+            '20035' => 'Withdrawal limit',
+            '20036' => 'Withdrawal cancellation failed',
+            '20037' => 'The withdrawal address, Tag or chain type is not included in the withdrawal management list',
+            '20038' => 'The withdrawal address is not on the white list',
+            '20039' => "Can't be canceled in current status",
+            '20040' => 'Withdraw too frequently; limitation => 3 times a minute, 100 times a day',
+            '20041' => 'Beyond the daily withdrawal limit',
+            '20042' => 'Current trading pair does not support API trading',
+            '400002' => 'Invalid Parameter',
+        ), $codeError, $feedback);
+        $this->throw_exactly_matched_exception($this->exceptions, $codeError, $message);
+        throw new ExchangeError($message);
     }
 }

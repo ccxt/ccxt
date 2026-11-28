@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, MarketInterface
+from ccxt.base.types import ADL, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -362,7 +362,10 @@ class delta(Exchange, ImplicitAPI):
             base = self.safe_string(symbolBase, 0, '')
         optionType = self.safe_string(optionParts, 3 if hasSlash else 0, '')
         rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3, '')
-        expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]
+        expiryYear = rawExpiry[4:]
+        expiryMonth = rawExpiry[2:4]
+        expiryDay = rawExpiry[0:2]
+        expiry = expiryYear + expiryMonth + expiryDay
         settle = quote
         strike = self.safe_string(optionParts, 2, '')
         datetime = self.convert_expire_date(expiry)
@@ -417,7 +420,7 @@ class delta(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')) or (marketId.startswith('C-')) or (marketId.startswith('P-')))
-        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
+        if (marketId is not None) and isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(delta, self).safe_market(marketId, market, delimiter, marketType)
@@ -878,9 +881,11 @@ class delta(Exchange, ImplicitAPI):
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:
-                symbol = symbol + ':' + settle
+                settleCode = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settleCode
                 if future or option:
-                    symbol = symbol + '-' + self.yymmdd(expiry)
+                    expiryCode = self.yymmdd(expiry)
+                    symbol = symbol + '-' + expiryCode
                     if option:
                         type = 'option'
                         letter = 'C'
@@ -891,13 +896,14 @@ class delta(Exchange, ImplicitAPI):
                         elif moveOptions:
                             letter = 'M'
                             optionType = 'move'
-                        symbol = symbol + '-' + strike + '-' + letter
+                        strikeString = self.safe_string(market, 'strike_price', '')
+                        symbol = symbol + '-' + strikeString + '-' + letter
                     else:
                         type = 'future'
                 else:
                     type = 'swap'
             state = self.safe_string(market, 'state')
-            result.append(self.safe_market_structure({
+            marketStructure = {
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -915,11 +921,11 @@ class delta(Exchange, ImplicitAPI):
                 'option': option,
                 'active': (state == 'live'),
                 'contract': not spot,
-                'linear': None if spot else linear,
-                'inverse': None if spot else not linear,
+                'linear': None,
+                'inverse': None,
                 'taker': self.safe_number(market, 'taker_commission_rate'),
                 'maker': self.safe_number(market, 'maker_commission_rate'),
-                'contractSize': None if spot else contractSize,
+                'contractSize': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),  # do not use raw expiry string
                 'strike': self.parse_number(strike),
@@ -948,7 +954,12 @@ class delta(Exchange, ImplicitAPI):
                 },
                 'created': self.parse8601(self.safe_string(market, 'launch_time')),
                 'info': market,
-            }))
+            }
+            if not spot:
+                marketStructure['linear'] = linear
+                marketStructure['inverse'] = not linear
+                marketStructure['contractSize'] = contractSize
+            result.append(self.safe_market_structure(marketStructure))
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1070,7 +1081,7 @@ class delta(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'close')
         quotes = self.safe_dict(ticker, 'quotes', {})
         # turnover_symbol names the currency turnover is denominated in, and on
@@ -1393,13 +1404,12 @@ class delta(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            rawTicker = tickers[i]
-            contractType = self.safe_string(rawTicker, 'contract_type')
+            contractType = self.safe_string(tickers[i], 'contract_type')
             if (contractType == 'options_combos') or (contractType == 'binary_call_options') or (contractType == 'binary_put_options'):
                 # these instruments are excluded from the unified markets, see fetchMarkets
                 continue
-            ticker = self.parse_ticker(rawTicker)
-            symbol = ticker['symbol']
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}))
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1664,11 +1674,14 @@ class delta(Exchange, ImplicitAPI):
             balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'asset_id')
             currency = self.safe_dict(currenciesByNumericId, currencyId)
-            code = currencyId if (currency is None) else currency['code']
+            code = currencyId
+            if currency is not None:
+                code = self.safe_string(currency, 'code')
             account = self.account()
             account['total'] = self.safe_string(balance, 'balance')
             account['free'] = self.safe_string(balance, 'available_balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params: dict = {}) -> Balances:
@@ -1800,7 +1813,7 @@ class delta(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'product_symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(position, 'timestamp', 0.001)
         sizeString = self.safe_string(position, 'size')
         side = None
@@ -1983,10 +1996,11 @@ class delta(Exchange, ImplicitAPI):
         await self.load_markets()
         orderType = type + '_order'
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'product_id': market['numericId'],
             # 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size': self.amount_to_precision(market['symbol'], amount),
+            'size': self.amount_to_precision(precisionSymbol, amount),
             'side': side,
             'order_type': orderType,
             # 'client_order_id': 'string',
@@ -1995,7 +2009,7 @@ class delta(Exchange, ImplicitAPI):
             # 'reduce_only': 'false', // 'true',
         }
         if type == 'limit':
-            request['limit_price'] = self.price_to_precision(market['symbol'], price)
+            request['limit_price'] = self.price_to_precision(precisionSymbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
@@ -2482,10 +2496,8 @@ class delta(Exchange, ImplicitAPI):
         #
         id = self.safe_string(item, 'uuid')
         direction = None
-        account = None
         metaData = self.safe_dict(item, 'meta_data', {})
         referenceId = self.safe_string(metaData, 'transaction_id')
-        referenceAccount = None
         type = self.safe_string(item, 'transaction_type')
         if (type == 'deposit') or (type == 'commission_rebate') or (type == 'referral_bonus') or (type == 'pnl') or (type == 'withdrawal_cancellation') or (type == 'promo_credit'):
             direction = 'in'
@@ -2505,9 +2517,9 @@ class delta(Exchange, ImplicitAPI):
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': None,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': None,
             'type': type,
             'currency': code,
             'amount': self.parse_number(amount),
@@ -3243,10 +3255,11 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market) -> list[dict]:
+    def parse_settlements(self, settlements: list[dict], market: Market) -> list[dict]:
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
@@ -3417,7 +3430,8 @@ class delta(Exchange, ImplicitAPI):
         #
         # {"result":{},"success":true}
         #
-        position = self.parse_position(self.safe_dict(response, 'result', {}))
+        positionRow = self.safe_dict(response, 'result', {})
+        position = self.parse_position(positionRow)
         return [position]
 
     async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
@@ -4078,7 +4092,7 @@ class delta(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         #

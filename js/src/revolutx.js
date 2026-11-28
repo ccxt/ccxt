@@ -549,7 +549,7 @@ export default class revolutx extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                marketIds.push(market['id']);
+                marketIds.push(this.safeString(market, 'id', ''));
             }
             request['symbols'] = marketIds.join(',');
         }
@@ -1597,10 +1597,7 @@ export default class revolutx extends Exchange {
                 return undefined;
             }
             const feedback = this.id + ' ' + body;
-            let errorMessage = undefined;
-            if (typeof response === 'object') {
-                errorMessage = this.safeString2(response, 'message', 'error');
-            }
+            const errorMessage = this.safeString2(response, 'message', 'error');
             if (errorMessage !== undefined) {
                 this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
             }

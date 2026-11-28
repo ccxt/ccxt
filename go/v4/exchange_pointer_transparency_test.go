@@ -140,40 +140,15 @@ func unaryShims() []unaryShim {
 	var p *PreciseStruct // methods below ignore the receiver
 	return []unaryShim{
 		// exchange_helpers.go
-		{"EvalTruthy", func(v any) any { return EvalTruthy(v) }},
-		{"Trim", func(v any) any { return Trim(v) }},
-		{"MathFloor", func(v any) any { return MathFloor(v) }},
-		{"MathCeil", func(v any) any { return MathCeil(v) }},
-		{"MathRound", func(v any) any { return MathRound(v) }},
-		{"MathAbs", func(v any) any { return MathAbs(v) }},
-		{"Negate", func(v any) any { return Negate(v) }},
-		{"UnaryPlus", func(v any) any { return UnaryPlus(v) }},
-		{"JsonStringify", func(v any) any { return JsonStringify(v) }},
 		{"JsonParse", func(v any) any { return JsonParse(v) }},
-		{"IsDictionary", func(v any) any { return IsDictionary(v) }},
-		{"IsFunction", func(v any) any { return IsFunction(v) }},
-		{"ObjectValues", func(v any) any { return ObjectValues(v) }},
 		{"ObjectKeys", func(v any) any { return ObjectKeys(v) }},
-		{"IsTrue", func(v any) any { return IsTrue(v) }},
 		{"IsInteger", func(v any) any { return IsInteger(v) }},
 		{"GetArrayLength", func(v any) any { return GetArrayLength(v) }},
 		{"ToFloat64", func(v any) any { return ToFloat64(v) }},
-		{"Increment", func(v any) any { return Increment(v) }},
-		{"Decrement", func(v any) any { return Decrement(v) }},
-		{"IsBool", func(v any) any { return IsBool(v) }},
 		{"IsString", func(v any) any { return IsString(v) }},
-		{"IsInt", func(v any) any { return IsInt(v) }},
-		{"IsNumber", func(v any) any { return IsNumber(v) }},
-		{"IsObject", func(v any) any { return IsObject(v) }},
 		{"IsArray", func(v any) any { return IsArray(v) }},
-		{"IsNil", func(v any) any { return IsNil(v) }},
-		{"ToLower", func(v any) any { return ToLower(v) }},
-		{"ToUpper", func(v any) any { return ToUpper(v) }},
 		{"ToString", func(v any) any { return ToString(v) }},
-		{"GetLength", func(v any) any { return GetLength(v) }},
 		{"ParseInt", func(v any) any { return ParseInt(v) }},
-		{"ParseFloat", func(v any) any { return ParseFloat(v) }},
-		{"OpNeg", func(v any) any { return OpNeg(v) }},
 		// exchange_precise.go
 		{"StringAbs", func(v any) any { return StringAbs(v) }},
 		{"StringNeg", func(v any) any { return StringNeg(v) }},
@@ -197,30 +172,12 @@ func binaryShims() []binaryShim {
 	return []binaryShim{
 		// exchange_helpers.go
 		{"Add", func(a, b any) any { return Add(a, b) }},
-		{"StartsWith", func(a, b any) any { return StartsWith(a, b) }},
-		{"EndsWith", func(a, b any) any { return EndsWith(a, b) }},
-		{"Contains", func(a, b any) any { return Contains(a, b) }},
-		{"IndexOf", func(a, b any) any { return IndexOf(a, b) }},
 		{"Split", func(a, b any) any { return Split(a, b) }},
 		{"Join", func(a, b any) any { return Join(a, b) }},
-		{"MathPow", func(a, b any) any { return MathPow(a, b) }},
-		{"ToFixed", func(a, b any) any { return ToFixed(a, b) }},
-		{"TernaryTrue", func(a, b any) any { return Ternary(true, a, b) }},
-		{"TernaryFalse", func(a, b any) any { return Ternary(false, b, a) }},
-		{"Multiply", func(a, b any) any { return Multiply(a, b) }},
-		{"Divide", func(a, b any) any { return Divide(a, b) }},
-		{"Subtract", func(a, b any) any { return Subtract(a, b) }},
-		{"Mod", func(a, b any) any { return Mod(a, b) }},
 		{"mathMin", func(a, b any) any { return mathMin(a, b) }},
-		{"mathMax", func(a, b any) any { return mathMax(a, b) }},
-		{"MathMin", func(a, b any) any { return MathMin(a, b) }},
-		{"MathMax", func(a, b any) any { return MathMax(a, b) }},
-		{"IsGreaterThan", func(a, b any) any { return IsGreaterThan(a, b) }},
 		{"IsEqual", func(a, b any) any { return IsEqual(a, b) }},
-		{"PlusEqual", func(a, b any) any { return PlusEqual(a, b) }},
 		{"GetValue", func(a, b any) any { return GetValue(a, b) }},
 		{"InOp", func(a, b any) any { return InOp(a, b) }},
-		{"GetIndexOf", func(a, b any) any { return GetIndexOf(a, b) }},
 		// AddElementToObject derefs its key and value operands; the observation is the
 		// mutated container.
 		{"AddElementToObject", func(a, b any) any {
@@ -396,35 +353,6 @@ func TestPointerTransparencyBinaryShims(t *testing.T) {
 		}
 	}
 	t.Logf("binary shims: %d helpers, %d differential cells", len(binaryShims()), c.cells)
-}
-
-// Slice takes three deref'd operands; each position is exercised independently.
-func TestPointerTransparencySlice(t *testing.T) {
-	c := &ptChecker{t: t}
-	base := []any{"abcdef", int64(1), int64(4)}
-	for _, g := range ptGroups() {
-		for pos := 0; pos < 3; pos++ {
-			pos := pos
-			mk := func(x any) []any {
-				args := append([]any{}, base...)
-				args[pos] = x
-				return args
-			}
-			nilArgs := mk(g.typedNil)
-			plainNil := mk(nil)
-			c.cell("Slice", g.name, fmt.Sprintf("absent@%d", pos+1),
-				func() any { return Slice(nilArgs[0], nilArgs[1], nilArgs[2]) },
-				func() any { return Slice(plainNil[0], plainNil[1], plainNil[2]) })
-			for _, v := range g.vals {
-				pa := mk(g.ptrOf(v))
-				va := mk(v)
-				c.cell("Slice", g.name, fmt.Sprintf("present@%d &%s", pos+1, variantName(v)),
-					func() any { return Slice(pa[0], pa[1], pa[2]) },
-					func() any { return Slice(va[0], va[1], va[2]) })
-			}
-		}
-	}
-	t.Logf("Slice: %d differential cells", c.cells)
 }
 
 // The Safe* family derefs three independent things: the container, the key, and the

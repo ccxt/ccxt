@@ -4,7 +4,7 @@
 import onetradingRest from '../onetrading.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, NullableDict, List, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, NullableDict, List, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -242,17 +242,16 @@ export default class onetrading extends onetradingRest {
             const ticker = tickers[i];
             const marketId = this.safeString (ticker, 'instrument');
             const symbol = this.safeSymbol (marketId);
-            const parsedTicker = this.parseWSTicker (ticker);
             const timestamp = this.parse8601 (datetime);
-            parsedTicker['timestamp'] = timestamp;
-            parsedTicker['datetime'] = this.iso8601 (timestamp);
+            const isoDatetime = this.iso8601 (timestamp);
+            const parsedTicker = this.parseWSTicker (ticker, undefined, timestamp, isoDatetime);
             this.tickers[symbol] = parsedTicker;
             client.resolve (parsedTicker, 'ticker.' + symbol);
         }
         client.resolve (this.tickers, 'tickers');
     }
 
-    parseWSTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWSTicker (ticker: Dict, market: Market, timestamp: Int, datetime: Str): Ticker {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -267,8 +266,8 @@ export default class onetrading extends onetradingRest {
         const marketId = this.safeString (ticker, 'instrument');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': undefined,
@@ -326,17 +325,17 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        let trades = await this.watch (url, messageHash, request, subscribeHash, request);
+        const trades = await this.watch (url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        trades = this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved);
-        const numTrades: number = trades.length;
+        const filtered = this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved);
+        const numTrades: number = filtered.length;
         if (numTrades === 0) {
             return await this.watchMyTrades (symbolResolved, since, limitResolved, params);
         }
-        return trades;
+        return filtered;
     }
 
     /**
@@ -446,7 +445,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any[]) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],
@@ -496,17 +495,17 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        let orders = await this.watch (url, messageHash, request, subscribeHash, request);
+        const orders = await this.watch (url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        orders = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved);
-        const numOrders: number = orders.length;
+        const filtered = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved);
+        const numOrders: number = filtered.length;
         if (numOrders === 0) {
             return await this.watchOrders (symbolResolved, since, limitResolved, params);
         }
-        return orders;
+        return filtered;
     }
 
     handleTrading (client: Client, message: Dict) {
@@ -763,13 +762,13 @@ export default class onetrading extends onetradingRest {
         }
         const orders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder (rawOrders[i]);
+            const order = this.parseOrder (this.safeDict (rawOrders, i, {}));
             let symbol = this.safeString (order, 'symbol', '');
             orders.append (order);
             client.resolve (this.orders, 'orders:' + symbol);
             const rawTrades: Dict[] = this.safeList (rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
-                const trade = this.parseTrade (rawTrades[ii]);
+                const trade = this.parseTrade (this.safeDict (rawTrades, ii, {}));
                 symbol = this.safeString (trade, 'symbol', symbol);
                 this.myTrades.append (trade);
                 client.resolve (this.myTrades, 'myTrades:' + symbol);
@@ -1131,15 +1130,9 @@ export default class onetrading extends onetradingRest {
                 subscription = {};
             }
         }
-        const subscriptionMarketId = this.safeDict (subscription, marketId);
-        if (subscriptionMarketId === undefined) {
-            if (marketId !== undefined) {
-                subscription[marketId] = {};
-            }
-        }
-        if ((marketId !== undefined) && (timeframe !== undefined)) {
-            subscription[marketId][timeframe] = true;
-        }
+        const marketTimeframes: Dict = this.safeDict (subscription, marketId, {});
+        marketTimeframes[timeframe] = true;
+        subscription[marketId] = marketTimeframes;
         const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1239,11 +1232,14 @@ export default class onetrading extends onetradingRest {
         if (timeframesResolved === undefined) {
             throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
         }
+        const unit = this.safeString (timeframe, 'unit');
+        const period = this.safeString (timeframe, 'period');
         const keys = Object.keys (timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const timeframeResolved: Dict = this.safeDict (timeframesResolved, key, {});
-            if (timeframeResolved['unit'] === timeframe['unit'] && timeframeResolved['period'] === timeframe['period']) {
+            const rowUnit = this.safeString (timeframesResolved[key], 'unit');
+            const rowPeriod = this.safeString (timeframesResolved[key], 'period');
+            if (rowUnit === unit && rowPeriod === period) {
                 return key;
             }
         }
@@ -1277,7 +1273,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "error": "MALFORMED_JSON",
@@ -1401,7 +1397,9 @@ export default class onetrading extends onetradingRest {
             subscription[marketId] = true;
         }
         request['type'] = type;
-        request['channels'][0]['instrument_codes'] = Object.keys (subscription);
+        const instrumentCodes = Object.keys (subscription);
+        const channel: Dict = this.extend (this.safeDict (this.safeList (request, 'channels', []), 0, {}), { 'instrument_codes': instrumentCodes });
+        request['channels'] = [ channel ];
         return await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
     }
 

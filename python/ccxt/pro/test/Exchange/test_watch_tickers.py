@@ -35,7 +35,7 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
         should_return = False
         start_time = exchange.milliseconds()
         try:
-            response = await exchange.watch_tickers(arg_symbols, arg_params)
+            response = await exchange.watch_tickers(arg_symbols)
         except Exception as e:
             # for some exchanges, specifically watchTickers method not subscribe
             # to "all tickers" itself, and it requires symbols to be set

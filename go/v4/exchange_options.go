@@ -10,8 +10,8 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.ApiKey = SafeString(extendedProperties, "apiKey", "").(string)
 	this.Secret = SafeString(extendedProperties, "secret", "").(string)
 	this.Password = SafeString(extendedProperties, "password", "").(string)
-	this.Login = SafeString(extendedProperties, "login", nil)
-	this.Twofa = SafeString(extendedProperties, "twofa", nil)
+	this.Login = SafeString(extendedProperties, "login", "").(string)
+	this.Twofa = SafeString(extendedProperties, "twofa", "").(string)
 	this.PrivateKey = SafeString(extendedProperties, "privateKey", "").(string)
 	this.WalletAddress = SafeString(extendedProperties, "walletAddress", "").(string)
 	this.Token = SafeString(extendedProperties, "token", nil)
@@ -46,6 +46,7 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.Has = SafeValue(extendedProperties, "has", map[string]any{}).(map[string]any)
 	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]any{}).(map[string]any)
 	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]any{}).(map[string]any)
+	this.ExceptionsWs, _ = this.Exceptions["ws"].(map[string]any)
 	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
 	if propertiesMarkets != nil {
 		this.Markets = this.Extend(propertiesMarkets)

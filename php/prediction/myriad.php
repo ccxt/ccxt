@@ -278,8 +278,7 @@ class myriad extends Exchange {
                 'state' => $state,
                 'limit' => $limit,
             ), $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $found = $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
                 $networkId = $this->safe_string($raw, 'networkId', '');
@@ -329,8 +328,7 @@ class myriad extends Exchange {
                 'page' => $page,
                 'trading_model' => $tradingModel,
             ), $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $rawMarkets = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $rawMarkets = $this->safe_list($response, 'data', array());
             $rawMarketsLength = count($rawMarkets);
             if ($rawMarketsLength === 0) {
                 break;
@@ -365,7 +363,7 @@ class myriad extends Exchange {
          */
         if (mb_strpos($id, ':') === false) {
             $rawQuestion = Async\await($this->fetch_raw_question_by_id($id, $params));
-            $orderBookEvent = $this->parse_event($rawQuestion);
+            $orderBookEvent = $this->parse_event($this->extend(array(), $rawQuestion));
             $this->index_event_outcomes($orderBookEvent);
             return $orderBookEvent;
         }
@@ -468,8 +466,7 @@ class myriad extends Exchange {
                 'keyword' => $q,
                 'limit' => $limit,
             ), $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $found = $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
                 $questionId = $this->safe_string($raw, 'id');
@@ -511,8 +508,7 @@ class myriad extends Exchange {
                 $request['state'] = $state;
             }
             $response = Async\await($this->myriadPublicGetQuestions($this->extend($request, $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $rawQuestions = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $rawQuestions = $this->safe_list($response, 'data', array());
             $rawQuestionsLength = count($rawQuestions);
             if ($rawQuestionsLength === 0) {
                 break;
@@ -608,7 +604,7 @@ class myriad extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_prediction_position($data[$i]);
+            $position = $this->parse_prediction_position($this->safe_dict($data, $i, array()));
             if (($outcomes === null) || $this->in_array($position['outcome'], $outcomes)) {
                 $result[] = $position;
             }
@@ -774,22 +770,16 @@ class myriad extends Exchange {
         $payload = '02' . $this->rlp_encode_list($fields);
         $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
         $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
-        $rHex = $this->safe_string($signature, 'r');
-        $sHex = $this->safe_string($signature, 's');
-        if ($rHex === null) {
+        $rHexRaw = $this->safe_string($signature, 'r', '');
+        if ($rHexRaw === '') {
             throw new ExchangeError($this->id . ' signEvmTransaction() missing rHex');
         }
-        $rHexLength = count($rHex);
-        if ((fmod($rHexLength, 2)) !== 0) {
-            $rHex = '0' . $rHex;
-        }
-        if ($sHex === null) {
+        $sHexRaw = $this->safe_string($signature, 's', '');
+        if ($sHexRaw === '') {
             throw new ExchangeError($this->id . ' signEvmTransaction() missing sHex');
         }
-        $sHexLength = count($sHex);
-        if ((fmod($sHexLength, 2)) !== 0) {
-            $sHex = '0' . $sHex;
-        }
+        $rHex = $this->pad_hex_to_even($rHexRaw);
+        $sHex = $this->pad_hex_to_even($sHexRaw);
         $yParity = $this->safe_integer($signature, 'v');
         $signedFields = array();
         for ($i = 0; $i < count($fields); $i++) {
@@ -1139,8 +1129,10 @@ class myriad extends Exchange {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
-        $txHash = $txHashParam;
-        if ($txHash === null) {
+        $txHash = null;
+        if ($txHashParam !== null) {
+            $txHash = $txHashParam;
+        } else {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
         if (!$skipWaitForReceipt) {
@@ -1193,8 +1185,8 @@ class myriad extends Exchange {
         $encoded = $this->eth_encode_structured_data($domain, $types, $message);
         $digest = $this->hash($encoded, 'keccak', 'hex');
         $signature = $this->ecdsa($digest, $this->remove0x_prefix($this->privateKey), 'secp256k1', null);
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         $v = $this->sum(27, $signature['v']);
@@ -1485,8 +1477,7 @@ class myriad extends Exchange {
         if (($requestedStatus === 'open') || ($requestedStatus === 'cancelled') || ($requestedStatus === 'canceled') || ($requestedStatus === 'expired')) {
             return array();
         }
-        $traderParam = $this->safe_string_2($params, 'trader', 'address');
-        $trader = ($traderParam !== null) ? $traderParam : $this->wallet_address_or_undefined();
+        $trader = $this->safe_string_2($params, 'trader', 'address', $this->wallet_address_or_undefined());
         if ($trader === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2127,9 +2118,9 @@ class myriad extends Exchange {
         $state = $this->safe_string($raw, 'state', 'open');
         $endDate = $this->safe_string($raw, 'expiresAt');
         return array(
-            'id' => $market['id'],
+            'id' => $this->safe_string($market, 'id', ''),
             'slug' => $slug,
-            'event' => $market['market'],
+            'event' => $this->safe_string($market, 'market', ''),
             'title' => $this->safe_string_2($raw, 'title', 'shortName'),
             'description' => $this->safe_string($raw, 'description'),
             'markets' => array( $market ),
@@ -2247,15 +2238,17 @@ class myriad extends Exchange {
         $outcomesLength = count($outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
+        $compositeId = $this->safe_string($raw, 'networkId', '') . ':' . $this->safe_string($raw, 'id', '');
+        $compositeBaseId = $this->safe_string($raw, 'networkId', '') . ':' . $this->safe_string($raw, 'id', '');
         return array(
-            'id' => $networkId . ':' . $marketId,
+            'id' => $compositeId,
             'market' => $marketSymbol,
             'marketType' => ($outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel' => $marketExecutionModel,
             'base' => $slug,
             'quote' => $quoteCurrency,
             'settle' => null,
-            'baseId' => $networkId . ':' . $marketId,
+            'baseId' => $compositeBaseId,
             'quoteId' => $quoteCurrency,
             'settleId' => null,
             'type' => 'prediction',
@@ -2272,7 +2265,7 @@ class myriad extends Exchange {
             'linear' => null,
             'inverse' => null,
             'contractSize' => null,
-            'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
+            'expiry' => $this->parse8601($endDate),
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
@@ -2525,7 +2518,7 @@ class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        $outcomeId = ($market !== null && $market !== null) ? $this->safe_string($market['info'], 'outcomeId') : null;
+        $outcomeId = $this->safe_string($this->safe_dict($market, 'info'), 'outcomeId');
         $outcomes = $this->safe_list($raw, 'outcomes', array());
         $price = null;
         $change = null;
@@ -2534,7 +2527,8 @@ class myriad extends Exchange {
         $percentage = null;
         for ($i = 0; $i < count($outcomes); $i++) {
             $o = $this->safe_dict($outcomes, $i);
-            if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
+            $entryOutcomeId = $this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id'));
+            if ($entryOutcomeId === $outcomeId) {
                 $priceValue = $this->safe_number($o, 'price');
                 $changeValue = $this->safe_number($o, 'priceChange24h');
                 $price = $priceValue;
@@ -2542,7 +2536,7 @@ class myriad extends Exchange {
                 if (($priceValue !== null) && ($changeValue !== null)) {
                     $previousCloseValue = $priceValue - $changeValue;
                     $previousClose = $previousCloseValue;
-                    if ($previousCloseValue !== 0) {
+                    if ($priceValue !== $changeValue) {
                         $percentage = $changeValue / $previousCloseValue * 100;
                     }
                 }
@@ -2698,7 +2692,8 @@ class myriad extends Exchange {
         $ask = null;
         for ($i = 0; $i < count($outcomes); $i++) {
             $o = $this->safe_dict($outcomes, $i);
-            if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
+            $entryOutcomeId = $this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id'));
+            if ($entryOutcomeId === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
                 if ($price !== null) {
                     if ($price > 0.001) {
@@ -2833,6 +2828,7 @@ class myriad extends Exchange {
         //
         $outcomes = $this->safe_list($response, 'outcomes', array());
         $selectedOutcome = null;
+        $outcomeSelected = false;
         for ($i = 0; $i < count($outcomes); $i++) {
             $oc = $outcomes[$i];
             $currentId = $this->safe_string($oc, 'id', $this->safe_string($oc, 'outcomeId'));
@@ -2841,8 +2837,9 @@ class myriad extends Exchange {
                 $selectedOutcome = $oc;
                 break;
             }
-            if (($selectedOutcome === null) && ($outcomeTitle !== null) && ($currentTitle === $outcomeTitle)) {
+            if ((!$outcomeSelected) && ($outcomeTitle !== null) && ($currentTitle === $outcomeTitle)) {
                 $selectedOutcome = $oc;
+                $outcomeSelected = true;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
@@ -2966,7 +2963,7 @@ class myriad extends Exchange {
         $responses = Async\await(Promise\all($promises));
         for ($i = 0; $i < count($marketKeys); $i++) {
             $key = $marketKeys[$i];
-            $response = $responses[$i];
+            $response = $this->safe_dict($responses, $i, array());
             $grouped = $outcomesByMarket[$key];
             for ($j = 0; $j < count($grouped); $j++) {
                 $outcomeObj = $grouped[$j];
@@ -3031,8 +3028,7 @@ class myriad extends Exchange {
         //         ]
         //     }
         //
-        $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-        $rows = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+        $rows = $this->safe_list($response, 'data', array());
         $trades = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $this->safe_dict($rows, $i);
@@ -3150,7 +3146,7 @@ class myriad extends Exchange {
                 $tagQueries = array();
                 for ($i = 0; $i < $requestedTagsLength; $i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    $tagSlug = $requestedTags[$i];
+                    $tagSlug = $this->safe_string($requestedTags, $i, '');
                     $tagQueries[] = str_replace('-', ' ', $tagSlug);
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -3170,8 +3166,7 @@ class myriad extends Exchange {
         $result = array();
         $rawQuestionsLength = count($rawQuestions);
         for ($i = 0; $i < $rawQuestionsLength; $i++) {
-            $rawQuestion = $rawQuestions[$i];
-            $ev = $this->parse_event($rawQuestion);
+            $ev = $this->parse_event($this->extend(array(), $rawQuestions[$i]));
             $evMarkets = $this->safe_list($ev, 'markets', array());
             $evMarketsLength = count($evMarkets);
             $filteredMarkets = array();
@@ -3265,11 +3260,12 @@ class myriad extends Exchange {
         if ($existing === null) {
             $this->options['requestId'] = $this->create_safe_dictionary();
         }
-        $options = $this->options['requestId'];
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         if ($url !== null) {
-            $this->options['requestId'][$url] = $newValue;
+            $options[$url] = $newValue;
+            $this->options['requestId'] = $options;
         }
         return $newValue;
     }
@@ -3343,7 +3339,7 @@ class myriad extends Exchange {
         $linesLength = count($lines);
         for ($i = 0; $i < $linesLength; $i++) {
             $line = $lines[$i];
-            if (strlen($line) > 0) {
+            if ($line !== '') {
                 $parsed = json_decode($line, $as_associative_array = true);
                 $this->handle_centrifugo_frame($client, $parsed);
             }
@@ -3360,7 +3356,7 @@ class myriad extends Exchange {
         $keys = is_array($msg) ? array_keys($msg) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
-            $this->spawn(array($this, 'pong'), $client, $msg);
+            $this->spawn(array($this, 'pong'), $client);
             return;
         }
         $connectReply = $this->safe_dict($msg, 'connect');
@@ -3536,7 +3532,7 @@ class myriad extends Exchange {
         $info = $this->safe_dict($outcomeObj, 'info', array());
         $networkId = $this->safe_string($info, 'networkId', '');
         $marketId = $this->safe_string($info, 'marketId', '');
-        $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
+        $sym = $this->safe_string($outcomeObj, 'outcome');
         $channel = 'trades:' . $networkId . ':' . $marketId;
         $messageHash = 'myTrades';
         $trades = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
@@ -3707,12 +3703,12 @@ class myriad extends Exchange {
         $seenChannels = array();
         $resolvedSymbols = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $outcomeObj = $this->outcome($outcomes[$i]);
+            $outcomeObj = $this->outcome($this->safe_string($outcomes, $i, ''));
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $networkId = $this->safe_string($info, 'networkId', '');
             $marketId = $this->safe_string($info, 'marketId', '');
             $channel = 'prices:' . $networkId . ':' . $marketId;
-            $resolvedSymbols[] = $this->safe_outcome_symbol($outcomes[$i], $outcomeObj);
+            $resolvedSymbols[] = $this->safe_outcome_symbol($this->safe_string($outcomes, $i, ''), $outcomeObj);
             if (!(is_array($seenChannels) && array_key_exists($channel ?? '', $seenChannels))) {
                 $seenChannels[$channel] = true;
                 $requestId = $this->request_id($url);
@@ -3825,12 +3821,12 @@ class myriad extends Exchange {
             $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $networkId = $this->safe_string($info, 'networkId', $networkId);
-            $outcomeResolved = $this->safe_outcome_symbol($outcomeResolved, $outcomeObj);
+            $outcomeResolved = $this->safe_string($outcomeObj, 'outcome');
         }
         $channel = 'orders:' . $networkId . ':' . $trader;
         $messageHash = 'orders';
         $orders = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
-        return $this->filter_by_value_since_limit($orders, 'outcome', $outcomeResolved, $since, $limit, 'timestamp', true);
+        return $this->filter_by_outcome_since_limit($orders, $outcomeResolved, $since, $limit, true);
     }
 
     public function handle_order(Client $client, array $data) {
@@ -4007,7 +4003,7 @@ class myriad extends Exchange {
         return strtolower($this->eth_get_address_from_private_key($this->privateKey));
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ($response === null) {
             return null;

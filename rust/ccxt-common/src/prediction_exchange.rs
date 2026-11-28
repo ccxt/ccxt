@@ -27,7 +27,7 @@ use crate::exchange::Exchange;
 pub struct PredictionExchange {
     pub exchange: Exchange,
     // Prediction-only instance state (see PredictionExchange.ts field block).
-    pub outcomes: Value,
+    pub outcomes: Option<crate::value::Dict>,
     pub outcomes_by_id: Value,
     pub events: Value,
     pub events_by_slug: Value,
@@ -37,7 +37,7 @@ impl PredictionExchange {
     pub fn new(config: Option<Value>) -> Self {
         Self {
             exchange: Exchange::new(config),
-            outcomes: Value::Null,
+            outcomes: None,
             outcomes_by_id: Value::Null,
             events: Value::Null,
             events_by_slug: Value::Null,

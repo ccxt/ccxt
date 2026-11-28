@@ -1,4 +1,4 @@
-import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02 } from 'ast-transpiler';
+import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installNumParams, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installCcxtGoFeeTierLiterals, installFmGo5GP08, installFmGo5OG02 } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import log from 'ololog'
 
@@ -48,10 +48,13 @@ export function installCcxtGoMarketBoolReads (printer: any) {
     const original = printer.goNativeCondition.bind (printer);
     printer.goNativeCondition = function (node: any) {
         const native = original (node);
-        while ((native === undefined) && (node?.kind !== undefined) && (node.expression !== undefined) && (node.argumentExpression === undefined) && /^\(.*\)$/s.test (node.getText ())) {
+        if (native !== undefined) {
+            return native;
+        }
+        while ((node?.expression !== undefined) && (node.argumentExpression === undefined) && (node.name === undefined) && (node.arguments === undefined) && /^\(.*\)$/s.test (node.getText ())) {
             node = node.expression;
         }
-        if ((native !== undefined) || (node?.argumentExpression === undefined) || (typeof node.expression?.text !== 'string')) {
+        if ((node?.argumentExpression === undefined) || (typeof node.expression?.text !== 'string')) {
             return native;
         }
         const key = /^'(\w+)'$/.exec (node.argumentExpression.getText ())?.[1];
@@ -60,10 +63,13 @@ export function installCcxtGoMarketBoolReads (printer: any) {
         }
         const receiver = node.expression;
         const declaration = this.goDeclarationOfIdentifier (receiver);
-        const scope = (declaration === undefined) ? undefined : this.goEnclosingFunction (declaration);
+        if ((declaration?.parent?.declarations === undefined) || !goIsMarketRowWrite (declaration.initializer)) {
+            return native;
+        }
+        const scope = this.goEnclosingFunction (declaration);
         // the read must already print as a native map index (the local is a Go map, not an any box)
         const read = `${this.printNode (receiver, 0)}["${key}"]`;
-        if ((scope === undefined) || (declaration.parent?.declarations === undefined) || (this.printNode (node, 0) !== read) || !goIsMarketRowWrite (declaration.initializer)) {
+        if ((scope === undefined) || (this.printNode (node, 0) !== read)) {
             return native;
         }
         // every later write of the local, whole or by key, must be another market row
@@ -99,17 +105,19 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode (false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
-        installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);
+        installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params, transpilerConfig?.go?.unifiedFloat64Params);
         installCcxtGoIndexableTypes(cachedTranspiler.goTranspiler);
         installCcxtGoParamTypes(cachedTranspiler.goTranspiler);
         installCcxtGoDictParams(cachedTranspiler.goTranspiler);
         installCcxtGoGb05ParamTypes(cachedTranspiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode(cachedTranspiler.goTranspiler);
         installCcxtGoSignTyping(cachedTranspiler.goTranspiler);
+        installNumParams(cachedTranspiler.goTranspiler);
         installRfGo5OwnedTables(cachedTranspiler.goTranspiler);  // RF-go-5
         installFmGo5G01(cachedTranspiler.goTranspiler);  // FM-GO5
         installFmGo5G04(cachedTranspiler.goTranspiler);  // FM-GO5
         installCcxtGoTupleSlotReads(cachedTranspiler.goTranspiler);
+        installCcxtGoFeeTierLiterals(cachedTranspiler.goTranspiler);
         installFmGo5GP08(cachedTranspiler.goTranspiler);  // FM-GO5
         installFmGo5OG02(cachedTranspiler.goTranspiler);  // FM-GO5
         installCcxtGoMarketBoolReads(cachedTranspiler.goTranspiler);

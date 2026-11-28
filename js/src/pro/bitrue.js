@@ -8,6 +8,7 @@
 import bitrueRest from '../bitrue.js';
 import { AuthenticationError, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class bitrue extends bitrueRest {
     describe() {
@@ -390,7 +391,7 @@ export default class bitrue extends bitrueRest {
         const isFutures = (channelKind === 'e');
         let market = undefined;
         if (isFutures) {
-            const wsBaseQuote = this.safeStringLower(parts, 2);
+            const wsBaseQuote = this.safeStringLower(parts, 2, '');
             market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         }
         else {
@@ -403,28 +404,26 @@ export default class bitrue extends bitrueRest {
         }
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeDict(message, 'tick', {});
-        let parseable = tick;
-        if (isFutures) {
-            const rawAsks = this.safeList(tick, 'asks', []);
-            const rawBuys = this.safeList(tick, 'buys', []);
-            parseable = {
-                'asks': this.parseContractBidsAsks(rawAsks, symbol),
-                'buys': this.parseContractBidsAsks(rawBuys, symbol),
-            };
-        }
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook(parseable, symbol, timestamp, 'buys', 'asks');
-        orderbook.reset(snapshot);
+        if (isFutures) {
+            const rawAsks = this.safeList(tick, 'asks', []);
+            const rawBuys = this.safeList(tick, 'buys', []);
+            orderbook.reset(this.parseOrderBook({
+                'asks': this.parseContractBidsAsks(rawAsks, symbol),
+                'buys': this.parseContractBidsAsks(rawBuys, symbol),
+            }, symbol, timestamp, 'buys', 'asks'));
+        }
+        else {
+            orderbook.reset(this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks'));
+        }
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
     findSwapMarketByWsBaseQuote(wsBaseQuote) {
-        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+        // callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if (this.markets === undefined) {
             return undefined;
         }
@@ -565,12 +564,12 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' unWatchTrades is only supported for swap markets');
         }
-        const baseIdLower = this.safeStringLower(market, 'baseId');
-        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const baseIdLower = this.safeStringLower(market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_trade_ticker';
         const subscription = {
@@ -602,7 +601,7 @@ export default class bitrue extends bitrueRest {
         //
         const channel = this.safeString(message, 'channel');
         const parts = channel.split('_');
-        const wsBaseQuote = this.safeStringLower(parts, 2);
+        const wsBaseQuote = this.safeStringLower(parts, 2, '');
         const market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         const symbol = this.safeString(market, 'symbol');
         if (symbol === undefined) {
@@ -717,7 +716,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' unWatchOHLCV is only supported for swap markets');
         }
@@ -726,8 +725,8 @@ export default class bitrue extends bitrueRest {
         if (interval === undefined) {
             throw new NotSupported(this.id + ' unWatchOHLCV does not support timeframe ' + timeframe);
         }
-        const baseIdLower = this.safeStringLower(market, 'baseId');
-        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const baseIdLower = this.safeStringLower(market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
         const subscription = {
@@ -757,7 +756,7 @@ export default class bitrue extends bitrueRest {
         //
         const channel = this.safeString(message, 'channel');
         const parts = channel.split('_');
-        const wsBaseQuote = this.safeStringLower(parts, 2);
+        const wsBaseQuote = this.safeStringLower(parts, 2, '');
         const market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         const symbol = this.safeString(market, 'symbol');
         if (symbol === undefined) {
@@ -854,7 +853,7 @@ export default class bitrue extends bitrueRest {
         //
         const channel = this.safeString(message, 'channel');
         const parts = channel.split('_');
-        const wsBaseQuote = this.safeStringLower(parts, 2);
+        const wsBaseQuote = this.safeStringLower(parts, 2, '');
         const market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         const symbol = this.safeString(market, 'symbol');
         if (symbol === undefined) {
@@ -877,8 +876,8 @@ export default class bitrue extends bitrueRest {
         const baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         const quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         const close = this.safeNumber(tick, 'close');
-        const rose = this.safeNumber(tick, 'rose');
-        const percentage = (rose === undefined) ? undefined : rose * 100;
+        const rose = this.safeString(tick, 'rose');
+        const percentage = Precise.stringMul(rose, '100');
         return this.safeTicker({
             'info': tick,
             'symbol': symbol,

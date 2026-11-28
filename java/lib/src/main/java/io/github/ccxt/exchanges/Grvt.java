@@ -771,168 +771,178 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    public CompletableFuture<Object> signIn(Object parameters)
+    public CompletableFuture<Object> signIn(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.signInCore(parameters));
+    }
+
+    private Object signInCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            // if (this.usesPrivateKey ()) {
-            //     await this.signInWithPrivateKey (params);
-            //     await this.initializeClient (params);
-            // } else {
-            //     await this.signInWithApiKey (params);
-            // }
-            if (java.util.Objects.equals(this.privateKey, null) || java.util.Objects.equals(this.privateKey, ""))
-            {
-                throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
-            }
-            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
-            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
-            (this.loadAccountInfos()).join();
-            return true;
-        });
+        // if (this.usesPrivateKey ()) {
+        //     await this.signInWithPrivateKey (params);
+        //     await this.initializeClient (params);
+        // } else {
+        //     await this.signInWithApiKey (params);
+        // }
+        if (java.util.Objects.equals(this.privateKey, null) || java.util.Objects.equals(this.privateKey, ""))
+        {
+            throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
+        }
+        (this.signInWithPrivateKey(parameters)).join();
+        (this.initializeClient(parameters)).join();
+        (this.loadAccountInfos()).join();
+        return true;
 
     }
 
     public CompletableFuture<Map<String, Object>> signInWithApiKey(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.signInWithApiKeyCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> signInWithApiKeyCore(Map<String, Object> parameters)
+    {
 
-            Long now = this.milliseconds();
-            // expires in 24 hours as CS suggested
-            Long expires = this.safeInteger(this.options, "signInExpiration", 0);
-            // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
-            {
-                return new HashMap<String, Object>() {{}};
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "api_key", Grvt.this.apiKey );
-            }};
-            Map<String, Object> response = (this.privateEdgePostAuthApiKeyLogin(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "location": "",
-            //        "status": "success"
-            //    }
-            //
-            this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
-            return response;
-        });
+        Long now = this.milliseconds();
+        // expires in 24 hours as CS suggested
+        Long expires = this.safeInteger(this.options, "signInExpiration", 0);
+        // if previous sign-in not expired (give 10 seconds margin)
+        if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
+        {
+            return new HashMap<String, Object>() {{}};
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "api_key", Grvt.this.apiKey );
+        }};
+        Map<String, Object> response = (this.privateEdgePostAuthApiKeyLogin(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "location": "",
+        //        "status": "success"
+        //    }
+        //
+        this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
+        return response;
 
     }
 
     public CompletableFuture<Map<String, Object>> signInWithPrivateKey(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.signInWithPrivateKeyCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> signInWithPrivateKeyCore(Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            Long now = this.milliseconds();
-            // expires in 24 hours as CS suggested
-            Long expires = this.safeInteger(this.options, "signInExpiration", 0);
-            // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
-            {
-                return new HashMap<String, Object>() {{}};
-            }
-            String walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "address", walletAddress );
-                put( "signature", Grvt.this.defaultSignature() );
-            }};
-            Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", (Map<String, Object>) null, (String) null), parameters))).join();
-            //
-            //    {
-            //        "location": "",
-            //        "status": "success"
-            //    }
-            //
-            this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
-            return response;
-        });
+        this.checkRequiredCredentials(true);
+        Long now = this.milliseconds();
+        // expires in 24 hours as CS suggested
+        Long expires = this.safeInteger(this.options, "signInExpiration", 0);
+        // if previous sign-in not expired (give 10 seconds margin)
+        if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
+        {
+            return new HashMap<String, Object>() {{}};
+        }
+        String walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "address", walletAddress );
+            put( "signature", Grvt.this.defaultSignature() );
+        }};
+        Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", null, null), parameters))).join();
+        //
+        //    {
+        //        "location": "",
+        //        "status": "success"
+        //    }
+        //
+        this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
+        return response;
 
     }
 
-    public CompletableFuture<Object> initializeClient(Map<String, Object> parameters)
+    public CompletableFuture<Boolean> initializeClient(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.initializeClientCore(parameters));
+    }
+
+    private Boolean initializeClientCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Boolean builderFee = (Boolean) this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (!Boolean.TRUE.equals(builderFee))
+        Boolean builderFee = (Boolean) this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
+        if (!Boolean.TRUE.equals(builderFee))
+        {
+            return false;  // skip if builder fee is not enabled
+        }
+        Boolean approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        if (Boolean.TRUE.equals(approvedBuilderFee))
+        {
+            return true;  // skip if builder fee is already approved
+        }
+        (this.loadAccountInfos()).join();
+        List<CompletableFuture<?>> resultsFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}})));
+        Object results = (CompletableFuture.allOf(resultsFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(resultsFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        //
+        // {
+        //     "results": [{
+        //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
+        //         "max_futures_fee_rate": 0.001,
+        //         "max_spot_fee_rate": 0.0001
+        //     }]
+        // }
+        //
+        Map<String, Object> currentBuilders = this.safeDict(results, 0, null);
+        List<Object> approvedBuilder = this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
+        Integer length = approvedBuilder.size();
+        Boolean found = false;
+        String builderId = this.safeString(this.options, "builder");
+        for (var i = 0; (length != null && i < length); i++)
+        {
+            Map<String, Object> builderInfo = this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
+            String builderAccountId = this.safeString(builderInfo, "builder_account_id");
+            if (java.util.Objects.equals(builderAccountId, builderId))
             {
-                return false;  // skip if builder fee is not enabled
+                found = true;
+                break;
             }
-            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Boolean.TRUE.equals(approvedBuilderFee))
+        }
+        if (Boolean.TRUE.equals(found))
+        {
+            this.options.put("approvedBuilderFee", true);
+        } else
+        {
+            try
             {
-                return true;  // skip if builder fee is already approved
-            }
-            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            //
-            // {
-            //     "results": [{
-            //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
-            //         "max_futures_fee_rate": 0.001,
-            //         "max_spot_fee_rate": 0.0001
-            //     }]
-            // }
-            //
-            Map<String, Object> currentBuilders = this.safeDict(results, 0, null);
-            List<Object> approvedBuilder = this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
-            Integer length = approvedBuilder.size();
-            Boolean found = false;
-            String builderId = this.safeString(this.options, "builder");
-            for (var i = 0; (length != null && i < length); i++)
-            {
-                Map<String, Object> builderInfo = this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
-                String builderAccountId = this.safeString(builderInfo, "builder_account_id");
-                if (java.util.Objects.equals(builderAccountId, builderId))
+                String defaultFromAccountId = this.safeString(this.options, "userMainAccountId"); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "main_account_id", defaultFromAccountId );
+                    put( "builder_account_id", Grvt.this.safeString(Grvt.this.options, "builder") );
+                    put( "max_futures_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
+                    put( "max_spot_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
+                    put( "signature", Grvt.this.defaultSignature() );
+                }};
+                Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", null, null), parameters))).join();
+                //
+                // {
+                //     "result": {
+                //         "ack": "true",
+                //         "tx_id":"0"
+                //     }
+                // }
+                //
+                Map<String, Object> authResult = this.safeDict(authResponse, "result", null);
+                Boolean ack = this.safeBool(authResult, "ack", false);
+                if (!Boolean.TRUE.equals(ack))
                 {
-                    found = true;
-                    break;
+                    throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
                 }
-            }
-            if (Boolean.TRUE.equals(found))
-            {
                 this.options.put("approvedBuilderFee", true);
-            } else
+            } catch(Exception e)
             {
-                try
-                {
-                    String defaultFromAccountId = this.safeString(this.options, "userMainAccountId"); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-                    Map<String, Object> request = new HashMap<String, Object>() {{
-                        put( "main_account_id", defaultFromAccountId );
-                        put( "builder_account_id", Grvt.this.safeString(Grvt.this.options, "builder") );
-                        put( "max_futures_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
-                        put( "max_spot_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
-                        put( "signature", Grvt.this.defaultSignature() );
-                    }};
-                    Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", (Map<String, Object>) null, (String) null), parameters))).join();
-                    //
-                    // {
-                    //     "result": {
-                    //         "ack": "true",
-                    //         "tx_id":"0"
-                    //     }
-                    // }
-                    //
-                    Map<String, Object> authResult = this.safeDict(authResponse, "result", null);
-                    Boolean ack = (Boolean) this.safeBool(authResult, "ack", false);
-                    if (!Boolean.TRUE.equals(ack))
-                    {
-                        throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
-                    }
-                    this.options.put("approvedBuilderFee", true);
-                } catch(Exception e)
-                {
-                    this.options.put("builderFee", false); // disable builder fee if an error occurs
-                }
+                this.options.put("builderFee", false); // disable builder fee if an error occurs
             }
-            return null;  // just c#
-        });
+        }
+        return null;  // just c#
 
     }
 
@@ -944,48 +954,50 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Object marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "instrument": "AAVE_USDT_Perp",
-            //                "instrument_hash": "0x032201",
-            //                "base": "AAVE",
-            //                "quote": "USDT",
-            //                "kind": "PERPETUAL",
-            //                "venues": [
-            //                    "ORDERBOOK",
-            //                    "RFQ"
-            //                ],
-            //                "settlement_period": "PERPETUAL",
-            //                "base_decimals": "9",
-            //                "quote_decimals": "6",
-            //                "tick_size": "0.01",
-            //                "min_size": "0.1",
-            //                "create_time": "1764303867576216941",
-            //                "max_position_size": "3000.0",
-            //                "funding_interval_hours": "8",
-            //                "adjusted_funding_rate_cap": "0.75",
-            //                "adjusted_funding_rate_floor": "-0.75"
-            //            },
-            //            ...
-            //
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(marketsPromise));
-            if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.privateKey))
-            {
-                ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
-            }
-            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> response = this.safeDict(results, 0, null);
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarkets(result);
-        });
+        CompletableFuture<?> marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "instrument_hash": "0x032201",
+        //                "base": "AAVE",
+        //                "quote": "USDT",
+        //                "kind": "PERPETUAL",
+        //                "venues": [
+        //                    "ORDERBOOK",
+        //                    "RFQ"
+        //                ],
+        //                "settlement_period": "PERPETUAL",
+        //                "base_decimals": "9",
+        //                "quote_decimals": "6",
+        //                "tick_size": "0.01",
+        //                "min_size": "0.1",
+        //                "create_time": "1764303867576216941",
+        //                "max_position_size": "3000.0",
+        //                "funding_interval_hours": "8",
+        //                "adjusted_funding_rate_cap": "0.75",
+        //                "adjusted_funding_rate_floor": "-0.75"
+        //            },
+        //            ...
+        //
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(marketsPromise));
+        if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.privateKey))
+        {
+            promises.add(this.signIn(new HashMap<String, Object>() {{}}));
+        }
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        Map<String, Object> response = this.safeDict(results, 0, null);
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseMarkets(result);
 
     }
 
@@ -1019,13 +1031,13 @@ public class Grvt extends GrvtApi
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         String settleId = quoteId;
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId, null);
         String symbol = ((((base + "/") + quote) + ":") + quote);
         String type = null;
         String typeRaw = this.safeString(market, "kind");
@@ -1062,8 +1074,8 @@ public class Grvt extends GrvtApi
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Grvt.this.safeNumber(market, "min_size", (Object) null) );
-                put( "price", Grvt.this.safeNumber(market, "tick_size", (Object) null) );
+                put( "amount", Grvt.this.safeNumber(market, "min_size", null) );
+                put( "price", Grvt.this.safeNumber(market, "tick_size", null) );
                 put( "base", Grvt.this.parseNumber(Grvt.this.parsePrecision(Grvt.this.safeString(market, "base_decimals"))) );
                 put( "quote", Grvt.this.parseNumber(Grvt.this.parsePrecision(Grvt.this.safeString(market, "quote_decimals"))) );
             }});
@@ -1073,15 +1085,15 @@ public class Grvt extends GrvtApi
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Grvt.this.safeNumber(market, "min_size", (Object) null) );
-                    put( "max", Grvt.this.safeNumber(market, "max_position_size", (Object) null) );
+                    put( "min", Grvt.this.safeNumber(market, "min_size", null) );
+                    put( "max", Grvt.this.safeNumber(market, "max_position_size", null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Grvt.this.safeNumber(market, "min_notional", (Object) null) );
+                    put( "min", Grvt.this.safeNumber(market, "min_notional", null) );
                     put( "max", null );
                 }} );
             }});
@@ -1098,29 +1110,31 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
+
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "", "" );
-            }}; // workaround for php [] empty arr
-            Map<String, Object> response = (this.publicMarketPostFullV1Currency(request)).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "id": "4",
-            //                "symbol": "ETH",
-            //                "balance_decimals": "9",
-            //                "quantity_multiplier": "1000000000"
-            //            },
-            //            ..
-            //
-            List<Object> responseResult = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseCurrencies(responseResult);
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "", "" );
+        }}; // workaround for php [] empty arr
+        Map<String, Object> response = (this.publicMarketPostFullV1Currency(request)).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "id": "4",
+        //                "symbol": "ETH",
+        //                "balance_decimals": "9",
+        //                "quantity_multiplier": "1000000000"
+        //            },
+        //            ..
+        //
+        List<Object> responseResult = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseCurrencies(responseResult);
 
     }
 
@@ -1135,7 +1149,7 @@ public class Grvt extends GrvtApi
         //            },
         //
         String id = this.safeString(rawCurrency, "symbol");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id, null);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
@@ -1177,57 +1191,59 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", Grvt.this.marketId((String) (symbol)) );
-            }};
-            Map<String, Object> response = (this.publicMarketPostFullV1Ticker(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "result": {
-            //            "event_time": "1764774730025055205",
-            //            "instrument": "BTC_USDT_Perp",
-            //            "mark_price": "92697.300078773",
-            //            "index_price": "92727.818122278",
-            //            "last_price": "92683.0",
-            //            "last_size": "0.001",
-            //            "mid_price": "92682.95",
-            //            "best_bid_price": "92682.9",
-            //            "best_bid_size": "5.332",
-            //            "best_ask_price": "92683.0",
-            //            "best_ask_size": "0.009",
-            //            "funding_rate_8h_curr": "0.0037",
-            //            "funding_rate_8h_avg": "0.0037",
-            //            "interest_rate": "0.0",
-            //            "forward_price": "0.0",
-            //            "buy_volume_24h_b": "2893.898",
-            //            "sell_volume_24h_b": "2907.847",
-            //            "buy_volume_24h_q": "266955739.1606",
-            //            "sell_volume_24h_q": "268170211.7109",
-            //            "high_price": "93908.3",
-            //            "low_price": "89900.1",
-            //            "open_price": "90129.2",
-            //            "open_interest": "1523.218935908",
-            //            "long_short_ratio": "1.472543",
-            //            "funding_rate": "0.0037",
-            //            "next_funding_time": "1764777600000000000"
-            //        }
-            //    }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(result, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument", Grvt.this.marketId(symbol) );
+        }};
+        Map<String, Object> response = (this.publicMarketPostFullV1Ticker(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764774730025055205",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "92697.300078773",
+        //            "index_price": "92727.818122278",
+        //            "last_price": "92683.0",
+        //            "last_size": "0.001",
+        //            "mid_price": "92682.95",
+        //            "best_bid_price": "92682.9",
+        //            "best_bid_size": "5.332",
+        //            "best_ask_price": "92683.0",
+        //            "best_ask_size": "0.009",
+        //            "funding_rate_8h_curr": "0.0037",
+        //            "funding_rate_8h_avg": "0.0037",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "2893.898",
+        //            "sell_volume_24h_b": "2907.847",
+        //            "buy_volume_24h_q": "266955739.1606",
+        //            "sell_volume_24h_q": "268170211.7109",
+        //            "high_price": "93908.3",
+        //            "low_price": "89900.1",
+        //            "open_price": "90129.2",
+        //            "open_interest": "1523.218935908",
+        //            "long_short_ratio": "1.472543",
+        //            "funding_rate": "0.0037",
+        //            "next_funding_time": "1764777600000000000"
+        //        }
+        //    }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseTicker(result, market);
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //  {
@@ -1263,7 +1279,7 @@ public class Grvt extends GrvtApi
         Long timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", Grvt.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Grvt.this.safeSymbol(marketId, market, null, null) );
             put( "timestamp", timestamp );
             put( "datetime", Grvt.this.iso8601(timestamp) );
             put( "open", Grvt.this.safeString(ticker, "open_price") );
@@ -1283,7 +1299,7 @@ public class Grvt extends GrvtApi
             put( "vwap", null );
             put( "average", null );
             put( "previousClose", null );
-        }}, (Map<String, Object>) null);
+        }}, null);
     }
 
     /**
@@ -1297,49 +1313,51 @@ public class Grvt extends GrvtApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", Grvt.this.marketId((String) (symbol)) );
-            }};
-            Object limitResolved = 100;
-            if (!java.util.Objects.equals(limit, null))
-            {
-                limitResolved = limit;
-            }
-            if (java.util.Objects.equals(limit, null) || (limit <= 500))
-            {
-                request.put("depth", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(10, 50, 100, 500)), limitResolved));
-            }
-            Map<String, Object> response = (this.publicMarketPostFullV1Book(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "result": {
-            //            "event_time": "1764777396650000000",
-            //            "instrument": "BTC_USDT_Perp",
-            //            "bids": [
-            //                { "price": "92336.0", "size": "0.005", "num_orders": "1" },
-            //                ...
-            //            ],
-            //            "asks": [
-            //                { "price": "92336.1", "size": "5.711", "num_orders": "37" },
-            //                ...
-            //            ]
-            //        }
-            //    }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Long timestamp = this.parse8601(this.safeString(result, "event_time"));
-            String marketId = this.safeString(result, "instrument");
-            return this.parseOrderBook(result, this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null), timestamp, "bids", "asks", "price", "size", 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument", Grvt.this.marketId(symbol) );
+        }};
+        Object limitResolved = 100;
+        if (!java.util.Objects.equals(limit, null))
+        {
+            limitResolved = limit;
+        }
+        if (java.util.Objects.equals(limit, null) || (limit <= 500))
+        {
+            request.put("depth", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(10, 50, 100, 500)), limitResolved));
+        }
+        Map<String, Object> response = (this.publicMarketPostFullV1Book(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764777396650000000",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "bids": [
+        //                { "price": "92336.0", "size": "0.005", "num_orders": "1" },
+        //                ...
+        //            ],
+        //            "asks": [
+        //                { "price": "92336.1", "size": "5.711", "num_orders": "37" },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Long timestamp = this.parse8601(this.safeString(result, "event_time"));
+        String marketId = this.safeString(result, "instrument");
+        return this.parseOrderBook(result, this.safeSymbol(marketId, null, null, null), timestamp, "bids", "asks", "price", "size", 2);
 
     }
 
@@ -1357,52 +1375,54 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
-            //        "result": [
-            //            {
-            //                "event_time": "1764779531332118705",
-            //                "instrument": "ETH_USDT_Perp",
-            //                "is_taker_buyer": false,
-            //                "size": "23.73",
-            //                "price": "3089.88",
-            //                "mark_price": "3089.360002315",
-            //                "index_price": "3090.443723246",
-            //                "interest_rate": "0.0",
-            //                "forward_price": "0.0",
-            //                "trade_id": "64796657-1",
-            //                "venue": "ORDERBOOK",
-            //                "is_rpi": false
-            //            },
-            //            ...
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
+        //        "result": [
+        //            {
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "is_taker_buyer": false,
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_rpi": false
+        //            },
+        //            ...
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1453,10 +1473,10 @@ public class Grvt extends GrvtApi
         //            }
         //
         String marketId = this.safeString(trade, "instrument");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         String takerOrMaker = null;
-        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", (Object) null);
+        Boolean isTakerBuyer = this.safeBool(trade, "is_taker_buyer", null);
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
@@ -1464,8 +1484,8 @@ public class Grvt extends GrvtApi
             takerOrMaker = "taker";
         } else
         {
-            Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", false);
-            Boolean isBuyer = (Boolean) this.safeBool(trade, "is_buyer", false);
+            Boolean isTaker = this.safeBool(trade, "is_taker", false);
+            Boolean isBuyer = this.safeBool(trade, "is_buyer", false);
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
@@ -1477,7 +1497,7 @@ public class Grvt extends GrvtApi
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", this.parseNumber(feeString));
                 hx4NewMap0.put("currency", marketResolved.get("quote"));
-                hx4NewMap0.put("rate", this.safeNumber(trade, "fee_rate", (Object) null));
+                hx4NewMap0.put("rate", this.safeNumber(trade, "fee_rate", null));
                 fee = hx4NewMap0;
             }
         }
@@ -1513,71 +1533,73 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long maxLimit = 1000L;
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", market.get("id") );
-                put( "interval", Grvt.this.safeString(Grvt.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-            }};
-            Map<String, Object> priceTypeMap = new HashMap<String, Object>() {{
-                put( "last", "TRADE" );
-                put( "mark", "MARK" );
-                put( "index", "INDEX" );
-            }};
-            String selectedPriceType = this.safeString(paramsPaginate, "priceType", "last");
-            request.put("type", this.safeString(priceTypeMap, selectedPriceType));
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "open_time": "1767288240000000000",
-            //                "close_time": "1767288300000000000",
-            //                "open": "88178.8",
-            //                "close": "88176.7",
-            //                "high": "88192.7",
-            //                "low": "88176.6",
-            //                "volume_b": "15.32",
-            //                "volume_q": "1350962.4782",
-            //                "trades": 38,
-            //                "instrument": "BTC_USDT_Perp"
-            //            },
-            //        ],
-            //        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
-            //    }
-            //
-            List<Object> candles = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        Long maxLimit = 1000L;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument", market.get("id") );
+            put( "interval", Grvt.this.safeString(Grvt.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+        }};
+        Map<String, Object> priceTypeMap = new HashMap<String, Object>() {{
+            put( "last", "TRADE" );
+            put( "mark", "MARK" );
+            put( "index", "INDEX" );
+        }};
+        String selectedPriceType = this.safeString(paramsPaginate, "priceType", "last");
+        request.put("type", this.safeString(priceTypeMap, selectedPriceType));
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "open_time": "1767288240000000000",
+        //                "close_time": "1767288300000000000",
+        //                "open": "88178.8",
+        //                "close": "88176.7",
+        //                "high": "88192.7",
+        //                "low": "88176.6",
+        //                "volume_b": "15.32",
+        //                "volume_q": "1350962.4782",
+        //                "trades": 38,
+        //                "instrument": "BTC_USDT_Perp"
+        //            },
+        //        ],
+        //        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
+        //    }
+        //
+        List<Object> candles = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //            {
@@ -1593,7 +1615,7 @@ public class Grvt extends GrvtApi
         //                "instrument": "BTC_USDT_Perp"
         //            }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, "open_time", 0.000001), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume_b", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, "open_time", 0.000001), this.safeNumber(ohlcv, "open", null), this.safeNumber(ohlcv, "high", null), this.safeNumber(ohlcv, "low", null), this.safeNumber(ohlcv, "close", null), this.safeNumber(ohlcv, "volume_b", null)));
     }
 
     /**
@@ -1611,63 +1633,65 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "instrument": "BTC_USDT_Perp",
-            //                "funding_rate": "-0.0034",
-            //                "funding_time": "1760494260000000000",
-            //                "mark_price": "112721.159060304",
-            //                "funding_rate_8_h_avg": "-0.0038",
-            //                "funding_interval_hours": "0"
-            //            },
-            //            ...
-            //        ],
-            //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
-            //    }
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRateHistories(result, market, (Long) null, (Long) null);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, null)).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "instrument": "BTC_USDT_Perp",
+        //                "funding_rate": "-0.0034",
+        //                "funding_time": "1760494260000000000",
+        //                "mark_price": "112721.159060304",
+        //                "funding_rate_8_h_avg": "-0.0038",
+        //                "funding_interval_hours": "0"
+        //            },
+        //            ...
+        //        ],
+        //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
+        //    }
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseFundingRateHistories(result, market, null, null);
 
     }
 
-    public Object parseFundingRateHistory(Object rawItem, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> rawItem, Map<String, Object> market)
     {
         //
         //            {
@@ -1686,7 +1710,7 @@ public class Grvt extends GrvtApi
         String rate = this.safeString(rawItem, "funding_rate");
         return new HashMap<String, Object>() {{
             put( "info", rawItem );
-            put( "symbol", Grvt.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Grvt.this.safeSymbol(marketId, market, null, null) );
             put( "fundingRate", Grvt.this.parseNumber(Precise.stringDiv(rate, "100")) );
             put( "timestamp", ts );
             put( "datetime", Grvt.this.iso8601(ts) );
@@ -1695,7 +1719,7 @@ public class Grvt extends GrvtApi
 
     public String getSubAccountId(Map<String, Object> parameters)
     {
-        String subAccountId = this.safeString(this.handleOptionAndParams(parameters, "getSubAccountId", "accountId", (Object) null), 0);
+        String subAccountId = this.safeString(this.handleOptionAndParams(parameters, "getSubAccountId", "accountId", null), 0);
         if (java.util.Objects.equals(subAccountId, null))
         {
             throw new ArgumentsRequired((this.id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page")) ;
@@ -1713,45 +1737,47 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1AccountSummary(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "result": {
-            //            "event_time": "1764863116142428457",
-            //            "sub_account_id": "2147050003876484",
-            //            "margin_type": "SIMPLE_CROSS_MARGIN",
-            //            "settle_currency": "USDT",
-            //            "unrealized_pnl": "0.0",
-            //            "total_equity": "15.0",
-            //            "initial_margin": "0.0",
-            //            "maintenance_margin": "0.0",
-            //            "available_balance": "15.0",
-            //            "spot_balances": [
-            //                {
-            //                    "currency": "USDT",
-            //                    "balance": "15.0",
-            //                    "index_price": "1.000289735"
-            //                }
-            //            ],
-            //            "positions": [],
-            //            "settle_index_price": "1.000289735",
-            //            "derisk_margin": "0.0",
-            //            "derisk_to_maintenance_margin_ratio": "1.0",
-            //            "total_cross_equity": "15.0",
-            //            "cross_unrealized_pnl": "0.0"
-            //        }
-            //    }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseBalance(result);
-        }).thenApply(Balances::new);
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1AccountSummary(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "result": {
+        //            "event_time": "1764863116142428457",
+        //            "sub_account_id": "2147050003876484",
+        //            "margin_type": "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency": "USDT",
+        //            "unrealized_pnl": "0.0",
+        //            "total_equity": "15.0",
+        //            "initial_margin": "0.0",
+        //            "maintenance_margin": "0.0",
+        //            "available_balance": "15.0",
+        //            "spot_balances": [
+        //                {
+        //                    "currency": "USDT",
+        //                    "balance": "15.0",
+        //                    "index_price": "1.000289735"
+        //                }
+        //            ],
+        //            "positions": [],
+        //            "settle_index_price": "1.000289735",
+        //            "derisk_margin": "0.0",
+        //            "derisk_to_maintenance_margin_ratio": "1.0",
+        //            "total_cross_equity": "15.0",
+        //            "cross_unrealized_pnl": "0.0"
+        //        }
+        //    }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseBalance(result);
 
     }
 
@@ -1795,7 +1821,7 @@ public class Grvt extends GrvtApi
         {
             Map<String, Object> balance = this.safeDict(spotBalances, i, null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", availableBalance); // todo: revise after API team clarification
@@ -1821,56 +1847,58 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", new ArrayList<Object>(Arrays.asList(currency.get("code"))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
-            if (Boolean.TRUE.equals(useTransfersEndpoint))
-            {
-                Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
-                List<Object> transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, "deposit", true), 0, new ArrayList<Object>(Arrays.asList())), "info");
-                return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
-            } else
-            {
-                Map<String, Object> response = (this.privateTradingPostFullV1DepositHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-                //
-                // {
-                //     "result": [{
-                //         "l_1_hash": "0x10000101000203040506",
-                //         "l_2_hash": "0x10000101000203040506",
-                //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //         "currency": "USDT",
-                //         "num_tokens": "1500.0",
-                //         "initiated_time": "1697788800000000000",
-                //         "confirmed_time": "1697788800000000000",
-                //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
-                //     }],
-                //     "next": "Qw0918="
-                // }
-                //
-                List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-                return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+            request.put("currency", new ArrayList<Object>(Arrays.asList(currency.get("code"))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Boolean useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+        if (Boolean.TRUE.equals(useTransfersEndpoint))
+        {
+            Object transfers = (this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)).join();
+            List<Object> transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, "deposit", true), 0, new ArrayList<Object>(Arrays.asList())), "info");
+            return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
+        } else
+        {
+            Map<String, Object> response = (this.privateTradingPostFullV1DepositHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+            //
+            // {
+            //     "result": [{
+            //         "l_1_hash": "0x10000101000203040506",
+            //         "l_2_hash": "0x10000101000203040506",
+            //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency": "USDT",
+            //         "num_tokens": "1500.0",
+            //         "initiated_time": "1697788800000000000",
+            //         "confirmed_time": "1697788800000000000",
+            //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+            //     }],
+            //     "next": "Qw0918="
+            // }
+            //
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
+        }
 
     }
 
@@ -1888,114 +1916,118 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = null;
-            if (java.util.Objects.equals(code, null))
-            {
-                request.put("currency", null);
-            } else
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", new ArrayList<Object>(Arrays.asList(currency.get("code"))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
-            if (Boolean.TRUE.equals(useTransfersEndpoint))
-            {
-                Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
-                List<Object> transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, "withdrawal", true), 0, new ArrayList<Object>(Arrays.asList())), "info");
-                return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
-            } else
-            {
-                Map<String, Object> response = (this.privateTradingPostFullV1WithdrawalHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-                //
-                // {
-                //     "result": [{
-                //         "tx_id": "1028403",
-                //         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //         "currency": "USDT",
-                //         "num_tokens": "1500.0",
-                //         "signature": {
-                //             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-                //             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
-                //             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
-                //             "v": 28,
-                //             "expiration": "1697788800000000000",
-                //             "nonce": 1234567890,
-                //             "chain_id": "325"
-                //         },
-                //         "event_time": "1697788800000000000",
-                //         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-                //         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
-                //     }],
-                //     "next": "Qw0918="
-                // }
-                //
-                List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-                return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> currency = null;
+        if (java.util.Objects.equals(code, null))
+        {
+            request.put("currency", null);
+        } else
+        {
+            currency = this.currency(code);
+            request.put("currency", new ArrayList<Object>(Arrays.asList(currency.get("code"))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Boolean useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+        if (Boolean.TRUE.equals(useTransfersEndpoint))
+        {
+            Object transfers = (this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)).join();
+            List<Object> transactions = this.getListFromObjectValues(this.safeList(this.filterTransfersByType(transfers, "withdrawal", true), 0, new ArrayList<Object>(Arrays.asList())), "info");
+            return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
+        } else
+        {
+            Map<String, Object> response = (this.privateTradingPostFullV1WithdrawalHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+            //
+            // {
+            //     "result": [{
+            //         "tx_id": "1028403",
+            //         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency": "USDT",
+            //         "num_tokens": "1500.0",
+            //         "signature": {
+            //             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+            //             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+            //             "v": 28,
+            //             "expiration": "1697788800000000000",
+            //             "nonce": 1234567890,
+            //             "chain_id": "325"
+            //         },
+            //         "event_time": "1697788800000000000",
+            //         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            //         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+            //     }],
+            //     "next": "Qw0918="
+            // }
+            //
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
+        }
 
     }
 
     public CompletableFuture<Object> internalFetchTransfers(Map<String, Object> req, Map<String, Object> currency, Long since, Long limit)
     {
+        return BaseExchange.supplyAsync(() -> this.internalFetchTransfersCore(req, currency, since, limit));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object internalFetchTransfersCore(Map<String, Object> req, Map<String, Object> currency, Long since, Long limit)
+    {
 
-            Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(req)).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "tx_id": "65119836",
-            //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-            //                "from_sub_account_id": "0",
-            //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "to_sub_account_id": "0",
-            //                "currency": "USDT",
-            //                "num_tokens": "4.998",
-            //                "signature": {
-            //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-            //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-            //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-            //                    "v": "27",
-            //                    "expiration": "1767455807929000000",
-            //                    "nonce": "45905",
-            //                    "chain_id": "0"
-            //                },
-            //                "event_time": "1764863808817370541",
-            //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
-            //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
-            //            },
-            //            ...
-            //        ],
-            //        "next": ""
-            //    }
-            //
-            List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-            return transfers;
-        });
+        Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(req)).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+        return transfers;
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -2096,7 +2128,7 @@ public class Grvt extends GrvtApi
             h2kMap0.put("type", direction);
             h2kMap0.put("currency", code);
             h2kMap0.put("network", networkCode);
-            h2kMap0.put("amount", this.safeNumber(transaction, "num_tokens", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(transaction, "num_tokens", null));
             h2kMap0.put("status", null);
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
@@ -2127,69 +2159,71 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTransfersCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTransfersCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(code, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
-            }
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = this.currency((String) (code));
-            Long maxLimit = 1000L;
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", (String) null, since, limit, paramsPaginate, maxLimit, true)).join();
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "tx_id": "65119836",
-            //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-            //                "from_sub_account_id": "0",
-            //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "to_sub_account_id": "0",
-            //                "currency": "USDT",
-            //                "num_tokens": "4.998",
-            //                "signature": {
-            //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-            //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-            //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-            //                    "v": "27",
-            //                    "expiration": "1767455807929000000",
-            //                    "nonce": "45905",
-            //                    "chain_id": "0"
-            //                },
-            //                "event_time": "1764863808817370541",
-            //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
-            //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
-            //            },
-            //            ...
-            //        ],
-            //        "next": ""
-            //    }
-            //
-            List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
-            return this.toArray(this.safeList(this.filterTransfersByType(transfers, "internal", false), 1, new ArrayList<Object>(Arrays.asList())));
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(code, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
+        }
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> currency = this.currency(code);
+        Long maxLimit = 1000L;
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, paramsPaginate, maxLimit, true)).join();
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+        return this.toArray(this.safeList(this.filterTransfersByType(transfers, "internal", false), 1, new ArrayList<Object>(Arrays.asList())));
 
     }
 
@@ -2200,17 +2234,19 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < ((List<?>)transfers).size(); i++)
         {
             Object transfer = (transfers == null || i < 0 || i >= ((List<?>)transfers).size() ? null : ((List<?>)transfers).get(i));
-            if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
+            String fromAccount = this.safeString(transfer, "fromAccount", "");
+            String toAccount = this.safeString(transfer, "toAccount", "");
+            if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(fromAccount, "0") && java.util.Objects.equals(toAccount, "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(fromAccount, "0") || !java.util.Objects.equals(toAccount, "0"))))
             {
                 String metadata = this.safeString(this.safeDict(transfer, "info", new HashMap<String, Object>() {{}}), "transfer_metadata");
                 Object parsedMetadata = this.parseJson(metadata);
                 String direction = this.safeString(parsedMetadata, "direction");
                 if (java.util.Objects.equals(direction, transferType))
                 {
-                    ((List<Object>)matchedResults).add(transfer);
+                    matchedResults.add(transfer);
                 } else
                 {
-                    ((List<Object>)nonMatchedResults).add(transfer);
+                    nonMatchedResults.add(transfer);
                 }
             }
         }
@@ -2229,73 +2265,87 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
+    }
+
+    private Object transferCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> currency = this.currency((String) (code));
-            String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
-            Boolean isInternal = this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding")));
-            Object fromSubAccount = fromAccount;
-            Object toSubAccount = toAccount;
-            Object paramsFundingAccountId = parameters;
-            if (Boolean.TRUE.equals(isInternal))
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> currency = this.currency(code);
+        String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
+        Boolean isInternal = this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding")));
+        Object fromSubAccount = fromAccount;
+        Object toSubAccount = toAccount;
+        Map<String, Object> paramsFundingAccountId = parameters;
+        if (Boolean.TRUE.equals(isInternal))
+        {
+            Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId", null);
+            String tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
+            Map<String, Object> paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
+            Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId", null);
+            String fundingAccountId = fundingAccountIdparamsFundingVariable.first();
+            Map<String, Object> paramsFunding = fundingAccountIdparamsFundingVariable.second();
+            if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
             {
-                Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "tradingAccountId", (String) null);
-                String tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
-                Map<String, Object> paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
-                Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTradingAccountId), "transfer", "fundingAccountId", (String) null);
-                String fundingAccountId = fundingAccountIdparamsFundingVariable.first();
-                Map<String, Object> paramsFunding = fundingAccountIdparamsFundingVariable.second();
-                if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
-                {
-                    throw new ArgumentsRequired((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
-                }
-                fromSubAccount = (((java.util.Objects.equals(fromAccount, "trading")))) ? tradingAccountId : fundingAccountId;
-                toSubAccount = (((java.util.Objects.equals(toAccount, "trading")))) ? tradingAccountId : fundingAccountId;
-                paramsFundingAccountId = paramsFunding;
+                throw new ArgumentsRequired((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
             }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("from_account_id", this.safeString(paramsFundingAccountId, "from_account_id", defaultFromAccountId));
-            request.put("from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount));
-            request.put("to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId));
-            request.put("to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount));
-            request.put("currency", currency.get("id"));
-            request.put("num_tokens", this.currencyToPrecision((String) (code), amount, (String) null));
-            request.put("signature", this.defaultSignature());
-            request.put("transfer_type", "STANDARD");
-            request.put("transfer_metadata", null);
-            Map<String, Object> response = null;
-            try
+            if (java.util.Objects.equals(fromAccount, "trading"))
             {
-                response = (this.privateTradingPostFullV1Transfer(this.extend(this.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency, (String) null), paramsFundingAccountId))).join();
-            } catch(Exception error)
+                fromSubAccount = tradingAccountId;
+            } else
             {
-                String msg = this.exceptionMessage(error, true);
-                Boolean isFromFundingAccount = java.util.Objects.equals(fromSubAccount, "funding");
-                if (Boolean.TRUE.equals(isFromFundingAccount) && (((String)msg).indexOf("You are not authorized") >= 0))
-                {
-                    throw new PermissionDenied(((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
-                }
-                throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
+                fromSubAccount = fundingAccountId;
             }
-            //
-            // {
-            //     "result": {
-            //         "ack": "true",
-            //         "tx_id": "1028403"
-            //     }
-            // }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(result, currency);
-        }).thenApply(TransferEntry::new);
+            if (java.util.Objects.equals(toAccount, "trading"))
+            {
+                toSubAccount = tradingAccountId;
+            } else
+            {
+                toSubAccount = fundingAccountId;
+            }
+            paramsFundingAccountId = paramsFunding;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("from_account_id", this.safeString(paramsFundingAccountId, "from_account_id", defaultFromAccountId));
+        request.put("from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount));
+        request.put("to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId));
+        request.put("to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount));
+        request.put("currency", currency.get("id"));
+        request.put("num_tokens", this.currencyToPrecision(code, amount, null));
+        request.put("signature", this.defaultSignature());
+        request.put("transfer_type", "STANDARD");
+        request.put("transfer_metadata", null);
+        Map<String, Object> response = null;
+        try
+        {
+            response = (this.privateTradingPostFullV1Transfer(this.extend(this.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency, null), paramsFundingAccountId))).join();
+        } catch(Exception error)
+        {
+            String msg = this.exceptionMessage(error, true);
+            Boolean isFromFundingAccount = java.util.Objects.equals(fromSubAccount, "funding");
+            if (Boolean.TRUE.equals(isFromFundingAccount) && (((String)msg).indexOf("You are not authorized") >= 0))
+            {
+                throw new PermissionDenied(((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
+            }
+            throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
+        }
+        //
+        // {
+        //     "result": {
+        //         "ack": "true",
+        //         "tx_id": "1028403"
+        //     }
+        // }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseTransfer(result, currency);
 
     }
 
-    public Object parseTransfer(Object transfer, Map<String, Object> currency)
+    public Map<String, Object> parseTransfer(Map<String, Object> transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -2338,7 +2388,7 @@ public class Grvt extends GrvtApi
             put( "timestamp", timestamp );
             put( "datetime", Grvt.this.iso8601(timestamp) );
             put( "currency", code );
-            put( "amount", Grvt.this.safeNumber(transfer, "amount", (Object) null) );
+            put( "amount", Grvt.this.safeNumber(transfer, "amount", null) );
             put( "fromAccount", Grvt.this.safeString(transfer, "from_sub_account_id") );
             put( "toAccount", Grvt.this.safeString(transfer, "to_sub_account_id") );
             put( "status", null );
@@ -2347,70 +2397,72 @@ public class Grvt extends GrvtApi
 
     public CompletableFuture<Boolean> loadAccountInfos()
     {
+        return BaseExchange.supplyAsync(() -> this.loadAccountInfosCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Boolean loadAccountInfosCore()
+    {
 
-            if (!java.util.Objects.equals(this.safeString(this.options, "userMainAccountId"), null))
+        if (!java.util.Objects.equals(this.safeString(this.options, "userMainAccountId"), null))
+        {
+            return false;
+        }
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        promises.add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
+        //
+        //     {
+        //         "result": {
+        //             "main_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //             "total_equity": "3945034.23",
+        //             "spot_balances": [{
+        //                 "currency": "USDT",
+        //                 "balance": "123456.78",
+        //                 "index_price": "1.0000102"
+        //             }],
+        //             "vault_investments": [{
+        //                 "vault_id": 123456789,
+        //                 "num_lp_tokens": 1000000,
+        //                 "share_price": 1000000,
+        //                 "usd_notional_invested": 1000000
+        //             }],
+        //             "total_sub_account_balance": "3945034.23",
+        //             "total_sub_account_equity": "3945034.23",
+        //             "total_vault_investments_balance": "3945034.23",
+        //             "total_sub_account_available_balance": "3945034.23",
+        //             "total_usd_notional_invested": "3945034.23"
+        //         }
+        //     }
+        //
+        Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
+        if (Boolean.TRUE.equals(accountIsUndefined))
+        {
+            promises.add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
+        }
+        //
+        //     {
+        //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
+        //     }
+        //
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        Map<String, Object> result1 = this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
+        String mainAccountId = this.safeString(result1, "main_account_id");
+        this.options.put("userMainAccountId", mainAccountId);
+        if (Boolean.TRUE.equals(accountIsUndefined))
+        {
+            List<Object> subAccountIds = this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
+            Integer length = subAccountIds.size();
+            if (((length == null || length < 1)))
             {
-                return false;
+                throw new ArgumentsRequired((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
             }
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
-            //
-            //     {
-            //         "result": {
-            //             "main_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            //             "total_equity": "3945034.23",
-            //             "spot_balances": [{
-            //                 "currency": "USDT",
-            //                 "balance": "123456.78",
-            //                 "index_price": "1.0000102"
-            //             }],
-            //             "vault_investments": [{
-            //                 "vault_id": 123456789,
-            //                 "num_lp_tokens": 1000000,
-            //                 "share_price": 1000000,
-            //                 "usd_notional_invested": 1000000
-            //             }],
-            //             "total_sub_account_balance": "3945034.23",
-            //             "total_sub_account_equity": "3945034.23",
-            //             "total_vault_investments_balance": "3945034.23",
-            //             "total_sub_account_available_balance": "3945034.23",
-            //             "total_usd_notional_invested": "3945034.23"
-            //         }
-            //     }
-            //
-            Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
-            if (Boolean.TRUE.equals(accountIsUndefined))
+            if ((length != null && length > 1))
             {
-                ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
+                throw new ArgumentsRequired(((this.id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ") + this.json(subAccountIds))) ;
             }
-            //
-            //     {
-            //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
-            //     }
-            //
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> result1 = this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
-            String mainAccountId = this.safeString(result1, "main_account_id");
-            this.options.put("userMainAccountId", mainAccountId);
-            if (Boolean.TRUE.equals(accountIsUndefined))
-            {
-                List<Object> subAccountIds = this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
-                Integer length = subAccountIds.size();
-                if (((length == null || length < 1)))
-                {
-                    throw new ArgumentsRequired((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
-                }
-                if ((length != null && length > 1))
-                {
-                    throw new ArgumentsRequired(((this.id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ") + this.json(subAccountIds))) ;
-                }
-                String subAccountId = this.safeString(subAccountIds, 0);
-                this.options.put("accountId", subAccountId);
-            }
-            return true;
-        });
+            String subAccountId = this.safeString(subAccountIds, 0);
+            this.options.put("accountId", subAccountId);
+        }
+        return true;
 
     }
 
@@ -2427,43 +2479,45 @@ public class Grvt extends GrvtApi
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
+
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            this.checkAddress(address, (String) null, (String) null);
-            (this.loadMarketsAndSignIn()).join();
-            String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
-            Map<String, Object> currency = this.currency((String) (code));
-            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
-            String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            String networkId = this.networkCodeToId(networkCode, code);
-            if (java.util.Objects.equals(networkId, null))
-            {
-                throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
-            }
-            Map<String, Object> withdrawSignature = this.defaultSignature();
-            withdrawSignature.put("chain_id", networkId);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "to_eth_address", address );
-                put( "from_account_id", defaultFromAccountId );
-                put( "currency", currency.get("id") );
-                put( "num_tokens", Grvt.this.currencyToPrecision((String) (code), amount, (String) null) );
-                put( "signature", withdrawSignature );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1Withdrawal(this.extend(this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency, (String) null), query))).join();
-            //
-            // {
-            //     "result": {
-            //         "ack": "true"
-            //     }
-            // }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTransaction(result, currency);
-        }).thenApply(Transaction::new);
+        this.checkAddress(address, null, null);
+        (this.loadMarketsAndSignIn()).join();
+        String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
+        Map<String, Object> currency = this.currency(code);
+        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+        String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
+        Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
+        String networkId = this.networkCodeToId(networkCode, code);
+        if (java.util.Objects.equals(networkId, null))
+        {
+            throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
+        }
+        Map<String, Object> withdrawSignature = this.defaultSignature();
+        withdrawSignature.put("chain_id", networkId);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "to_eth_address", address );
+            put( "from_account_id", defaultFromAccountId );
+            put( "currency", currency.get("id") );
+            put( "num_tokens", Grvt.this.currencyToPrecision(code, amount, null) );
+            put( "signature", withdrawSignature );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1Withdrawal(this.extend(this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency, null), query))).join();
+        //
+        // {
+        //     "result": {
+        //         "ack": "true"
+        //     }
+        // }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseTransaction(result, currency);
 
     }
 
@@ -2487,231 +2541,235 @@ public class Grvt extends GrvtApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> orderLeg = new HashMap<String, Object>() {{
-                put( "instrument", market.get("id") );
-                put( "size", Grvt.this.amountToPrecision(symbol, amount) );
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> orderLeg = new HashMap<String, Object>() {{
+            put( "instrument", market.get("id") );
+            put( "size", Grvt.this.amountToPrecision(symbol, amount) );
+        }};
+        if (!java.util.Objects.equals(price, null))
+        {
+            orderLeg.put("limit_price", this.priceToPrecision(symbol, price));
+        } else
+        {
+            orderLeg.put("limit_price", null);
+        }
+        if (java.util.Objects.equals(side, "sell"))
+        {
+            orderLeg.put("is_buying_asset", false);
+        } else if (java.util.Objects.equals(side, "buy"))
+        {
+            orderLeg.put("is_buying_asset", true);
+        } else
+        {
+            throw new InvalidOrder((this.id + " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
+        }
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (java.util.Objects.equals(clientOrderId, null))
+        {
+            clientOrderId = ((String.valueOf(this.nonce()) + "000") + String.valueOf(this.requestId()));
+        }
+        Map<String, Object> paramsOmitted3 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+        Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
+        String subAccountId = this.getSubAccountId(paramsOmitted3);
+        Boolean isReduceOnly = this.safeBool(paramsOmitted3, "reduceOnly", false);
+        Map<String, Object> orderMetadata = new HashMap<String, Object>();
+        orderMetadata.put("client_order_id", clientOrderId);
+        Map<String, Object> orderRequest = new HashMap<String, Object>() {{
+            put( "sub_account_id", subAccountId );
+            put( "time_in_force", null );
+            put( "legs", new ArrayList<Object>(Arrays.asList(orderLeg)) );
+            put( "signature", Grvt.this.defaultSignature() );
+            put( "metadata", orderMetadata );
+            put( "is_market", isMarketOrder );
+            put( "post_only", false );
+            put( "reduce_only", isReduceOnly );
+        }};
+        String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
+        Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted3);
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            orderRequest.put("post_only", true);
+        }
+        if (java.util.Objects.equals(timeInForce, null))
+        {
+            timeInForce = "GOOD_TILL_TIME";
+        } else
+        {
+            Map<String, Object> tifMap = new HashMap<String, Object>() {{
+                put( "GTC", "GOOD_TILL_TIME" );
+                put( "FOK", "FILL_OR_KILL" );
+                put( "IOC", "IMMEDIATE_OR_CANCEL" );
             }};
-            if (!java.util.Objects.equals(price, null))
-            {
-                orderLeg.put("limit_price", this.priceToPrecision(symbol, price));
-            } else
-            {
-                orderLeg.put("limit_price", null);
-            }
-            if (java.util.Objects.equals(side, "sell"))
-            {
-                orderLeg.put("is_buying_asset", false);
-            } else if (java.util.Objects.equals(side, "buy"))
-            {
-                orderLeg.put("is_buying_asset", true);
-            } else
-            {
-                throw new InvalidOrder((this.id + " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
-            }
-            String clientOrderId = this.safeString(parameters, "clientOrderId");
-            if (java.util.Objects.equals(clientOrderId, null))
-            {
-                clientOrderId = ((String.valueOf(this.nonce()) + "000") + String.valueOf(this.requestId()));
-            }
-            Map<String, Object> paramsOmitted3 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
-            Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
-            String subAccountId = this.getSubAccountId(paramsOmitted3);
-            Boolean isReduceOnly = (Boolean) this.safeBool(paramsOmitted3, "reduceOnly", false);
-            Map<String, Object> orderRequest = new HashMap<String, Object>();
-            orderRequest.put("sub_account_id", subAccountId);
-            orderRequest.put("time_in_force", null);
-            orderRequest.put("legs", new ArrayList<Object>(Arrays.asList(orderLeg)));
-            orderRequest.put("signature", this.defaultSignature());
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("client_order_id", clientOrderId);
-            orderRequest.put("metadata", mapLiteral3);
-            orderRequest.put("is_market", isMarketOrder);
-            orderRequest.put("post_only", false);
-            orderRequest.put("reduce_only", isReduceOnly);
-            String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
-            Boolean postOnly = this.isPostOnly(isMarketOrder, (Boolean) (null), paramsOmitted3);
+            timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
+        }
+        orderRequest.put("time_in_force", timeInForce);
+        if (!Boolean.TRUE.equals(isMarketOrder))
+        {
             if (Boolean.TRUE.equals(postOnly))
             {
-                orderRequest.put("post_only", true);
-            }
-            if (java.util.Objects.equals(timeInForce, null))
+                timeInForce = "POST_ONLY";
+            } else if (java.util.Objects.equals(timeInForce, "ioc"))
             {
-                timeInForce = "GOOD_TILL_TIME";
+                timeInForce = "IMMEDIATE_OR_CANCEL";
+            }
+        }
+        Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
+        // Trigger & SL & TP
+        List<Object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsOmitted2, true);
+        String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(0);
+        var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(1);
+        var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(2);
+        var paramsTriggerPrices = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(3);
+        Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null));
+        if (Boolean.TRUE.equals(isTriggerOrder))
+        {
+            // trigger price
+            Object selectedPrice = null;
+            if (!java.util.Objects.equals(triggerPrice, null))
+            {
+                selectedPrice = triggerPrice;
+            } else if (!java.util.Objects.equals(stopLossPrice, null))
+            {
+                selectedPrice = stopLossPrice;
+            } else if (!java.util.Objects.equals(takeProfitPrice, null))
+            {
+                selectedPrice = takeProfitPrice;
+            }
+            // trigger type
+            String selectedType = null;
+            Boolean isBuy = (java.util.Objects.equals(side, "buy"));
+            if (!java.util.Objects.equals(stopLossPrice, null))
+            {
+                selectedType = ((Boolean.TRUE.equals(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
+            } else if (!java.util.Objects.equals(takeProfitPrice, null))
+            {
+                selectedType = ((Boolean.TRUE.equals(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
             } else
             {
-                Map<String, Object> tifMap = new HashMap<String, Object>() {{
-                    put( "GTC", "GOOD_TILL_TIME" );
-                    put( "FOK", "FILL_OR_KILL" );
-                    put( "IOC", "IMMEDIATE_OR_CANCEL" );
-                }};
-                timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
-            }
-            orderRequest.put("time_in_force", timeInForce);
-            if (!Boolean.TRUE.equals(isMarketOrder))
-            {
-                if (Boolean.TRUE.equals(postOnly))
+                String triggerDirection = this.safeString(paramsTriggerPrices, "triggerDirection");
+                if (java.util.Objects.equals(triggerDirection, null))
                 {
-                    timeInForce = "POST_ONLY";
-                } else if (java.util.Objects.equals(timeInForce, "ioc"))
-                {
-                    timeInForce = "IMMEDIATE_OR_CANCEL";
+                    throw new ArgumentsRequired((this.id + " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")) ;
                 }
-            }
-            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted3, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly", "timeInForce")));
-            // Trigger & SL & TP
-            List<Object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsOmitted2, true);
-            String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(0);
-            var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(1);
-            var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(2);
-            var paramsTriggerPrices = ((List<Object>) triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable).get(3);
-            Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null));
-            if (Boolean.TRUE.equals(isTriggerOrder))
-            {
-                // trigger price
-                Object selectedPrice = null;
-                if (!java.util.Objects.equals(triggerPrice, null))
+                if (!java.util.Objects.equals(triggerDirection, null))
                 {
-                    selectedPrice = triggerPrice;
-                } else if (!java.util.Objects.equals(stopLossPrice, null))
-                {
-                    selectedPrice = stopLossPrice;
-                } else if (!java.util.Objects.equals(takeProfitPrice, null))
-                {
-                    selectedPrice = takeProfitPrice;
-                }
-                // trigger type
-                String selectedType = null;
-                Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-                if (!java.util.Objects.equals(stopLossPrice, null))
-                {
-                    selectedType = ((Boolean.TRUE.equals(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
-                } else if (!java.util.Objects.equals(takeProfitPrice, null))
-                {
-                    selectedType = ((Boolean.TRUE.equals(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
-                } else
-                {
-                    String triggerDirection = this.safeString(paramsTriggerPrices, "triggerDirection");
-                    if (java.util.Objects.equals(triggerDirection, null))
+                    if (java.util.Objects.equals(triggerDirection, "ascending"))
                     {
-                        throw new ArgumentsRequired((this.id + " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")) ;
-                    }
-                    if (!java.util.Objects.equals(triggerDirection, null))
+                        selectedType = ((Boolean.TRUE.equals(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
+                    } else if (java.util.Objects.equals(triggerDirection, "descending"))
                     {
-                        if (java.util.Objects.equals(triggerDirection, "ascending"))
-                        {
-                            selectedType = ((Boolean.TRUE.equals(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
-                        } else if (java.util.Objects.equals(triggerDirection, "descending"))
-                        {
-                            selectedType = ((Boolean.TRUE.equals(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
-                        }
+                        selectedType = ((Boolean.TRUE.equals(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
                     }
                 }
-                // trigger by
-                String triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
-                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("trigger_type", selectedType);
-                    j39v2.put("tpsl", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("trigger_by", triggerPriceType);
-            j39v1.put("trigger_price", selectedPrice);
-            j39v1.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
-            yield j39v1; } }));
-                    yield j39v2; } }));
             }
-            Object paramsTrigger = paramsTriggerPrices;
-            if (Boolean.TRUE.equals(isTriggerOrder))
-            {
-                paramsTrigger = this.omit(paramsTriggerPrices, new ArrayList<Object>(Arrays.asList("triggerDirection", "triggerPriceType", "closePosition")));
-            }
-            String eipType = "EIP712_ORDER_TYPE";
-            Boolean builderFee = (Boolean) this.safeBool(paramsTrigger, "builderFee", this.safeBool(this.options, "builderFee", true));
-            if (Boolean.TRUE.equals(builderFee))
-            {
-                eipType = "EIP712_ORDER_WITH_BUILDER_TYPE";
-                orderRequest.put("builder", this.safeString(this.options, "builder"));
-                orderRequest.put("builder_fee", this.safeString(this.options, "builderRate"));
-            }
-            Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("builderFee")));
-            Map<String, Object> signedOrderRequest = this.createSignedRequest(orderRequest, eipType, (Map<String, Object>) null, (String) null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order", signedOrderRequest );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1CreateOrder(this.extend(request, paramsOmitted))).join();
-            //
-            //    {
-            //        "result": {
-            //            "order_id": "0x00",
-            //            "sub_account_id": "2147050003876484",
-            //            "is_market": false,
-            //            "time_in_force": "GOOD_TILL_TIME",
-            //            "post_only": false,
-            //            "reduce_only": false,
-            //            "legs": [
-            //                {
-            //                    "instrument": "BTC_USDT_Perp",
-            //                    "size": "0.001",
-            //                    "limit_price": "50000.0",
-            //                    "is_buying_asset": true
-            //                }
-            //            ],
-            //            "signature": {
-            //                "signer": "0xbf465e6083a43b170791ea29393f60...",
-            //                "r": "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
-            //                "s": "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
-            //                "v": 27,
-            //                "expiration": "1766076771082000000",
-            //                "nonce": 1766076671,
-            //                "chain_id": "0"
-            //            },
-            //            "metadata": {
-            //                "client_order_id": "1766076671",
-            //                "create_time": "1766076671243762741",
-            //                "trigger": {
-            //                    "trigger_type": "UNSPECIFIED",
-            //                    "tpsl": {
-            //                        "trigger_by": "UNSPECIFIED",
-            //                        "trigger_price": "0.0",
-            //                        "close_position": false
-            //                    }
-            //                },
-            //                "broker": "UNSPECIFIED",
-            //                "is_position_transfer": false,
-            //                "allow_crossing": false
-            //            },
-            //            "state": {
-            //                "status": "PENDING",
-            //                "reject_reason": "UNSPECIFIED",
-            //                "book_size": [
-            //                    "0.001"
-            //                ],
-            //                "traded_size": [
-            //                    "0.0"
-            //                ],
-            //                "update_time": "1766076671243762741",
-            //                "avg_fill_price": [
-            //                    "0.0"
-            //                ]
-            //            },
-            //            "builder": "0x00",
-            //            "builder_fee": "0.0"
-            //        }
-            //    }
-            //
-            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+            // trigger by
+            String triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("trigger_type", selectedType);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("trigger_by", triggerPriceType);
+            mapLiteral4.put("trigger_price", selectedPrice);
+            mapLiteral4.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
+            mapLiteral3.put("tpsl", mapLiteral4);
+            orderMetadata.put("trigger", mapLiteral3);
+            orderRequest.put("metadata", orderMetadata);
+        }
+        Object paramsTrigger = paramsTriggerPrices;
+        if (Boolean.TRUE.equals(isTriggerOrder))
+        {
+            paramsTrigger = this.omit(paramsTriggerPrices, new ArrayList<Object>(Arrays.asList("triggerDirection", "triggerPriceType", "closePosition")));
+        }
+        String eipType = "EIP712_ORDER_TYPE";
+        Boolean builderFee = (Boolean) this.safeBool(paramsTrigger, "builderFee", this.safeBool(this.options, "builderFee", true));
+        if (Boolean.TRUE.equals(builderFee))
+        {
+            eipType = "EIP712_ORDER_WITH_BUILDER_TYPE";
+            orderRequest.put("builder", this.safeString(this.options, "builder"));
+            orderRequest.put("builder_fee", this.safeString(this.options, "builderRate"));
+        }
+        Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("builderFee")));
+        Map<String, Object> signedOrderRequest = this.createSignedRequest(orderRequest, eipType, null, null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order", signedOrderRequest );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1CreateOrder(this.extend(request, paramsOmitted))).join();
+        //
+        //    {
+        //        "result": {
+        //            "order_id": "0x00",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
+        //                {
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "50000.0",
+        //                    "is_buying_asset": true
+        //                }
+        //            ],
+        //            "signature": {
+        //                "signer": "0xbf465e6083a43b170791ea29393f60...",
+        //                "r": "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
+        //                "s": "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
+        //                "v": 27,
+        //                "expiration": "1766076771082000000",
+        //                "nonce": 1766076671,
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "1766076671",
+        //                "create_time": "1766076671243762741",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
+        //                    }
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "PENDING",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
+        //                    "0.001"
+        //                ],
+        //                "traded_size": [
+        //                    "0.0"
+        //                ],
+        //                "update_time": "1766076671243762741",
+        //                "avg_fill_price": [
+        //                    "0.0"
+        //                ]
+        //            },
+        //            "builder": "0x00",
+        //            "builder_fee": "0.0"
+        //        }
+        //    }
+        //
+        Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(data, market);
 
     }
 
-    public Object convertToBigIntCustom(Object x)
+    public Long convertToBigIntCustom(Object x)
     {
-        return Long.parseLong(this.numberToString(x));
+        return this.parseToInt(x);
     }
 
     public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
@@ -2722,9 +2780,10 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < orderLegs.size(); i++)
         {
             Map<String, Object> leg = (Map<String, Object>) (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
-            Map<String, Object> market = this.market(leg.get("instrument"));
+            String instrument = this.safeString(leg, "instrument");
+            Map<String, Object> market = this.market(instrument);
             Integer precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
-            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
+            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(precisionValue)));
             String size = this.safeString(leg, "size");
             if (java.util.Objects.equals(size, null))
             {
@@ -2733,9 +2792,9 @@ public class Grvt extends GrvtApi
             List<Object> sizeParts = new ArrayList<Object>(Arrays.asList(((String)size).split(java.util.regex.Pattern.quote("."))));
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
-            Long sizeDigits = Long.parseLong((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
-            Object denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(sizeDecLength, null)));
-            Object sizeInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.multiply(sizeDigits, sizeMultiplier), denominator);
+            Long sizeDigits = this.parseToInt((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
+            Double sizeDenominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(sizeDecLength, null)));
+            Double sizeInteger = (((double) (((double) sizeDigits) * ((double) sizeMultiplier))) / ((double) sizeDenominator));
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Grvt.this.safeString(market.get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
@@ -2748,15 +2807,15 @@ public class Grvt extends GrvtApi
                 List<Object> limitParts = new ArrayList<Object>(Arrays.asList(((String)price).split(java.util.regex.Pattern.quote("."))));
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr
-                Long priceDigits = Long.parseLong((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
-                denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(limitDecLength, null)));
-                Object priceInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((priceDigits * ((long) priceMultiplier)), denominator);
+                Long priceDigits = this.parseToInt((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
+                Double priceDenominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(limitDecLength, null)));
+                Double priceInteger = (((double) (priceDigits * ((long) priceMultiplier))) / ((double) priceDenominator));
                 legOrder.put("limitPrice", this.parseToInt(priceInteger));
             } else
             {
                 legOrder.put("limitPrice", 0); // should be zero to validate type-check
             }
-            ((List<Object>)legs).add(legOrder);
+            legs.add(legOrder);
         }
         Map<String, Object> orderSignature = this.safeDict(order, "signature", new HashMap<String, Object>() {{}});
         Map<String, Object> returnValue = new HashMap<String, Object>() {{
@@ -2772,7 +2831,7 @@ public class Grvt extends GrvtApi
         if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
             returnValue.put("builder", order.get("builder"));
-            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Double.parseDouble(this.safeString(order, "builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.put("builderFee", this.parseToInt(Precise.stringMul(this.numberToString(this.feeAmountMultiplier()), this.safeString(order, "builder_fee", "0"))));
         }
         return returnValue;
     }
@@ -2792,73 +2851,75 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (paramsPaginate)) );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
-                request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "event_time": "1764945709702747558",
-            //                "sub_account_id": "2147050003876484",
-            //                "instrument": "BTC_USDT_Perp",
-            //                "is_buyer": true,
-            //                "is_taker": false,
-            //                "size": "0.001",
-            //                "price": "90000.0",
-            //                "mark_price": "90050.164063298",
-            //                "index_price": "90089.803654938",
-            //                "interest_rate": "0.0",
-            //                "forward_price": "0.0",
-            //                "realized_pnl": "0.0",
-            //                "fee": "-0.00009",
-            //                "fee_rate": "0.0",
-            //                "trade_id": "65424692-2",
-            //                "order_id": "0x01010105034cddc7000000006621285c",
-            //                "venue": "ORDERBOOK",
-            //                "client_order_id": "1375879248",
-            //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "broker": "UNSPECIFIED",
-            //                "is_rpi": false
-            //            },
-            //            ...
-            //        ],
-            //        "next": ""
-            //    }
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(result, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, null, true)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(paramsPaginate) );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
+            request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "event_time": "1764945709702747558",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "is_buyer": true,
+        //                "is_taker": false,
+        //                "size": "0.001",
+        //                "price": "90000.0",
+        //                "mark_price": "90050.164063298",
+        //                "index_price": "90089.803654938",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "realized_pnl": "0.0",
+        //                "fee": "-0.00009",
+        //                "fee_rate": "0.0",
+        //                "trade_id": "65424692-2",
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "venue": "ORDERBOOK",
+        //                "client_order_id": "1375879248",
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "broker": "UNSPECIFIED",
+        //                "is_rpi": false
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(result, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2873,65 +2934,67 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-            }};
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            if (!java.util.Objects.equals(symbolsNormalized, null))
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+        }};
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            List<Object> baseIds = new ArrayList<Object>(Arrays.asList());
+            List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
-                List<Object> baseIds = new ArrayList<Object>(Arrays.asList());
-                List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < symbolsNormalized.size(); i++)
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                Map<String, Object> market = this.market(symbol);
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
-                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = this.market(symbol);
-                    if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
-                    {
-                        throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
-                    }
-                    ((List<Object>)baseIds).add(market.get("baseId"));
-                    ((List<Object>)quoteIds).add(market.get("quoteId"));
+                    throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
                 }
-                request.put("base", baseIds);
-                request.put("quote", quoteIds);
+                baseIds.add(market.get("baseId"));
+                quoteIds.add(market.get("quoteId"));
             }
-            Map<String, Object> response = (this.privateTradingPostFullV1Positions(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "event_time": "1765258069092857642",
-            //                "sub_account_id": "2147050003876484",
-            //                "instrument": "BTC_USDT_Perp",
-            //                "size": "0.001",
-            //                "notional": "89.8169",
-            //                "entry_price": "90000.0",
-            //                "exit_price": "0.0",
-            //                "mark_price": "89816.900008979",
-            //                "unrealized_pnl": "-0.183099",
-            //                "realized_pnl": "0.0",
-            //                "total_pnl": "-0.183099",
-            //                "roi": "-0.2034",
-            //                "quote_index_price": "1.00017885",
-            //                "est_liquidation_price": "77951.450008979",
-            //                "leverage": "28.0",
-            //                "cumulative_fee": "-0.00009",
-            //                "cumulative_realized_funding_payment": "0.033862"
-            //            }
-            //        ]
-            //    }
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+            request.put("base", baseIds);
+            request.put("quote", quoteIds);
+        }
+        Map<String, Object> response = (this.privateTradingPostFullV1Positions(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "event_time": "1765258069092857642",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "notional": "89.8169",
+        //                "entry_price": "90000.0",
+        //                "exit_price": "0.0",
+        //                "mark_price": "89816.900008979",
+        //                "unrealized_pnl": "-0.183099",
+        //                "realized_pnl": "0.0",
+        //                "total_pnl": "-0.183099",
+        //                "roi": "-0.2034",
+        //                "quote_index_price": "1.00017885",
+        //                "est_liquidation_price": "77951.450008979",
+        //                "leverage": "28.0",
+        //                "cumulative_fee": "-0.00009",
+        //                "cumulative_realized_funding_payment": "0.033862"
+        //            }
+        //        ]
+        //    }
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //            {
@@ -2957,7 +3020,7 @@ public class Grvt extends GrvtApi
         String marketId = this.safeString(position, "instrument");
         Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
-        Object isLong = (Precise.stringGe(sizeRaw, "0"));
+        Boolean isLong = (Precise.stringGe(sizeRaw, "0"));
         String side = "short";
         if (Boolean.TRUE.equals(isLong))
         {
@@ -2968,38 +3031,38 @@ public class Grvt extends GrvtApi
         Double positionMargin = null;
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
-            positionMargin = this.safeNumber(position, "isolated_balance", (Object) null);
+            positionMargin = this.safeNumber(position, "isolated_balance", null);
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", position);
-        mapLiteral4.put("id", null);
-        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-        mapLiteral4.put("notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))));
-        mapLiteral4.put("marginMode", marginMode);
-        mapLiteral4.put("liquidationPrice", this.safeNumber(position, "est_liquidation_price", (Object) null));
-        mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
-        mapLiteral4.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral4.put("realizedPnl", this.safeNumber(position, "realized_pnl", (Object) null));
-        mapLiteral4.put("percentage", null);
-        mapLiteral4.put("contracts", this.parseNumber(Precise.stringAbs(sizeRaw)));
-        mapLiteral4.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
-        mapLiteral4.put("lastPrice", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("hedged", null);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"));
-        mapLiteral4.put("maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin", (Object) null));
-        mapLiteral4.put("maintenanceMarginPercentage", null);
-        mapLiteral4.put("positionMargin", positionMargin);
-        mapLiteral4.put("collateral", null);
-        mapLiteral4.put("initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin", (Object) null));
-        mapLiteral4.put("initialMarginPercentage", null);
-        mapLiteral4.put("leverage", this.safeNumber(position, "leverage", (Object) null));
-        mapLiteral4.put("marginRatio", null);
-        mapLiteral4.put("stopLossPrice", null);
-        mapLiteral4.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral4);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", position);
+        mapLiteral5.put("id", null);
+        mapLiteral5.put("symbol", this.safeSymbol(marketId, market, null, null));
+        mapLiteral5.put("notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))));
+        mapLiteral5.put("marginMode", marginMode);
+        mapLiteral5.put("liquidationPrice", this.safeNumber(position, "est_liquidation_price", null));
+        mapLiteral5.put("entryPrice", this.safeNumber(position, "entry_price", null));
+        mapLiteral5.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", null));
+        mapLiteral5.put("realizedPnl", this.safeNumber(position, "realized_pnl", null));
+        mapLiteral5.put("percentage", null);
+        mapLiteral5.put("contracts", this.parseNumber(Precise.stringAbs(sizeRaw)));
+        mapLiteral5.put("markPrice", this.safeNumber(position, "mark_price", null));
+        mapLiteral5.put("lastPrice", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("hedged", null);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"));
+        mapLiteral5.put("maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin", null));
+        mapLiteral5.put("maintenanceMarginPercentage", null);
+        mapLiteral5.put("positionMargin", positionMargin);
+        mapLiteral5.put("collateral", null);
+        mapLiteral5.put("initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin", null));
+        mapLiteral5.put("initialMarginPercentage", null);
+        mapLiteral5.put("leverage", this.safeNumber(position, "leverage", null));
+        mapLiteral5.put("marginRatio", null);
+        mapLiteral5.put("stopLossPrice", null);
+        mapLiteral5.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral5);
     }
 
     /**
@@ -3013,28 +3076,30 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLeveragesCore(symbols, parameters)).thenApply(Leverages::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLeveragesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "results": [
-            //            {
-            //                "instrument": "AAVE_USDT_Perp",
-            //                "leverage": "10.0",
-            //                "min_leverage": "1.0",
-            //                "max_leverage": "50.0",
-            //                "margin_type": "CROSS"
-            //            },
-            //
-            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(results, symbols, (String) null, null);
-        }).thenApply(Leverages::new);
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "results": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
+        //
+        List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+        return this.parseLeverages(results, symbols, null, null);
 
     }
 
@@ -3048,34 +3113,36 @@ public class Grvt extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> setLeverage(Long leverage, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.setLeverageCore(leverage, symbol, parameters));
+    }
+
+    private Map<String, Object> setLeverageCore(Long leverage, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
-            }
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-                put( "instrument", market.get("id") );
-                put( "leverage", Grvt.this.numberToString(leverage) );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1SetInitialLeverage(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "success": true
-            //    }
-            //
-            return this.parseLeverage(response, market);
-        });
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
+        }
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+            put( "instrument", market.get("id") );
+            put( "leverage", Grvt.this.numberToString(leverage) );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1SetInitialLeverage(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.parseLeverage(response, market);
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         //
         // setLeverage
@@ -3095,11 +3162,11 @@ public class Grvt extends GrvtApi
         //     }
         //
         String marketId = this.safeString(leverage, "instrument");
-        Double leverageValue = this.safeNumber(leverage, "leverage", (Object) null);
+        Double leverageValue = this.safeNumber(leverage, "leverage", null);
         String marginType = this.safeStringLower(leverage, "margin_type");
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Grvt.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Grvt.this.safeSymbol(marketId, market, null, null) );
             put( "marginMode", marginType );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
@@ -3117,32 +3184,34 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarginModesCore(symbols, parameters)).thenApply(MarginModes::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarginModesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "results": [
-            //            {
-            //                "instrument": "AAVE_USDT_Perp",
-            //                "leverage": "10.0",
-            //                "min_leverage": "1.0",
-            //                "max_leverage": "50.0",
-            //                "margin_type": "CROSS"
-            //            },
-            //
-            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(results, symbols, (String) null, null);
-        }).thenApply(MarginModes::new);
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "results": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
+        //
+        List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+        return this.parseLeverages(results, symbols, null, null);
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    public Map<String, Object> parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         //
         // fetchMarginModes
@@ -3158,7 +3227,7 @@ public class Grvt extends GrvtApi
         String marketId = this.safeString(marginMode, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
-            put( "symbol", Grvt.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "symbol", Grvt.this.safeSymbol(marketId, market, null, null) );
             put( "marginMode", Grvt.this.safeStringLower(marginMode, "margin_type") );
         }};
     }
@@ -3178,62 +3247,64 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (paramsPaginate)) );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
-                request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "event_time": "1765267200004987902",
-            //                "sub_account_id": "2147050003876484",
-            //                "instrument": "BTC_USDT_Perp",
-            //                "currency": "USDT",
-            //                "amount": "-0.004522",
-            //                "tx_id": "66625184"
-            //            },
-            //            ..
-            //        ],
-            //        "next": ""
-            //    }
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(result, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(paramsPaginate) );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
+            request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "event_time": "1765267200004987902",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "currency": "USDT",
+        //                "amount": "-0.004522",
+        //                "tx_id": "66625184"
+        //            },
+        //            ..
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseIncomes(result, market, since, limit);
 
     }
 
-    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
+    public Map<String, Object> parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //            {
@@ -3250,12 +3321,12 @@ public class Grvt extends GrvtApi
         Long timestamp = this.safeIntegerProduct(income, "event_time", 0.000001);
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Grvt.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "code", Grvt.this.safeCurrencyCode(currencyId, (Map<String, Object>) null) );
+            put( "symbol", Grvt.this.safeSymbol(marketId, market, null, null) );
+            put( "code", Grvt.this.safeCurrencyCode(currencyId, null) );
             put( "timestamp", timestamp );
             put( "datetime", Grvt.this.iso8601(timestamp) );
             put( "id", Grvt.this.safeString(income, "tx_id") );
-            put( "amount", Grvt.this.safeNumber(income, "amount", (Object) null) );
+            put( "amount", Grvt.this.safeNumber(income, "amount", null) );
         }};
     }
 
@@ -3273,98 +3344,100 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", subAccountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
-                request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 1000));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_time", this.numberToString((since * 1000000L)));
-            }
-            List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
-            var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
-            var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            Map<String, Object> response = (this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "order_id": "0x01010105034cddc7000000006621285c",
-            //                "sub_account_id": "2147050003876484",
-            //                "is_market": false,
-            //                "time_in_force": "GOOD_TILL_TIME",
-            //                "post_only": false,
-            //                "reduce_only": false,
-            //                "legs": [
-            //                    {
-            //                        "instrument": "BTC_USDT_Perp",
-            //                        "size": "0.001",
-            //                        "limit_price": "90000.0",
-            //                        "is_buying_asset": true
-            //                    }
-            //                ],
-            //                "signature": {
-            //                    "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                    "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-            //                    "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-            //                    "v": "27",
-            //                    "expiration": "1767455222801000000",
-            //                    "nonce": "1375879248",
-            //                    "chain_id": "0"
-            //                },
-            //                "metadata": {
-            //                    "client_order_id": "1375879248",
-            //                    "create_time": "1764863234474424590",
-            //                    "trigger": {
-            //                        "trigger_type": "UNSPECIFIED",
-            //                        "tpsl": {
-            //                            "trigger_by": "UNSPECIFIED",
-            //                            "trigger_price": "0.0",
-            //                            "close_position": false
-            //                        }
-            //                    },
-            //                    "broker": "UNSPECIFIED",
-            //                    "is_position_transfer": false,
-            //                    "allow_crossing": false
-            //                },
-            //                "state": {
-            //                    "status": "FILLED",
-            //                    "reject_reason": "UNSPECIFIED",
-            //                    "book_size": [
-            //                        "0.0"
-            //                    ],
-            //                    "traded_size": [
-            //                        "0.001"
-            //                    ],
-            //                    "update_time": "1764945709704912003",
-            //                    "avg_fill_price": [
-            //                        "90000.0"
-            //                    ]
-            //                }
-            //            },
-            //            ...
-            //        ],
-            //        "next": ""
-            //    }
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        String subAccountId = this.getSubAccountId(parameters);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", subAccountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
+            request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 1000));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_time", this.numberToString((since * 1000000L)));
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
+        Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
+        Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
+        Map<String, Object> response = (this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
+        //                    {
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.001",
+        //                        "limit_price": "90000.0",
+        //                        "is_buying_asset": true
+        //                    }
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                    "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                    "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                    "v": "27",
+        //                    "expiration": "1767455222801000000",
+        //                    "nonce": "1375879248",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "1375879248",
+        //                    "create_time": "1764863234474424590",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
+        //                        }
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "FILLED",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
+        //                        "0.0"
+        //                    ],
+        //                    "traded_size": [
+        //                        "0.001"
+        //                    ],
+        //                    "update_time": "1764945709704912003",
+        //                    "avg_fill_price": [
+        //                        "90000.0"
+        //                    ]
+        //                }
+        //            },
+        //            ...
+        //        ],
+        //        "next": ""
+        //    }
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3381,77 +3454,79 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-            }};
-            Map<String, Object> response = (this.privateTradingPostFullV1OpenOrders(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "result": [
-            //            {
-            //                "order_id": "0x0101010503e693410000000069530a7d",
-            //                "sub_account_id": "2147050003876484",
-            //                "is_market": false,
-            //                "time_in_force": "GOOD_TILL_TIME",
-            //                "post_only": false,
-            //                "reduce_only": false,
-            //                "legs": [
-            //                    {
-            //                        "instrument": "BTC_USDT_Perp",
-            //                        "size": "0.002",
-            //                        "limit_price": "88123.0",
-            //                        "is_buying_asset": true
-            //                    }
-            //                ],
-            //                "signature": {
-            //                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
-            //                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
-            //                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
-            //                    "v": "28",
-            //                    "expiration": "1767871961406000000",
-            //                    "nonce": "588129369",
-            //                    "chain_id": "0"
-            //                },
-            //                "metadata": {
-            //                    "client_order_id": "588129369",
-            //                    "create_time": "1765279966899943792",
-            //                    "trigger": {
-            //                        "trigger_type": "UNSPECIFIED",
-            //                        "tpsl": {
-            //                            "trigger_by": "UNSPECIFIED",
-            //                            "trigger_price": "0.0",
-            //                            "close_position": false
-            //                        }
-            //                    },
-            //                    "broker": "UNSPECIFIED",
-            //                    "is_position_transfer": false,
-            //                    "allow_crossing": false
-            //                },
-            //                "state": {
-            //                    "status": "OPEN",
-            //                    "reject_reason": "UNSPECIFIED",
-            //                    "book_size": [
-            //                        "0.002"
-            //                    ],
-            //                    "traded_size": [
-            //                        "0.0"
-            //                    ],
-            //                    "update_time": "1765279966899943792",
-            //                    "avg_fill_price": [
-            //                        "0.0"
-            //                    ]
-            //                }
-            //            }
-            //        ]
-            //    }
-            //
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+        }};
+        Map<String, Object> response = (this.privateTradingPostFullV1OpenOrders(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "order_id": "0x0101010503e693410000000069530a7d",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
+        //                    {
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.002",
+        //                        "limit_price": "88123.0",
+        //                        "is_buying_asset": true
+        //                    }
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+        //                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+        //                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+        //                    "v": "28",
+        //                    "expiration": "1767871961406000000",
+        //                    "nonce": "588129369",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "588129369",
+        //                    "create_time": "1765279966899943792",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
+        //                        }
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "OPEN",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
+        //                        "0.002"
+        //                    ],
+        //                    "traded_size": [
+        //                        "0.0"
+        //                    ],
+        //                    "update_time": "1765279966899943792",
+        //                    "avg_fill_price": [
+        //                        "0.0"
+        //                    ]
+        //                }
+        //            }
+        //        ]
+        //    }
+        //
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(result, null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3466,91 +3541,93 @@ public class Grvt extends GrvtApi
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
+
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            (this.loadMarketsAndSignIn()).join();
-            String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", subAccountId );
-            }};
-            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("client_order_id", clientOrderId);
-            } else
-            {
-                request.put("order_id", id);
-            }
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId", "client_order_id") : parameters;
-            Map<String, Object> response = (this.privateTradingPostFullV1Order(this.extend(request, paramsOmitted))).join();
-            //
-            //    {
-            //        "result": {
-            //            "order_id": "0x01010105034cddc7000000006621285c",
-            //            "sub_account_id": "2147050003876484",
-            //            "is_market": false,
-            //            "time_in_force": "GOOD_TILL_TIME",
-            //            "post_only": false,
-            //            "reduce_only": false,
-            //            "legs": [
-            //                {
-            //                    "instrument": "BTC_USDT_Perp",
-            //                    "size": "0.001",
-            //                    "limit_price": "90000.0",
-            //                    "is_buying_asset": true
-            //                }
-            //            ],
-            //            "signature": {
-            //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-            //                "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-            //                "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-            //                "v": "27",
-            //                "expiration": "1767455222801000000",
-            //                "nonce": "1375879248",
-            //                "chain_id": "0"
-            //            },
-            //            "metadata": {
-            //                "client_order_id": "1375879248",
-            //                "create_time": "1764863234474424590",
-            //                "trigger": {
-            //                    "trigger_type": "UNSPECIFIED",
-            //                    "tpsl": {
-            //                        "trigger_by": "UNSPECIFIED",
-            //                        "trigger_price": "0.0",
-            //                        "close_position": false
-            //                    }
-            //                },
-            //                "broker": "UNSPECIFIED",
-            //                "is_position_transfer": false,
-            //                "allow_crossing": false
-            //            },
-            //            "state": {
-            //                "status": "FILLED",
-            //                "reject_reason": "UNSPECIFIED",
-            //                "book_size": [
-            //                    "0.0"
-            //                ],
-            //                "traded_size": [
-            //                    "0.001"
-            //                ],
-            //                "update_time": "1764945709704912003",
-            //                "avg_fill_price": [
-            //                    "90000.0"
-            //                ]
-            //            }
-            //        }
-            //    }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        (this.loadMarketsAndSignIn()).join();
+        String subAccountId = this.getSubAccountId(parameters);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", subAccountId );
+        }};
+        String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("client_order_id", clientOrderId);
+        } else
+        {
+            request.put("order_id", id);
+        }
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId", "client_order_id") : parameters;
+        Map<String, Object> response = (this.privateTradingPostFullV1Order(this.extend(request, paramsOmitted))).join();
+        //
+        //    {
+        //        "result": {
+        //            "order_id": "0x01010105034cddc7000000006621285c",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
+        //                {
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "90000.0",
+        //                    "is_buying_asset": true
+        //                }
+        //            ],
+        //            "signature": {
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                "v": "27",
+        //                "expiration": "1767455222801000000",
+        //                "nonce": "1375879248",
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "1375879248",
+        //                "create_time": "1764863234474424590",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
+        //                    }
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "FILLED",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
+        //                    "0.0"
+        //                ],
+        //                "traded_size": [
+        //                    "0.001"
+        //                ],
+        //                "update_time": "1764945709704912003",
+        //                "avg_fill_price": [
+        //                    "90000.0"
+        //                ]
+        //            }
+        //        }
+        //    }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(result, null);
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3618,21 +3695,21 @@ public class Grvt extends GrvtApi
         //        "ack": true
         //    }
         //
-        if (((Map<?, ?>)order).containsKey("ack"))
+        if (!java.util.Objects.equals(this.safeBool(order, "ack", null), null))
         {
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", null );
-            }}, (Map<String, Object>) null);
+            }}, null);
         }
-        Boolean isMarket = (Boolean) this.safeBool(order, "is_market", false);
+        Boolean isMarket = this.safeBool(order, "is_market", false);
         String orderType = "limit";
         if (Boolean.TRUE.equals(isMarket))
         {
             orderType = "market";
         }
-        Boolean isPostOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
-        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduce_only", (Object) null);
+        Boolean isPostOnly = this.safeBool(order, "post_only", null);
+        Boolean isReduceOnly = this.safeBool(order, "reduce_only", null);
         String timeInForceRaw = this.safeString(order, "time_in_force");
         String timeInForce = (((java.util.Objects.equals(isPostOnly, true)))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         String size = null;
@@ -3648,11 +3725,11 @@ public class Grvt extends GrvtApi
         Integer primaryOrderIndex = 0;
         Map<String, Object> firstLeg = this.safeDict(legs, primaryOrderIndex, null);
         String legMarketId = this.safeString(firstLeg, "instrument");
-        Map<String, Object> marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, null, null) : market;
         if (!java.util.Objects.equals(firstLeg, null))
         {
             size = this.safeString(firstLeg, "size");
-            Boolean isBuyingAsset = (Boolean) this.safeBool(firstLeg, "is_buying_asset", false);
+            Boolean isBuyingAsset = this.safeBool(firstLeg, "is_buying_asset", false);
             side = ((Boolean.TRUE.equals(isBuyingAsset))) ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);
@@ -3660,31 +3737,31 @@ public class Grvt extends GrvtApi
         }
         Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", this.safeString(order, "order_id"));
-        mapLiteral5.put("clientOrderId", this.safeString(metadata, "client_order_id"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001));
-        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(stateObj, "status")));
-        mapLiteral5.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral5.put("type", orderType);
-        mapLiteral5.put("timeInForce", timeInForce);
-        mapLiteral5.put("postOnly", isPostOnly);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("triggerPrice", null);
-        mapLiteral5.put("cost", null);
-        mapLiteral5.put("average", avgPrice);
-        mapLiteral5.put("amount", size);
-        mapLiteral5.put("filled", filled);
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("trades", null);
-        mapLiteral5.put("fees", null);
-        mapLiteral5.put("reduceOnly", isReduceOnly);
-        mapLiteral5.put("info", order);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", this.safeString(order, "order_id"));
+        mapLiteral6.put("clientOrderId", this.safeString(metadata, "client_order_id"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001));
+        mapLiteral6.put("status", this.parseOrderStatus(this.safeString(stateObj, "status")));
+        mapLiteral6.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral6.put("type", orderType);
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", isPostOnly);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", null);
+        mapLiteral6.put("cost", null);
+        mapLiteral6.put("average", avgPrice);
+        mapLiteral6.put("amount", size);
+        mapLiteral6.put("filled", filled);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("trades", null);
+        mapLiteral6.put("fees", null);
+        mapLiteral6.put("reduceOnly", isReduceOnly);
+        mapLiteral6.put("info", order);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     public String parseTimeInForce(String type)
@@ -3734,30 +3811,32 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
-            }};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
-                request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
-            }
-            Map<String, Object> response = (this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "result": {
-            //            "ack": true
-            //        }
-            //    }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrders(new ArrayList<Object>(Arrays.asList(result)), (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        (this.loadMarketsAndSignIn()).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
+        }};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            request.put("base", new ArrayList<Object>(Arrays.asList(market.get("baseId"))));
+            request.put("quote", new ArrayList<Object>(Arrays.asList(market.get("quoteId"))));
+        }
+        Map<String, Object> response = (this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "result": {
+        //            "ack": true
+        //        }
+        //    }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrders(new ArrayList<Object>(Arrays.asList(result)), null, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3774,34 +3853,36 @@ public class Grvt extends GrvtApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            (this.loadMarketsAndSignIn()).join();
-            String subAccoubntId = this.getSubAccountId((Map<String, Object>) (parameters));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub_account_id", subAccoubntId );
-            }};
-            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("client_order_id", clientOrderId);
-            } else
-            {
-                request.put("order_id", id);
-            }
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
-            Map<String, Object> response = (this.privateTradingPostFullV1CancelOrder(this.extend(request, paramsOmitted))).join();
-            //
-            //    {
-            //        "result": {
-            //            "ack": true
-            //        }
-            //    }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        (this.loadMarketsAndSignIn()).join();
+        String subAccoubntId = this.getSubAccountId(parameters);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub_account_id", subAccoubntId );
+        }};
+        String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("client_order_id", clientOrderId);
+        } else
+        {
+            request.put("order_id", id);
+        }
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+        Map<String, Object> response = (this.privateTradingPostFullV1CancelOrder(this.extend(request, paramsOmitted))).join();
+        //
+        //    {
+        //        "result": {
+        //            "ack": true
+        //        }
+        //    }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(result, null);
 
     }
 
@@ -3818,7 +3899,7 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object feeAmountMultiplier()
+    public Long feeAmountMultiplier()
     {
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
@@ -3829,8 +3910,8 @@ public class Grvt extends GrvtApi
         Map<String, Object> requestSignature = this.safeDict(request, "signature", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
-            Object amountMultiplier = this.convertToBigIntCustom("1000000");
-            Object amountInt = Helpers.multiply(request.get("num_tokens"), amountMultiplier);
+            Long amountMultiplier = this.convertToBigIntCustom("1000000");
+            String amountInt = Precise.stringMul(this.safeString(request, "num_tokens", "0"), this.numberToString(amountMultiplier));
             if (java.util.Objects.equals(currencyObj, null))
             {
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
@@ -3849,7 +3930,7 @@ public class Grvt extends GrvtApi
             }
         } else if (java.util.Objects.equals(structureType, "EIP712_WITHDRAWAL_TYPE"))
         {
-            Object amountMultiplier = this.convertToBigIntCustom("1000000");
+            Long amountMultiplier = this.convertToBigIntCustom("1000000");
             if (java.util.Objects.equals(currencyObj, null))
             {
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
@@ -3859,22 +3940,22 @@ public class Grvt extends GrvtApi
                 hx4NewMap2.put("fromAccount", request.get("from_account_id"));
                 hx4NewMap2.put("toEthAddress", request.get("to_eth_address"));
                 hx4NewMap2.put("tokenCurrency", currencyObj.get("numericId"));
-                hx4NewMap2.put("numTokens", this.parseToInt(Helpers.multiply(request.get("num_tokens"), amountMultiplier)));
+                hx4NewMap2.put("numTokens", this.parseToInt(Precise.stringMul(this.safeString(request, "num_tokens", "0"), this.numberToString(amountMultiplier))));
                 hx4NewMap2.put("nonce", requestSignature.get("nonce"));
                 hx4NewMap2.put("expiration", requestSignature.get("expiration"));
                 messageData = hx4NewMap2;
             }
         } else if (java.util.Objects.equals(structureType, "EIP712_ORDER_TYPE") || java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE"))
         {
-            messageData = this.eipMessageForOrder(request, (String) (structureType));
+            messageData = this.eipMessageForOrder(request, structureType);
         } else if (java.util.Objects.equals(structureType, "EIP712_BUILDER_APPROVAL_TYPE"))
         {
-            Object amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
+            Long amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
             messageData = new HashMap<String, Object>() {{
                 put( "mainAccountID", request.get("main_account_id") );
                 put( "builderAccountID", request.get("builder_account_id") );
-                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Double.parseDouble(Grvt.this.safeString(request, "max_futures_fee_rate")), amountMultiplier)) );
-                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Double.parseDouble(Grvt.this.safeString(request, "max_spot_fee_rate")), amountMultiplier)) );
+                put( "maxFutureFeeRate", Grvt.this.parseToInt(Precise.stringMul(Grvt.this.safeString(request, "max_futures_fee_rate", "0"), Grvt.this.numberToString(amountMultiplier))) );
+                put( "maxSpotFeeRate", Grvt.this.parseToInt(Precise.stringMul(Grvt.this.safeString(request, "max_spot_fee_rate", "0"), Grvt.this.numberToString(amountMultiplier))) );
                 put( "nonce", requestSignature.get("nonce") );
                 put( "expiration", requestSignature.get("expiration") );
             }};
@@ -3893,22 +3974,32 @@ public class Grvt extends GrvtApi
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Map<String,Object> signature = ecdsa(this.hash(ethEncodedMessage, keccak(), "hex"), privateKeyWithoutZero, secp256k1(), null);
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
-        mapLiteral6.put("r", this.formatSignatureRS((String) (signature.get("r"))));
-        mapLiteral6.put("s", this.formatSignatureRS((String) (signature.get("s"))));
-        mapLiteral6.put("v", this.sum(27, signature.get("v")));
-        mapLiteral6.put("expiration", requestSignature.get("expiration"));
-        mapLiteral6.put("nonce", requestSignature.get("nonce"));
-        mapLiteral6.put("chain_id", requestSignature.get("chain_id"));
-        request.put("signature", mapLiteral6);
+        String rHex = this.safeString(signature, "r", "");
+        String sHex = this.safeString(signature, "s", "");
+        Map<String, Object> signatureEntry = new HashMap<String, Object>() {{
+            put( "signer", null );
+            put( "r", Grvt.this.formatSignatureRS(rHex) );
+            put( "s", Grvt.this.formatSignatureRS(sHex) );
+            put( "v", Grvt.this.sum(27, signature.get("v")) );
+            put( "expiration", requestSignature.get("expiration") );
+            put( "nonce", requestSignature.get("nonce") );
+            put( "chain_id", requestSignature.get("chain_id") );
+        }};
+        if (java.util.Objects.equals(signerAddress, null))
+        {
+            signatureEntry.put("signer", this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)));
+        } else
+        {
+            signatureEntry.put("signer", signerAddress);
+        }
+        request.put("signature", signatureEntry);
         return request;
     }
 
     public String formatSignatureRS(String value)
     {
-        String padded = (((String)value).length() >= 64 ? ((String)value).substring(((String)value).length() - 64) : String.format("%" + (64 - ((String)value).length()) + "s", "").replace(' ', '0') + ((String)value));
-        if ((padded.startsWith(((String)"0x"))))
+        String padded = (value.length() >= 64 ? value.substring(value.length() - 64) : String.format("%" + (64 - value.length()) + "s", "").replace(' ', '0') + value);
+        if (padded.startsWith("0x"))
         {
             return padded;
         } else
@@ -3932,15 +4023,15 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object handleUntilOptionString(String key, Map<String, Object> request, Map<String, Object> parameters, Object multiplier)
+    public Pair<Map<String, Object>, Map<String, Object>> handleUntilOptionString(String key, Map<String, Object> request, Map<String, Object> parameters, Long multiplier)
     {
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
-            request.put(key, this.numberToString(this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1)))));
-            return new ArrayList<Object>(Arrays.asList(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")))));
+            request.put(key, this.numberToString(this.parseToInt((until * (java.util.Objects.requireNonNullElse(multiplier, 1L))))));
+            return new Pair<>(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
         }
-        return new ArrayList<Object>(Arrays.asList(request, parameters));
+        return new Pair<>(request, parameters);
     }
 
     public Long requestId()
@@ -3950,7 +4041,7 @@ public class Grvt extends GrvtApi
         return requestId;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -3988,7 +4079,7 @@ public class Grvt extends GrvtApi
                 requestBody = this.json(parameters);
             }
         }
-        Boolean isPrivate = apiName.startsWith(((String)"private"));
+        Boolean isPrivate = apiName.startsWith("private");
         if (Boolean.TRUE.equals(isPrivate))
         {
             this.checkRequiredCredentials(true);
@@ -4029,9 +4120,9 @@ public class Grvt extends GrvtApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
-        if (((String)url).endsWith("auth/api_key/login") || ((String)url).endsWith("auth/wallet/login"))
+        if (url.endsWith("auth/api_key/login") || url.endsWith("auth/wallet/login"))
         {
             String accountId = this.safeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id");
             this.options.put("AuthAccountId", accountId);

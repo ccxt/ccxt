@@ -11,7 +11,6 @@ type Bit2c struct {
 
 func newBit2c() *Bit2c {
 	p := &Bit2c{}
-	setDefaults(p)
 	return p
 }
 
@@ -263,8 +262,8 @@ func (this *Bit2c) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.025"),
 				"taker":      this.ParseNumber("0.03"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.03")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0275")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.025")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.0225")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.015")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0125")}, []any{this.ParseNumber("750000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.008")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.006")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("4000000"), this.ParseNumber("0.002")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.025")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0225")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.0175")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.015")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0075")}, []any{this.ParseNumber("750000"), this.ParseNumber("0.005")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("4000000"), this.ParseNumber("0.001")}},
+					"taker": []any{[]any{0.0, 0.03}, []any{20000.0, 0.0275}, []any{50000.0, 0.025}, []any{75000.0, 0.0225}, []any{100000.0, 0.02}, []any{250000.0, 0.015}, []any{500000.0, 0.0125}, []any{750000.0, 0.01}, []any{1000000.0, 0.008}, []any{2000000.0, 0.006}, []any{3000000.0, 0.004}, []any{4000000.0, 0.002}},
+					"maker": []any{[]any{0.0, 0.025}, []any{20000.0, 0.0225}, []any{50000.0, 0.02}, []any{75000.0, 0.0175}, []any{100000.0, 0.015}, []any{250000.0, 0.01}, []any{500000.0, 0.0075}, []any{750000.0, 0.005}, []any{1000000.0, 0.004}, []any{2000000.0, 0.003}, []any{3000000.0, 0.002}, []any{4000000.0, 0.001}},
 				},
 			},
 		},
@@ -345,7 +344,7 @@ func (this *Bit2c) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bit2c) ParseBalance(response any) map[string]any {
+func (this *Bit2c) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -361,8 +360,11 @@ func (this *Bit2c) ParseBalance(response any) map[string]any {
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var account map[string]any = this.Account()
-		var currency map[string]any = this.Currency(code)
-		var currencyId string = *this.SafeString(currency, "id", "")
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId string = ""
+		if currency.Id != nil {
+			currencyId = *currency.Id
+		}
 		var uppercase string = strings.ToUpper(currencyId)
 		if this.SafeString(response, uppercase) != nil {
 			account["free"] = this.SafeString(response, "AVAILABLE_"+uppercase)
@@ -480,9 +482,12 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))
@@ -497,8 +502,10 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	// feed filters these rows out, so a non-positive amount is a dead order
 	// their full snapshot failed to purge - it is removed here, which also
 	// uncrosses the book. rows are positional price and amount pairs
-	var rawBids []any = SafeListTyped(orderbook, "bids")
-	var rawAsks []any = SafeListTyped(orderbook, "asks")
+	var rawBids []any
+	rawBids, _ = orderbook["bids"].([]any)
+	var rawAsks []any
+	rawAsks, _ = orderbook["asks"].([]any)
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for i := 0; i < len(rawBids); i++ {
@@ -523,7 +530,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(filtered, symbol))}
 	return nil
 }
-func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bit2c) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -580,7 +587,7 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -607,12 +614,12 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bit2c) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bit2c) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -628,9 +635,9 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod")                                                // kept here for backward compatibility #29154
-	var method *string = this.SafeString(this.HandleOptionAndParams(map[string]any{}, "fetchTrades", "method", optionValue), 0) // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+	var market map[string]any = this.Market(&symbol)
+	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod")                                                            // kept here for backward compatibility #29154
+	var method *string = this.SafeString(TupleSlice(this.HandleOptionAndParams(map[string]any{}, "fetchTrades", "method", optionValue)), 0) // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -638,7 +645,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		request["date"] = this.ParseToInt(since)
 	}
 	if limit != nil {
-		request["limit"] = limit // max 100000
+		request["limit"] = *limit // max 100000
 	}
 	var responseList []any = []any{}
 	if (method != nil && *method == "publicGetExchangesPairTrades") || (method != nil && *method == "public_get_exchanges_pair_trades") {
@@ -723,7 +730,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	//         }
 	//     }
 	//
-	var fees map[string]any = SafeMapTyped(response, "Fees")
+	var fees, _ = response["Fees"].(map[string]any)
 	var keys []string = nil
 	if fees != nil {
 		keys = make([]string, 0, len(fees))
@@ -735,7 +742,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	for i := 0; i < len(keys); i++ {
 		var marketId string = keys[i]
 		var symbol *string = this.SafeSymbol(marketId)
-		var fee map[string]any = SafeMapTyped(fees, marketId)
+		var fee, _ = fees[marketId].(map[string]any)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
 		var takerString *string = this.SafeString(fee, "FeeTaker")
 		var maker *float64 = this.ParseNumber(Precise.StringDiv(makerString, "100"))
@@ -788,7 +795,7 @@ func (this *Bit2c) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"Amount": amount,
 		"Pair":   market["id"],
@@ -912,8 +919,8 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	}
 	var response map[string]any = r1.Value
 	var orders map[string]any = SafeMapTyped(response, market["id"])
-	var asks []any = SafeListTypedDefault(orders, "ask", []any{})
-	var bids []any = SafeListTypedDefault(orders, "bid", []any{})
+	var asks []any = this.SafeListSlice(orders, "ask", []any{})
+	var bids []any = this.SafeListSlice(orders, "bid", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ArrayConcat(asks, bids), market, since, limit))}
 	return nil
@@ -976,7 +983,7 @@ func (this *Bit2c) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bit2c) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//      createOrder
 	//      {
@@ -1030,33 +1037,41 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 	if isNewOrder {
 		var tempStatus *int64 = this.SafeInteger(orderUnified, "status_type")
 		if (tempStatus != nil && *tempStatus == 0) || (tempStatus != nil && *tempStatus == 1) {
-			status = SafeStringPtr("open")
+			statusStr := "open"
+			status = &statusStr
 		} else if tempStatus != nil && *tempStatus == 5 {
-			status = SafeStringPtr("closed")
+			statusStr2 := "closed"
+			status = &statusStr2
 		}
 	} else {
 		var tempStatus *string = this.SafeString(orderUnified, "status")
 		if (tempStatus != nil && *tempStatus == "New") || (tempStatus != nil && *tempStatus == "Open") {
-			status = SafeStringPtr("open")
+			statusStr3 := "open"
+			status = &statusStr3
 		} else if tempStatus != nil && *tempStatus == "Completed" {
-			status = SafeStringPtr("closed")
+			statusStr4 := "closed"
+			status = &statusStr4
 		}
 	}
 	// bit2c order type:
 	// 0 = LMT,  1 = MKT
 	var typeVar *string = this.SafeString(orderUnified, "order_type")
 	if typeVar != nil && *typeVar == "0" {
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	} else if typeVar != nil && *typeVar == "1" {
-		typeVar = SafeStringPtr("market")
+		typeVarStr2 := "market"
+		typeVar = &typeVarStr2
 	}
 	// bit2c side:
 	// 0 = buy, 1 = sell
 	var side *string = this.SafeString(orderUnified, "type")
 	if side != nil && *side == "0" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "1" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var price *string = this.SafeString(orderUnified, "price")
 	var amount *string = nil
@@ -1068,13 +1083,13 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 		amount = this.SafeString(orderUnified, "initialAmount")
 		remaining = this.SafeString(orderUnified, "amount")
 	}
-	return this.SafeOrder(map[string]any{
+	var literal78831 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"status":             status,
+		"status":             nil,
 		"symbol":             symbol,
 		"type":               typeVar,
 		"timeInForce":        nil,
@@ -1082,15 +1097,25 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       nil,
-		"amount":             amount,
+		"amount":             nil,
 		"filled":             nil,
-		"remaining":          remaining,
+		"remaining":          nil,
 		"cost":               nil,
 		"trades":             nil,
 		"fee":                nil,
 		"info":               order,
 		"average":            nil,
-	}, market)
+	}
+	if status != nil {
+		literal78831["status"] = *status
+	}
+	if amount != nil {
+		literal78831["amount"] = *amount
+	}
+	if remaining != nil {
+		literal78831["remaining"] = *remaining
+	}
+	return this.SafeOrder(literal78831, market)
 }
 
 /**
@@ -1114,7 +1139,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1130,7 +1155,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["take"] = limit
+		request["take"] = *limit
 	}
 	request["take"] = limit
 	if since != nil {
@@ -1237,7 +1262,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = nil
 	var price *string = nil
 	var amount *string = nil
-	var orderId any = nil
+	var orderId *string = nil
 	var fee map[string]any = nil
 	var side any = nil
 	var makerOrTaker *string = nil
@@ -1257,28 +1282,17 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var marketByPair map[string]any = this.SafeMarket(marketId, market)
 		tradeMarket = this.SafeMarket(reference_parts[0], marketByPair)
 		var isMaker *bool = this.SafeBool(trade, "isMaker", false)
-		makerOrTaker = SafeStringPtr(func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}())
-		orderId = func() any {
-			if isMaker != nil && *isMaker {
-				return func() any {
-					if 2 >= 0 && 2 < len(reference_parts) {
-						return reference_parts[2]
-					}
-					return nil
-				}()
-			}
-			return func() any {
-				if 1 >= 0 && 1 < len(reference_parts) {
-					return reference_parts[1]
-				}
-				return nil
-			}()
-		}()
+		var makerOrTakerStr string
+		if isMaker != nil && *isMaker {
+			makerOrTakerStr = "maker"
+		} else {
+			makerOrTakerStr = "taker"
+		}
+		makerOrTaker = &makerOrTakerStr
+		orderId = this.SafeString(reference_parts, 1)
+		if isMaker != nil && *isMaker {
+			orderId = this.SafeString(reference_parts, 2)
+		}
 		var action *int64 = this.SafeInteger(trade, "action")
 		if action != nil && *action == 0 {
 			side = "buy"
@@ -1305,21 +1319,34 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(nil, tradeMarket)
-	return this.SafeTrade(map[string]any{
+	var literal98131 map[string]any = map[string]any{
 		"info":         trade,
-		"id":           id,
+		"id":           nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"order":        orderId,
+		"order":        nil,
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": makerOrTaker,
-		"price":        price,
-		"amount":       amount,
+		"price":        nil,
+		"amount":       nil,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if id != nil {
+		literal98131["id"] = *id
+	}
+	if orderId != nil {
+		literal98131["order"] = *orderId
+	}
+	if price != nil {
+		literal98131["price"] = *price
+	}
+	if amount != nil {
+		literal98131["amount"] = *amount
+	}
+	return this.SafeTrade(literal98131, marketResolved)
 }
 func (this *Bit2c) IsFiat(code string) bool {
 	return (code == "NIS")
@@ -1374,7 +1401,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Bit2c) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1410,7 +1437,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if api[0] == "public" {
 		url += ".json"
 	} else {
@@ -1426,7 +1453,8 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 				url += "?" + auth
 			}
 		} else {
-			requestBody = SafeStringPtr(auth)
+			requestBodyStr := auth
+			requestBody = &requestBodyStr
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512, "base64")
 		requestHeaders = map[string]any{
@@ -1436,7 +1464,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResult *string = requestBody
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -1444,7 +1472,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Bit2c) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bit2c) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

@@ -1821,7 +1821,7 @@ class xt extends Exchange {
         //
         if ($this->safe_bool($market, 'spot', false)) {
             $tickers = $this->safe_list($response, 'result', array());
-            return $this->parse_ticker($tickers[0], $market);
+            return $this->parse_ticker($this->safe_dict($tickers, 0, array()), $market);
         }
         $ticker = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
@@ -1848,7 +1848,10 @@ class xt extends Exchange {
         $market = null;
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         $request = array();
         $response = null;
@@ -1912,8 +1915,8 @@ class xt extends Exchange {
         $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i], $market);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()), $market);
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -1943,7 +1946,10 @@ class xt extends Exchange {
         $request = array();
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $paramsMarketType);
@@ -1998,17 +2004,16 @@ class xt extends Exchange {
         $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $rawTicker = $tickers[$i];
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            $marketId = $this->safe_string($rawTicker, 's');
+            $marketId = $this->safe_string($tickers[$i], 's');
             $marketType = 'spot';
             if ($isContract) {
                 $marketType = 'contract';
             }
             $marketInner = $this->safe_market($marketId, $market, '_', $marketType);
-            $ticker = $this->parse_ticker($rawTicker, $marketInner);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()), $marketInner);
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -2069,7 +2074,7 @@ class xt extends Exchange {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 't');
         $open = $this->safe_string($ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -2558,7 +2563,7 @@ class xt extends Exchange {
         //         ]
         //     }
         //
-        $balances = null;
+        $balances = array();
         if (($subType !== null) || $isContractWallet) {
             $balances = $this->safe_list($response, 'result', array());
         } else {
@@ -2568,7 +2573,7 @@ class xt extends Exchange {
         return $this->parse_balance_list($balances);
     }
 
-    public function parse_balance_list(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         //
         // spot
         //
@@ -2811,7 +2816,7 @@ class xt extends Exchange {
             }
             $request['positionSide'] = $requestType;
         }
-        $response = array();
+        $response = null;
         $triggerPrice = $this->safe_number_2($paramsOmitted4, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_number_2($paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         $takeProfit = $this->safe_number_2($paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
@@ -2900,7 +2905,7 @@ class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -3691,7 +3696,7 @@ class xt extends Exchange {
 
     private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * cancels an open $order
+         * cancels an open order
          *
          * @see https://doc.xt.com/docs/spot/Order/CancelOrder
          * @see https://doc.xt.com/docs/futures/Order/cancel-orders
@@ -3699,13 +3704,13 @@ class xt extends Exchange {
          * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
          * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
          *
-         * @param {string} $id $order $id
-         * @param {string} [$symbol] unified $symbol of the $market the $order was made in
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
-         * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
-         * @param {bool} [$params->trailing] if the $order is a $trailing $order or not
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @param {bool} [$params->trigger] if the order is a $trigger order or not
+         * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
+         * @param {bool} [$params->trailing] if the order is a $trailing order or not
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3786,8 +3791,10 @@ class xt extends Exchange {
         //     }
         //
         $isContractResponse = (($subType !== null) || ($type === 'swap') || ($type === 'future'));
-        $order = $isContractResponse ? $response : $this->safe_dict($response, 'result', array());
-        return $this->parse_order($order, $market);
+        if ($isContractResponse) {
+            return $this->parse_order($response, $market);
+        }
+        return $this->parse_order($this->safe_dict($response, 'result', array()), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -4063,7 +4070,9 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = (is_array($order) && array_key_exists('result' ?? '', $order)) || (is_array($order) && array_key_exists('positionSide' ?? '', $order)) ? 'contract' : 'spot';
+        $resultId = $this->safe_string($order, 'result');
+        $orderPositionSide = $this->safe_string($order, 'positionSide');
+        $marketType = ($resultId !== null) || ($orderPositionSide !== null) ? 'contract' : 'spot';
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $marketResolved, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');
@@ -4710,11 +4719,11 @@ class xt extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'SUB', $params));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $addOrReduce, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, float $amount, string $addOrReduce, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $addOrReduce, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, string $addOrReduce, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, float $amount, string $addOrReduce, $params = array()) {
         $positionSide = $this->safe_string($params, 'positionSide');
         $methodName = 'reduceMargin';
         if ($addOrReduce === 'ADD') {
@@ -5375,7 +5384,7 @@ class xt extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function parse_funding_history(?array $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "id": "210804044057280512",
@@ -5414,7 +5423,8 @@ class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            $breakBySymbolSide[$this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '')] = $breakEntry;
+            $breakKey = $this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '');
+            $breakBySymbolSide[$breakKey] = $breakEntry;
         }
         return $breakBySymbolSide;
     }
@@ -5426,13 +5436,12 @@ class xt extends Exchange {
          * @param {array} $breakBySymbolSide the result of indexPositionBreakList()
          */
         $breakEntry = $this->safe_dict($breakBySymbolSide, $this->safe_string($entry, 'symbol', '') . '_' . $this->safe_string($entry, 'positionSide', ''));
-        if ($breakEntry === null) {
-            return $entry;
+        $extra = array();
+        if ($breakEntry !== null) {
+            $extra['breakPrice'] = $this->safe_string($breakEntry, 'breakPrice');
+            $extra['calMarkPrice'] = $this->safe_string($breakEntry, 'calMarkPrice');
         }
-        return $this->extend($entry, array(
-            'breakPrice' => $this->safe_string($breakEntry, 'breakPrice'),
-            'calMarkPrice' => $this->safe_string($breakEntry, 'calMarkPrice'),
-        ));
+        return $this->extend($entry, $extra);
     }
 
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {
@@ -6006,11 +6015,13 @@ class xt extends Exchange {
             //     }
             //
         }
-        $result = ($this->safe_bool($market, 'swap', false)) ? $response : $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        if ($this->safe_bool($market, 'swap', false)) {
+            return $this->parse_order($response, $market);
+        }
+        return $this->parse_order($this->safe_dict($response, 'result', array()), $market);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         //
         // spot: error
         //

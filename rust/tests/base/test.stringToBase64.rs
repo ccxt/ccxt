@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,5 +16,5 @@ pub fn testStringToBase64() {
         m
     }));
     // todo: add single & double quotes in transpilable manner
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.string_to_base64(Value::Str("hello world 123!@#$%^&*()\"-+)S".into()), &[])).as_str() == Some("aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.string_to_base64(Value::Str("hello world 123!@#$%^&*()\"-+)S".into()), &[])).as_str() == Some("aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT")))));
 }

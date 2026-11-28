@@ -35,7 +35,7 @@ async def test_watch_bids_asks_helper(exchange, skipped_properties, arg_symbols,
         response = {}
         start_time = exchange.milliseconds()
         try:
-            response = await exchange.watch_bids_asks(arg_symbols, arg_params)
+            response = await exchange.watch_bids_asks(arg_symbols)
         except Exception as e:
             # for some exchanges, multi symbol methods might require symbols array to be present, so
             # so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,

@@ -922,9 +922,9 @@ class btcmarkets extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, '-');
         $feeCurrencyCode = null;
         if ($marketResolved['quote'] === 'AUD') {
-            $feeCurrencyCode = $marketResolved['quote'];
+            $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
         } else {
-            $feeCurrencyCode = $marketResolved['base'];
+            $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
         }
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {
@@ -1078,7 +1078,7 @@ class btcmarkets extends Exchange {
         }
         $paramsTriggerPrice = $params;
         if ($triggerPriceIsRequired) {
-            $paramsTriggerPrice = $this->omit($params, 'triggerPrice');
+            $paramsTriggerPrice = $this->omit($paramsTriggerPrice, 'triggerPrice');
         }
         $paramsOmitted = $this->omit($paramsTriggerPrice, 'clientOrderId');
         $response = Async\await($this->privatePostOrders($this->extend($request, $paramsOmitted)));
@@ -1566,7 +1566,7 @@ class btcmarkets extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

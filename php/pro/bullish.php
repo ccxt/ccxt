@@ -114,11 +114,11 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($wsUrl . $url, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
-    public function unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, $request = array(), $params = array()): PromiseInterface {
+    public function unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, array $request = array(), $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_public(...))($url, $topic, $messageHash, $symbol, $request, $params);
     }
 
-    private function do_unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, $request = array(), $params = array()) {
+    private function do_unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, array $request = array(), $params = array()) {
         /**
          * @ignore
          * sends an unsubscribe command for one public $topic and registers the pending unsubscription under the $request id
@@ -156,7 +156,7 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($wsUrl . $url, $unsubHash, $this->deep_extend($message, $params), $requestId, $subscription));
     }
 
-    public function handle_un_subscription(Client $client, array $subscription) {
+    public function handle_un_subscription(Client $client, array $subscription): void {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -189,7 +189,9 @@ class bullish extends \ccxt\async\bullish {
         $cookies = array(
             'JWT_COOKIE' => $token,
         );
-        $this->options['ws']['cookies'] = $cookies;
+        $wsDict = $this->safe_dict($this->options, 'ws', array());
+        $wsDict['cookies'] = $cookies;
+        $this->options['ws'] = $wsDict;
         $id = (string) $this->request_id();
         $message = array(
             'jsonrpc' => '2.0',
@@ -202,11 +204,11 @@ class bullish extends \ccxt\async\bullish {
         return $result;
     }
 
-    public function unsubscribe_private(string $topic, string $subscribeHash, $request = array(), $params = array()): PromiseInterface {
+    public function unsubscribe_private(string $topic, string $subscribeHash, array $request = array(), $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_private(...))($topic, $subscribeHash, $request, $params);
     }
 
-    private function do_unsubscribe_private(string $topic, string $subscribeHash, $request = array(), $params = array()) {
+    private function do_unsubscribe_private(string $topic, string $subscribeHash, array $request = array(), $params = array()) {
         /**
          * @ignore
          * sends an unsubscribe command for one private $topic and registers the pending unsubscription under the $request id
@@ -222,7 +224,9 @@ class bullish extends \ccxt\async\bullish {
         $cookies = array(
             'JWT_COOKIE' => $token,
         );
-        $this->options['ws']['cookies'] = $cookies;
+        $wsDict = $this->safe_dict($this->options, 'ws', array());
+        $wsDict['cookies'] = $cookies;
+        $this->options['ws'] = $wsDict;
         $tradingAccountId = $this->safe_string($params, 'tradingAccountId');
         $paramsOmitted = $params;
         $requestParams = $request;
@@ -442,7 +446,7 @@ class bullish extends \ccxt\async\bullish {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $parsed = $this->parse_ticker($data, $market);
         if ($updateType === 'update') {
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
@@ -551,8 +555,9 @@ class bullish extends \ccxt\async\bullish {
         );
         $parsed = $this->parse_order_book($snapshot, $symbol, $timestamp);
         $sequenceNumberRange = $this->safe_list($data, 'sequenceNumberRange', array());
-        if (strlen($sequenceNumberRange) > 0) {
-            $lastIndex = strlen($sequenceNumberRange) - 1;
+        $sequenceNumberRangeLength = count($sequenceNumberRange);
+        if ($sequenceNumberRangeLength > 0) {
+            $lastIndex = $sequenceNumberRangeLength - 1;
             $parsed['nonce'] = $this->safe_integer($sequenceNumberRange, $lastIndex);
         }
         $orderbook->reset($parsed);
@@ -705,7 +710,7 @@ class bullish extends \ccxt\async\bullish {
             $orders = $this->orders;
             $symbols = array();
             for ($i = 0; $i < count($rawOrders); $i++) {
-                $parsedOrder = $this->parse_order($rawOrders[$i]);
+                $parsedOrder = $this->parse_order($this->safe_dict($rawOrders, $i, array()));
                 $orders->append($parsedOrder);
                 $symbol = $this->safe_string($parsedOrder, 'symbol');
                 if ($symbol !== null) {
@@ -845,7 +850,7 @@ class bullish extends \ccxt\async\bullish {
             $trades = $this->myTrades;
             $symbols = array();
             for ($i = 0; $i < count($rawTrades); $i++) {
-                $parsedTrade = $this->parse_trade($rawTrades[$i]);
+                $parsedTrade = $this->parse_trade($this->safe_dict($rawTrades, $i, array()));
                 $trades->append($parsedTrade);
                 $symbol = $this->safe_string($parsedTrade, 'symbol');
                 if ($symbol !== null) {
@@ -947,11 +952,12 @@ class bullish extends \ccxt\async\bullish {
             $data = $this->safe_list($message, 'data', array());
             $parsed = $this->parseBalanceList($data);
             $parsedKeys = is_array($parsed) ? array_keys($parsed) : array();
+            $balance = $this->safe_dict($this->balance, $tradingAccountId, array());
             for ($i = 0; $i < count($parsedKeys); $i++) {
                 $parsedKey = $parsedKeys[$i];
-                $this->balance[$tradingAccountId][$parsedKey] = $parsed[$parsedKey];
+                $balance[$parsedKey] = $parsed[$parsedKey];
             }
-            $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
+            $this->balance[$tradingAccountId] = $this->safe_balance($balance);
         } else {
             $data = $this->safe_dict($message, 'data', array());
             $assetId = $this->safe_string($data, 'assetSymbol');
@@ -959,11 +965,12 @@ class bullish extends \ccxt\async\bullish {
             $account['total'] = $this->safe_string($data, 'availableQuantity');
             $account['used'] = $this->safe_string($data, 'lockedQuantity');
             $code = $this->safe_currency_code($assetId);
+            $deltaBalance = $this->safe_dict($this->balance, $tradingAccountId, array());
+            $deltaBalance['info'] = $message;
             if (($tradingAccountId !== null) && ($code !== null)) {
-                $this->balance[$tradingAccountId][$code] = $account;
+                $deltaBalance[$code] = $account;
             }
-            $this->balance[$tradingAccountId]['info'] = $message;
-            $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
+            $this->balance[$tradingAccountId] = $this->safe_balance($deltaBalance);
         }
         $messageHash = 'balance';
         $tradingAccountIdHash = '::' . $tradingAccountId;
@@ -996,8 +1003,6 @@ class bullish extends \ccxt\async\bullish {
         $symbolsNormalized = $symbols;
         if ($hasSymbols) {
             $symbolsNormalized = $this->market_symbols($symbols);
-        }
-        if ($hasSymbols && ($symbolsNormalized !== null)) {
             $messageHash .= '::' . implode(',', $symbolsNormalized);
         }
         $request = array(
@@ -1052,7 +1057,7 @@ class bullish extends \ccxt\async\bullish {
         $positions = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $position = $this->parse_position($rawPositions[$i]);
+            $position = $this->parse_position($this->safe_dict($rawPositions, $i, array()));
             $positions->append($position);
             $newPositions[] = $position;
         }
@@ -1070,7 +1075,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($positions, 'positions');
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "data": {
@@ -1093,9 +1098,10 @@ class bullish extends \ccxt\async\bullish {
         } catch (Exception $e) {
             $client->reject($e);
         }
+        return false;
     }
 
-    public function handle_un_subscription_error(Client $client, array $message) {
+    public function handle_un_subscription_error(Client $client, array $message): void {
         //
         //     {
         //         "jsonrpc": "2.0",

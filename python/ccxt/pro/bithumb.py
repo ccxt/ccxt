@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -75,7 +75,8 @@ class bithumb(ccxt.async_support.bithumb):
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTicker', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
@@ -123,7 +124,8 @@ class bithumb(ccxt.async_support.bithumb):
         if symbolsNormalized is not None:
             symbolsResolved = symbolsNormalized
         symbolsLengthDefined = len(symbolsResolved)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         streamMarketIds = []
         messageHashes = []
@@ -229,19 +231,14 @@ class bithumb(ccxt.async_support.bithumb):
         #
         content = self.safe_dict(message, 'content')
         isGenerationTwo = (content is None)
-        tickerMessage = None
-        if isGenerationTwo:
-            tickerMessage = message
-        else:
-            tickerMessage = content
+        tickerMessage = message
+        if not isGenerationTwo:
+            tickerMessage = self.safe_dict(message, 'content', {})
         marketId = self.safe_string_2(tickerMessage, 'symbol', 'code')
         if marketId is None:
             return
-        symbol = None
-        if isGenerationTwo:
-            symbol = self.safe_symbol(marketId, None, '-')
-        else:
-            symbol = self.safe_symbol(marketId, None, '_')
+        delimiter = '-' if isGenerationTwo else '_'
+        symbol = self.safe_symbol(marketId, None, delimiter)
         if symbol is None:
             return
         ticker = self.parse_ws_ticker(tickerMessage)
@@ -310,8 +307,7 @@ class bithumb(ccxt.async_support.bithumb):
         #
         code = self.safe_string(ticker, 'code')
         if code is not None:
-            ticker['market'] = self.safe_string(ticker, 'market', code)
-            return self.parse_ticker(ticker, market)
+            return self.parse_ticker(self.extend(ticker, {'market': self.safe_string(ticker, 'market', code)}), market)
         date = self.safe_string(ticker, 'date', '')
         time = self.safe_string(ticker, 'time', '')
         kstDatetime = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + time[0:2] + ':' + time[2:4] + ':' + time[4:6]
@@ -362,10 +358,11 @@ class bithumb(ccxt.async_support.bithumb):
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchOrderBook', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook' + ':' + symbolValue
         request = {
             'type': 'orderbookdepth',
@@ -521,10 +518,11 @@ class bithumb(ccxt.async_support.bithumb):
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTrades', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbolValue
         request = {
             'type': 'transaction',
@@ -677,7 +675,7 @@ class bithumb(ccxt.async_support.bithumb):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "status" : "5100",
@@ -725,7 +723,8 @@ class bithumb(ccxt.async_support.bithumb):
         if generation != 2:
             raise BadRequest(self.id + ' watchBalance() is only supported for the generation 2 API')
         await self.authenticate()
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'privateGen2', '')
         messageHash = 'myAsset'
         request = self.build_gen2_subscription_request(messageHash, {'type': messageHash})
@@ -810,7 +809,8 @@ class bithumb(ccxt.async_support.bithumb):
                 },
             }
             self.options['ws'] = wsOptions
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'privateGen2', '')
         client = self.client(url)
         return client
@@ -835,7 +835,8 @@ class bithumb(ccxt.async_support.bithumb):
         if generation != 2:
             raise BadRequest(self.id + ' watchOrders() is only supported for the generation 2 API')
         await self.authenticate()
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'privateGen2', '')
         messageHash = 'myOrder'
         codes = self.safe_list(params, 'codes', [])

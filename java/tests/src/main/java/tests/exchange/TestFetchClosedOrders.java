@@ -28,10 +28,10 @@ public class TestFetchClosedOrders extends BaseTest {
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
-            TestOrder.testOrder(exchange, skippedProperties, method, order, (String) (symbol), now);
+            TestOrder.testOrder(exchange, skippedProperties, method, order, symbol, now);
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, order, "status", new ArrayList<Object>(Arrays.asList("closed", "canceled")));
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), orders);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, orders);
         return true;
         });
 

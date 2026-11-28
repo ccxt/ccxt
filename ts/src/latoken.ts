@@ -6,7 +6,7 @@ import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, FeeString, List, FeeInterface, int, Endpoint } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, FeeString, List, FeeInterface, int, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -850,10 +850,11 @@ export default class latoken extends Exchange {
         let symbol: Str = undefined;
         let marketResolved: Market = market;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                marketResolved = this.market (symbol);
+            const knownSymbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
+                marketResolved = this.market (knownSymbol);
             }
+            symbol = knownSymbol;
         }
         const last = this.safeString (ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero (ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1005,7 +1006,6 @@ export default class latoken extends Exchange {
         //         "makerBuyer":false
         //     }
         //
-        const type = undefined;
         const timestamp = this.safeInteger (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
@@ -1031,10 +1031,11 @@ export default class latoken extends Exchange {
         let symbol: Str = undefined;
         let marketResolved: Market = market;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                marketResolved = this.market (symbol);
+            const knownSymbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
+                marketResolved = this.market (knownSymbol);
             }
+            symbol = knownSymbol;
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
@@ -1053,7 +1054,7 @@ export default class latoken extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': type,
+            'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
@@ -1312,13 +1313,13 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol: Str = undefined;
-        if ((base !== undefined) && (quote !== undefined)) {
-            symbol = base + '/' + quote;
-        }
-        const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
         let marketResolved: Market = market;
-        if (symbolKnown) {
-            marketResolved = this.market (symbol);
+        if ((base !== undefined) && (quote !== undefined)) {
+            const knownSymbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
+                marketResolved = this.market (knownSymbol);
+            }
+            symbol = knownSymbol;
         }
         const orderSide = this.safeString (order, 'side');
         let side: Str = undefined;
@@ -2039,7 +2040,7 @@ export default class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

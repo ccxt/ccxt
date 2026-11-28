@@ -580,7 +580,8 @@ export default class grvt extends Exchange {
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        const results = await Promise.all([this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()]);
+        await this.loadAccountInfos();
+        const results = await Promise.all([this.privateTradingPostFullV1GetAuthorizedBuilders()]);
         //
         // {
         //     "results": [{
@@ -1744,7 +1745,9 @@ export default class grvt extends Exchange {
         const nonMatchedResults = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
-            if ((onlyMainAccount && this.safeString(transfer, 'fromAccount') === '0' && this.safeString(transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString(transfer, 'fromAccount') !== '0' || this.safeString(transfer, 'toAccount') !== '0'))) {
+            const fromAccount = this.safeString(transfer, 'fromAccount', '');
+            const toAccount = this.safeString(transfer, 'toAccount', '');
+            if ((onlyMainAccount && fromAccount === '0' && toAccount === '0') || (!onlyMainAccount && (fromAccount !== '0' || toAccount !== '0'))) {
                 const metadata = this.safeString(this.safeDict(transfer, 'info', {}), 'transfer_metadata');
                 const parsedMetadata = this.parseJson(metadata);
                 const direction = this.safeString(parsedMetadata, 'direction');
@@ -1784,8 +1787,18 @@ export default class grvt extends Exchange {
             if (tradingAccountId === undefined || fundingAccountId === undefined) {
                 throw new ArgumentsRequired(this.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
-            fromSubAccount = (fromAccount === 'trading') ? tradingAccountId : fundingAccountId;
-            toSubAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
+            if (fromAccount === 'trading') {
+                fromSubAccount = tradingAccountId;
+            }
+            else {
+                fromSubAccount = fundingAccountId;
+            }
+            if (toAccount === 'trading') {
+                toSubAccount = tradingAccountId;
+            }
+            else {
+                toSubAccount = fundingAccountId;
+            }
             paramsFundingAccountId = paramsFunding;
         }
         const request = {
@@ -2020,14 +2033,15 @@ export default class grvt extends Exchange {
         const isMarketOrder = (type === 'market');
         const subAccountId = this.getSubAccountId(paramsOmitted3);
         const isReduceOnly = this.safeBool(paramsOmitted3, 'reduceOnly', false);
+        const orderMetadata = {
+            'client_order_id': clientOrderId,
+        };
         const orderRequest = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [orderLeg],
             'signature': this.defaultSignature(),
-            'metadata': {
-                'client_order_id': clientOrderId,
-            },
+            'metadata': orderMetadata,
             'is_market': isMarketOrder,
             'post_only': false,
             'reduce_only': isReduceOnly,
@@ -2035,7 +2049,7 @@ export default class grvt extends Exchange {
             // 'state': null,
         };
         let timeInForce = this.safeStringUpper(paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME');
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, paramsOmitted3);
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted3);
         if (postOnly) {
             orderRequest['post_only'] = true;
         }
@@ -2100,7 +2114,7 @@ export default class grvt extends Exchange {
             }
             // trigger by
             const triggerPriceType = this.safeStringUpper(paramsTriggerPrices, 'triggerPriceType', 'LAST');
-            orderRequest['metadata']['trigger'] = {
+            orderMetadata['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
@@ -2108,6 +2122,7 @@ export default class grvt extends Exchange {
                     'close_position': this.safeBool(paramsTriggerPrices, 'closePosition', false),
                 },
             };
+            orderRequest['metadata'] = orderMetadata;
         }
         let paramsTrigger = paramsTriggerPrices;
         if (isTriggerOrder) {
@@ -2190,7 +2205,7 @@ export default class grvt extends Exchange {
         return this.parseOrder(data, market);
     }
     convertToBigIntCustom(x) {
-        return parseInt(this.numberToString(x));
+        return this.parseToInt(x);
     }
     eipMessageForOrder(order, structureType) {
         const priceMultiplier = 1000000000;
@@ -2198,7 +2213,8 @@ export default class grvt extends Exchange {
         const legs = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
-            const market = this.market(leg['instrument']);
+            const instrument = this.safeString(leg, 'instrument');
+            const market = this.market(instrument);
             const precisionValue = this.precisionFromString(this.safeString(market['precision'], 'base'));
             const sizeMultiplier = Math.pow(10, precisionValue);
             const size = this.safeString(leg, 'size');
@@ -2208,9 +2224,9 @@ export default class grvt extends Exchange {
             const sizeParts = size.split('.');
             const sizeDec = this.safeString(sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
-            const sizeDigits = parseInt(size.replace('.', ''));
-            let denominator = Math.pow(10, sizeDecLength);
-            const sizeInteger = sizeDigits * sizeMultiplier / denominator;
+            const sizeDigits = this.parseToInt(size.replace('.', ''));
+            const sizeDenominator = Math.pow(10, sizeDecLength);
+            const sizeInteger = sizeDigits * sizeMultiplier / sizeDenominator;
             const legOrder = {
                 'assetID': this.safeString(market['info'], 'instrument_hash'),
                 'contractSize': this.parseToInt(sizeInteger),
@@ -2222,9 +2238,9 @@ export default class grvt extends Exchange {
                 const limitParts = price.split('.');
                 const limitDec = this.safeString(limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
-                const priceDigits = parseInt(price.replace('.', ''));
-                denominator = Math.pow(10, limitDecLength);
-                const priceInteger = priceDigits * priceMultiplier / denominator;
+                const priceDigits = this.parseToInt(price.replace('.', ''));
+                const priceDenominator = Math.pow(10, limitDecLength);
+                const priceInteger = priceDigits * priceMultiplier / priceDenominator;
                 legOrder['limitPrice'] = this.parseToInt(priceInteger);
             }
             else {
@@ -2245,7 +2261,7 @@ export default class grvt extends Exchange {
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool(this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(this.safeString(order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt(Precise.stringMul(this.numberToString(this.feeAmountMultiplier()), this.safeString(order, 'builder_fee', '0')));
         }
         return returnValue;
     }
@@ -2990,7 +3006,7 @@ export default class grvt extends Exchange {
         //        "ack": true
         //    }
         //
-        if ('ack' in order) {
+        if (this.safeBool(order, 'ack') !== undefined) {
             return this.safeOrder({
                 'info': order,
                 'id': undefined,
@@ -3171,7 +3187,7 @@ export default class grvt extends Exchange {
         const requestSignature = this.safeDict(request, 'signature', {});
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
-            const amountInt = request['num_tokens'] * amountMultiplier;
+            const amountInt = Precise.stringMul(this.safeString(request, 'num_tokens', '0'), this.numberToString(amountMultiplier));
             if (currencyObj === undefined) {
                 throw new ExchangeError(this.id + ' createSignedRequest() missing currencyObj');
             }
@@ -3195,7 +3211,7 @@ export default class grvt extends Exchange {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
-                'numTokens': this.parseToInt(request['num_tokens'] * amountMultiplier),
+                'numTokens': this.parseToInt(Precise.stringMul(this.safeString(request, 'num_tokens', '0'), this.numberToString(amountMultiplier))),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             };
@@ -3208,8 +3224,8 @@ export default class grvt extends Exchange {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_futures_fee_rate')) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_spot_fee_rate')) * amountMultiplier),
+                'maxFutureFeeRate': this.parseToInt(Precise.stringMul(this.safeString(request, 'max_futures_fee_rate', '0'), this.numberToString(amountMultiplier))),
+                'maxSpotFeeRate': this.parseToInt(Precise.stringMul(this.safeString(request, 'max_spot_fee_rate', '0'), this.numberToString(amountMultiplier))),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             };
@@ -3228,15 +3244,24 @@ export default class grvt extends Exchange {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         const signature = ecdsa(this.hash(ethEncodedMessage, keccak, 'hex'), privateKeyWithoutZero, secp256k1, undefined);
-        request['signature'] = {
-            'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero) : signerAddress,
-            'r': this.formatSignatureRS(signature['r']),
-            's': this.formatSignatureRS(signature['s']),
+        const rHex = this.safeString(signature, 'r', '');
+        const sHex = this.safeString(signature, 's', '');
+        const signatureEntry = {
+            'signer': undefined,
+            'r': this.formatSignatureRS(rHex),
+            's': this.formatSignatureRS(sHex),
             'v': this.sum(27, signature['v']),
             'expiration': requestSignature['expiration'],
             'nonce': requestSignature['nonce'],
             'chain_id': requestSignature['chain_id'],
         };
+        if (signerAddress === undefined) {
+            signatureEntry['signer'] = this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero);
+        }
+        else {
+            signatureEntry['signer'] = signerAddress;
+        }
+        request['signature'] = signatureEntry;
         return request;
     }
     formatSignatureRS(value) {

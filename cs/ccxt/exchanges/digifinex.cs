@@ -518,57 +518,54 @@ public partial class digifinex : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "exact", new Dictionary<string, object>() {
-                    { "10001", new List<object>() {typeof(BadRequest), "Wrong request method, please check it's a GET ot POST request"} },
-                    { "10002", new List<object>() {typeof(AuthenticationError), "Invalid ApiKey"} },
-                    { "10003", new List<object>() {typeof(AuthenticationError), "Sign doesn't match"} },
-                    { "10004", new List<object>() {typeof(BadRequest), "Illegal request parameters"} },
-                    { "10005", new List<object>() {typeof(DDoSProtection), "Request frequency exceeds the limit"} },
-                    { "10006", new List<object>() {typeof(PermissionDenied), "Unauthorized to execute this request"} },
-                    { "10007", new List<object>() {typeof(PermissionDenied), "IP address Unauthorized"} },
-                    { "10008", new List<object>() {typeof(InvalidNonce), "Timestamp for this request is invalid, timestamp must within 1 minute"} },
-                    { "10009", new List<object>() {typeof(NetworkError), "Unexist endpoint, please check endpoint URL"} },
-                    { "10011", new List<object>() {typeof(AccountSuspended), "ApiKey expired. Please go to client side to re-create an ApiKey"} },
-                    { "20001", new List<object>() {typeof(PermissionDenied), "Trade is not open for this trading pair"} },
-                    { "20002", new List<object>() {typeof(PermissionDenied), "Trade of this trading pair is suspended"} },
-                    { "20003", new List<object>() {typeof(InvalidOrder), "Invalid price or amount"} },
-                    { "20007", new List<object>() {typeof(InvalidOrder), "Price precision error"} },
-                    { "20008", new List<object>() {typeof(InvalidOrder), "Amount precision error"} },
-                    { "20009", new List<object>() {typeof(InvalidOrder), "Amount is less than the minimum requirement"} },
-                    { "20010", new List<object>() {typeof(InvalidOrder), "Cash Amount is less than the minimum requirement"} },
-                    { "20011", new List<object>() {typeof(InsufficientFunds), "Insufficient balance"} },
-                    { "20012", new List<object>() {typeof(BadRequest), "Invalid trade type, valid value: buy/sell)"} },
-                    { "20013", new List<object>() {typeof(InvalidOrder), "No order info found"} },
-                    { "20014", new List<object>() {typeof(BadRequest), "Invalid date, Valid format: 2018-07-25)"} },
-                    { "20015", new List<object>() {typeof(BadRequest), "Date exceeds the limit"} },
-                    { "20018", new List<object>() {typeof(PermissionDenied), "Your trading rights have been banned by the system"} },
-                    { "20019", new List<object>() {typeof(BadSymbol), "Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front"} },
-                    { "20020", new List<object>() {typeof(DDoSProtection), "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."} },
-                    { "50000", new List<object>() {typeof(ExchangeError), "Exception error"} },
-                    { "20021", new List<object>() {typeof(BadRequest), "Invalid currency"} },
-                    { "20022", new List<object>() {typeof(BadRequest), "The ending timestamp must be larger than the starting timestamp"} },
-                    { "20023", new List<object>() {typeof(BadRequest), "Invalid transfer type"} },
-                    { "20024", new List<object>() {typeof(BadRequest), "Invalid amount"} },
-                    { "20025", new List<object>() {typeof(BadRequest), "This currency is not transferable at the moment"} },
-                    { "20026", new List<object>() {typeof(InsufficientFunds), "Transfer amount exceed your balance"} },
-                    { "20027", new List<object>() {typeof(PermissionDenied), "Abnormal account status"} },
-                    { "20028", new List<object>() {typeof(PermissionDenied), "Blacklist for transfer"} },
-                    { "20029", new List<object>() {typeof(PermissionDenied), "Transfer amount exceed your daily limit"} },
-                    { "20030", new List<object>() {typeof(BadRequest), "You have no position on this trading pair"} },
-                    { "20032", new List<object>() {typeof(PermissionDenied), "Withdrawal limited"} },
-                    { "20033", new List<object>() {typeof(BadRequest), "Wrong Withdrawal ID"} },
-                    { "20034", new List<object>() {typeof(PermissionDenied), "Withdrawal service of this crypto has been closed"} },
-                    { "20035", new List<object>() {typeof(PermissionDenied), "Withdrawal limit"} },
-                    { "20036", new List<object>() {typeof(ExchangeError), "Withdrawal cancellation failed"} },
-                    { "20037", new List<object>() {typeof(InvalidAddress), "The withdrawal address, Tag or chain type is not included in the withdrawal management list"} },
-                    { "20038", new List<object>() {typeof(InvalidAddress), "The withdrawal address is not on the white list"} },
-                    { "20039", new List<object>() {typeof(ExchangeError), "Can't be canceled in current status"} },
-                    { "20040", new List<object>() {typeof(RateLimitExceeded), "Withdraw too frequently; limitation: 3 times a minute, 100 times a day"} },
-                    { "20041", new List<object>() {typeof(PermissionDenied), "Beyond the daily withdrawal limit"} },
-                    { "20042", new List<object>() {typeof(BadSymbol), "Current trading pair does not support API trading"} },
-                    { "400002", new List<object>() {typeof(BadRequest), "Invalid Parameter"} },
-                } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "10001", typeof(BadRequest) },
+                { "10002", typeof(AuthenticationError) },
+                { "10003", typeof(AuthenticationError) },
+                { "10004", typeof(BadRequest) },
+                { "10005", typeof(DDoSProtection) },
+                { "10006", typeof(PermissionDenied) },
+                { "10007", typeof(PermissionDenied) },
+                { "10008", typeof(InvalidNonce) },
+                { "10009", typeof(NetworkError) },
+                { "10011", typeof(AccountSuspended) },
+                { "20001", typeof(PermissionDenied) },
+                { "20002", typeof(PermissionDenied) },
+                { "20003", typeof(InvalidOrder) },
+                { "20007", typeof(InvalidOrder) },
+                { "20008", typeof(InvalidOrder) },
+                { "20009", typeof(InvalidOrder) },
+                { "20010", typeof(InvalidOrder) },
+                { "20011", typeof(InsufficientFunds) },
+                { "20012", typeof(BadRequest) },
+                { "20013", typeof(InvalidOrder) },
+                { "20014", typeof(BadRequest) },
+                { "20015", typeof(BadRequest) },
+                { "20018", typeof(PermissionDenied) },
+                { "20019", typeof(BadSymbol) },
+                { "20020", typeof(DDoSProtection) },
+                { "50000", typeof(ExchangeError) },
+                { "20021", typeof(BadRequest) },
+                { "20022", typeof(BadRequest) },
+                { "20023", typeof(BadRequest) },
+                { "20024", typeof(BadRequest) },
+                { "20025", typeof(BadRequest) },
+                { "20026", typeof(InsufficientFunds) },
+                { "20027", typeof(PermissionDenied) },
+                { "20028", typeof(PermissionDenied) },
+                { "20029", typeof(PermissionDenied) },
+                { "20030", typeof(BadRequest) },
+                { "20032", typeof(PermissionDenied) },
+                { "20033", typeof(BadRequest) },
+                { "20034", typeof(PermissionDenied) },
+                { "20035", typeof(PermissionDenied) },
+                { "20036", typeof(ExchangeError) },
+                { "20037", typeof(InvalidAddress) },
+                { "20038", typeof(InvalidAddress) },
+                { "20039", typeof(ExchangeError) },
+                { "20040", typeof(RateLimitExceeded) },
+                { "20041", typeof(PermissionDenied) },
+                { "20042", typeof(BadSymbol) },
+                { "400002", typeof(BadRequest) },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
@@ -831,7 +828,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object market = response[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)response[i]);
             string? id = this.safeString2(market, "symbol", "instrument_id");
             string? baseId = this.safeString2(market, "base_asset", "base_currency");
             string? quoteId = this.safeString2(market, "quote_asset", "quote_currency");
@@ -951,7 +948,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market");
             if ((id == null))
             {
@@ -1047,7 +1044,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rows, i);
@@ -1257,7 +1254,7 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -1421,12 +1418,12 @@ public partial class digifinex : Exchange
         IDictionary<string, object> firstTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         if (!(this.safeBool(market, "swap", false) == true))
         {
-            return this.parseTicker(this.extend(new Dictionary<string, object>() {                 { "date", date },             }, firstTicker), market);
+            return this.parseTicker(this.extend(new Dictionary<string, object>() {     { "date", date }, }, firstTicker), market);
         }
         return this.parseTicker(this.safeDict(response, "data", new Dictionary<string, object>() {}), market);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1475,7 +1472,7 @@ public partial class digifinex : Exchange
         }
         string? marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null,marketType);
         Int64? timestamp = this.safeTimestamp(ticker, "date");
         if ((this.safeBool(marketResolved, "swap", false) == true))
         {
@@ -1577,7 +1574,12 @@ public partial class digifinex : Exchange
         string? amountString = this.safeStringN(trade, new List<object>() {"amount", "volume", "size"});
         string? marketId = this.safeStringUpper2(trade, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market);
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market);
+        string? marketIdResolved = null;
+        if ((market == null))
+        {
+            marketIdResolved = marketId;
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(marketIdResolved, market);
         Int64? timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         string? side = this.safeString2(trade, "type", "side");
         string? type = null;
@@ -1804,7 +1806,7 @@ public partial class digifinex : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -2122,7 +2124,7 @@ public partial class digifinex : Exchange
         return this.parseOrders(result, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2171,7 +2173,7 @@ public partial class digifinex : Exchange
             bool? reduceOnly = this.safeBool(paramsMarginMode, "reduceOnly", false);
             string? timeInForce = this.safeString(paramsMarginMode, "timeInForce");
             int? orderType = null;
-            if ((side is "buy"))
+            if ((side == "buy"))
             {
                 int requestType = reduceOnly == true ? 4 : 1;
                 request["type"] = requestType;
@@ -2216,13 +2218,13 @@ public partial class digifinex : Exchange
             {
                 request["price"] = this.priceToPrecision(symbol, price);
             }
-            request["type"] = add(side, suffix);
+            request["type"] = (side + suffix);
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             string? quantity = null;
             (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
             IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
-            bool isMarketBuy = isMarketOrder && ((side is "buy"));
+            bool isMarketBuy = isMarketOrder && ((side == "buy"));
             List<object> keysToOmit = new List<object>() {"postOnly"};
             if (isMarketBuy)
             {
@@ -2401,9 +2403,9 @@ public partial class digifinex : Exchange
         List<object> success = this.safeList(response, "success", new List<object>() {});
         List<object> error = this.safeList(response, "error", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (success?.Count ?? 0); i++)
+        for (int i = 0; i < success.Count; i++)
         {
-            object order = success[i];
+            string? order = this.safeString(success, i);
             result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -2411,9 +2413,9 @@ public partial class digifinex : Exchange
                 { "status", "canceled" },
             })));
         }
-        for (int i = 0; i < (error?.Count ?? 0); i++)
+        for (int i = 0; i < error.Count; i++)
         {
-            object order = error[i];
+            string? order = this.safeString(error, i);
             result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -2457,7 +2459,7 @@ public partial class digifinex : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument for swap markets")) ;
             }
-            string? marketSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? marketSymbol = this.safeString(market, "symbol", "");
             List<object> orders = new List<object>() {};
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
@@ -2513,19 +2515,18 @@ public partial class digifinex : Exchange
         string? marketType = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)(orders != null && i < orders.Count ? orders[i] : null));
-            string? id = this.safeString(order, "id");
+            string? id = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "id");
             if ((id == null))
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrdersForSymbols() requires an id for each order")) ;
             }
-            string? symbol = this.safeString(order, "symbol");
+            string? symbol = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "symbol");
             if ((symbol == null))
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
-            string? orderMarketType = ((string)(market.ContainsKey("type") ? market["type"] : null));
+            string? orderMarketType = this.safeString(market, "type");
             if ((marketType == null))
             {
                 marketType = orderMarketType;
@@ -2547,8 +2548,8 @@ public partial class digifinex : Exchange
             List<object> ordersRequests = new List<object>() {};
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
-                string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+                Dictionary<string, object> market = this.market(this.safeString(symbols, i));
+                string? marketId = this.safeString(market, "id");
                 string? orderId = ((string)ids[i]);
                 ordersRequests.Add(new Dictionary<string, object>() {
                     { "instrument_id", marketId },
@@ -2576,7 +2577,7 @@ public partial class digifinex : Exchange
                 result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                     { "info", orderId },
                     { "id", orderId },
-                    { "symbol", (symbols != null && i < symbols.Count ? symbols[i] : null) },
+                    { "symbol", this.safeString(symbols, i) },
                     { "status", status },
                 })));
             }
@@ -2618,7 +2619,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // spot: createOrder
@@ -2686,7 +2687,7 @@ public partial class digifinex : Exchange
         Int64? timestamp = null;
         Int64? lastTradeTimestamp = null;
         string? timeInForce = null;
-        object type = null;
+        string? type = null;
         bool? reduceOnly = null;
         object side = this.safeString(order, "type");
         string? sideRaw = this.safeString(order, "type");
@@ -2747,7 +2748,7 @@ public partial class digifinex : Exchange
                 if (numParts > 1)
                 {
                     side = (parts != null && 0 < parts.Count ? parts[0] : null);
-                    type = (parts != null && 1 < parts.Count ? parts[1] : null);
+                    type = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 } else
                 {
                     type = "limit";
@@ -3153,7 +3154,7 @@ public partial class digifinex : Exchange
         {
             throw new OrderNotFound ((((this.id + " fetchOrder() order ") + idValue) + " not found")) ;
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -3291,7 +3292,7 @@ public partial class digifinex : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         // spot and margin
@@ -3460,7 +3461,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledger, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3518,7 +3519,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        Dictionary<string, object> addresses = this.indexBy(this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false), "currency");
+        Dictionary<string, object> addresses = this.indexBy(this.parseDepositAddresses(data, new List<object> {this.safeString(currency, "code", "")}, false), "currency");
         IDictionary<string, object> address = this.safeDict(addresses, code);
         if ((address == null))
         {
@@ -3527,7 +3528,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDepositAddress(address);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsByType(string? type, string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsByType(string type, string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3624,7 +3625,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -3702,7 +3703,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransfer(IDictionary<string, object> transfer, IDictionary<string, object> currency = null)
     {
         //
         // transfer between spot, margin and OTC
@@ -3780,7 +3781,7 @@ public partial class digifinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
+        string? currencyId = this.safeString(currency, "id");
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3871,7 +3872,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3912,7 +3913,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
-    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseBorrowInterest(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3986,10 +3987,10 @@ public partial class digifinex : Exchange
         object result = null;
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
-            if ((this.safeString(entry, "currency") == code))
+            string? entryCurrency = this.safeString(data[i], "currency", "");
+            if ((entryCurrency == code))
             {
-                result = entry;
+                result = data[i];
             }
         }
         Dictionary<string, object> currency = this.currency(code);
@@ -4067,7 +4068,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (info?.Count ?? 0); i++)
         {
-            object item = (info != null && i < info.Count ? info[i] : null);
+            object item = info[i];
             string? currency = this.safeString(item, codeKey);
             string? code = this.safeCurrencyCode(currency);
             Dictionary<string, object> borrowRate = this.parseBorrowRate(item);
@@ -4135,7 +4136,7 @@ public partial class digifinex : Exchange
         return await this.FetchFundingRate(symbol, parameters);
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4245,7 +4246,7 @@ public partial class digifinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(data, "instrument_id");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -4338,25 +4339,18 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         string? marketType = null;
         if ((symbolsNormalized != null))
         {
-            object symbol = null;
-            if (((symbolsNormalized is IList<object>) || (symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
+            if (symbolsLength > 1)
             {
-                int symbolsLength = (symbolsNormalized?.Count ?? 0);
-                if (symbolsLength > 1)
-                {
-                    throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
-            } else
-            {
-                symbol = symbolsNormalized;
+                throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
             }
+            string? symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
         }
         IDictionary<string, object> paramsMarketType = null;
@@ -4452,7 +4446,8 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            result.Add(this.parsePosition(positions[i], market));
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), market);
+            result.Add(parsedPosition);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
@@ -4562,7 +4557,7 @@ public partial class digifinex : Exchange
             dataRequest = "data";
         }
         List<object> data = this.safeList(response, dataRequest, new List<object>() {});
-        Dictionary<string, object> position = this.parsePosition((data != null && 0 < data.Count ? data[0] : null), market);
+        Dictionary<string, object> position = this.parsePosition(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
         if (marketType == "swap")
         {
             return ccxt.BaseExchange.ToPosition(position);
@@ -4574,7 +4569,7 @@ public partial class digifinex : Exchange
         }
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
     {
         //
         // swap
@@ -4615,8 +4610,8 @@ public partial class digifinex : Exchange
         //     }
         //
         string? marketId = this.safeString2(position, "instrument_id", "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? marginMode = this.safeString(position, "margin_mode");
         if ((marginMode != null))
         {
@@ -4945,7 +4940,7 @@ public partial class digifinex : Exchange
         List<object> tiers = new List<object>() {};
         List<object> brackets = this.safeList(info, "open_max_limits", new List<object>() {});
         string? marketId = this.safeString(info, "instrument_id");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
         for (int i = 0; i < brackets.Count; i++)
         {
             IDictionary<string, object> tier = this.safeDict(brackets, i);
@@ -5109,8 +5104,10 @@ public partial class digifinex : Exchange
                     }
                 } else
                 {
-                    depositWithdrawFee["withdraw"] = withdrawResult;
-                    depositWithdrawFee["deposit"] = depositResult;
+                    depositWithdrawFees[(string)code] = this.extend(depositWithdrawFee, new Dictionary<string, object>() {
+                        { "withdraw", withdrawResult },
+                        { "deposit", depositResult },
+                    });
                 }
             }
         }
@@ -5162,7 +5159,7 @@ public partial class digifinex : Exchange
         return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, object type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, double? amount, Int64? type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5201,7 +5198,7 @@ public partial class digifinex : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -5282,7 +5279,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(data, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIncome(IDictionary<string, object> income, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -5361,7 +5358,7 @@ public partial class digifinex : Exchange
         string urlencoded = "";
         if (signed && (pathPart == "/swap/v2") && ((method == "POST")))
         {
-            urlencoded = json(parameters);
+            urlencoded = this.json(parameters);
         } else
         {
             urlencoded = this.urlencode(this.keysort(query));
@@ -5389,7 +5386,7 @@ public partial class digifinex : Exchange
                 nonce = this.seconds().ToString();
                 auth = urlencoded;
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             if ((method == "GET"))
             {
                 if ((urlencoded != ""))
@@ -5429,26 +5426,73 @@ public partial class digifinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fall back to default error handler
+            return ((bool?)((object)(null)));  // fall back to default error handler
         }
         string? codeError = this.safeString(response, "code");
         if ((codeError == "0") || (codeError == "200"))
         {
-            return null;  // no error
+            return ((bool?)((object)(null)));  // no error
         }
-        string feedback = ((this.id + " ") + (body));
+        string feedback = ((this.id + " ") + body);
         if ((codeError == null))
         {
             throw new BadResponse (feedback) ;
         }
-        List<object> unknownError = new List<object>() {typeof(ExchangeError), feedback};
-        var ExceptionClassmessageVariable = this.safeValue((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, unknownError);
-        var ExceptionClass = ((IList<object>) ExceptionClassmessageVariable)[0];
-        var message = ((IList<object>) ExceptionClassmessageVariable)[1];
-        throwDynamicException(ExceptionClass, message);return null;
+        string? message = this.safeString(new Dictionary<string, object>() {
+            { "10001", "Wrong request method, please check it's a GET ot POST request" },
+            { "10002", "Invalid ApiKey" },
+            { "10003", "Sign doesn't match" },
+            { "10004", "Illegal request parameters" },
+            { "10005", "Request frequency exceeds the limit" },
+            { "10006", "Unauthorized to execute this request" },
+            { "10007", "IP address Unauthorized" },
+            { "10008", "Timestamp for this request is invalid, timestamp must within 1 minute" },
+            { "10009", "Unexist endpoint, please check endpoint URL" },
+            { "10011", "ApiKey expired. Please go to client side to re-create an ApiKey" },
+            { "20001", "Trade is not open for this trading pair" },
+            { "20002", "Trade of this trading pair is suspended" },
+            { "20003", "Invalid price or amount" },
+            { "20007", "Price precision error" },
+            { "20008", "Amount precision error" },
+            { "20009", "Amount is less than the minimum requirement" },
+            { "20010", "Cash Amount is less than the minimum requirement" },
+            { "20011", "Insufficient balance" },
+            { "20012", "Invalid trade type, valid value: buy/sell)" },
+            { "20013", "No order info found" },
+            { "20014", "Invalid date, Valid format: 2018-07-25)" },
+            { "20015", "Date exceeds the limit" },
+            { "20018", "Your trading rights have been banned by the system" },
+            { "20019", "Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front" },
+            { "20020", "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." },
+            { "50000", "Exception error" },
+            { "20021", "Invalid currency" },
+            { "20022", "The ending timestamp must be larger than the starting timestamp" },
+            { "20023", "Invalid transfer type" },
+            { "20024", "Invalid amount" },
+            { "20025", "This currency is not transferable at the moment" },
+            { "20026", "Transfer amount exceed your balance" },
+            { "20027", "Abnormal account status" },
+            { "20028", "Blacklist for transfer" },
+            { "20029", "Transfer amount exceed your daily limit" },
+            { "20030", "You have no position on this trading pair" },
+            { "20032", "Withdrawal limited" },
+            { "20033", "Wrong Withdrawal ID" },
+            { "20034", "Withdrawal service of this crypto has been closed" },
+            { "20035", "Withdrawal limit" },
+            { "20036", "Withdrawal cancellation failed" },
+            { "20037", "The withdrawal address, Tag or chain type is not included in the withdrawal management list" },
+            { "20038", "The withdrawal address is not on the white list" },
+            { "20039", "Can't be canceled in current status" },
+            { "20040", "Withdraw too frequently; limitation: 3 times a minute, 100 times a day" },
+            { "20041", "Beyond the daily withdrawal limit" },
+            { "20042", "Current trading pair does not support API trading" },
+            { "400002", "Invalid Parameter" },
+        }, codeError, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, message);
+        throw new ExchangeError (message) ;
     }
 }

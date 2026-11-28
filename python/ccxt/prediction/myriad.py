@@ -8,7 +8,7 @@ from ccxt.abstract.prediction.myriad import ImplicitAPI
 import asyncio
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
+from ccxt.base.types import Balances, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -268,8 +268,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'state': state,
                 'limit': limit,
             }, rest))
-            responseIsArray = isinstance(response, list)
-            found = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            found = self.safe_list(response, 'data', [])
             for j in range(0, len(found)):
                 raw = found[j]
                 networkId = self.safe_string(raw, 'networkId', '')
@@ -311,8 +310,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'page': page,
                 'trading_model': tradingModel,
             }, rest))
-            responseIsArray = isinstance(response, list)
-            rawMarkets = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            rawMarkets = self.safe_list(response, 'data', [])
             rawMarketsLength = len(rawMarkets)
             if rawMarketsLength == 0:
                 break
@@ -337,7 +335,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
         if id.find(':') < 0:
             rawQuestion = await self.fetch_raw_question_by_id(id, params)
-            orderBookEvent = self.parse_event(rawQuestion)
+            orderBookEvent = self.parse_event(self.extend({}, rawQuestion))
             self.index_event_outcomes(orderBookEvent)
             return orderBookEvent
         response = await self.fetch_raw_market_by_id(id, params)
@@ -419,8 +417,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'keyword': q,
                 'limit': limit,
             }, rest))
-            responseIsArray = isinstance(response, list)
-            found = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            found = self.safe_list(response, 'data', [])
             for j in range(0, len(found)):
                 raw = found[j]
                 questionId = self.safe_string(raw, 'id')
@@ -453,8 +450,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             if state is not None:
                 request['state'] = state
             response = await self.myriadPublicGetQuestions(self.extend(request, rest))
-            responseIsArray = isinstance(response, list)
-            rawQuestions = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            rawQuestions = self.safe_list(response, 'data', [])
             rawQuestionsLength = len(rawQuestions)
             if rawQuestionsLength == 0:
                 break
@@ -537,7 +533,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            position = self.parse_prediction_position(data[i])
+            position = self.parse_prediction_position(self.safe_dict(data, i, {}))
             if (outcomes is None) or self.in_array(position['outcome'], outcomes):
                 result.append(position)
         return result
@@ -691,18 +687,14 @@ class myriad(PredictionExchange, ImplicitAPI):
         payload = '02' + self.rlp_encode_list(fields)
         hashHex = self.hash(self.base16_to_binary(payload), 'keccak', 'hex')
         signature = self.ecdsa(hashHex, self.remove0x_prefix(privateKey), 'secp256k1', None)
-        rHex = self.safe_string(signature, 'r')
-        sHex = self.safe_string(signature, 's')
-        if rHex is None:
+        rHexRaw = self.safe_string(signature, 'r', '')
+        if rHexRaw == '':
             raise ExchangeError(self.id + ' signEvmTransaction() missing rHex')
-        rHexLength = len(rHex)
-        if (rHexLength % 2) != 0:
-            rHex = '0' + rHex
-        if sHex is None:
+        sHexRaw = self.safe_string(signature, 's', '')
+        if sHexRaw == '':
             raise ExchangeError(self.id + ' signEvmTransaction() missing sHex')
-        sHexLength = len(sHex)
-        if (sHexLength % 2) != 0:
-            sHex = '0' + sHex
+        rHex = self.pad_hex_to_even(rHexRaw)
+        sHex = self.pad_hex_to_even(sHexRaw)
         yParity = self.safe_integer(signature, 'v')
         signedFields = []
         for i in range(0, len(fields)):
@@ -990,8 +982,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         if (sideStr == 'buy') and (tokenAddress is not None) and (not skipAllowance):
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
         skipWaitForReceipt = self.safe_bool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash)
-        txHash = txHashParam
-        if txHash is None:
+        txHash = None
+        if txHashParam is not None:
+            txHash = txHashParam
+        else:
             txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
         if not skipWaitForReceipt:
             await self.wait_for_transaction_receipt(rpcUrl, txHash)
@@ -1035,8 +1029,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         encoded = self.eth_encode_structured_data(domain, types, message)
         digest = self.hash(encoded, 'keccak', 'hex')
         signature = self.ecdsa(digest, self.remove0x_prefix(self.privateKey), 'secp256k1', None)
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         v = self.sum(27, signature['v'])
@@ -1295,8 +1289,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         requestedStatus = self.safe_string_lower(params, 'status')
         if (requestedStatus == 'open') or (requestedStatus == 'cancelled') or (requestedStatus == 'canceled') or (requestedStatus == 'expired'):
             return []
-        traderParam = self.safe_string_2(params, 'trader', 'address')
-        trader = traderParam if (traderParam is not None) else self.wallet_address_or_undefined()
+        trader = self.safe_string_2(params, 'trader', 'address', self.wallet_address_or_undefined())
         if trader is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey')
         request = {
@@ -1814,7 +1807,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             scale = scale + '0'
         return Precise.string_div(decimalString, scale)
 
-    def parse_trade_tx(self, txHash: Str, quote: dict, market: dict, side: str) -> PredictionOrder:
+    def parse_trade_tx(self, txHash: Str, quote: dict, market: Market, side: str) -> PredictionOrder:
         return self.safe_prediction_order({
             'id': txHash,
             'clientOrderId': None,
@@ -1844,9 +1837,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         state = self.safe_string(raw, 'state', 'open')
         endDate = self.safe_string(raw, 'expiresAt')
         return {
-            'id': market['id'],
+            'id': self.safe_string(market, 'id', ''),
             'slug': slug,
-            'event': market['market'],
+            'event': self.safe_string(market, 'market', ''),
             'title': self.safe_string_2(raw, 'title', 'shortName'),
             'description': self.safe_string(raw, 'description'),
             'markets': [market],
@@ -1959,15 +1952,17 @@ class myriad(PredictionExchange, ImplicitAPI):
         outcomesLength = len(outcomes)
         # effectively-final copy for the market object literal below (reassigned in the loop)
         marketResolvedOutcome = resolvedOutcome
+        compositeId = self.safe_string(raw, 'networkId', '') + ':' + self.safe_string(raw, 'id', '')
+        compositeBaseId = self.safe_string(raw, 'networkId', '') + ':' + self.safe_string(raw, 'id', '')
         return {
-            'id': networkId + ':' + marketId,
+            'id': compositeId,
             'market': marketSymbol,
             'marketType': 'categorical' if (outcomesLength > 2) else 'binary',
             'executionModel': marketExecutionModel,
             'base': slug,
             'quote': quoteCurrency,
             'settle': None,
-            'baseId': networkId + ':' + marketId,
+            'baseId': compositeBaseId,
             'quoteId': quoteCurrency,
             'settleId': None,
             'type': 'prediction',
@@ -1984,7 +1979,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'linear': None,
             'inverse': None,
             'contractSize': None,
-            'expiry': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
+            'expiry': self.parse8601(endDate),
             'expiryDatetime': endDate,
             'strike': None,
             'optionType': None,
@@ -2226,7 +2221,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         "externalSources": []
         #     }
         #
-        outcomeId = self.safe_string(market['info'], 'outcomeId') if (market is not None and market is not None) else None
+        outcomeId = self.safe_string(self.safe_dict(market, 'info'), 'outcomeId')
         outcomes = self.safe_list(raw, 'outcomes', [])
         price = None
         change = None
@@ -2235,7 +2230,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         percentage = None
         for i in range(0, len(outcomes)):
             o = self.safe_dict(outcomes, i)
-            if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
+            entryOutcomeId = self.safe_string(o, 'outcomeId', self.safe_string(o, 'id'))
+            if entryOutcomeId == outcomeId:
                 priceValue = self.safe_number(o, 'price')
                 changeValue = self.safe_number(o, 'priceChange24h')
                 price = priceValue
@@ -2243,7 +2239,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 if (priceValue is not None) and (changeValue is not None):
                     previousCloseValue = priceValue - changeValue
                     previousClose = previousCloseValue
-                    if previousCloseValue != 0:
+                    if priceValue != changeValue:
                         percentage = changeValue / previousCloseValue * 100
                 break
         return self.safe_prediction_ticker({
@@ -2389,7 +2385,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         ask = None
         for i in range(0, len(outcomes)):
             o = self.safe_dict(outcomes, i)
-            if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
+            entryOutcomeId = self.safe_string(o, 'outcomeId', self.safe_string(o, 'id'))
+            if entryOutcomeId == outcomeId:
                 price = self.safe_number(o, 'price')
                 if price is not None:
                     if price > 0.001:
@@ -2509,6 +2506,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #
         outcomes = self.safe_list(response, 'outcomes', [])
         selectedOutcome = None
+        outcomeSelected = False
         for i in range(0, len(outcomes)):
             oc = outcomes[i]
             currentId = self.safe_string(oc, 'id', self.safe_string(oc, 'outcomeId'))
@@ -2516,8 +2514,9 @@ class myriad(PredictionExchange, ImplicitAPI):
             if (outcomeId is not None) and (currentId == outcomeId):
                 selectedOutcome = oc
                 break
-            if (selectedOutcome is None) and (outcomeTitle is not None) and (currentTitle == outcomeTitle):
+            if (not outcomeSelected) and (outcomeTitle is not None) and (currentTitle == outcomeTitle):
                 selectedOutcome = oc
+                outcomeSelected = True
         # price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
         chart = None
         chartsList = self.safe_list(selectedOutcome, 'price_charts')
@@ -2623,7 +2622,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         responses = await asyncio.gather(*promises)
         for i in range(0, len(marketKeys)):
             key = marketKeys[i]
-            response = responses[i]
+            response = self.safe_dict(responses, i, {})
             grouped = outcomesByMarket[key]
             for j in range(0, len(grouped)):
                 outcomeObj = grouped[j]
@@ -2679,8 +2678,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         ]
         #     }
         #
-        responseIsArray = isinstance(response, list)
-        rows = response if (responseIsArray) else self.safe_list(response, 'data', [])
+        rows = self.safe_list(response, 'data', [])
         trades = []
         for i in range(0, len(rows)):
             row = self.safe_dict(rows, i)
@@ -2785,7 +2783,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 tagQueries = []
                 for i in range(0, requestedTagsLength):
                     # tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    tagSlug = requestedTags[i]
+                    tagSlug = self.safe_string(requestedTags, i, '')
                     tagQueries.append(tagSlug.replace('-', ' '))
                 # run both searches in parallel; some events are only discoverable from questions,
                 # while market search is still the primary source for market-level data
@@ -2801,8 +2799,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         result = []
         rawQuestionsLength = len(rawQuestions)
         for i in range(0, rawQuestionsLength):
-            rawQuestion = rawQuestions[i]
-            ev = self.parse_event(rawQuestion)
+            ev = self.parse_event(self.extend({}, rawQuestions[i]))
             evMarkets = self.safe_list(ev, 'markets', [])
             evMarketsLength = len(evMarkets)
             filteredMarkets = []
@@ -2884,11 +2881,12 @@ class myriad(PredictionExchange, ImplicitAPI):
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
             self.options['requestId'] = self.create_safe_dictionary()
-        options = self.options['requestId']
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         if url is not None:
-            self.options['requestId'][url] = newValue
+            options[url] = newValue
+            self.options['requestId'] = options
         return newValue
 
     def from_wei(self, wei: Str) -> Num:
@@ -2939,7 +2937,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         linesLength = len(lines)
         for i in range(0, linesLength):
             line = lines[i]
-            if len(line) > 0:
+            if line != '':
                 parsed = json.loads(line)
                 self.handle_centrifugo_frame(client, parsed)
 
@@ -2952,7 +2950,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
-            self.spawn(self.pong, client, msg)
+            self.spawn(self.pong, client)
             return
         connectReply = self.safe_dict(msg, 'connect')
         if connectReply is not None:
@@ -3095,7 +3093,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId', '')
         marketId = self.safe_string(info, 'marketId', '')
-        sym = self.safe_outcome_symbol(outcome, outcomeObj)
+        sym = self.safe_string(outcomeObj, 'outcome')
         channel = 'trades:' + networkId + ':' + marketId
         messageHash = 'myTrades'
         trades = await self.subscribe_myriad_channel(messageHash, channel, params)
@@ -3241,12 +3239,12 @@ class myriad(PredictionExchange, ImplicitAPI):
         seenChannels = {}
         resolvedSymbols = []
         for i in range(0, symbolsLength):
-            outcomeObj = self.outcome(outcomes[i])
+            outcomeObj = self.outcome(self.safe_string(outcomes, i, ''))
             info = self.safe_dict(outcomeObj, 'info', {})
             networkId = self.safe_string(info, 'networkId', '')
             marketId = self.safe_string(info, 'marketId', '')
             channel = 'prices:' + networkId + ':' + marketId
-            resolvedSymbols.append(self.safe_outcome_symbol(outcomes[i], outcomeObj))
+            resolvedSymbols.append(self.safe_outcome_symbol(self.safe_string(outcomes, i, ''), outcomeObj))
             if not (channel in seenChannels):
                 seenChannels[channel] = True
                 requestId = self.request_id(url)
@@ -3343,11 +3341,11 @@ class myriad(PredictionExchange, ImplicitAPI):
             outcomeObj = await self.load_outcome(outcomeResolved)
             info = self.safe_dict(outcomeObj, 'info', {})
             networkId = self.safe_string(info, 'networkId', networkId)
-            outcomeResolved = self.safe_outcome_symbol(outcomeResolved, outcomeObj)
+            outcomeResolved = self.safe_string(outcomeObj, 'outcome')
         channel = 'orders:' + networkId + ':' + trader
         messageHash = 'orders'
         orders = await self.subscribe_myriad_channel(messageHash, channel, params)
-        return self.filter_by_value_since_limit(orders, 'outcome', outcomeResolved, since, limit, 'timestamp', True)
+        return self.filter_by_outcome_since_limit(orders, outcomeResolved, since, limit, True)
 
     def handle_order(self, client: Client, data: dict):
         if self.orders is None:
@@ -3497,7 +3495,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a walletAddress or privateKey to watch private channels')
         return self.eth_get_address_from_private_key(self.privateKey).lower()
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         # Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if response is None:
             return None

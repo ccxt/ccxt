@@ -572,7 +572,8 @@ class bigone extends bigone$1["default"] {
             type = 'fiat';
         }
         else if (chainLength === 0) {
-            if (this.isLeveragedCurrency(id)) {
+            const leveragedId = this.safeString(rawCurrency, 'symbol', '');
+            if (this.isLeveragedCurrency(leveragedId)) {
                 type = 'leveraged';
             }
             else {
@@ -618,7 +619,7 @@ class bigone extends bigone$1["default"] {
         const promises = [this.publicGetAssetPairs(params), this.contractPublicGetSymbols(params)];
         const promisesResult = await Promise.all(promises);
         const response = this.safeDict(promisesResult, 0);
-        const contractResponse = this.safeValue(promisesResult, 1);
+        const contractMarkets = this.safeList(promisesResult, 1, []);
         //
         //     {
         //         "code":0,
@@ -735,7 +736,6 @@ class bigone extends bigone$1["default"] {
                 'info': market,
             }));
         }
-        const contractMarkets = this.toArray(contractResponse);
         for (let i = 0; i < contractMarkets.length; i++) {
             const market = contractMarkets[i];
             const baseId = this.safeString(market, 'baseCurrency');
@@ -1626,7 +1626,7 @@ class bigone extends bigone$1["default"] {
         const exchangeSpecificParam = this.safeBool(params, 'post_only', false);
         let postOnly = undefined;
         let query = undefined;
-        [postOnly, query] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam, params);
+        [postOnly, query] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN(query, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required

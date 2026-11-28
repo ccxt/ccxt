@@ -131,7 +131,7 @@ async def tco_create_fillable_order(exchange, market, log_prefix, skipped_proper
         #
         # ### close the traded position ###
         #
-        amount_to_close = exchange.parse_to_numeric(exchange.safe_string(entryorder_fetched, 'filled'))
+        amount_to_close = exchange.safe_number(entryorder_fetched, 'filled')
         params = {}
         # as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
         if is_swap_future:

@@ -376,7 +376,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'orders'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash = 'orders' + ':' + symbolResolved
+            messageHash = 'orders' + ':' + self.symbol(symbol)
         orders = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -435,13 +435,12 @@ class hashkey(ccxt.async_support.hashkey):
         marketId = self.safe_string(order, 's')
         marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'O')
-        side = self.safe_string_lower(order, 'S')
-        reduceOnly = None
-        side, reduceOnly = self.parseOrderSideAndReduceOnly(side)
-        type = self.parseOrderType(self.safe_string(order, 'o'))
-        timeInForce = self.safe_string(order, 'f')
-        postOnly = None
-        type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
+        rawSide = self.safe_string_lower(order, 'S')
+        side = self.parseOrderSideValue(rawSide)
+        rawType = self.parseOrderType(self.safe_string(order, 'o'))
+        rawTimeInForce = self.safe_string(order, 'f')
+        timeInForce = self.parseOrderTimeInForceValue(rawType, rawTimeInForce)
+        type = self.parseOrderType(rawType)
         if self.safe_bool(marketResolved, 'contract', False):  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
         return self.safe_order({
@@ -471,8 +470,8 @@ class hashkey(ccxt.async_support.hashkey):
                 'currency': self.safe_currency_code(self.safe_string(order, 'N')),
                 'amount': self.omit_zero((self.safe_string(order, 'n'))),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': self.parseOrderReduceOnlyValue(rawSide),
+            'postOnly': self.parseOrderPostOnlyValue(rawType, rawTimeInForce),
             'info': order,
         }, marketResolved)
 
@@ -493,7 +492,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'myTrades'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash = 'myTrades' + ':' + symbolResolved
+            messageHash = 'myTrades' + ':' + self.symbol(symbol)
         trades = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -715,7 +714,7 @@ class hashkey(ccxt.async_support.hashkey):
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
         if snapshot:
-            messageHash = type + ':' + 'fetchBalanceSnapshot'
+            messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
                 self.spawn(self.load_balance_snapshot, client, messageHash, type)
@@ -757,17 +756,16 @@ class hashkey(ccxt.async_support.hashkey):
         type = 'swap'
         if isSpot:
             type = 'spot'
-        if not (type in self.balance):
-            self.balance[type] = {}
-        self.balance[type]['info'] = message
+        balance = self.safe_dict(self.balance, type, {})
+        balance['info'] = message
         currencyId = self.safe_string(balanceUpdate, 'a')
         code = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_string(balanceUpdate, 'f')
         account['used'] = self.safe_string(balanceUpdate, 'l')
         if code is not None:
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         messageHash = 'balance:' + type
         client.resolve(self.balance[type], messageHash)
 

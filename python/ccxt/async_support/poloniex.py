@@ -8,7 +8,7 @@ from ccxt.abstract.poloniex import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -777,10 +777,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def load_markets(self, reload=False, params: dict = {}):
         markets = await super(poloniex, self).load_markets(reload, params)
@@ -1325,11 +1322,12 @@ class poloniex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'symbol': market['id'],
         }
         if self.safe_bool(market, 'contract', False):
-            tickers = await self.fetch_tickers([market['symbol']], params)
+            tickers = await self.fetch_tickers([marketSymbol], params)
             contractTicker = self.safe_dict(tickers, symbol)
             return contractTicker
         response = await self.publicGetMarketsSymbolTicker24h(self.extend(request, params))
@@ -2067,7 +2065,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "clientOrderId" : ""
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def create_orders(self, orders: list[OrderRequest], params: dict = {}):
         """
@@ -2275,7 +2273,7 @@ class poloniex(Exchange, ImplicitAPI):
             'side': side,
             'type': type,
         })
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         #
@@ -2329,7 +2327,7 @@ class poloniex(Exchange, ImplicitAPI):
         #       "message":""
         #   }
         #
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}):
         """
@@ -2510,7 +2508,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "updateTime": 1646196019020
         #     }
         #
-        order = self.parse_order(response)
+        order = self.parse_order(self.extend({}, response))
         order['id'] = idValue
         return order
 
@@ -2871,8 +2869,11 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        paramsValue = extraParams
+        prepared = self.prepare_request_for_deposit_address(code, params)
+        request = self.safe_dict(prepared, 'request')
+        paramsValue = self.safe_dict(prepared, 'query')
+        currency = self.currency(code)
+        networkEntry = self.safe_dict(prepared, 'networkEntry')
         response = await self.privatePostWalletsAddress(self.extend(request, paramsValue))
         #
         #     {
@@ -2892,8 +2893,11 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        paramsValue = extraParams
+        prepared = self.prepare_request_for_deposit_address(code, params)
+        request = self.safe_dict(prepared, 'request')
+        paramsValue = self.safe_dict(prepared, 'query')
+        currency = self.currency(code)
+        networkEntry = self.safe_dict(prepared, 'networkEntry')
         response = await self.privateGetWalletsAddresses(self.extend(request, paramsValue))
         #
         #     {
@@ -2906,18 +2910,16 @@ class poloniex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"')
         return self.parse_deposit_address_special(response, currency, networkEntry)
 
-    def prepare_request_for_deposit_address(self, code: str, params: dict = {}) -> object:
+    def prepare_request_for_deposit_address(self, code: str, params: dict = {}) -> dict:
         if not (code in self.currencies):
             raise BadSymbol(self.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", {"network": "TRC20"})')
         currency = self.currency(code)
-        networkCode = None
-        query = None
-        networkCode, query = self.handle_network_code_and_params(params)
-        if networkCode is None:
+        networkCodeRaw, query = self.handle_network_code_and_params(params)
+        if networkCodeRaw is None:
             # we need to know the network to find out the currency-junction
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires a network parameter for ' + code + '.')
         exchangeNetworkId = None
-        networkCode = self.network_id_to_code(networkCode, code)
+        networkCode = self.network_id_to_code(networkCodeRaw, code)
         networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
         if networkEntry is not None:
             exchangeNetworkId = self.safe_string(networkEntry, 'id')
@@ -2926,7 +2928,12 @@ class poloniex(Exchange, ImplicitAPI):
         request = {
             'currency': exchangeNetworkId,
         }
-        return [request, query, currency, networkEntry]
+        return {
+            'request': request,
+            'query': query,
+            'currency': currency,
+            'networkEntry': networkEntry,
+        }
 
     def parse_deposit_address_special(self, response: dict, currency: Currency, networkEntry: dict) -> DepositAddress:
         address = self.safe_string(response, 'address')
@@ -3336,11 +3343,12 @@ class poloniex(Exchange, ImplicitAPI):
         #
         depositWithdrawFees = {}
         codesValue = self.market_codes(codes)
-        responseKeys = list(response.keys())
+        feesById = self.extend({}, response)
+        responseKeys = list(feesById.keys())
         for i in range(0, len(responseKeys)):
             currencyId = responseKeys[i]
             code = self.safe_currency_code(currencyId)
-            feeInfo = self.safe_dict(response, currencyId)
+            feeInfo = self.safe_dict(feesById, currencyId)
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
                 currency = self.currency(code)
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, currency)
@@ -3352,15 +3360,15 @@ class poloniex(Exchange, ImplicitAPI):
                         rawNetworkId = self.safe_string(childChains, j, '')
                         networkId = rawNetworkId.replace(code, '')
                         networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-                        networkInfo = self.safe_dict(response, networkId)
+                        networkInfo = self.safe_dict(feesById, networkId)
                         networkObject = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
+                        withdrawObject = {'fee': withdrawFee, 'percentage': None}
+                        if withdrawFee is not None:
+                            withdrawObject['percentage'] = False
                         if networkCode is not None:
                             networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': False if (withdrawFee is not None) else None,
-                                },
+                                'withdraw': withdrawObject,
                                 'deposit': {
                                     'fee': None,
                                     'percentage': None,
@@ -3660,7 +3668,7 @@ class poloniex(Exchange, ImplicitAPI):
             'hedged': hedged,
         }
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 
@@ -3891,7 +3899,7 @@ class poloniex(Exchange, ImplicitAPI):
         apiName = api[0]
         isArray = isinstance(params, list)
         if method == 'GET' and ('symbol' in params):
-            params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
+            params['symbol'] = self.encode_uri_component(self.safe_string(params, 'symbol'))  # handle symbols like 索拉拉/USDT'
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         url = self.safe_string(self.urls['api'], 'spot', '') + '/' + implodedPath
@@ -3932,7 +3940,7 @@ class poloniex(Exchange, ImplicitAPI):
         headersResolved = signedHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None
         #

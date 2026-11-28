@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -762,7 +762,7 @@ class kraken(ccxt.async_support.kraken):
         symbolsNormalized = self.market_symbols(symbols, None, False, True, False)
         unsubMessageHashes = []
         for i in range(0, len(symbolsNormalized)):
-            unsubMessageHashes.append('unsubscribe:' + self.get_message_hash('trade', None, symbolsNormalized[i]))
+            unsubMessageHashes.append('unsubscribe:' + self.get_message_hash('trade', None, self.symbol(symbolsNormalized[i])))
         request = {
             'method': 'unsubscribe',
             'params': {
@@ -1040,14 +1040,14 @@ class kraken(ccxt.async_support.kraken):
                     currentAskLength = len(currentAsk)
                     formattedAsk = ''
                     if currentAskLength > 1:
-                        formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
+                        formattedAsk = self.format_number(self.safe_string(currentAsk, 0, '')) + self.format_number(self.safe_string(currentAsk, 1, ''))
                     payloadArray.append(formattedAsk)
                 for i in range(0, 10):
                     currentBid = self.safe_list(checkBids, i, [])
                     currentBidLength = len(currentBid)
                     formattedBid = ''
                     if currentBidLength > 1:
-                        formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
+                        formattedBid = self.format_number(self.safe_string(currentBid, 0, '')) + self.format_number(self.safe_string(currentBid, 1, ''))
                     payloadArray.append(formattedBid)
             payload = ''.join(payloadArray)
             localChecksum = self.crc32(payload, False)
@@ -1297,8 +1297,8 @@ class kraken(ccxt.async_support.kraken):
         if market is not None:
             symbol = self.safe_string(market, 'symbol')
         fee = None
-        if 'fees' in trade:
-            fees = self.safe_list(trade, 'fees', [])
+        fees = self.safe_list(trade, 'fees')
+        if fees is not None:
             firstFee = self.safe_dict(fees, 0, {})
             fee = {
                 'cost': self.safe_number(firstFee, 'qty'),
@@ -1555,7 +1555,8 @@ class kraken(ccxt.async_support.kraken):
         if self.balance is None:
             self.balance = {}
         self.balance[type] = self.safe_dict(self.balance, type, {})
-        self.balance[type]['info'] = message
+        balance = self.safe_dict(self.balance, type, {})
+        balance['info'] = message
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             currencyId = self.safe_string(data[i], 'asset')
@@ -1563,8 +1564,8 @@ class kraken(ccxt.async_support.kraken):
             account = self.account()
             eq = self.safe_string(data[i], 'balance')
             account['total'] = eq
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         channel = self.safe_string(message, 'channel')
         client.resolve(self.balance[type], channel)
 
@@ -1642,7 +1643,7 @@ class kraken(ccxt.async_support.kraken):
             self.clean_unsubscription(client, subMessageHash, unsubMessageHash)
         return message
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1665,15 +1666,13 @@ class kraken(ccxt.async_support.kraken):
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
             requestId = self.safe_string_2(message, 'reqid', 'req_id')
-            broad = self.exceptions['ws']['broad']
-            broadKey = self.find_broadly_matched_key(broad, errorMessage)
-            exception = None
-            if broadKey is None:
-                exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
-            else:
-                exception = broad[broadKey](errorMessage)
             if requestId is not None:
-                client.reject(exception, requestId)
+                broad = self.exceptions['ws']['broad']
+                try:
+                    self.throw_broadly_matched_exception(broad, errorMessage, errorMessage)
+                    raise ExchangeError(errorMessage)
+                except Exception as e:
+                    client.reject(e, requestId)
             return False
         return True
 

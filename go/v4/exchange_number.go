@@ -220,20 +220,19 @@ func roundToDecimalPlaces(num float64, decimalPlaces int) float64 {
 	return math.Round(num*shift) / shift
 }
 
-func (this *BaseExchange) DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string {
-	countingMode := GetArg(args, 0, nil)
-	paddingMode := GetArg(args, 1, nil)
+func (this *BaseExchange) DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...int) string {
+	countingMode := DECIMAL_PLACES
+	if len(args) > 0 {
+		countingMode = args[0]
+	}
+	paddingMode := NO_PADDING
+	if len(args) > 1 {
+		paddingMode = args[1]
+	}
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
-func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecisionDigits2 any, countmode2, paddingMode any) string {
-	if countmode2 == nil {
-		countmode2 = DECIMAL_PLACES
-	}
-	if paddingMode == nil {
-		paddingMode = NO_PADDING
-	}
-	countMode := int(ParseInt(countmode2))
+func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecisionDigits2 any, countMode int, paddingMode int) string {
 	roundingMode := int(ParseInt(roundingMode2))
 	numPrecisionDigits := ToFloat64(numPrecisionDigits2)
 
@@ -246,7 +245,7 @@ func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecision
 		parsedX := ToFloat64(x)
 		toNearest := math.Pow(10, math.Abs(numPrecisionDigits))
 		if roundingMode == ROUND {
-			res := this._decimalToPrecision(parsedX/toNearest, roundingMode, 0, countmode2, paddingMode)
+			res := this._decimalToPrecision(parsedX/toNearest, roundingMode, 0, countMode, paddingMode)
 			floatRes, _ := strconv.ParseFloat(res, 64)
 			resultFloat := toNearest * floatRes
 			resultStr := ""
@@ -281,7 +280,10 @@ func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecision
 		if roundingMode == TRUNCATE {
 			xStr := NumberToString(x)
 			truncatedX := this.truncateToString(xStr, int(math.Max(0, float64(newNumPrecisionDigits))))
-			truncatedParsedX := ToFloat64(truncatedX)
+			truncatedParsedX, err := strconv.ParseFloat(truncatedX, 64)
+			if err != nil {
+				truncatedParsedX = math.NaN()
+			}
 			scale := math.Pow(10, math.Max(float64(newNumPrecisionDigits), 10))
 			xScaled := math.Round(truncatedParsedX * scale)
 			tickScaled := math.Round(numPrecisionDigits * scale)
@@ -450,7 +452,7 @@ func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecision
 	nAfterDot := int(math.Max(float64(readEnd-afterDot), 0))
 	actualLength := readEnd - readStart
 	desiredLength := actualLength
-	if derefScalar(paddingMode).(int) != NO_PADDING {
+	if paddingMode != NO_PADDING {
 		desiredLength = precisionEnd - readStart
 	}
 	pad := int(math.Max(float64(desiredLength-actualLength), 0))

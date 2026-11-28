@@ -59,23 +59,23 @@ fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
         BOOK_COUNTED => (SIDE_COUNTED, true),
         _            => (SIDE_PLAIN,   true),
     };
-    let bids_deltas = crate::get_value(&snapshot, &Value::Str("bids".into()));
-    let asks_deltas = crate::get_value(&snapshot, &Value::Str("asks".into()));
-    let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, &bids_deltas);
-    let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, &asks_deltas);
+    let bids_deltas = snapshot.at("bids");
+    let asks_deltas = snapshot.at("asks");
+    let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, bids_deltas);
+    let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, asks_deltas);
 
-    let timestamp = match crate::get_value(&snapshot, &Value::Str("timestamp".into())) {
+    let timestamp = match *snapshot.at("timestamp") {
         Value::Int(n)   => Some(n),
         Value::Float(f) => Some(f as i64),
         _ => None,
     };
     let datetime = timestamp.and_then(iso8601_millis);
-    let nonce = match crate::get_value(&snapshot, &Value::Str("nonce".into())) {
+    let nonce = match *snapshot.at("nonce") {
         Value::Int(n)   => Value::Int(n),
         Value::Float(f) => Value::Int(f as i64),
         _ => Value::Null,
     };
-    let symbol = crate::get_value(&snapshot, &Value::Str("symbol".into()));
+    let symbol = snapshot.at("symbol").to_owned();
 
     // Scalar meta lives in the shared book store (keyed by `__book_id`) so WS
     // handlers that mutate a cloned book — okx's seqId nonce — propagate.
@@ -197,7 +197,12 @@ impl Side {
     /// `side.storeArray(delta)`.
     pub fn store_array(&mut self, delta: Value) { self.0.store_array(delta) }
     /// `side.length`: the level count (`Int(0)` for no side).
-    pub fn length(&self) -> Value { crate::runtime::get_array_length(&self.0) }
+    pub fn length(&self) -> Value {
+        match &self.0 {
+            Value::Dict(d) if d.contains_key("__sideKind") => Value::Int(crate::value::side_entries_len(d) as i64),
+            v => Value::Int(v.len() as i64),
+        }
+    }
     /// `side[i]`: the stored level (`Null` out of range or for no side).
     pub fn level(&self, i: &Value) -> Value { crate::value::get_value(&self.0, i) }
 }
@@ -220,16 +225,17 @@ mod side_tests {
         let book = new_book(BOOK_PLAIN, Value::Map(snap), Value::Null);
         let mut side = Side::of(book.book_field("bids"));
         let sides = || [book.book_field("bids"), Value::Null, Value::Int(3), Value::Str("x".into())];
-        for (v, raw) in sides().into_iter().map(Side::of).zip(sides()) {
-            assert_eq!(v.length(), crate::runtime::get_array_length(&raw));
+        let lengths = [Value::Int(2), Value::Int(0), Value::Int(0), Value::Int(1)];
+        for ((v, raw), n) in sides().into_iter().map(Side::of).zip(sides()).zip(lengths) {
+            assert_eq!(v.length(), n);
             for i in [Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(-1), Value::Str("0".into()), Value::Null] {
                 assert_eq!(v.level(&i), crate::value::get_value(&raw, &i), "level {:?}", i);
             }
         }
         side.store(Value::Float(9.5), Value::Float(4.0));
         side.store_array(level(9.0, 0.0));
-        assert_eq!(crate::runtime::get_array_length(&book.book_field("bids")), Value::Int(2));
-        assert_eq!(crate::value::get_value(&book.book_field("bids"), &Value::Int(1)), level(9.5, 4.0));
+        assert_eq!(Side::of(book.book_field("bids")).length(), Value::Int(2));
+        assert_eq!(Side::of(book.book_field("bids")).level(&Value::Int(1)), level(9.5, 4.0));
         let mut none = Side::of(Value::Null);
         none.store(Value::Int(1), Value::Int(1));
         assert_eq!(Value::from(none), Value::Null);
@@ -241,11 +247,12 @@ mod side_tests {
     fn typed_cache_matches_the_boxed_handle() {
         let mut book = new_book(BOOK_PLAIN, Value::Map(crate::value::HashMap::new()), Value::Null);
         book.cache_push(Value::Int(1));
-        let mut boxed = Value::from(&book);
-        crate::runtime::append_to_object_array(&mut boxed, &Value::Str("cache".into()), Value::Int(2));
+        let boxed = Value::from(&book);
+        let mut field = boxed.book_field("cache");
+        crate::runtime::append_to_array(&mut field, Value::Int(2));
         let items = book.cache_items();
         assert_eq!(items.as_ref(), &vec![Value::Int(1), Value::Int(2)]);
-        assert_eq!(crate::runtime::get_array_length(&book.book_field("cache")), Value::Int(2));
+        assert_eq!(book.book_field("cache").len(), 2);
         book.set_book_meta("cache", Value::from(Vec::<Value>::new()));
         assert_eq!(items.len(), 2);
         assert_eq!(book.cache_items().len(), 0);

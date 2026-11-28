@@ -91,126 +91,132 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = ("ticker:" + symbolValue);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            this.setBrokerHeaders();
-            String baseIdString = this.safeString(market, "baseId", "");
-            String quoteIdString = this.safeString(market, "quoteId", "");
-            String assetId = baseIdString.toLowerCase();
-            assetId = (assetId + quoteIdString.toLowerCase());
-            Map<String, Object> subscribe = new HashMap<String, Object>();
-            subscribe.put("id", this.requestId());
-            subscribe.put("method", "SUBSCRIBE");
-            subscribe.put("params", new ArrayList<Object>(Arrays.asList("ticker@1s")));
-            subscribe.put("assets", new ArrayList<Object>(Arrays.asList(assetId)));
-            Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String messageHash = ("ticker:" + symbolValue);
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        this.setBrokerHeaders();
+        String baseIdString = this.safeString(market, "baseId", "");
+        String quoteIdString = this.safeString(market, "quoteId", "");
+        String assetId = baseIdString.toLowerCase();
+        assetId = (assetId + quoteIdString.toLowerCase());
+        Map<String, Object> subscribe = new HashMap<String, Object>();
+        subscribe.put("id", this.requestId());
+        subscribe.put("method", "SUBSCRIBE");
+        subscribe.put("params", new ArrayList<Object>(Arrays.asList("ticker@1s")));
+        subscribe.put("assets", new ArrayList<Object>(Arrays.asList(assetId)));
+        Map<String, Object> request = this.extend(subscribe, parameters);
+        return (this.watch(url, messageHash, request, messageHash, null)).join();
 
     }
 
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        List<String> assets = new ArrayList<String>(Arrays.asList());
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
+                messageHashes.add(("ticker:" + market.get("symbol")));
+                String baseIdString = this.safeString(market, "baseId", "");
+                String quoteIdString = this.safeString(market, "quoteId", "");
+                String assetId = baseIdString.toLowerCase();
+                assetId = (assetId + quoteIdString.toLowerCase());
+                assets.add(assetId);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> assets = new ArrayList<String>(Arrays.asList());
-            if (!java.util.Objects.equals(symbolsNormalized, null))
+        }
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        this.setBrokerHeaders();
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "id", Mudrex.this.requestId() );
+            put( "method", "SUBSCRIBE" );
+            put( "params", new ArrayList<Object>(Arrays.asList("ticker@1s")) );
+            put( "assets", assets );
+        }};
+        Map<String, Object> request = this.extend(subscribe, parameters);
+        Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            String tickerSymbol = this.safeString(ticker, "symbol");
+            if (!java.util.Objects.equals(tickerSymbol, null))
             {
-                for (var i = 0; i < symbolsNormalized.size(); i++)
-                {
-                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-                    messageHashes.add(("ticker:" + market.get("symbol")));
-                    String baseIdString = this.safeString(market, "baseId", "");
-                    String quoteIdString = this.safeString(market, "quoteId", "");
-                    String assetId = baseIdString.toLowerCase();
-                    assetId = (assetId + quoteIdString.toLowerCase());
-                    assets.add(assetId);
-                }
+                result.put(tickerSymbol, ticker);
             }
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            this.setBrokerHeaders();
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "id", Mudrex.this.requestId() );
-                put( "method", "SUBSCRIBE" );
-                put( "params", new ArrayList<Object>(Arrays.asList("ticker@1s")) );
-                put( "assets", assets );
-            }};
-            Map<String, Object> request = this.extend(subscribe, parameters);
-            Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (this.newUpdates)
-            {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                String tickerSymbol = this.safeString(ticker, "symbol");
-                if (!java.util.Objects.equals(tickerSymbol, null))
-                {
-                    result.put(tickerSymbol, ticker);
-                }
-                return result;
-            }
-            return this.filterByArrayTickers(this.tickers, "symbol", symbolsNormalized);
-        }).thenApply(Tickers::new);
+            return result;
+        }
+        return this.filterByArrayTickers(this.tickers, "symbol", symbolsNormalized);
 
     }
 
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String priceType = this.safeString(parameters, "price");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "price");
-            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            if (!java.util.Objects.equals(interval, "1s") && !java.util.Objects.equals(interval, "1m"))
-            {
-                throw new NotSupported((this.id + " watchOHLCV() supports 1s and 1m timeframes only")) ;
-            }
-            String prefix = "kline";
-            if (java.util.Objects.equals(priceType, "mark"))
-            {
-                prefix = "markKline";
-            }
-            String streamBaseId = this.safeString(market, "baseId", "");
-            String streamQuoteId = this.safeString(market, "quoteId", "");
-            String stream = (((((prefix + "@") + interval) + "@") + streamBaseId.toLowerCase()) + streamQuoteId.toLowerCase());
-            String messageHash = stream;
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            this.setBrokerHeaders();
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "id", Mudrex.this.requestId() );
-                put( "method", "SUBSCRIBE" );
-                put( "params", new ArrayList<Object>(Arrays.asList(stream)) );
-            }};
-            Map<String, Object> request = this.extend(subscribe, paramsOmitted);
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String priceType = this.safeString(parameters, "price");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "price");
+        String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        if (!java.util.Objects.equals(interval, "1s") && !java.util.Objects.equals(interval, "1m"))
+        {
+            throw new NotSupported((this.id + " watchOHLCV() supports 1s and 1m timeframes only")) ;
+        }
+        String prefix = "kline";
+        if (java.util.Objects.equals(priceType, "mark"))
+        {
+            prefix = "markKline";
+        }
+        String streamBaseId = this.safeString(market, "baseId", "");
+        String streamQuoteId = this.safeString(market, "quoteId", "");
+        String stream = (((((prefix + "@") + interval) + "@") + streamBaseId.toLowerCase()) + streamQuoteId.toLowerCase());
+        String messageHash = stream;
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        this.setBrokerHeaders();
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "id", Mudrex.this.requestId() );
+            put( "method", "SUBSCRIBE" );
+            put( "params", new ArrayList<Object>(Arrays.asList(stream)) );
+        }};
+        Map<String, Object> request = this.extend(subscribe, paramsOmitted);
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -239,7 +245,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         Map<String, Object> error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
@@ -261,16 +267,16 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("@"))));
         String interval = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-        String tf = this.findTimeframe(interval, (Object) null);
+        String tf = this.findTimeframe(interval, null);
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String s = this.safeString(data, "s");
         if (java.util.Objects.equals(s, null))
         {
             return;
         }
-        Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(s.toUpperCase(), null, null, null);
         String symbol = (String) market.get("symbol");
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", null), this.safeNumber(data, "h", null), this.safeNumber(data, "l", null), this.safeNumber(data, "c", null), this.safeNumber(data, "v", null)));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), tf);
         if (java.util.Objects.equals(stored, null))
@@ -279,7 +285,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(tf, null))
             {
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), tf, stored);
+                this.ohlcvs.get(symbol).put(tf, stored);
             }
         }
         stored.append(parsed);
@@ -298,10 +304,10 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 continue;
             }
-            Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(s.toUpperCase(), null, null, null);
             String symbol = (String) market.get("symbol");
             Long timestamp = this.milliseconds();
-            Double last = this.safeNumber(t, "p", (Object) null);
+            Double last = this.safeNumber(t, "p", null);
             Ticker result = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
@@ -309,7 +315,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "last", last );
                 put( "close", last );
                 put( "info", t );
-            }}, (Map<String, Object>) null);
+            }}, null);
             this.tickers.put(symbol, result);
             String messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);

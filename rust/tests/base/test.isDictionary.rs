@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,24 +16,24 @@ pub fn testIsDictionary() {
         m
     }));
     // populated dict
-    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(Value::Map({
+    assert!(crate::test_helpers::is_true(&(exchange.is_dictionary(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
         m
     })))));
     // populated list is not a dict
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)])))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)])))))));
     // null is not a dict, in js typeof null is object so the explicit
     // null check matters, see https://github.com/ccxt/ccxt/pull/29704
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Null))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Null))))));
     // undefined is not a dict
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Null))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Null))))));
     // scalars are not dicts
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Str("str".into())))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Int(5)))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Bool(true)))))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Str("str".into())))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Int(5)))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Bool(true)))))));
+    assert!(crate::test_helpers::is_true(&(exchange.is_dictionary(Value::Map({
+        let m = indexmap::IndexMap::new();
         m
     })))));
 }

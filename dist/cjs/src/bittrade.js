@@ -449,8 +449,11 @@ class bittrade extends bittrade$1["default"] {
         }
         const result = {};
         for (let i = 0; i < symbolsResolved.length; i++) {
-            const symbol = symbolsResolved[i];
-            result[symbol] = await this.fetchTradingLimitsById(this.marketId(symbol), params);
+            const symbol = this.safeString(symbolsResolved, i);
+            const limits = await this.fetchTradingLimitsById(this.marketId(symbol), params);
+            if (symbol !== undefined) {
+                result[symbol] = limits;
+            }
         }
         return result;
     }
@@ -842,8 +845,8 @@ class bittrade extends bittrade$1["default"] {
         for (let i = 0; i < tickers.length; i++) {
             const marketId = this.safeString(tickers[i], 'symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
-            const ticker = this.parseTicker(tickers[i], market);
+            const symbol = this.safeString(market, 'symbol', '');
+            const ticker = this.parseTicker(this.safeDict(tickers, i, {}), market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601(timestamp);
             result[symbol] = ticker;
@@ -1037,7 +1040,7 @@ class bittrade extends bittrade$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade(trades[j], market);
+                const trade = this.parseTrade(this.safeDict(trades, j, {}), market);
                 result.push(trade);
             }
         }
@@ -1491,10 +1494,10 @@ class bittrade extends bittrade$1["default"] {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (side === 'sell') {
-                feeCurrency = marketResolved['quote'];
+                feeCurrency = this.safeString(marketResolved, 'quote');
             }
             else {
-                feeCurrency = marketResolved['base'];
+                feeCurrency = this.safeString(marketResolved, 'base');
             }
             fee = {
                 'cost': feeCost,
@@ -2052,7 +2055,8 @@ class bittrade extends bittrade$1["default"] {
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {
-                request['chain'] = currency['id'] + network;
+                const currencyId = this.safeString(currency, 'id', '');
+                request['chain'] = currencyId + network;
             }
             else {
                 request['chain'] = network + currency['id'];

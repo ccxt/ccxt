@@ -13,138 +13,138 @@ use crate::exchange::ExchangeRuntime;
 
 impl Mudrex {
     /// Auto-generated wrapper for the `marketGetPriceKline` implicit endpoint.
-    pub async fn market_get_price_kline(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("market_get_price_kline".into()), optional_args).await
+    pub async fn market_get_price_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("market_get_price_kline", optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketGetPriceMarkKline` implicit endpoint.
-    pub async fn market_get_price_mark_kline(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("market_get_price_mark_kline".into()), optional_args).await
+    pub async fn market_get_price_mark_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("market_get_price_mark_kline", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFutures` implicit endpoint.
-    pub async fn private_get_futures(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures".into()), optional_args).await
+    pub async fn private_get_futures(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesAssetId` implicit endpoint.
-    pub async fn private_get_futures_asset_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_asset_id".into()), optional_args).await
+    pub async fn private_get_futures_asset_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_asset_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletFunds` implicit endpoint.
-    pub async fn private_get_wallet_funds(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_wallet_funds".into()), optional_args).await
+    pub async fn private_get_wallet_funds(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_wallet_funds", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesFunds` implicit endpoint.
-    pub async fn private_get_futures_funds(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_funds".into()), optional_args).await
+    pub async fn private_get_futures_funds(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_funds", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesTransactions` implicit endpoint.
-    pub async fn private_get_futures_transactions(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_transactions(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_transactions".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesOrders` implicit endpoint.
-    pub async fn private_get_futures_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_orders".into()), optional_args).await
+    pub async fn private_get_futures_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesOrdersHistory` implicit endpoint.
-    pub async fn private_get_futures_orders_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_orders_history".into()), optional_args).await
+    pub async fn private_get_futures_orders_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_orders_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesOrdersOrderId` implicit endpoint.
-    pub async fn private_get_futures_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_orders_order_id".into()), optional_args).await
+    pub async fn private_get_futures_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_orders_order_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesPositions` implicit endpoint.
-    pub async fn private_get_futures_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_positions".into()), optional_args).await
+    pub async fn private_get_futures_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesPositionsHistory` implicit endpoint.
-    pub async fn private_get_futures_positions_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_positions_history".into()), optional_args).await
+    pub async fn private_get_futures_positions_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_positions_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesFeeHistory` implicit endpoint.
-    pub async fn private_get_futures_fee_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_fee_history".into()), optional_args).await
+    pub async fn private_get_futures_fee_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_fee_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesAssetIdLeverage` implicit endpoint.
-    pub async fn private_get_futures_asset_id_leverage(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_asset_id_leverage".into()), optional_args).await
+    pub async fn private_get_futures_asset_id_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_futures_asset_id_leverage", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesPositionsPositionIdLiqPrice` implicit endpoint.
-    pub async fn private_get_futures_positions_position_id_liq_price(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_positions_position_id_liq_price(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_positions_position_id_liq_price".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWalletFuturesTransfer` implicit endpoint.
-    pub async fn private_post_wallet_futures_transfer(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_wallet_futures_transfer".into()), optional_args).await
+    pub async fn private_post_wallet_futures_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_wallet_futures_transfer", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesTransfersInr` implicit endpoint.
-    pub async fn private_post_futures_transfers_inr(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_transfers_inr".into()), optional_args).await
+    pub async fn private_post_futures_transfers_inr(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_transfers_inr", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesAssetIdOrder` implicit endpoint.
-    pub async fn private_post_futures_asset_id_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_asset_id_order".into()), optional_args).await
+    pub async fn private_post_futures_asset_id_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_asset_id_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdClose` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_close(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_positions_position_id_close".into()), optional_args).await
+    pub async fn private_post_futures_positions_position_id_close(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_positions_position_id_close", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdClosePartial` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_close_partial(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_positions_position_id_close_partial".into()), optional_args).await
+    pub async fn private_post_futures_positions_position_id_close_partial(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_positions_position_id_close_partial", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdReverse` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_reverse(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_positions_position_id_reverse(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_positions_position_id_reverse".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdAddMargin` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_add_margin(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_positions_position_id_add_margin".into()), optional_args).await
+    pub async fn private_post_futures_positions_position_id_add_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_positions_position_id_add_margin", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdRiskorder` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_riskorder(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_positions_position_id_riskorder".into()), optional_args).await
+    pub async fn private_post_futures_positions_position_id_riskorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_positions_position_id_riskorder", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesAssetIdLeverage` implicit endpoint.
-    pub async fn private_post_futures_asset_id_leverage(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_asset_id_leverage".into()), optional_args).await
+    pub async fn private_post_futures_asset_id_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_asset_id_leverage", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePatchFuturesOrdersOrderId` implicit endpoint.
-    pub async fn private_patch_futures_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_patch_futures_orders_order_id".into()), optional_args).await
+    pub async fn private_patch_futures_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_patch_futures_orders_order_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePatchFuturesPositionsPositionIdRiskorder` implicit endpoint.
-    pub async fn private_patch_futures_positions_position_id_riskorder(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_patch_futures_positions_position_id_riskorder(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_patch_futures_positions_position_id_riskorder".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteFuturesOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_futures_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_futures_orders_order_id".into()), optional_args).await
+    pub async fn private_delete_futures_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_delete_futures_orders_order_id", optional_args).await
     }
 
 }

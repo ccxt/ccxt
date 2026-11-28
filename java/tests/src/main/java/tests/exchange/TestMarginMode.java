@@ -24,7 +24,7 @@ public class TestMarginMode extends BaseTest {
             put( "marginMode", "cross" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("symbol"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     }
 
 }

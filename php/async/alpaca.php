@@ -1230,7 +1230,11 @@ class alpaca extends Exchange {
         $paramsCost = ($cost !== null) ? $this->omit($params, 'cost') : $params;
         list($defaultTIF, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsCost, 'createOrder', 'timeInForce');
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        $request['time_in_force'] = ($defaultTIF !== null) ? strtolower($defaultTIF) : $defaultTIF;
+        if ($defaultTIF !== null) {
+            $request['time_in_force'] = strtolower($defaultTIF);
+        } else {
+            $request['time_in_force'] = null;
+        }
         $paramsOmitted = $this->omit($paramsTimeInForce, array( 'timeInForce', 'triggerPrice' ));
         $request['client_order_id'] = $this->generate_client_order_id($paramsOmitted);
         $order = Async\await($this->traderPrivatePostV2Orders($this->extend($request, $this->omit($paramsOmitted, array( 'clientOrderId' )))));
@@ -1319,15 +1323,7 @@ class alpaca extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->traderPrivateDeleteV2Orders($params));
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            return $this->parse_orders($response);
-        } else {
-            return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
-            );
-        }
+        return $this->parse_orders($response);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -2354,7 +2350,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // default error handler
         }

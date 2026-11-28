@@ -571,7 +571,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         return this.parseMarkets(instruments);
     }
     parseMarket(market) {
-        const instrumentName = this.safeString(market, 'instrument_name');
+        const instrumentName = this.safeString(market, 'instrument_name', '');
         const lowercaseId = this.safeStringLower(market, 'instrument_name');
         const baseId = this.safeString(market, 'base_currency');
         const quoteId = this.safeString(market, 'counter_currency');
@@ -624,7 +624,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             if (optionType === 'call') {
                 optionTypeLetter = 'C';
             }
-            const strikeString = this.numberToString(strike);
+            const strikeString = this.safeString(market, 'strike', '');
             symbol = symbol + '-' + strikeString + '-' + optionTypeLetter;
         }
         const marketStructure = {
@@ -904,7 +904,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     parseOHLCV(ohlcv, market = undefined) {
         const isArray = Array.isArray(ohlcv);
         if (isArray) {
-            return ohlcv;
+            return [
+                this.safeInteger(ohlcv, 0),
+                this.safeNumber(ohlcv, 1),
+                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 3),
+                this.safeNumber(ohlcv, 4),
+                this.safeNumber(ohlcv, 5),
+            ];
         }
         return [
             this.parse8601(this.safeString2(ohlcv, 'start', 'time')),
@@ -993,7 +1000,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         return this.parseFundingRateHistories(rawRates, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
-        const fundingRate = this.parseFundingRate(info, market);
+        const fundingRate = this.parseFundingRate(this.extend({}, info), market);
         return {
             'info': info,
             'symbol': fundingRate['symbol'],
@@ -1057,8 +1064,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const tickers = {};
         for (let i = 0; i < symbolsResolved.length; i++) {
-            const symbol = this.safeString(symbolsResolved, i);
-            if (symbol === undefined) {
+            const symbol = this.safeString(symbolsResolved, i, '');
+            if (symbol === '') {
                 continue;
             }
             const ticker = await this.fetchTicker(symbol, paramsResolved);
@@ -1286,7 +1293,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         await this.authenticateV2();
         const code = this.safeString(paramsResolved, 'code');
-        let paramsOmitted = paramsResolved;
+        let paramsOmitted = this.extend({}, paramsResolved);
         if (this.isNativeDeribitCredentials()) {
             paramsOmitted = this.omit(paramsResolved, 'code');
         }
@@ -1543,23 +1550,17 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             const summaries = this.safeList(result, 'summaries');
             if (summaries !== undefined) {
-                return this.parseBalanceList(summaries);
+                return this.parseBalanceList(summaries, summaries);
             }
-            return this.parseBalanceList(this.safeDict(result, 'summaries', []));
+            // a missing summary row has no currency, so the loop skips it
+            return this.parseBalanceList(this.safeDict(result, 'summaries', []), [this.safeDict(result, 'summaries', {})]);
         }
-        return this.parseBalanceList(result);
+        return this.parseBalanceList(result, this.safeList(result, 'summaries', [result]));
     }
-    parseBalanceList(response) {
+    parseBalanceList(response, summaries) {
         const result = {
             'info': response,
         };
-        let summaries = [response];
-        if (Array.isArray(response)) {
-            summaries = response;
-        }
-        else if (this.isNativeDeribitCredentials()) {
-            summaries = this.safeList(response, 'summaries', [response]);
-        }
         for (let i = 0; i < summaries.length; i++) {
             const data = this.safeDict(summaries, i);
             const currencyId = this.safeString(data, 'currency');
@@ -2129,7 +2130,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (this.isNativeDeribitCredentials() && (this.safeBool(market, 'contract', false))) {
             exchangeAmount = Precise["default"].stringMul(exchangeAmount, this.safeString(market, 'contractSize'));
         }
-        return this.amountToPrecision(market['symbol'], exchangeAmount);
+        return this.amountToPrecision(this.safeString(market, 'symbol'), exchangeAmount);
     }
     /**
      * @method
@@ -2759,12 +2760,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const paramsResolved = this.handleRouteAndParams('fetchOpenOrders', params);
+        const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchOpenOrders', 'paginate', false);
+        const nativeDeribit = this.isNativeDeribitCredentials();
+        if (nativeDeribit && paginate) {
+            throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support pagination');
+        }
         let paramsPaginate = paramsResolved;
-        if (this.isNativeDeribitCredentials()) {
-            const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchOpenOrders', 'paginate', false);
-            if (paginate) {
-                throw new errors.NotSupported(this.id + ' fetchOpenOrders() does not support pagination');
-            }
+        if (nativeDeribit) {
             paramsPaginate = paramsFinal;
         }
         if (this.markets === undefined) {
@@ -2833,12 +2835,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const paramsResolved = this.handleRouteAndParams('fetchMyTrades', params);
+        const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchMyTrades', 'paginate', false);
+        const nativeDeribit = this.isNativeDeribitCredentials();
+        if (nativeDeribit && paginate) {
+            throw new errors.NotSupported(this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
+        }
         let paramsPaginate = paramsResolved;
-        if (this.isNativeDeribitCredentials()) {
-            const [paginate, paramsFinal] = this.handleOptionBoolAndParams(paramsResolved, 'fetchMyTrades', 'paginate', false);
-            if (paginate) {
-                throw new errors.NotSupported(this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
-            }
+        if (nativeDeribit) {
             paramsPaginate = paramsFinal;
         }
         if (this.markets === undefined) {
@@ -3143,10 +3146,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         let uri = undefined;
         if ((url !== undefined) && (method !== undefined)) {
-            uri = method + ' ' + url.replace('https://', '');
-            const quesPos = uri.indexOf('?');
+            const fullUri = method + ' ' + url.replace('https://', '');
+            const quesPos = fullUri.indexOf('?');
             if (quesPos > 0) {
-                uri = uri.slice(0, quesPos);
+                uri = fullUri.slice(0, quesPos);
+            }
+            else {
+                uri = fullUri;
             }
         }
         const nonce = this.randomBytes(16);

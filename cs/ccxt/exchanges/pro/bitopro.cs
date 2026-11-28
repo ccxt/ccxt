@@ -45,7 +45,7 @@ public partial class bitopro : ccxt.bitopro
         });
     }
 
-    public async virtual Task<object> watchPublic(string path, string? messageHash, object marketId)
+    public async virtual Task<object> watchPublic(string path, string messageHash, object marketId)
     {
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "public");
         if ((wsUrl == null))
@@ -81,7 +81,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("ORDER_BOOK" + ":") + symbolValue);
         string marketIdValue = this.safeString(market, "id", "");
         string? endPart = null;
@@ -121,7 +121,7 @@ public partial class bitopro : ccxt.bitopro
         //
         string? marketId = this.safeString(message, "pair");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(message, "event");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -157,15 +157,15 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("TRADE" + ":") + symbolValue);
-        object trades = await this.watchPublic("trades", messageHash, (market.ContainsKey("id") ? market["id"] : null));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic("trades", messageHash, (market.ContainsKey("id") ? market["id"] : null)));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -191,7 +191,7 @@ public partial class bitopro : ccxt.bitopro
         //
         string? marketId = this.safeString(message, "pair");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(message, "event");
         List<object> rawData = this.safeList(message, "data", new List<object>() {});
         IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawData, market));
@@ -237,7 +237,7 @@ public partial class bitopro : ccxt.bitopro
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbolValue = this.safeString(market, "symbol", "");
             messageHash = ((messageHash + ":") + symbolValue);
         }
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "private");
@@ -251,7 +251,7 @@ public partial class bitopro : ccxt.bitopro
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -290,7 +290,8 @@ public partial class bitopro : ccxt.bitopro
         {
             return;
         }
-        string? symbol = this.symbol(((bs + "/") + quote));
+        string marketSymbol = ((bs + "/") + quote);
+        string? symbol = this.symbol(marketSymbol);
         string? messageHash = this.safeString(message, "event");
         if ((this.myTrades == null))
         {
@@ -337,7 +338,8 @@ public partial class bitopro : ccxt.bitopro
         string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = this.symbol(((bs + "/") + quote));
+            string marketSymbol = ((bs + "/") + quote);
+            symbol = this.symbol(marketSymbol);
         }
         Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
         string? price = this.safeString(trade, "price");
@@ -411,7 +413,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = (("TICKER" + ":") + symbolValue);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, (market.ContainsKey("id") ? market["id"] : null)));
     }
@@ -443,7 +445,7 @@ public partial class bitopro : ccxt.bitopro
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? eventVar = this.safeString(message, "event");
         Dictionary<string, object> result = ccxt.BaseExchange.FromTicker(this.parseTicker(message, market));
         result["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
@@ -471,7 +473,7 @@ public partial class bitopro : ccxt.bitopro
             { "identity", this.login },
         });
         string payload = this.stringToBase64(rawData);
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+        string signature = this.hmac(payload, this.secret, sha384);
         Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
@@ -483,7 +485,7 @@ public partial class bitopro : ccxt.bitopro
         this.extendExchangeOptions(defaultOptions);
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> wsInnerOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
-        object originalHeaders = (wsInnerOptions != null && wsInnerOptions.ContainsKey("headers") ? wsInnerOptions["headers"] : null);
+        IDictionary<string, object> originalHeaders = this.safeDict(wsInnerOptions, "headers");
         Dictionary<string, object> headers = new Dictionary<string, object>() {
             { "X-BITOPRO-API", "ccxt" },
             { "X-BITOPRO-APIKEY", this.apiKey },
@@ -577,7 +579,7 @@ public partial class bitopro : ccxt.bitopro
         client.resolve(this.balance, eventVar);
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "TRADE", this.handleTrade },

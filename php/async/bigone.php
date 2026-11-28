@@ -579,7 +579,8 @@ class bigone extends Exchange {
         if ($this->safe_bool($rawCurrency, 'is_fiat', false)) {
             $type = 'fiat';
         } elseif ($chainLength === 0) {
-            if ($this->is_leveraged_currency($id)) {
+            $leveragedId = $this->safe_string($rawCurrency, 'symbol', '');
+            if ($this->is_leveraged_currency($leveragedId)) {
                 $type = 'leveraged';
             } else {
                 $type = 'other';
@@ -628,7 +629,7 @@ class bigone extends Exchange {
         $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
         $promisesResult = Async\await(Promise\all($promises));
         $response = $this->safe_dict($promisesResult, 0);
-        $contractResponse = $this->safe_value($promisesResult, 1);
+        $contractMarkets = $this->safe_list($promisesResult, 1, array());
         //
         //     {
         //         "code":0,
@@ -745,7 +746,6 @@ class bigone extends Exchange {
                 'info' => $market,
             ));
         }
-        $contractMarkets = $this->to_array($contractResponse);
         for ($i = 0; $i < count($contractMarkets); $i++) {
             $market = $contractMarkets[$i];
             $baseId = $this->safe_string($market, 'baseCurrency');
@@ -1668,7 +1668,7 @@ class bigone extends Exchange {
         $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
         $postOnly = null;
         $query = null;
-        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam, $params);
+        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam === true, $params);
         $triggerPrice = $this->safe_string_n($query, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
@@ -2515,7 +2515,7 @@ class bigone extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

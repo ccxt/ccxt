@@ -389,10 +389,11 @@ class btcbox extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $this->safe_string($currency, 'id', '');
             $free = $currencyId . '_balance';
-            if (is_array($response) && array_key_exists($free ?? '', $response)) {
+            $freeValue = $this->safe_string($response, $free);
+            if ($freeValue !== null) {
                 $account = $this->account();
                 $used = $currencyId . '_lock';
-                $account['free'] = $this->safe_string($response, $free);
+                $account['free'] = $freeValue;
                 $account['used'] = $this->safe_string($response, $used);
                 $result[$code] = $account;
             }
@@ -537,7 +538,6 @@ class btcbox extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $type = null;
         $side = $this->safe_string($trade, 'type');
         return $this->safe_trade(array(
             'info' => $trade,
@@ -546,7 +546,7 @@ class btcbox extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $priceString,
@@ -891,7 +891,7 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // resort to defaultErrorHandler
         }

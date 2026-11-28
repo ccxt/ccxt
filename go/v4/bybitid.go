@@ -9,7 +9,6 @@ type Bybitid struct {
 
 func newBybitid() *Bybitid {
 	p := &Bybitid{}
-	setDefaults(p)
 	return p
 }
 

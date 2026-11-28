@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,39 +16,39 @@ pub fn testExtractParams() {
         m
     }));
     // Test 1: Single param
-    let mut result1: Value = exchange.extract_params(Value::Str("/users/{id}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result1.clone(), Value::from(vec![Value::Str("id".into())]).clone()]);
+    let result1: Value = exchange.extract_params(Value::Str("/users/{id}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result1, Value::from(vec![Value::Str("id".into())])]);
     // Test 2: Multiple params
-    let mut result2: Value = exchange.extract_params(Value::Str("/users/{user_id}/orders/{order_id}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result2.clone(), Value::from(vec![Value::Str("user_id".into()), Value::Str("order_id".into())]).clone()]);
+    let result2: Value = exchange.extract_params(Value::Str("/users/{user_id}/orders/{order_id}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result2, Value::from(vec![Value::Str("user_id".into()), Value::Str("order_id".into())])]);
     // Test 3: No params
-    let mut result3: Value = exchange.extract_params(Value::Str("/api/health".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result3.clone(), Value::from(vec![]).clone()]);
+    let result3: Value = exchange.extract_params(Value::Str("/api/health".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result3, Value::from(vec![])]);
     // Test 4: Params with hyphens
-    let mut result4: Value = exchange.extract_params(Value::Str("/api/{resource-name}/{resource-id}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result4.clone(), Value::from(vec![Value::Str("resource-name".into()), Value::Str("resource-id".into())]).clone()]);
+    let result4: Value = exchange.extract_params(Value::Str("/api/{resource-name}/{resource-id}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result4, Value::from(vec![Value::Str("resource-name".into()), Value::Str("resource-id".into())])]);
     // Test 5: Mixed path and params
-    let mut result5: Value = exchange.extract_params(Value::Str("/v1/{version}/users/{user_id}/profile".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result5.clone(), Value::from(vec![Value::Str("version".into()), Value::Str("user_id".into())]).clone()]);
+    let result5: Value = exchange.extract_params(Value::Str("/v1/{version}/users/{user_id}/profile".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result5, Value::from(vec![Value::Str("version".into()), Value::Str("user_id".into())])]);
     // Test 6: Empty string
-    let mut result6: Value = exchange.extract_params(Value::Str("".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result6.clone(), Value::from(vec![]).clone()]);
+    let result6: Value = exchange.extract_params(Value::Str("".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result6, Value::from(vec![])]);
     // Test 7: Multiple params in longer URL
-    let mut result7: Value = exchange.extract_params(Value::Str("/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result7.clone(), Value::from(vec![Value::Str("org".into()), Value::Str("repo".into()), Value::Str("pull_number".into()), Value::Str("comment_id".into())]).clone()]);
+    let result7: Value = exchange.extract_params(Value::Str("/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result7, Value::from(vec![Value::Str("org".into()), Value::Str("repo".into()), Value::Str("pull_number".into()), Value::Str("comment_id".into())])]);
     // Test 8: Param at start and end
-    let mut result8: Value = exchange.extract_params(Value::Str("{start}/middle/{end}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result8.clone(), Value::from(vec![Value::Str("start".into()), Value::Str("end".into())]).clone()]);
+    let result8: Value = exchange.extract_params(Value::Str("{start}/middle/{end}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result8, Value::from(vec![Value::Str("start".into()), Value::Str("end".into())])]);
     // Test 9: Adjacent params
-    let mut result9: Value = exchange.extract_params(Value::Str("{a}{b}{c}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result9.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
+    let result9: Value = exchange.extract_params(Value::Str("{a}{b}{c}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result9, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())])]);
     // Test 10: Param with underscores
-    let mut result10: Value = exchange.extract_params(Value::Str("/api/{my_param_name}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result10.clone(), Value::from(vec![Value::Str("my_param_name".into())]).clone()]);
+    let result10: Value = exchange.extract_params(Value::Str("/api/{my_param_name}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result10, Value::from(vec![Value::Str("my_param_name".into())])]);
     // Test 11: Single character param
-    let mut result11: Value = exchange.extract_params(Value::Str("/api/{x}".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result11.clone(), Value::from(vec![Value::Str("x".into())]).clone()]);
+    let result11: Value = exchange.extract_params(Value::Str("/api/{x}".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result11, Value::from(vec![Value::Str("x".into())])]);
     // Test 12: Only static path
-    let mut result12: Value = exchange.extract_params(Value::Str("/api/v1/users/orders/items".into()));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testExtractParams".into()).clone(), result12.clone(), Value::from(vec![]).clone()]);
+    let result12: Value = exchange.extract_params(Value::Str("/api/v1/users/orders/items".into()));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testExtractParams".into()), result12, Value::from(vec![])]);
 }

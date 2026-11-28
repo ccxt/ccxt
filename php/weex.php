@@ -1063,7 +1063,11 @@ class weex extends Exchange {
             $amountPrecision = $this->parse_number($amountPrecisionString);
             $pricePrecision = $this->parse_number($pricePrecisionString);
         }
-        $fees = $this->safe_dict($this->fees, $isSpot ? 'spot' : 'contract', array());
+        $feesKey = 'contract';
+        if ($isSpot) {
+            $feesKey = 'spot';
+        }
+        $fees = $this->safe_dict($this->fees, $feesKey, array());
         if ($id === null) {
             throw new ExchangeError($this->id . ' method() missing id');
         }
@@ -1790,7 +1794,11 @@ class weex extends Exchange {
         if ($realizedPnl !== null) {
             $tradeMarketType = 'swap';
         }
-        $marketResolved = $this->safe_market(($market === null) ? $tradeMarketId : null, $market, null, $tradeMarketType);
+        $tradeMarketIdArg = $tradeMarketId;
+        if ($market !== null) {
+            $tradeMarketIdArg = null;
+        }
+        $marketResolved = $this->safe_market($tradeMarketIdArg, $market, null, $tradeMarketType);
         $isSpot = false;
         if ($market === null) {
             $isSpot = $tradeMarketType === 'spot';
@@ -1989,7 +1997,7 @@ class weex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -2444,7 +2452,6 @@ class weex extends Exchange {
                 throw new BadRequest($this->id . ' createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time');
             }
             $request['clientAlgoId'] = $clientOrderId;
-            $orderType = null;
             if ($isStopLoss) {
                 $stopLossPriceType = $this->safe_string_2($params, 'stopLossPriceType', 'triggerPriceType');
                 if ($stopLossPriceType !== null) {
@@ -2452,9 +2459,9 @@ class weex extends Exchange {
                 }
                 $params['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
                 if ($isMarketOrder) {
-                    $orderType = 'STOP_MARKET';
+                    $params['type'] = 'STOP_MARKET';
                 } else {
-                    $orderType = 'STOP';
+                    $params['type'] = 'STOP';
                 }
             } elseif ($isTakeProfit) {
                 $takeProfitPriceType = $this->safe_string_2($params, 'takeProfitPriceType', 'triggerPriceType');
@@ -2463,12 +2470,11 @@ class weex extends Exchange {
                 }
                 $params['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
                 if ($isMarketOrder) {
-                    $orderType = 'TAKE_PROFIT_MARKET';
+                    $params['type'] = 'TAKE_PROFIT_MARKET';
                 } else {
-                    $orderType = 'TAKE_PROFIT';
+                    $params['type'] = 'TAKE_PROFIT';
                 }
             }
-            $params['type'] = $orderType;
         } else {
             if (!$isMarketOrder && $timeInForce === null) {
                 $request['timeInForce'] = 'GTC';
@@ -3192,7 +3198,11 @@ class weex extends Exchange {
         if ($positionSide === null) {
             $orderMarketType = 'spot';
         }
-        $marketResolved = $this->safe_market(($market === null) ? $orderMarketId : null, $market, null, $orderMarketType);
+        $orderMarketIdArg = $orderMarketId;
+        if ($market !== null) {
+            $orderMarketIdArg = null;
+        }
+        $marketResolved = $this->safe_market($orderMarketIdArg, $market, null, $orderMarketType);
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
         $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
@@ -3430,7 +3440,6 @@ class weex extends Exchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $accountType = $this->safe_string($accountsByType, $marketType, $marketType);
         $request = array();
-        $items = null;
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -3447,7 +3456,8 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
             $contractResponse = $this->contractPrivatePostCapiV3AccountIncome($this->extend($requestUntil, $paramsUntil));
-            $items = $this->safe_list($contractResponse, 'items', array());
+            $contractItems = $this->safe_list($contractResponse, 'items', array());
+            return $this->parse_ledger($contractItems, $currency, $since, $limit);
         } elseif ($accountType === 'funding') {
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -3457,7 +3467,8 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
             $fundingResponse = $this->privatePostApiV3AccountFundingBills($this->extend($requestUntil, $paramsUntil));
-            $items = $this->safe_list($fundingResponse, 'items', array());
+            $fundingItems = $this->safe_list($fundingResponse, 'items', array());
+            return $this->parse_ledger($fundingItems, $currency, $since, $limit);
         } else {
             if ($since !== null) {
                 $request['after'] = $since;
@@ -3467,9 +3478,9 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('before', $request, $paramsMarketType);
             $billsResponse = $this->privatePostApiV3AccountBills($this->extend($requestUntil, $paramsUntil));
-            $items = $this->to_array($billsResponse);
+            $billsItems = $this->to_array($billsResponse);
+            return $this->parse_ledger($billsItems, $currency, $since, $limit);
         }
-        return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -3730,16 +3741,17 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
-            return $this->fetch_positions(array( $market['symbol'] ), $params);
+            return $this->fetch_positions(array( $marketSymbol ), $params);
         }
         $request = array(
             'symbol' => $market['id'],
         );
         $response = $this->contractPrivateGetCapiV3AccountPositionSinglePosition($this->extend($request, $params));
-        return $this->parse_positions($response, array( $market['symbol'] ));
+        return $this->parse_positions($response, array( $marketSymbol ));
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -4402,7 +4414,7 @@ class weex extends Exchange {
             $timestamp = $this->number_to_string($this->nonce());
             $payload = $timestamp . $method . '/' . $endpoint;
             if ($hasJsonBody) {
-                $payload .= $requestBody;
+                $payload = $payload . $this->json($query);
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $requestHeaders = array(
@@ -4428,7 +4440,7 @@ class weex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         //
         //     {
         //         "code": -1140,

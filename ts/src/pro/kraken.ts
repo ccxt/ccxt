@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
+import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Fee, Market } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
@@ -544,7 +544,7 @@ export default class kraken extends krakenRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const ticker = this.safeDict (data, 0);
         const symbol = this.safeString (ticker, 'symbol') as string;
         const messageHash = this.getMessageHash ('ticker', undefined, symbol);
@@ -599,7 +599,7 @@ export default class kraken extends krakenRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const trade = this.safeDict (data, 0);
         const symbol = this.safeString (trade, 'symbol') as string;
         const messageHash = this.getMessageHash ('trade', undefined, symbol);
@@ -640,7 +640,7 @@ export default class kraken extends krakenRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0);
         const marketId = this.safeString (first, 'symbol');
         const symbol = this.safeSymbol (marketId);
@@ -813,7 +813,7 @@ export default class kraken extends krakenRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, false);
         const unsubMessageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            unsubMessageHashes.push ('unsubscribe:' + this.getMessageHash ('trade', undefined, symbolsNormalized[i]));
+            unsubMessageHashes.push ('unsubscribe:' + this.getMessageHash ('trade', undefined, this.symbol (symbolsNormalized[i])));
         }
         const request: Dict = {
             'method': 'unsubscribe',
@@ -1068,14 +1068,14 @@ export default class kraken extends krakenRest {
             orderbook['datetime'] = datetime;
         } else {
             // snapshot
-            const subscription = this.safeDict (client.subscriptions, messageHash, {}) as Dict;
+            const subscription = this.safeDict (client.subscriptions, messageHash, {});
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
             const limit = this.parseToInt (this.safeInteger (subscription, 'limit', 10));
             const asksLength: int = a.length;
             const depth = this.parseToInt ((asksLength > limit) ? asksLength : limit);
-            const depths = this.safeDict (this.options, 'wsOrderBookDepths', {}) as Dict;
+            const depths = this.safeDict (this.options, 'wsOrderBookDepths', {});
             const storedDepth = this.safeInteger (depths, symbol);
             if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
                 // rebuild only on the first snapshot or when the depth changes,
@@ -1115,7 +1115,7 @@ export default class kraken extends krakenRest {
                     const currentAskLength = currentAsk.length;
                     let formattedAsk = '';
                     if (currentAskLength > 1) {
-                        formattedAsk = this.formatNumber (currentAsk[0]) + this.formatNumber (currentAsk[1]);
+                        formattedAsk = this.formatNumber (this.safeString (currentAsk, 0, '')) + this.formatNumber (this.safeString (currentAsk, 1, ''));
                     }
                     payloadArray.push (formattedAsk);
                 }
@@ -1124,7 +1124,7 @@ export default class kraken extends krakenRest {
                     const currentBidLength = currentBid.length;
                     let formattedBid = '';
                     if (currentBidLength > 1) {
-                        formattedBid = this.formatNumber (currentBid[0]) + this.formatNumber (currentBid[1]);
+                        formattedBid = this.formatNumber (this.safeString (currentBid, 0, '')) + this.formatNumber (this.safeString (currentBid, 1, ''));
                     }
                     payloadArray.push (formattedBid);
                 }
@@ -1345,7 +1345,7 @@ export default class kraken extends krakenRest {
         //         "sequence": 10
         //     }
         //
-        const allTrades = this.safeList (message, 'data', []) as List;
+        const allTrades = this.safeList (message, 'data', []);
         const allTradesLength = allTrades.length;
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
@@ -1401,8 +1401,8 @@ export default class kraken extends krakenRest {
             symbol = this.safeString (market, 'symbol');
         }
         let fee: Fee = undefined;
-        if ('fees' in trade) {
-            const fees = this.safeList (trade, 'fees', []);
+        const fees = this.safeList (trade, 'fees');
+        if (fees !== undefined) {
             const firstFee = this.safeDict (fees, 0, {});
             fee = {
                 'cost': this.safeNumber (firstFee, 'qty'),
@@ -1475,7 +1475,7 @@ export default class kraken extends krakenRest {
         //         "sequence": 8
         //     }
         //
-        const allOrders = this.safeList (message, 'data', []) as List;
+        const allOrders = this.safeList (message, 'data', []);
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1679,17 +1679,18 @@ export default class kraken extends krakenRest {
             this.balance = {};
         }
         this.balance[type] = this.safeDict (this.balance, type, {});
-        this.balance[type]['info'] = message;
-        const data = this.safeList (message, 'data', []) as List;
+        const balance = this.safeDict (this.balance, type, {});
+        balance['info'] = message;
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString (data[i], 'asset');
             const code = this.safeCurrencyCode (currencyId) as string;
             const account = this.account ();
             const eq = this.safeString (data[i], 'balance');
             account['total'] = eq;
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance (this.balance[type]);
+        this.balance[type] = this.safeBalance (balance);
         const channel = this.safeString (message, 'channel');
         client.resolve (this.balance[type], channel);
     }
@@ -1775,7 +1776,7 @@ export default class kraken extends krakenRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1798,16 +1799,14 @@ export default class kraken extends krakenRest {
         const errorMessage = this.safeString2 (message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
             const requestId = this.safeString2 (message, 'reqid', 'req_id');
-            const broad = this.exceptions['ws']['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            let exception: ExchangeError | undefined = undefined;
-            if (broadKey === undefined) {
-                exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
-            } else {
-                exception = new broad[broadKey] (errorMessage);
-            }
             if (requestId !== undefined) {
-                client.reject (exception, requestId);
+                const broad = this.exceptions['ws']['broad'];
+                try {
+                    this.throwBroadlyMatchedException (broad, errorMessage, errorMessage);
+                    throw new ExchangeError (errorMessage);
+                } catch (e) {
+                    client.reject (e, requestId);
+                }
             }
             return false;
         }

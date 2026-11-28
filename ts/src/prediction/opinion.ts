@@ -6,6 +6,7 @@ import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import type { OrderSide, OrderType, Balances, Bool, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
@@ -200,7 +201,7 @@ export default class opinion extends Exchange {
                 fetchedRawRows.push (raw);
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
-                    const event: any = this.parseEvent (raw);
+                    const event: any = this.parseEvent (this.extend ({}, rawMarkets[i]));
                     const childMarkets = this.safeList (event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
@@ -458,14 +459,17 @@ export default class opinion extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         for (let i = 0; i < rawEventsLength; i++) {
-            const event: any = this.parseEvent (rawEvents[i]);
+            const event: any = this.parseEvent (this.extend ({}, rawEvents[i]));
             parsedEvents.push (event);
             // register the parsed markets so populateOutcomes can index their outcomes
             const eventMarkets = this.safeList (event, 'markets', []);
             const eventMarketsLength = eventMarkets.length;
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 const m = eventMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString (m, 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = m;
+                }
             }
         }
         this.populateOutcomes ();
@@ -752,7 +756,7 @@ export default class opinion extends Exchange {
             const priceResponse = this.safeDict (responses, priceIndex);
             const bookResponse = this.safeDict (responses, this.sum (priceIndex, 1));
             const response: Dict = { 'price': priceResponse, 'book': bookResponse };
-            const ticker = this.parsePredictionTicker (response, outcomeObj as any);
+            const ticker = this.parsePredictionTicker (response, outcomeObj);
             const symbolKey = this.safeString (ticker, 'outcome');
             if (symbolKey !== undefined) {
                 result[symbolKey] = ticker;
@@ -1194,7 +1198,7 @@ export default class opinion extends Exchange {
             'filled': this.safeNumber (order, 'filledShares'),
             'fee': undefined,
             'trades': [],
-        }, market as any);
+        }, market);
     }
 
     /**
@@ -1306,18 +1310,26 @@ export default class opinion extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const trades: Dict[] = this.safeList (result, 'list', []);
         const tradesLength = trades.length;
+        const filled: Dict[] = [];
         for (let i = 0; i < tradesLength; i++) {
-            const trade = trades[i];
-            const tokenId = this.safeString (trade, 'tokenId');
-            const marketId = this.safeInteger (trade, 'marketId');
+            const tokenId = this.safeString (trades[i], 'tokenId');
+            const marketId = this.safeInteger (trades[i], 'marketId');
             if ((tokenId === undefined) && (marketId !== undefined)) {
                 const tradeMarket = await this.loadTradeMarket (marketId);
                 const info = this.safeDict (tradeMarket, 'info', {});
-                const isYes = (this.safeStringLower (trade, 'outcomeSideEnum') === 'yes');
-                trade['tokenId'] = isYes ? this.safeString (info, 'yesTokenId') : this.safeString (info, 'noTokenId');
+                const isYes = (this.safeStringLower (trades[i], 'outcomeSideEnum') === 'yes');
+                const extra: Dict = {};
+                if (isYes) {
+                    extra['tokenId'] = this.safeString (info, 'yesTokenId');
+                } else {
+                    extra['tokenId'] = this.safeString (info, 'noTokenId');
+                }
+                filled.push (this.extend (trades[i], extra));
+            } else {
+                filled.push (trades[i]);
             }
         }
-        return this.parsePredictionTrades (trades, outcomeObj, since, limit);
+        return this.parsePredictionTrades (filled, outcomeObj, since, limit);
     }
 
     /**
@@ -1779,7 +1791,7 @@ export default class opinion extends Exchange {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
-        const orderbook = await future;
+        const orderbook: WsOrderBook = await future;
         return orderbook.limit ();
     }
 
@@ -1966,7 +1978,7 @@ export default class opinion extends Exchange {
         const marketId = this.safeInteger (info, 'marketId');
         const messageHash = 'orders';
         const orders = await this.subscribeOpinionChannel (messageHash, 'trade.order.update', marketId);
-        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const sym = this.safeString (outcomeObj, 'outcome');
         return this.filterByValueSinceLimit (orders, 'outcome', sym, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
@@ -2057,7 +2069,7 @@ export default class opinion extends Exchange {
             'filled': this.safeNumber (message, 'filledShares'),
             'fee': undefined,
             'trades': [],
-        }, outcomeObj);
+        }, outcomeObj as Market);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheByOutcomeById (limit);
@@ -2087,7 +2099,7 @@ export default class opinion extends Exchange {
         const marketId = this.safeInteger (info, 'marketId');
         const messageHash = 'myTrades';
         const trades = await this.subscribeOpinionChannel (messageHash, 'trade.record.new', marketId);
-        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const sym = this.safeString (outcomeObj, 'outcome');
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
@@ -2148,7 +2160,7 @@ export default class opinion extends Exchange {
         client.resolve (stored, 'myTrades');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

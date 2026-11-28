@@ -20,7 +20,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->deep_extend(parent::describe(), $this->describe_data());
     }
 
-    public function describe_data(): mixed {
+    public function describe_data(): array {
         return array(
             'has' => array(
                 'ws' => true,
@@ -550,7 +550,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_symbol($marketId, $market);
-            $ticker = $this->parse_ws_ticker($data[$marketId], $market);
+            $ticker = $this->parse_ws_ticker($this->safe_dict($data, $marketId, array()), $market);
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
             $messageHash = $topic . '::' . $symbol;
@@ -684,7 +684,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_symbol($marketId, $market);
-            $ticker = $this->parse_ws_bid_ask($data[$marketId], $market);
+            $ticker = $this->parse_ws_bid_ask($this->safe_dict($data, $marketId, array()), $market);
             $this->bidsasks[$symbol] = $ticker;
             $result[] = $ticker;
             $messageHash = $topic . '::' . $symbol;
@@ -697,7 +697,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $timestamp = $this->safe_integer($ticker, 't');
         $bidAskSymbol = null;
         if ($market !== null) {
-            $bidAskSymbol = $market['symbol'];
+            $bidAskSymbol = $this->safe_string($market, 'symbol');
         }
         return $this->safe_ticker(array(
             'symbol' => $bidAskSymbol,
@@ -823,7 +823,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $stored = new ArrayCache($tradesLimit);
                 $this->trades[$symbol] = $stored;
             }
-            $trades = $this->parse_ws_trades($data[$marketId], $market);
+            $trades = $this->parse_ws_trades($this->safe_list($data, $marketId, array()), $market);
             for ($j = 0; $j < count($trades); $j++) {
                 $stored->append($trades[$j]);
             }
@@ -1130,14 +1130,15 @@ class hitbtc extends \ccxt\async\hitbtc {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $data = $this->safe_value($message, 'params', array());
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        $dataDict = $this->safe_dict($message, 'params');
+        if ($dataDict !== null) {
+            $this->handle_order_helper($client, $message, $dataDict);
+        } else {
+            $data = $this->safe_list($message, 'params', array());
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];
                 $this->handle_order_helper($client, $message, $order);
             }
-        } else {
-            $this->handle_order_helper($client, $message, $data);
         }
         return $message;
     }
@@ -1152,7 +1153,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $splitMethod = explode('_order', $method);
         $messageHash = $this->safe_string($splitMethod, 0);
         $symbol = $this->safe_symbol($marketId);
-        $parsed = $this->parse_order($order);
+        $parsed = $this->parse_order($this->extend(array(), $order));
         $orders->append($parsed);
         $client->resolve($orders, $messageHash);
         if ($messageHash !== null) {
@@ -1550,17 +1551,18 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_value($message, 'result', array());
-        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+        $rows = $this->safe_list($message, 'result');
+        if ($rows === null) {
+            $parsedOrder = $this->parse_ws_order($this->safe_dict($message, 'result', array()));
+            $client->resolve($parsedOrder, $messageHash);
+        } else {
             $parsedOrders = array();
-            for ($i = 0; $i < count($result); $i++) {
-                $parsedOrder = $this->parse_ws_order($result[$i]);
+            $rowsLength = count($rows);
+            for ($i = 0; $i < $rowsLength; $i++) {
+                $parsedOrder = $this->parse_ws_order($this->safe_dict($rows, $i, array()));
                 $parsedOrders[] = $parsedOrder;
             }
             $client->resolve($parsedOrders, $messageHash);
-        } else {
-            $parsedOrder = $this->parse_ws_order($result);
-            $client->resolve($parsedOrder, $messageHash);
         }
         return $message;
     }
@@ -1612,10 +1614,11 @@ class hitbtc extends \ccxt\async\hitbtc {
             if (($result === true) && !(is_array($message) && array_key_exists('id' ?? '', $message))) {
                 $this->handle_authenticate($client, $message);
             }
-            if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+            $rows = $this->safe_list($message, 'result');
+            if ($rows !== null) {
                 // to do improve this, not very reliable right now
-                $first = $this->safe_dict($result, 0, array());
-                $arrayLength = count($result);
+                $first = $this->safe_dict($rows, 0, array());
+                $arrayLength = count($rows);
                 if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);
                 }
@@ -1647,7 +1650,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
                 $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
                 for ($j = 0; $j < count($subMessageHashes); $j++) {
-                    $this->clean_unsubscription($client, $subMessageHashes[$j], $messageHashes[$j]);
+                    $this->clean_unsubscription($client, $this->safe_string($subMessageHashes, $j), $this->safe_string($messageHashes, $j));
                 }
                 $this->clean_cache($subscription);
                 return;

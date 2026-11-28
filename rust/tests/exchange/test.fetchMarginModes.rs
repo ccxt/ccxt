@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMarginModes(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMarginModes".into());
-    let mut marginModes: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_margin_modes", vec![Value::from(vec![symbol.clone()])]).await;
+    let method: Value = Value::Str("fetchMarginModes".into());
+    let marginModes: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_margin_modes", vec![Value::from(vec![symbol.clone()])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), marginModes.clone(), symbol.clone()]);
-    let mut marginModeKeys: Value = object_keys(&marginModes);
+    let marginModeKeys: Value = object_keys(&marginModes);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1647: bool = true;
-        while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; i < (marginModeKeys.len() as i64) } {
-        let mut marginMode: Value = get_value(&marginModes, &marginModeKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (marginModeKeys.len() as i64) } {
+        let marginMode: Value = get_value(&marginModes, &marginModeKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginMode.clone(), symbol.clone()]);
         testMarginMode(exchange.clone(), skippedProperties.clone(), method.clone(), marginMode);
     }

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -573,7 +573,8 @@ class bigone(Exchange, ImplicitAPI):
         if self.safe_bool(rawCurrency, 'is_fiat', False):
             type = 'fiat'
         elif chainLength == 0:
-            if self.is_leveraged_currency(id):
+            leveragedId = self.safe_string(rawCurrency, 'symbol', '')
+            if self.is_leveraged_currency(leveragedId):
                 type = 'leveraged'
             else:
                 type = 'other'
@@ -615,7 +616,7 @@ class bigone(Exchange, ImplicitAPI):
         promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
         promisesResult = promises
         response = self.safe_dict(promisesResult, 0)
-        contractResponse = self.safe_value(promisesResult, 1)
+        contractMarkets = self.safe_list(promisesResult, 1, [])
         #
         #     {
         #         "code":0,
@@ -730,7 +731,6 @@ class bigone(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             }))
-        contractMarkets = self.to_array(contractResponse)
         for i in range(0, len(contractMarkets)):
             market = contractMarkets[i]
             baseId = self.safe_string(market, 'baseCurrency')
@@ -1558,7 +1558,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
         postOnly = None
         query = None
-        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam, params)
+        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam is True, params)
         triggerPrice = self.safe_string_n(query, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
@@ -2297,7 +2297,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

@@ -82,7 +82,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public virtual Dictionary<string, object> sendSubscription(object action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
+    public virtual Dictionary<string, object> sendSubscription(string action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, IDictionary<string, object>? parameters = null, IList<object>? checkHashes = null)
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -96,7 +96,8 @@ public partial class polymarket : ccxt.polymarket
         bool willSend = false;
         for (int i = 0; i < (hashesToCheck?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && hashesToCheck[i] is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
+            string? hashToCheck = this.safeString(hashesToCheck, i, "");
+            if (!(((hashToCheck != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(hashToCheck)))))
             {
                 willSend = true;
             }
@@ -154,7 +155,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -265,11 +266,11 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -287,11 +288,11 @@ public partial class polymarket : ccxt.polymarket
             }
         }
         Dictionary<string, object> request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
-        object newTicker = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        Dictionary<string, object> newTicker = ((Dictionary<string, object>)await this.watchMultiple(url, messageHashes, request, messageHashes));
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(newTicker, "symbol")] = newTicker;
+            result[(string)(newTicker != null && newTicker.ContainsKey("symbol") ? newTicker["symbol"] : null)] = newTicker;
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
@@ -346,11 +347,11 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -361,11 +362,11 @@ public partial class polymarket : ccxt.polymarket
             channels.Add(("bbo::" + this.safeString(market, "id", "")));
         }
         Dictionary<string, object> request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
-        object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)await this.watchMultiple(url, messageHashes, request, messageHashes));
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(ticker, "symbol")] = ticker;
+            result[(string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null)] = ticker;
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
@@ -427,13 +428,13 @@ public partial class polymarket : ccxt.polymarket
         string messageHash = ("trade:" + symbolResolved);
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {("trades::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object trades = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limitResolved));
+            limitResolved = trades.getLimit(symbolResolved, limitResolved);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -485,14 +486,14 @@ public partial class polymarket : ccxt.polymarket
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        object data = this.safeValue(message, "data");
+        List<object> dataList = this.safeList(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            rows = ((List<object>)data);
+            rows = dataList;
         } else
         {
-            rows.Add(data);
+            rows.Add(this.safeValue(message, "data"));
         }
         int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
@@ -591,13 +592,13 @@ public partial class polymarket : ccxt.polymarket
         string channel = ((("klines::" + this.safeString(market, "id", "")) + "::") + interval);
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolResolved, limitResolved));
+            limitResolved = ohlcv.getLimit(symbolResolved, limitResolved);
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -610,7 +611,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -669,13 +670,13 @@ public partial class polymarket : ccxt.polymarket
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         for (int i = 0; i < rows.Count; i++)
         {
             IList<object> parsed = this.parseOHLCV(rows[i], market);
@@ -701,8 +702,8 @@ public partial class polymarket : ccxt.polymarket
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             Int64 id = this.requestId();
             Dictionary<string, object> pending = new Dictionary<string, object>() {
@@ -755,13 +756,13 @@ public partial class polymarket : ccxt.polymarket
         List<object> subscribeHashes = new List<object>() {"orders"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"orders"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object orders = await this.watch(url, messageHash, request, "orders");
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, "orders"));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limitResolved));
+            limitResolved = orders.getLimit(symbolResolved, limitResolved);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -788,12 +789,9 @@ public partial class polymarket : ccxt.polymarket
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            rows = ((List<object>)data);
-        } else
+        if ((data != null))
         {
             rows.Add(data);
         }
@@ -857,13 +855,13 @@ public partial class polymarket : ccxt.polymarket
         List<object> subscribeHashes = new List<object>() {"fills"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"fills"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object trades = await this.watch(url, messageHash, request, "fills");
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, "fills"));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limitResolved));
+            limitResolved = trades.getLimit(symbolResolved, limitResolved);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -894,14 +892,14 @@ public partial class polymarket : ccxt.polymarket
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data");
+        List<object> dataList = this.safeList(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            rows = ((List<object>)data);
+            rows = dataList;
         } else
         {
-            rows.Add(data);
+            rows.Add(this.safeValue(message, "data"));
         }
         int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
@@ -951,7 +949,7 @@ public partial class polymarket : ccxt.polymarket
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);
@@ -962,7 +960,7 @@ public partial class polymarket : ccxt.polymarket
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         List<object> subscribeHashes = new List<object>() {"portfolio"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"positions"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
@@ -1149,7 +1147,7 @@ public partial class polymarket : ccxt.polymarket
         client.resolve(this.balance, "balance");
     }
 
-    public virtual void handleAck(WebSocketClient client, object message)
+    public virtual void handleAck(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // subscribe or unsubscribe acknowledgement
@@ -1162,9 +1160,9 @@ public partial class polymarket : ccxt.polymarket
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
         string? id = this.safeString(message, "id");
-        object data = this.safeValue(message, "data");
-        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!(((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr48502 && ((hxArr48502 is IList<object>) || (hxArr48502 is not null && hxArr48502.GetType().IsGenericType && hxArr48502.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
+            IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if ((id != null))
@@ -1218,9 +1216,11 @@ public partial class polymarket : ccxt.polymarket
         List<object> subMessageHashes = this.safeList(pending, "subMessageHashes", new List<object>() {});
         string? action = this.safeString(pending, "method");
         string? errorMessage = null;
-        for (int i = 0; i < getArrayLength(data); i++)
+        List<object> rows = this.safeList(message, "data", new List<object>() {});
+        int rowsLength = rows.Count;
+        for (int i = 0; i < rowsLength; i++)
         {
-            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> entry = this.safeDict(rows, i, new Dictionary<string, object>() {});
             string? status = this.safeString(entry, "status");
             if (status == "err")
             {
@@ -1232,12 +1232,12 @@ public partial class polymarket : ccxt.polymarket
             var error = new ExchangeError(((this.id + " ") + errorMessage));
             for (int i = 0; i < messageHashes.Count; i++)
             {
-                client.reject(error, messageHashes[i]);
+                string? messageHash = ((string)messageHashes[i]);
+                client.reject(error, messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                string? messageHash = ((string)messageHashes[i]);
                 if (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -1282,21 +1282,21 @@ public partial class polymarket : ccxt.polymarket
                     string? timeframe = this.safeString(pending, "timeframe");
                     if (((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
                     {
-                        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+                        if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow3) && ohlcvsRow3 != null && timeframe != null && ohlcvsRow3.ContainsKey(timeframe)))
                         {
-                            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
                         }
                     }
                 }
             }
             for (int i = 0; i < messageHashes.Count; i++)
             {
-                this.cleanUnsubscription(client, (subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null), messageHashes[i]);
+                this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i]);
             }
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? ch = this.safeString(message, "ch");
         if ((ch == null))

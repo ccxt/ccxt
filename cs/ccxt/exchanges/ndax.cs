@@ -991,7 +991,7 @@ public partial class ndax : Exchange
         return this.parseOrderBook(response, symbol);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         // fetchTicker
@@ -1093,7 +1093,7 @@ public partial class ndax : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetSummary(parameters);
         //
         //     [
@@ -1169,7 +1169,7 @@ public partial class ndax : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -1243,12 +1243,7 @@ public partial class ndax : Exchange
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        List<object> candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -1372,7 +1367,7 @@ public partial class ndax : Exchange
         string? takerOrMaker = null;
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         string? type = null;
-        if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((trade is IList<object>) || (trade is not null && trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             priceString = this.safeString(trade, 3);
             amountString = this.safeString(trade, 2);
@@ -1612,7 +1607,7 @@ public partial class ndax : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(IDictionary<string, object> item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1749,7 +1744,7 @@ public partial class ndax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
+    public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -2554,7 +2549,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
     {
         //
         // fetchDepositAddress, createDepositAddress
@@ -2672,7 +2667,7 @@ public partial class ndax : Exchange
         //
         if ((response is string))
         {
-            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(parseJson(response), currency, since, limit));
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(this.toArray(parseJson(response)), currency, since, limit));
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
@@ -2791,7 +2786,7 @@ public partial class ndax : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseTransaction(IDictionary<string, object> transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2983,7 +2978,7 @@ public partial class ndax : Exchange
         {
             throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template for ") + ((currency.ContainsKey("code") ? currency["code"] : null)))) ;
         }
-        Dictionary<string, object> withdrawTemplate = ((Dictionary<string, object>)JsonHelper.Deserialize(template));
+        Dictionary<string, object> withdrawTemplate = this.extend(new Dictionary<string, object>() {}, JsonHelper.Deserialize(template));
         withdrawTemplate["ExternalAddress"] = address;
         if ((tagWithdrawTag != null))
         {
@@ -3061,7 +3056,7 @@ public partial class ndax : Exchange
             {
                 string nonce = this.nonce().ToString();
                 string auth = ((nonce + this.uid) + this.apiKey);
-                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                string signature = this.hmac(auth, this.secret, sha256);
                 if (isPost)
                 {
                     headersSigned = new Dictionary<string, object>() {
@@ -3113,15 +3108,15 @@ public partial class ndax : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((code == 404))
         {
-            throw new AuthenticationError ((string)((this.id + " ") + (body))) ;
+            throw new AuthenticationError (((this.id + " ") + body)) ;
         }
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
@@ -3130,11 +3125,11 @@ public partial class ndax : Exchange
         string? message = this.safeString(response, "errormsg");
         if (((message != null)) && (message != ""))
         {
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            string feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

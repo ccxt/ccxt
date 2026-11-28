@@ -12,7 +12,7 @@ import path from 'path';
 // through, the transpiler crashes in printFunctionBody with
 // "Cannot read properties of undefined (reading 'statements')" because the
 // declaration has no body.
-const overloadLineRegex = /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*(?:<[^>()]*>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/;
+const overloadLineRegex = /^\s*(?:override\s+)?(?:async\s+)?[a-zA-Z0-9_$]+\s*(?:<[^>()]*>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/;
 
 // Definite-assignment property declarations (`apiKey!: string;`) also crash the
 // ast-transpiler: it does not understand the exclamationToken on a

@@ -9,7 +9,6 @@ type Myokx struct {
 
 func newMyokx() *Myokx {
 	p := &Myokx{}
-	setDefaults(p)
 	return p
 }
 

@@ -227,7 +227,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const client = this.client(url);
         this.watchMultiple(url, unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes);
         for (let i = 0; i < channelsLength; i++) {
-            this.cleanUnsubscription(client, this.safeString(channels, i, ''), this.safeString(unWatchMessageHashes, i, ''));
+            const channel = this.safeString(channels, i, '');
+            this.cleanUnsubscription(client, channel, this.safeString(unWatchMessageHashes, i, ''));
         }
         return true;
     }
@@ -251,7 +252,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     handleBalance(client, message) {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
-        const parsed = this.parseBalanceList(data);
+        const parsed = this.parseBalanceList(data, [data]);
         this.balance = this.deepExtend(this.balance, parsed);
         client.resolve(this.balance, 'balance');
     }
@@ -279,7 +280,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             channel = 'user.trades.' + this.safeString(market, 'id', '') + '.' + interval;
         }
         const trades = await this.subscribe([channel], [channel], true, paramsInterval);
@@ -347,7 +348,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             channel = 'user.orders.' + this.safeString(market, 'id', '') + '.' + interval;
         }
         const orders = await this.subscribe([channel], [channel], true, paramsInterval);
@@ -420,12 +421,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel');
-        const data = this.safeValue(params, 'data', {});
+        const dataList = this.safeList(params, 'data');
         let orders = [];
-        if (Array.isArray(data)) {
-            orders = this.parseOrders(data);
+        if (dataList !== undefined) {
+            orders = this.parseOrders(dataList);
         }
         else {
+            const data = this.safeDict(params, 'data', {});
             orders = [this.parseOrder(data)];
         }
         const ordersLength = orders.length;
@@ -519,12 +521,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
             const position = positions[i];
-            if (position['side'] === undefined) {
+            if (this.safeString(position, 'side') === undefined) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position['side'] = 'long';
-                const shortPosition = this.clone(position);
-                shortPosition['side'] = 'short';
+                const shortPosition = this.extend(position, { 'side': 'short' });
                 this.positions.append(shortPosition);
+                const longPosition = this.extend(position, { 'side': 'long' });
+                this.positions.append(longPosition);
+                continue;
             }
             this.positions.append(position);
         }
@@ -544,7 +547,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     async watchFundingRate(symbol, params = {}) {
         const paramsResolved = this.handleRouteAndParams('watchFundingRate', params);
         const ticker = await this.watchTicker(symbol, paramsResolved);
-        return this.parseFundingRate(ticker['info'], this.market(symbol));
+        return this.parseFundingRate(this.extend({}, ticker['info']), this.market(symbol));
     }
     /**
      * @method
@@ -572,7 +575,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < tickerSymbolsLength; i++) {
             const symbol = tickerSymbols[i];
             const ticker = tickers[symbol];
-            result[symbol] = this.parseFundingRate(ticker['info'], this.market(symbol));
+            result[symbol] = this.parseFundingRate(this.extend({}, ticker['info']), this.market(symbol));
         }
         return result;
     }
@@ -794,7 +797,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const ticker = await this.subscribe(channels, channels, false, paramsResolved);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsResolved);
@@ -877,7 +883,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const symbolResolved = this.symbol(symbol);
         const ohlcvs = await this.watchOHLCVForSymbols([[symbolResolved, timeframe]], since, limit, paramsResolved);
-        return ohlcvs[symbolResolved][timeframe];
+        const bySymbol = ohlcvs[symbolResolved];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -904,7 +911,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const channels = [];
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const currentTimeframe = this.safeString(current, 1);
+            const currentTimeframe = this.safeString(current, 1, '');
             const resolution = this.safeString(this.timeframes, currentTimeframe, currentTimeframe);
             const market = this.market(this.safeString(current, 0));
             channels.push('chart.trades.' + this.safeString(market, 'id', '') + '.' + resolution);
@@ -956,7 +963,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const timeframe = this.safeString(current, 1);
+            const timeframe = this.safeString(current, 1, '');
             const resolution = this.safeString(this.timeframes, timeframe, timeframe);
             const market = this.market(this.safeString(current, 0));
             channels.push('chart.trades.' + this.safeString(market, 'id', '') + '.' + resolution);
@@ -1105,12 +1112,11 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const tradesArray = this.trades[symbol];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const trade = this.parseTrade(data[i], market);
+            const trade = this.parseTrade(this.safeDict(data, i, {}), market);
             tradesArray.append(trade);
         }
         this.trades[symbol] = tradesArray;
         client.resolve(tradesArray, channel);
-        return message;
     }
     /**
      * @method
@@ -1223,12 +1229,20 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const symbol = this.safeSymbol(marketId);
         const timestamp = this.safeInteger(data, 'timestamp');
         const channel = this.safeString(params, 'channel');
+        if (channel === undefined) {
+            throw new errors.ExchangeError(this.id + ' order book update has no channel');
+        }
         const channelParts = channel.split('.');
         const channelPartsLength = channelParts.length;
         const isGrouped = channelPartsLength === 5;
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
-            this.orderbooks[symbol] = isGrouped ? this.orderBook({}, limit) : this.countedOrderBook({}, limit);
+            if (isGrouped) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            else {
+                this.orderbooks[symbol] = this.countedOrderBook({}, limit);
+            }
         }
         const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger(orderbook, 'nonce');
@@ -1387,7 +1401,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 this.handleAuthenticationMessage(client, message);
                 return;
             }
-            client.resolve(this.safeValue(message, 'result', message), requestId);
+            if ('result' in message) {
+                client.resolve(this.safeValue(message, 'result'), requestId);
+            }
+            else {
+                client.resolve(message, requestId);
+            }
         }
     }
     handleAuthenticationMessage(client, message) {
@@ -1429,14 +1448,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const client = this.client(url);
         const messageHash = 'authenticated';
         let future = this.safeValue(client.subscriptions, messageHash);
-        if (future !== undefined) {
+        let subscribed = (future !== undefined);
+        if (subscribed) {
             const refreshAt = this.safeInteger(this.options, 'wsAuthRefreshAt');
             if ((refreshAt !== undefined) && (this.milliseconds() >= refreshAt) && !(messageHash in client.futures)) {
                 delete client.subscriptions[messageHash];
-                future = undefined;
+                subscribed = false;
             }
         }
-        if (future === undefined) {
+        if (!subscribed) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             this.options['wsAuthRequestId'] = requestId;
@@ -1630,7 +1650,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             market = this.market(symbol);
         }
         const result = await this.requestWs('private/cancel', this.extend({ 'order_id': id }, paramsResolved), true);
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1682,7 +1702,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             market = this.market(symbol);
         }
         const result = await this.requestWs('private/get_order_state', this.extend({ 'order_id': id }, paramsResolved), true);
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1761,7 +1781,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let balance = { 'info': result };
         const summariesLength = summaries.length;
         for (let i = 0; i < summariesLength; i++) {
-            balance = this.deepExtend(balance, this.parseBalanceList(summaries[i]));
+            balance = this.deepExtend(balance, this.parseBalanceList(summaries[i], [this.safeDict(summaries, i, {})]));
         }
         return this.safeBalance(balance);
     }
@@ -1814,7 +1834,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const symbolsResolved = this.marketSymbols(symbols);
         const result = await this.requestWs('private/get_positions', paramsResolved, true);
-        const positions = this.parsePositions(result);
+        const positions = this.parsePositions(this.toArray(result));
         return this.filterByArrayPositions(positions, 'symbol', symbolsResolved);
     }
     /**
@@ -1928,7 +1948,6 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'params': paramsResolved,
         };
         await client.send(request);
-        return undefined;
     }
 }
 

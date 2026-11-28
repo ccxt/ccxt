@@ -87,17 +87,17 @@ func (this *Lighter) GetMessageHash(unifiedChannel string, optionalArgs ...any) 
 	}
 	return hash
 }
-func (this *Lighter) SubscribePublicAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Lighter) SubscribePublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
+func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -113,22 +113,22 @@ func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageH
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Lighter) SubscribePublicMultipleAsync(messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Lighter) SubscribePublicMultipleAsync(messageHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.subscribePublicMultipleBody(ch, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes any, optionalArgs ...any) any {
+func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
 	var subscription map[string]any = map[string]any{
-		"messageHashes": messageHashes,
+		"messageHashes": ccxt.StringSliceToList(messageHashes),
 		"params":        params,
 	}
 
@@ -149,7 +149,7 @@ func (this *Lighter) unsubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type": "unsubscribe",
 	}
@@ -177,12 +177,12 @@ func (this *Lighter) unsubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Lighter) SubscribePrivateAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Lighter) SubscribePrivateAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Lighter) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
+func (this *Lighter) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -192,36 +192,48 @@ func (this *Lighter) subscribePrivateBody(ch chan ccxt.AsyncResult[any], message
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	params["auth"] = this.CreateAuth(params)
+	var request map[string]any = this.Extend(params, map[string]any{
+		"auth": this.CreateAuth(params),
+	})
 
-	r1 := <-this.SubscribePublicAsync(messageHash, params)
+	r1 := <-this.SubscribePublicAsync(messageHash, request)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Lighter) HandleDelta(bookside any, delta any) {
+func (this *Lighter) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeFloat(delta, "price")
 	var amount *float64 = this.SafeFloat(delta, "size")
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
-func (this *Lighter) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+func (this *Lighter) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {
-	var data map[string]any = ccxt.SafeMapTyped(message, "order_book")
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
-	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+func (this *Lighter) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface) any {
+	var data, _ = message["order_book"].(map[string]any)
+	var deltas1338 []any
+	deltas1338, _ = data["asks"].([]any)
+	if deltas1338 == nil {
+		deltas1338 = []any{}
+	}
+	this.HandleDeltas(orderbook.GetAsks(), deltas1338)
+	var deltas1348 []any
+	deltas1348, _ = data["bids"].([]any)
+	if deltas1348 == nil {
+		deltas1348 = []any{}
+	}
+	this.HandleDeltas(orderbook.GetBids(), deltas1348)
 	orderbook.SetNonce(this.SafeInteger(data, "offset"))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
-func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
+func (this *Lighter) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "channel": "order_book:0",
@@ -247,19 +259,21 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	//     "type": "update/order_book"
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(message, "order_book", map[string]any{})
+	var data map[string]any
+	data, _ = message["order_book"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol string = market.Symbol
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks[symbol] != nil) {
+		this.Orderbooks[symbol] = this.OrderBook()
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var typeVar string = *this.SafeString(message, "type", "")
 	if typeVar == "subscribed/order_book" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
@@ -269,7 +283,7 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 		this.HandleOrderBookMessage(client, message, orderbook)
 	}
 	var messageHash string = this.GetMessageHash("orderbook", symbol)
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	client.Resolve(orderbook, messageHash)
 }
 
 /**
@@ -301,8 +315,8 @@ func (this *Lighter) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market map[string]any = this.Market(&symbol)
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"channel": "order_book/" + *this.SafeString(market, "id", ""),
 	}
@@ -344,8 +358,8 @@ func (this *Lighter) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market map[string]any = this.Market(&symbol)
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"channel": "order_book/" + *this.SafeString(market, "id", ""),
 	}
@@ -359,7 +373,7 @@ func (this *Lighter) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Lighter) HandleTicker(client any, message map[string]any) {
+func (this *Lighter) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// watchTicker
 	//     {
@@ -411,7 +425,11 @@ func (this *Lighter) HandleTicker(client any, message map[string]any) {
 	//     "type": "update/market_stats"
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(message, "market_stats", map[string]any{})
+	var data map[string]any
+	data, _ = message["market_stats"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil && *channel == "market_stats:all" {
 		var marketIds []string = nil
@@ -425,12 +443,16 @@ func (this *Lighter) HandleTicker(client any, message map[string]any) {
 			var marketId string = marketIds[i]
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[marketId], market))
+			dataDict29849, _ := data[marketId].(map[string]any)
+			if dataDict29849 == nil {
+				dataDict29849 = map[string]any{}
+			}
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict29849, market))
 			if symbol != nil {
 				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 			}
-			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
-			client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
+			client.Resolve(ticker, this.GetMessageHash("ticker", symbol))
+			client.Resolve(ticker, this.GetMessageHash("ticker"))
 		}
 	} else {
 		var marketId *string = this.SafeString(data, "market_id")
@@ -440,7 +462,7 @@ func (this *Lighter) HandleTicker(client any, message map[string]any) {
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
-		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
+		client.Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	}
 }
 
@@ -470,8 +492,8 @@ func (this *Lighter) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market map[string]any = this.Market(&symbol)
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " watchTicker() is only supported for swap markets"))
 	}
@@ -514,8 +536,8 @@ func (this *Lighter) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market map[string]any = this.Market(&symbol)
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " unWatchTicker() is only supported for swap markets"))
 	}
@@ -569,7 +591,7 @@ func (this *Lighter) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var request map[string]any = map[string]any{
 		"channel": "market_stats/all",
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var symbolsLength int = 0
 	if symbolsNormalized != nil {
 		symbolsLength = len(symbolsNormalized)
@@ -595,7 +617,7 @@ func (this *Lighter) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -824,7 +846,7 @@ func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		"fee":          nil,
 	}, market))
 }
-func (this *Lighter) HandleTrades(client any, message map[string]any) {
+func (this *Lighter) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "trade:0",
@@ -861,24 +883,22 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 	//         "type": "subscribed/trade"
 	//     }
 	//
-	var liquidationData []any = ccxt.SafeListTyped(message, "liquidation_trades")
+	var liquidationData, _ = message["liquidation_trades"].([]any)
 	var liquidationDataLength int = len(liquidationData)
 	if liquidationDataLength > 0 {
 		this.HandleLiquidation(client, message)
 	}
-	var data []any = ccxt.SafeListTyped(message, "trades")
+	var data, _ = message["trades"].([]any)
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
@@ -887,7 +907,7 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 		stored.Append(trade)
 	}
 	var messageHash string = this.GetMessageHash("trade", symbol)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -901,12 +921,12 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lighter) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Lighter) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -922,7 +942,7 @@ func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"channel": "trade/" + *this.SafeString(market, "id", ""),
 	}
@@ -964,7 +984,7 @@ func (this *Lighter) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"channel": "trade/" + *this.SafeString(market, "id", ""),
 	}
@@ -1024,33 +1044,38 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 	if accountIndex != nil {
 		if bidAccountId == accountIndex || (bidAccountId != nil && accountIndex != nil && *bidAccountId == *accountIndex) {
 			// Own trades should use the account's order side
-			side = ccxt.SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 			order = this.SafeString(trade, "bid_id")
-			takerOrMaker = ccxt.SafeStringPtr(func() string {
-				if isMakerAsk != nil && *isMakerAsk {
-					return "taker"
-				}
-				return "maker"
-			}())
+			var takerOrMakerStr string
+			if isMakerAsk != nil && *isMakerAsk {
+				takerOrMakerStr = "taker"
+			} else {
+				takerOrMakerStr = "maker"
+			}
+			takerOrMaker = &takerOrMakerStr
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
-			side = ccxt.SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 			order = this.SafeString(trade, "ask_id")
-			takerOrMaker = ccxt.SafeStringPtr(func() string {
-				if isMakerAsk != nil && *isMakerAsk {
-					return "maker"
-				}
-				return "taker"
-			}())
+			var takerOrMakerStr2 string
+			if isMakerAsk != nil && *isMakerAsk {
+				takerOrMakerStr2 = "maker"
+			} else {
+				takerOrMakerStr2 = "taker"
+			}
+			takerOrMaker = &takerOrMakerStr2
 		}
 	}
 	// public trades use Lighter's taker-side convention
 	if side == nil {
-		side = ccxt.SafeStringPtr(func() string {
-			if isMakerAsk != nil && *isMakerAsk {
-				return "buy"
-			}
-			return "sell"
-		}())
+		var sideStr3 string
+		if isMakerAsk != nil && *isMakerAsk {
+			sideStr3 = "buy"
+		} else {
+			sideStr3 = "sell"
+		}
+		side = &sideStr3
 	}
 	var fee map[string]any = nil
 	if takerOrMaker != nil {
@@ -1060,12 +1085,13 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 		} else {
 			feeRateRaw = this.SafeString(trade, "taker_fee")
 		}
-		var feeRate *string = func() *string {
-			if feeRateRaw != nil {
-				return ccxt.Precise.StringDiv(feeRateRaw, "1000000")
-			}
-			return ccxt.SafeStringPtr("0")
-		}()
+		var feeRate *string
+		if feeRateRaw != nil {
+			feeRate = ccxt.Precise.StringDiv(feeRateRaw, "1000000")
+		} else {
+			retStr := "0"
+			feeRate = &retStr
+		}
 		var feeAmount *string = ccxt.Precise.StringMul(costString, feeRate)
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -1073,10 +1099,10 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 			"rate":     feeRate,
 		}
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal72631 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           tradeId,
-		"order":        order,
+		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       this.SafeSymbol(nil, market),
@@ -1087,9 +1113,13 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, market))
+	}
+	if order != nil {
+		literal72631["order"] = *order
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal72631, market))
 }
-func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
+func (this *Lighter) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "channel": "account_all_trades:723310",
@@ -1127,7 +1157,7 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var accountIndex *string = this.SafeString(parts, 1)
-	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
+	var data, _ = message["trades"].(map[string]any)
 	var marketIds []string = nil
 	if data != nil {
 		marketIds = make([]string, 0, len(data))
@@ -1159,11 +1189,11 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 			var symbol *string = this.SafeString(trade, "symbol")
 			if symbol != nil {
 				var symbolSpecificMessageHash string = this.GetMessageHash("myTrades", symbol)
-				client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
+				client.Resolve(stored, symbolSpecificMessageHash)
 			}
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	return true
 }
 
@@ -1201,33 +1231,28 @@ func (this *Lighter) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleAccountIndexAsync(params, "watchMyTrades", "accountIndex", "account_index")
-	if r1.Err != nil {
-		panic(r1.Err)
+	accountIndexparamsAccountIndexPair := <-this.HandleAccountIndexAsync(params, "watchMyTrades", "accountIndex", "account_index")
+	if accountIndexparamsAccountIndexPair.Err != nil {
+		panic(accountIndexparamsAccountIndexPair.Err)
 	}
-	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := accountIndexparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
+	var accountIndex int64 = accountIndexparamsAccountIndexPair.Value.V
+	var paramsAccountIndex map[string]any = accountIndexparamsAccountIndexPair.Value.P
 	var messageHash string = this.GetMessageHash("myTrades")
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = this.GetMessageHash("myTrades", symbolResolved)
 	}
 	var request map[string]any = map[string]any{
-		"channel": ccxt.Add("account_all_trades/", this.NumberToString(accountIndex)),
+		"channel": "account_all_trades/" + *this.NumberToString(accountIndex),
 	}
 
-	r2 := <-this.SubscribePublicAsync(messageHash, this.Extend(request, paramsAccountIndex))
-	if r2.Err != nil {
-		panic(r2.Err)
+	r1 := <-this.SubscribePublicAsync(messageHash, this.Extend(request, paramsAccountIndex))
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
@@ -1262,27 +1287,26 @@ func (this *Lighter) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optiona
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only"))
 	}
-	r := <-this.HandleAccountIndexAsync(params, "unWatchMyTrades", "accountIndex", "account_index")
-	if r.Err != nil {
-		panic(r.Err)
+	accountIndexparamsAccountIndexPair := <-this.HandleAccountIndexAsync(params, "unWatchMyTrades", "accountIndex", "account_index")
+	if accountIndexparamsAccountIndexPair.Err != nil {
+		panic(accountIndexparamsAccountIndexPair.Err)
 	}
-	var accountIndexparamsAccountIndexVariable []any = r.Value
-	accountIndex := accountIndexparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
+	var accountIndex int64 = accountIndexparamsAccountIndexPair.Value.V
+	var paramsAccountIndex map[string]any = accountIndexparamsAccountIndexPair.Value.P
 	var subMessageHash string = this.GetMessageHash("myTrades")
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var request map[string]any = map[string]any{
-		"channel": ccxt.Add("account_all_trades/", this.NumberToString(accountIndex)),
+		"channel": "account_all_trades/" + *this.NumberToString(accountIndex),
 	}
 
-	r1 := <-this.UnsubscribeAsync(messageHash, this.Extend(request, paramsAccountIndex))
-	if r1.Err != nil {
-		panic(r1.Err)
+	r := <-this.UnsubscribeAsync(messageHash, this.Extend(request, paramsAccountIndex))
+	if r.Err != nil {
+		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Lighter) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "trade_id": 526801155,
@@ -1340,7 +1364,7 @@ func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) an
 		"datetime":     this.Iso8601(timestamp),
 	})
 }
-func (this *Lighter) HandleLiquidation(client any, message map[string]any) {
+func (this *Lighter) HandleLiquidation(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "trade:0",
@@ -1377,14 +1401,14 @@ func (this *Lighter) HandleLiquidation(client any, message map[string]any) {
 	//         "type": "subscribed/trade"
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
+	var data, _ = message["liquidation_trades"].([]any)
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol")
 	var stored any = this.SafeValue(this.Liquidations, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 		this.Liquidations = ccxt.NewArrayCache(limit)
 		stored = this.Liquidations
@@ -1392,11 +1416,18 @@ func (this *Lighter) HandleLiquidation(client any, message map[string]any) {
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var iReversed int64 = this.ParseToInt((dataLength - 1) - i)
-		var liquidation any = this.ParseWsLiquidation(ccxt.GetValue(data, iReversed), market)
+		var dataDict98157 map[string]any
+		if iReversed >= 0 && iReversed < int64(len(data)) {
+			dataDict98157, _ = data[iReversed].(map[string]any)
+		}
+		if dataDict98157 == nil {
+			dataDict98157 = map[string]any{}
+		}
+		var liquidation any = this.ParseWsLiquidation(dataDict98157, market)
 		stored.(ccxt.Appender).Append(liquidation)
 	}
 	var messageHash string = this.GetMessageHash("liquidations", symbol)
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 }
 
 /**
@@ -1431,7 +1462,7 @@ func (this *Lighter) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liqui
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"channel": "trade/" + *this.SafeString(market, "id", ""),
 	}
@@ -1483,36 +1514,35 @@ func (this *Lighter) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	var defaultType *string = this.SafeString2(this.Options, "watchBalance", "defaultType", "spot")
 	typeVar, paramsType := this.HandleParamString(params, "type", defaultType)
-	r1 := <-this.HandleAccountIndexAsync(paramsType, "watchBalance", "accountIndex", "account_index")
-	if r1.Err != nil {
-		panic(r1.Err)
+	accountIndexparamsAccountIndexPair := <-this.HandleAccountIndexAsync(paramsType, "watchBalance", "accountIndex", "account_index")
+	if accountIndexparamsAccountIndexPair.Err != nil {
+		panic(accountIndexparamsAccountIndexPair.Err)
 	}
-	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := accountIndexparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
+	var accountIndex int64 = accountIndexparamsAccountIndexPair.Value.V
+	var paramsAccountIndex map[string]any = accountIndexparamsAccountIndexPair.Value.P
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
 	var request map[string]any = map[string]any{}
 	if typeVar != nil && *typeVar == "spot" {
-		request["channel"] = ccxt.Add("account_all_assets/", this.NumberToString(accountIndex))
+		request["channel"] = "account_all_assets/" + *this.NumberToString(accountIndex)
 
-		r2 := <-this.SubscribePrivateAsync(messageHash, this.Extend(request, paramsAccountIndex))
+		r1 := <-this.SubscribePrivateAsync(messageHash, this.Extend(request, paramsAccountIndex))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
+		return nil
+	} else {
+		request["channel"] = "user_stats/" + *this.NumberToString(accountIndex)
+
+		r2 := <-this.SubscribePublicAsync(messageHash, this.Extend(request, paramsAccountIndex))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 		ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 		return nil
-	} else {
-		request["channel"] = ccxt.Add("user_stats/", this.NumberToString(accountIndex))
-
-		r3 := <-this.SubscribePublicAsync(messageHash, this.Extend(request, paramsAccountIndex))
-		if r3.Err != nil {
-			panic(r3.Err)
-		}
-		ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
-		return nil
 	}
 }
-func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
+func (this *Lighter) HandleBalance(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    spot balance
 	//    {
@@ -1572,9 +1602,13 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 	if strings.Index(channel, "user_stats:") >= 0 {
 		typeVar = "swap"
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[typeVar].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	if typeVar == "spot" {
-		var assets map[string]any = ccxt.SafeMapTyped(message, "assets")
+		var assets, _ = message["assets"].(map[string]any)
 		var assetIds []string = nil
 		if assets != nil {
 			assetIds = make([]string, 0, len(assets))
@@ -1584,7 +1618,7 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 		}
 		for i := 0; i < len(assetIds); i++ {
 			var assetId string = assetIds[i]
-			var asset map[string]any = ccxt.SafeMapTyped(assets, assetId)
+			var asset, _ = assets[assetId].(map[string]any)
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
 			var account map[string]any = this.Account()
@@ -1595,7 +1629,11 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 			}
 		}
 	} else {
-		var stats map[string]any = this.SafeDictMap(message, "stats", map[string]any{})
+		var stats map[string]any
+		stats, _ = message["stats"].(map[string]any)
+		if stats == nil {
+			stats = map[string]any{}
+		}
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(stats, "available_balance")
 		account["total"] = this.SafeString(stats, "collateral")
@@ -1603,16 +1641,19 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 		balance["USDC"] = account
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	balance["timestamp"] = func() any {
-		if v := timestamp; v != nil {
-			return *v
-		}
-		return nil
-	}()
-	ccxt.AddElementToObject(balance, "datetime", this.Iso8601(timestamp))
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
+	}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
+	}
 	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
-	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
+	client.Resolve(this.Balance[typeVar], messageHash)
 	return true
 }
 
@@ -1649,29 +1690,28 @@ func (this *Lighter) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleAccountIndexAsync(params, "watchOrders", "accountIndex", "account_index")
-	if r1.Err != nil {
-		panic(r1.Err)
+	accountIndexparamsAccountIndexPair := <-this.HandleAccountIndexAsync(params, "watchOrders", "accountIndex", "account_index")
+	if accountIndexparamsAccountIndexPair.Err != nil {
+		panic(accountIndexparamsAccountIndexPair.Err)
 	}
-	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := accountIndexparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
+	var accountIndex int64 = accountIndexparamsAccountIndexPair.Value.V
+	var paramsAccountIndex map[string]any = accountIndexparamsAccountIndexPair.Value.P
 	var messageHash string
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		messageHash = this.GetMessageHash("orders", this.SafeString(market, "symbol"))
-		request["channel"] = ccxt.Add("account_orders/"+*this.SafeString(market, "id", "")+"/", this.NumberToString(accountIndex))
+		request["channel"] = "account_orders/" + *this.SafeString(market, "id", "") + "/" + *this.NumberToString(accountIndex)
 	} else {
 		messageHash = this.GetMessageHash("orders")
-		request["channel"] = ccxt.Add("account_all_orders/", this.NumberToString(accountIndex))
+		request["channel"] = "account_all_orders/" + *this.NumberToString(accountIndex)
 	}
 
-	r2 := <-this.SubscribePrivateAsync(messageHash, this.Extend(request, paramsAccountIndex))
-	if r2.Err != nil {
-		panic(r2.Err)
+	r1 := <-this.SubscribePrivateAsync(messageHash, this.Extend(request, paramsAccountIndex))
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
@@ -1709,37 +1749,43 @@ func (this *Lighter) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalA
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleAccountIndexAsync(params, "unWatchOrders", "accountIndex", "account_index")
-	if r1.Err != nil {
-		panic(r1.Err)
+	accountIndexparamsAccountIndexPair := <-this.HandleAccountIndexAsync(params, "unWatchOrders", "accountIndex", "account_index")
+	if accountIndexparamsAccountIndexPair.Err != nil {
+		panic(accountIndexparamsAccountIndexPair.Err)
 	}
-	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := accountIndexparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
+	var accountIndex int64 = accountIndexparamsAccountIndexPair.Value.V
+	var paramsAccountIndex map[string]any = accountIndexparamsAccountIndexPair.Value.P
 	var subMessageHash string
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		subMessageHash = this.GetMessageHash("orders", this.SafeString(market, "symbol"))
-		request["channel"] = ccxt.Add("account_orders/"+*this.SafeString(market, "id", "")+"/", this.NumberToString(accountIndex))
+		request["channel"] = "account_orders/" + *this.SafeString(market, "id", "") + "/" + *this.NumberToString(accountIndex)
 	} else {
 		subMessageHash = this.GetMessageHash("orders")
-		request["channel"] = ccxt.Add("account_all_orders/", this.NumberToString(accountIndex))
+		request["channel"] = "account_all_orders/" + *this.NumberToString(accountIndex)
 	}
 	var messageHash string = "unsubscribe:" + subMessageHash
 
-	r2 := <-this.UnsubscribeAsync(messageHash, this.Extend(request, paramsAccountIndex))
-	if r2.Err != nil {
-		panic(r2.Err)
+	r1 := <-this.UnsubscribeAsync(messageHash, this.Extend(request, paramsAccountIndex))
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[bool]{Value: r2.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Lighter) RequestId(url *string) int64 {
-	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
+	var options map[string]any
+	options, _ = this.Options["requestId"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
-	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
+	if url != nil {
+		options[*url] = newValue
+	}
+	this.Options["requestId"] = options
 	return newValue
 }
 
@@ -1776,20 +1822,20 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var nextId int64 = this.RequestId(url)
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
 	var messageHash string = "jsonapi/sendtx:" + requestId
-	r := <-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params)
+	r := <-this.SignAndCreateOrderAsync("createOrderWs", &symbol, &typeVar, &side, amount, price, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
 	var txTypetxInfoorderVariable []any = ccxt.MapSliceToList(r.Value)
-	txType := ccxt.GetValue(txTypetxInfoorderVariable, 0)
-	txInfo := ccxt.GetValue(txTypetxInfoorderVariable, 1)
-	order := ccxt.GetValue(txTypetxInfoorderVariable, 2)
-	var market map[string]any = this.Market(symbol)
+	txType := txTypetxInfoorderVariable[0]
+	txInfo := txTypetxInfoorderVariable[1]
+	order := txTypetxInfoorderVariable[2]
+	var market map[string]any = this.Market(&symbol)
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
 		"type": "jsonapi/sendtx",
@@ -1809,7 +1855,7 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	}
 	rawMessage := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.DeepExtend(rawMessage, order), market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, this.DeepExtend(rawMessage, order)), market)}
 	return nil
 }
 
@@ -1837,18 +1883,18 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var nextId int64 = this.RequestId(url)
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
 	var messageHash string = "jsonapi/sendtx:" + requestId
-	r := <-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params)
+	r := <-this.SignAndCancelOrderAsync("cancelOrderWs", &id, symbol, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
 	var txTypetxInfoVariable []any = ccxt.MapSliceToList(r.Value)
-	txType := ccxt.GetValue(txTypetxInfoVariable, 0)
-	txInfo := ccxt.GetValue(txTypetxInfoVariable, 1)
+	txType := txTypetxInfoVariable[0]
+	txInfo := txTypetxInfoVariable[1]
 	var market map[string]any = this.Market(symbol)
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
@@ -1869,7 +1915,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	}
 	rawMessage := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(rawMessage, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, rawMessage), market)}
 	return nil
 }
 
@@ -1896,7 +1942,7 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var nextId int64 = this.RequestId(url)
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
@@ -1906,8 +1952,8 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 		panic(r.Err)
 	}
 	var txTypetxInfoVariable []any = ccxt.MapSliceToList(r.Value)
-	txType := ccxt.GetValue(txTypetxInfoVariable, 0)
-	txInfo := ccxt.GetValue(txTypetxInfoVariable, 1)
+	txType := txTypetxInfoVariable[0]
+	txInfo := txTypetxInfoVariable[1]
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
 		"type": "jsonapi/sendtx",
@@ -1930,14 +1976,14 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.ParseOrders([]any{rawMessage}))}
 	return nil
 }
-func (this *Lighter) HandleWsSendtxApi(client any, message map[string]any) {
+func (this *Lighter) HandleWsSendtxApi(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
 	//
-	var id *string = this.SafeString(message, "id")
-	client.(ccxt.ClientInterface).Resolve(message, ccxt.Add("jsonapi/sendtx:", id))
+	var id string = *this.SafeString(message, "id", "")
+	client.Resolve(message, "jsonapi/sendtx:"+id)
 }
-func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
+func (this *Lighter) HandleOrders(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        "account": {ACCOUNT_INDEX},
@@ -1957,7 +2003,7 @@ func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 	//        "type": "update/account_all_orders"
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "orders")
+	var data, _ = message["orders"].(map[string]any)
 	var marketIds []string = nil
 	if data != nil {
 		marketIds = make([]string, 0, len(data))
@@ -1980,19 +2026,23 @@ func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 		var market map[string]any = this.SafeMarket(marketId)
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(orders[j], market))
+			ordersDict136147, _ := orders[j].(map[string]any)
+			if ordersDict136147 == nil {
+				ordersDict136147 = map[string]any{}
+			}
+			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(ordersDict136147, market))
 			stored.Append(order)
-			var symbol *string = ccxt.SafeStringPtr(order["symbol"])
+			var symbol *string = this.SafeString(order, "symbol")
 			if symbol != nil {
 				var symbolSpecificMessageHash string = this.GetMessageHash("orders", symbol)
-				client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
+				client.Resolve(stored, symbolSpecificMessageHash)
 			}
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	client.Resolve(stored, messageHash)
 	return true
 }
-func (this *Lighter) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Lighter) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "error": {
@@ -2016,7 +2066,7 @@ func (this *Lighter) HandleErrorMessage(client any, message map[string]any) bool
 	//         }
 	//     }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil && *errorCode == "30003" {
 		// a duplicate subscribe is harmless - the server-side subscription is intact and
@@ -2053,22 +2103,22 @@ func (this *Lighter) HandleErrorMessage(client any, message map[string]any) bool
 						var id *string = this.SafeString(message, "id")
 						var handled bool = false
 						if id != nil {
-							var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+							var subscriptionKeys []string = client.SubscriptionKeys()
 							for i := 0; i < len(subscriptionKeys); i++ {
 								var subscriptionHash string = subscriptionKeys[i]
-								var subscriptionId *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "id")
-								var subscription *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "subscription")
+								var subscriptionId *string = this.SafeString(client.SubscriptionGet(subscriptionHash), "id")
+								var subscription *string = this.SafeString(client.SubscriptionGet(subscriptionHash), "subscription")
 								if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {
-									client.(ccxt.ClientInterface).Reject(e, subscriptionHash)
+									client.Reject(e, subscriptionHash)
 									handled = true
 									if subscription != nil {
-										client.(ccxt.ClientInterface).SubscriptionDel(subscription)
+										client.SubscriptionDel(subscription)
 									}
 								}
 							}
 						}
 						if !handled {
-							client.(ccxt.ClientInterface).Reject(e)
+							client.Reject(e)
 						}
 						return nil
 					}(this)
@@ -2089,7 +2139,7 @@ func (this *Lighter) HandleErrorMessage(client any, message map[string]any) bool
 	}
 	return true
 }
-func (this *Lighter) HandleMessage(client any, message map[string]any) {
+func (this *Lighter) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if !this.HandleErrorMessage(client, message) {
 		return
 	}
@@ -2143,7 +2193,7 @@ func (this *Lighter) HandleMessage(client any, message map[string]any) {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
-func (this *Lighter) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Lighter) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -2152,7 +2202,7 @@ func (this *Lighter) HandleSubscriptionStatus(client any, message map[string]any
 	//
 	return message
 }
-func (this *Lighter) HandleUnSubscription(client any, message map[string]any) {
+func (this *Lighter) HandleUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "unsubscribed",
@@ -2181,18 +2231,18 @@ func (this *Lighter) HandleUnSubscription(client any, message map[string]any) {
 		this.HandleAllOrdersUnSubscription(client)
 	}
 }
-func (this *Lighter) HandleOrderBookUnSubscription(client any, marketId any) {
+func (this *Lighter) HandleOrderBookUnSubscription(client ccxt.ClientInterface, marketId any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("orderbook", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil && this.Orderbooks[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}
 	}
 }
-func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
+func (this *Lighter) HandleTickerUnSubscription(client ccxt.ClientInterface, marketId any) {
 	if ccxt.IsEqual(marketId, "all") {
 		// a ticker hash is served by the one wire channel that created its subscription
 		// record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
@@ -2200,27 +2250,27 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		// it here would make the next watchTicker re-subscribe a channel the venue still
 		// considers subscribed, and its "30003 Already Subscribed" frame carries no id,
 		// so handleErrorMessage rejects every future on the socket
-		var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+		var subscriptionHashes []string = client.SubscriptionKeys()
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = subscriptionHashes[i]
 			if strings.HasPrefix(subscriptionHash, "ticker") {
-				var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
-				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")
+				var subscription map[string]any = client.SubscriptionDict(subscriptionHash)
+				var subscriptionParams, _ = subscription["params"].(map[string]any)
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
-					client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
-					if client.(ccxt.ClientInterface).FutureHas(subscriptionHash) {
+					client.SubscriptionDel(subscriptionHash)
+					if client.FutureHas(subscriptionHash) {
 						error := ccxt.UnsubscribeError(this.Id + " " + subscriptionHash)
-						client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
+						client.Reject(error, subscriptionHash)
 					}
 				}
 			}
 		}
 		var allMessageHash string = "unsubscribe:" + this.GetMessageHash("ticker")
-		if client.(ccxt.ClientInterface).SubscriptionHas(allMessageHash) {
-			client.(ccxt.ClientInterface).SubscriptionDel(allMessageHash)
+		if client.SubscriptionHas(allMessageHash) {
+			client.SubscriptionDel(allMessageHash)
 		}
-		client.(ccxt.ClientInterface).Resolve(true, allMessageHash)
+		client.Resolve(true, allMessageHash)
 		var tickersStructure map[string]any = map[string]any{
 			"topic": "ticker",
 		}
@@ -2230,7 +2280,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("ticker", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil {
 		if _, ok := this.Tickers[*symbol]; ok {
 			if symbol != nil {
@@ -2239,62 +2289,63 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		}
 	}
 }
-func (this *Lighter) HandleTradesUnSubscription(client any, marketId any) {
+func (this *Lighter) HandleTradesUnSubscription(client ccxt.ClientInterface, marketId any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("trade", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil && this.Trades[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Trades, *symbol)
 		}
 	}
 }
-func (this *Lighter) HandleMyTradesUnSubscription(client any) {
+func (this *Lighter) HandleMyTradesUnSubscription(client ccxt.ClientInterface) {
 	// one account-wide channel feeds the plural hash and every per-symbol hash
 	var messageHash string = "unsubscribe:" + this.GetMessageHash("myTrades")
-	this.CleanUnsubscription(ccxt.AsClient(client), "myTrades", messageHash, true)
+	argStr := "myTrades"
+	this.CleanUnsubscription(ccxt.AsClient(client), &argStr, messageHash, true)
 	var myTradesStructure map[string]any = map[string]any{
 		"topic": "myTrades",
 	}
 	this.CleanCache(myTradesStructure)
 }
-func (this *Lighter) HandleOrdersUnSubscription(client any, marketId any) {
+func (this *Lighter) HandleOrdersUnSubscription(client ccxt.ClientInterface, marketId any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("orders", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 }
-func (this *Lighter) HandleAllOrdersUnSubscription(client any) {
+func (this *Lighter) HandleAllOrdersUnSubscription(client ccxt.ClientInterface) {
 	// only the plural hash is awaited on this channel, per-symbol order hashes
 	// belong to the account_orders/<marketId> channels and stay untouched here
 	var subMessageHash string = this.GetMessageHash("orders")
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	var ordersStructure map[string]any = map[string]any{
 		"topic": "orders",
 	}
 	this.CleanCache(ordersStructure)
 }
-func (this *Lighter) HandlePing(client any, message map[string]any) {
+func (this *Lighter) HandlePing(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     { "type": "ping" }
 	//
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Lighter) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Lighter) PongAsync(client ccxt.ClientInterface, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Lighter) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
+func (this *Lighter) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = map[string]any{
 		"type": "pong",
 	}
 
-	r := <-client.(ccxt.ClientInterface).SendAsync(request)
+	r := <-client.SendAsync(request)
 	if r.Err != nil {
 		panic(r.Err)
 	}

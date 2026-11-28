@@ -68,7 +68,8 @@ impl Cache {
     pub fn append(&mut self, item: impl Into<Value>) { self.0.append(item) }
     pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
     pub fn clear(&mut self) { self.0.clear() }
-    pub fn hashmap(&self) -> Value { self.0.hashmap() }
+    /// The bucket index snapshot: always a map (symbol buckets keep their write-back tag).
+    pub fn hashmap(&self) -> crate::value::Dict { if let Value::Dict(m) = self.0.hashmap() { m } else { Default::default() } }
     /// `cache.length`: the rolling buffer's size (`Value::len` unwraps the marker).
     pub fn size(&self) -> i64 { self.0.len() as i64 }
 }
@@ -84,6 +85,14 @@ impl From<Value> for Option<Cache> {
 }
 impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
 
+/// What an OHLCV handler resolves: `[symbol, timeframe, stored]`, typed.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct OhlcvTick {
+    pub symbol: Option<String>,
+    pub timeframe: Option<String>,
+    pub stored: Option<Cache>,
+}
+
 impl crate::value::Rows for &Cache {
     fn rows(self) -> Value { Value::from(self) }
     fn absent(&self) -> bool { false }
@@ -98,7 +107,7 @@ pub trait CacheSlot {
     fn append(&mut self, item: impl Into<Value>);
     fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64>;
     fn clear(&mut self);
-    fn hashmap(&self) -> Value;
+    fn hashmap(&self) -> crate::value::Dict;
     fn size(&self) -> i64;
 }
 
@@ -108,7 +117,7 @@ impl CacheSlot for Option<Cache> {
         match self { Some(c) => c.get_limit(symbol, limit), None => limit }
     }
     fn clear(&mut self) { if let Some(c) = self { c.clear() } }
-    fn hashmap(&self) -> Value { self.as_ref().map_or(Value::Null, Cache::hashmap) }
+    fn hashmap(&self) -> crate::value::Dict { self.as_ref().map(Cache::hashmap).unwrap_or_default() }
     /// An absent cache has length 0, as `get_array_length(&Value::Null)` did.
     fn size(&self) -> i64 { self.as_ref().map_or(0, Cache::size) }
 }
@@ -127,16 +136,16 @@ pub trait CacheKey {
 impl CacheKey for Value {
     fn strict(&self) -> Option<&str> { self.as_str() }
     fn text(&self) -> std::borrow::Cow<'_, str> {
-        match self.as_str() { Some(s) => std::borrow::Cow::Borrowed(s), None => std::borrow::Cow::Owned(crate::runtime::stringify_param(self)) }
+        match self.as_str() { Some(s) => s.into(), None => crate::runtime::stringify_param(self).into() }
     }
 }
 impl CacheKey for String {
     fn strict(&self) -> Option<&str> { Some(self.as_str()) }
-    fn text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_str()) }
+    fn text(&self) -> std::borrow::Cow<'_, str> { self.as_str().into() }
 }
 impl CacheKey for Option<String> {
     fn strict(&self) -> Option<&str> { self.as_deref() }
-    fn text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
+    fn text(&self) -> std::borrow::Cow<'_, str> { self.as_deref().unwrap_or("null").into() }
 }
 
 /// Keyed access to a map of ws handles (`CacheMap`, `BookMap`), with the semantics the untyped

@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/predictfun.js';
-import type { Dict, fetchEventsParams, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Bool, Dict, fetchEventsParams, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class predictfun
@@ -81,7 +81,7 @@ export default class predictfun extends Exchange {
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    stripPriceFormatting(text: Str): Str;
+    stripPriceFormatting(text: string): string;
     /**
      * @ignore
      * @method
@@ -92,7 +92,7 @@ export default class predictfun extends Exchange {
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    titleForMarketSymbol(topicSlug: Str, title: Str, marketCount?: Int): Str;
+    titleForMarketSymbol(topicSlug: Str, title: Str, marketCount?: Int): string;
     /**
      * @ignore
      * @method
@@ -394,7 +394,7 @@ export default class predictfun extends Exchange {
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore
      * @method
@@ -617,7 +617,7 @@ export default class predictfun extends Exchange {
      * @param {string} [marketId] the venue market id
      * @returns {object[]} the outcome objects
      */
-    outcomesByMarketId(marketId: Str): any[];
+    outcomesByMarketId(marketId: Str): Dict[];
     /**
      * @ignore
      * @method

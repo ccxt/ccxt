@@ -922,9 +922,9 @@ export default class polymarket extends Exchange {
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
         let paramsOmitted = params;
-        [paginate, paramsOmitted] = this.handleOptionAndParams(paramsOmitted, 'fetchOHLCV', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchOHLCV', 'paginate', false);
+        paramsOmitted = paramsPaginate;
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsOmitted, 1000);
         }
@@ -1075,9 +1075,9 @@ export default class polymarket extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets();
-        let paginate = false;
         let paramsOmitted = params;
-        [paginate, paramsOmitted] = this.handleOptionAndParams(paramsOmitted, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchFundingRateHistory', 'paginate', false);
+        paramsOmitted = paramsPaginate;
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '1h', paramsOmitted, 100);
         }
@@ -1582,12 +1582,13 @@ export default class polymarket extends Exchange {
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         if ((amount === undefined) || (price === undefined)) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires both the amount and the price arguments');
         }
         const orderId = this.parseToInt(id);
-        const priceString = this.priceToPrecision(market['symbol'], price);
-        const quantity = this.amountToPrecision(market['symbol'], amount);
+        const priceString = this.priceToPrecision(precisionSymbol, price);
+        const quantity = this.amountToPrecision(precisionSymbol, amount);
         const signable = ['modifyOrders', [[orderId, priceString, quantity]]];
         const bodyOp = {
             'type': 'modifyOrders',
@@ -2369,7 +2370,7 @@ export default class polymarket extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const row = this.safeDict(response, i, {});
             const rowId = this.safeString(row, 'instrument_id');
-            if (rowId === market['id']) {
+            if (rowId === this.safeString(market, 'id')) {
                 return this.parseLeverage(row, market);
             }
         }
@@ -2553,8 +2554,8 @@ export default class polymarket extends Exchange {
     }
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        const r = signature['r'];
-        const sVal = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const sVal = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + sVal.padStart(64, '0') + v;
     }
@@ -2647,7 +2648,7 @@ export default class polymarket extends Exchange {
             if (expires === undefined) {
                 return credentials;
             }
-            const refreshAfter = expires - margin;
+            const refreshAfter = this.parseToInt(expires - margin);
             if (this.milliseconds() < refreshAfter) {
                 return credentials;
             }
@@ -2688,7 +2689,7 @@ export default class polymarket extends Exchange {
             'ts': ts,
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-        const proxyPrivateKey = this.safeString(credentials, 'privateKey');
+        const proxyPrivateKey = this.safeString(credentials, 'privateKey', '');
         const signature = this.signMessage(encoded, proxyPrivateKey);
         const envelope = {
             'op': bodyOp,
@@ -2753,10 +2754,16 @@ export default class polymarket extends Exchange {
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (path === 'account/orders') {
-            return ('order_id' in params) ? 1 : 10;
+            if (this.safeString(params, 'order_id') !== undefined) {
+                return 1;
+            }
+            return 10;
         }
         if (path === 'account/open-orders') {
-            return ('instrument_id' in params) ? 1 : 20;
+            if (this.safeString(params, 'instrument_id') !== undefined) {
+                return 1;
+            }
+            return 20;
         }
         if ((path === 'trade/orders') || (path === 'trade/orders-coid')) {
             const op = this.safeDict(params, 'op', {});
@@ -2796,7 +2803,8 @@ export default class polymarket extends Exchange {
         }
         else {
             if (method === 'GET') {
-                const keys = Object.keys(query);
+                const queryCopy = this.extend({}, query);
+                const keys = Object.keys(queryCopy);
                 const keysLength = keys.length;
                 if (keysLength > 0) {
                     url = baseUrl + '/' + implodedPath + '?' + this.urlencode(query);

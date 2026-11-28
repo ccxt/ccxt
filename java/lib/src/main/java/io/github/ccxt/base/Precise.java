@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 public class Precise {
 
-    public Object decimals = -1;
+    public int decimals = -1;
     public BigInteger integer = BigInteger.ZERO;
     // kept for API compatibility; never actually consulted (mirrors the dead
     // `base` field on the TS/JS Precise class) — all power-of-ten math below

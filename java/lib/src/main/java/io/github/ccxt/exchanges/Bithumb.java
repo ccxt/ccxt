@@ -564,7 +564,7 @@ public class Bithumb extends BithumbApi
     public String amountToPrecision(Object symbol, Object amount)
     {
         Map<String, Object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, this.safeValue(market.get("precision"), "amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, this.safeInteger(market.get("precision"), "amount"), DECIMAL_PLACES);
     }
 
     public String getGen2MarketId(Map<String, Object> market)
@@ -597,80 +597,173 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMarkets", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation != null && generation == 2))
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMarkets", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation != null && generation == 2))
+        {
+            request.put("isDetails", true);
+            List<Object> response = (this.publicGetV1MarketAll(this.extend(request, paramsGeneration))).join();
+            //
+            //     [
+            //         {
+            //             "market": "KRW-BTC",
+            //             "korean_name": "비트코인",
+            //             "english_name": "Bitcoin",
+            //             "market_warning": "NONE"
+            //         },
+            //     ]
+            //
+            for (var i = 0; i < response.size(); i++)
             {
-                request.put("isDetails", true);
-                List<Object> response = (this.publicGetV1MarketAll(this.extend(request, paramsGeneration))).join();
-                //
-                //     [
-                //         {
-                //             "market": "KRW-BTC",
-                //             "korean_name": "비트코인",
-                //             "english_name": "Bitcoin",
-                //             "market_warning": "NONE"
-                //         },
-                //     ]
-                //
-                for (var i = 0; i < response.size(); i++)
+                Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                String marketId = this.safeString(entry, "market");
+                String baseId = null;
+                String quoteId = null;
+                Object base = null;
+                String quote = null;
+                if (!java.util.Objects.equals(marketId, null))
                 {
-                    Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
-                    String marketId = this.safeString(entry, "market");
-                    String baseId = null;
-                    String quoteId = null;
-                    Object base = null;
-                    String quote = null;
-                    if (!java.util.Objects.equals(marketId, null))
-                    {
-                        List<String> parts = new ArrayList<String>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
-                        // to match gen 1, the quoteId is the first currency derived from the market id
-                        baseId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
-                        quoteId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
-                        base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-                        quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                    }
-                    if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
+                    // to match gen 1, the quoteId is the first currency derived from the market id
+                    baseId = this.safeString(parts, 1);
+                    quoteId = this.safeString(parts, 0);
+                    base = this.safeCurrencyCode(baseId, null);
+                    quote = this.safeCurrencyCode(quoteId, null);
+                }
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", marketId);
+                mapLiteral1.put("symbol", ((base + "/") + quote));
+                mapLiteral1.put("base", base);
+                mapLiteral1.put("quote", quote);
+                mapLiteral1.put("settle", null);
+                mapLiteral1.put("baseId", baseId);
+                mapLiteral1.put("quoteId", quoteId);
+                mapLiteral1.put("settleId", null);
+                mapLiteral1.put("type", "spot");
+                mapLiteral1.put("spot", true);
+                mapLiteral1.put("margin", false);
+                mapLiteral1.put("swap", false);
+                mapLiteral1.put("future", false);
+                mapLiteral1.put("option", false);
+                mapLiteral1.put("active", true);
+                mapLiteral1.put("contract", false);
+                mapLiteral1.put("linear", null);
+                mapLiteral1.put("inverse", null);
+                mapLiteral1.put("contractSize", null);
+                mapLiteral1.put("expiry", null);
+                mapLiteral1.put("expiryDatetime", null);
+                mapLiteral1.put("strike", null);
+                mapLiteral1.put("optionType", null);
+                mapLiteral1.put("precision", new HashMap<String, Object>() {{
+                        put( "amount", Long.parseLong("4") );
+                        put( "price", Long.parseLong("4") );
+                    }});
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
+                        put( "leverage", new HashMap<String, Object>() {{
+                            put( "min", null );
+                            put( "max", null );
+                        }} );
+                        put( "amount", new HashMap<String, Object>() {{
+                            put( "min", null );
+                            put( "max", null );
+                        }} );
+                        put( "price", new HashMap<String, Object>() {{
+                            put( "min", null );
+                            put( "max", null );
+                        }} );
+                        put( "cost", new HashMap<String, Object>() {{
+                            put( "min", null );
+                            put( "max", null );
+                        }} );
+                    }});
+                mapLiteral1.put("created", null);
+                mapLiteral1.put("info", entry);
+                result.add(mapLiteral1);
+            }
+        } else
+        {
+            Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
+            List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+            for (var i = 0; i < quotes.size(); i++)
+            {
+                request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
+                promises.add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
+            }
+            List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+            for (var i = 0; i < quotes.size(); i++)
+            {
+                String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
+                Map<String, Object> response = this.safeDict(results, i, null);
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> extension = this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
+                List<String> currencyIds = new ArrayList<String>(data.keySet());
+                for (var j = 0; j < currencyIds.size(); j++)
+                {
+                    String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                    if (java.util.Objects.equals(currencyId, "date"))
                     {
                         continue;
                     }
-                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", marketId);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", true);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                    Object market = (data == null || currencyId == null ? null : data.get(currencyId));
+                    String base = this.safeCurrencyCode(currencyId, null);
+                    if (java.util.Objects.equals(base, null))
+                    {
+                        continue;
+                    }
+                    Boolean active = true;
+                    if ((market instanceof List))
+                    {
+                        Integer numElements = ((List<?>)market).size();
+                        if (java.util.Objects.equals(numElements, 0))
+                        {
+                            active = false;
+                        }
+                    }
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("id", currencyId);
+                    mapLiteral2.put("symbol", ((base + "/") + quote));
+                    mapLiteral2.put("base", base);
+                    mapLiteral2.put("quote", quote);
+                    mapLiteral2.put("settle", null);
+                    mapLiteral2.put("baseId", currencyId);
+                    mapLiteral2.put("quoteId", quote);
+                    mapLiteral2.put("settleId", null);
+                    mapLiteral2.put("type", "spot");
+                    mapLiteral2.put("spot", true);
+                    mapLiteral2.put("margin", false);
+                    mapLiteral2.put("swap", false);
+                    mapLiteral2.put("future", false);
+                    mapLiteral2.put("option", false);
+                    mapLiteral2.put("active", active);
+                    mapLiteral2.put("contract", false);
+                    mapLiteral2.put("linear", null);
+                    mapLiteral2.put("inverse", null);
+                    mapLiteral2.put("contractSize", null);
+                    mapLiteral2.put("expiry", null);
+                    mapLiteral2.put("expiryDatetime", null);
+                    mapLiteral2.put("strike", null);
+                    mapLiteral2.put("optionType", null);
+                    mapLiteral2.put("precision", new HashMap<String, Object>() {{
                             put( "amount", Long.parseLong("4") );
                             put( "price", Long.parseLong("4") );
                         }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                    mapLiteral2.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -683,107 +776,16 @@ public class Bithumb extends BithumbApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                            put( "cost", new HashMap<String, Object>() {{
-                                put( "min", null );
-                                put( "max", null );
-                            }} );
+                            put( "cost", new HashMap<String, Object>() {{}} );
                         }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", entry);
-                    ((List<Object>)result).add(j39v1);
-                }
-            } else
-            {
-                Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
-                List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < quotes.size(); i++)
-                {
-                    request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
-                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
-                }
-                List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                for (var i = 0; i < quotes.size(); i++)
-                {
-                    String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    Map<String, Object> response = this.safeDict(results, i, null);
-                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    Map<String, Object> extension = this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
-                    List<String> currencyIds = new ArrayList<String>(data.keySet());
-                    for (var j = 0; j < currencyIds.size(); j++)
-                    {
-                        String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                        if (java.util.Objects.equals(currencyId, "date"))
-                        {
-                            continue;
-                        }
-                        Object market = (data == null || currencyId == null ? null : data.get(currencyId));
-                        String base = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                        if (java.util.Objects.equals(base, null))
-                        {
-                            continue;
-                        }
-                        Boolean active = true;
-                        if ((market instanceof List))
-                        {
-                            Integer numElements = ((List<?>)market).size();
-                            if (java.util.Objects.equals(numElements, 0))
-                            {
-                                active = false;
-                            }
-                        }
-                        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                        mapLiteral1.put("id", currencyId);
-                        mapLiteral1.put("symbol", ((base + "/") + quote));
-                        mapLiteral1.put("base", base);
-                        mapLiteral1.put("quote", quote);
-                        mapLiteral1.put("settle", null);
-                        mapLiteral1.put("baseId", currencyId);
-                        mapLiteral1.put("quoteId", quote);
-                        mapLiteral1.put("settleId", null);
-                        mapLiteral1.put("type", "spot");
-                        mapLiteral1.put("spot", true);
-                        mapLiteral1.put("margin", false);
-                        mapLiteral1.put("swap", false);
-                        mapLiteral1.put("future", false);
-                        mapLiteral1.put("option", false);
-                        mapLiteral1.put("active", active);
-                        mapLiteral1.put("contract", false);
-                        mapLiteral1.put("linear", null);
-                        mapLiteral1.put("inverse", null);
-                        mapLiteral1.put("contractSize", null);
-                        mapLiteral1.put("expiry", null);
-                        mapLiteral1.put("expiryDatetime", null);
-                        mapLiteral1.put("strike", null);
-                        mapLiteral1.put("optionType", null);
-                        mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                                put( "amount", Long.parseLong("4") );
-                                put( "price", Long.parseLong("4") );
-                            }});
-                        mapLiteral1.put("limits", new HashMap<String, Object>() {{
-                                put( "leverage", new HashMap<String, Object>() {{
-                                    put( "min", null );
-                                    put( "max", null );
-                                }} );
-                                put( "amount", new HashMap<String, Object>() {{
-                                    put( "min", null );
-                                    put( "max", null );
-                                }} );
-                                put( "price", new HashMap<String, Object>() {{
-                                    put( "min", null );
-                                    put( "max", null );
-                                }} );
-                                put( "cost", new HashMap<String, Object>() {{}} );
-                            }});
-                        mapLiteral1.put("created", null);
-                        mapLiteral1.put("info", market);
-                        Map<String,Object> entry = this.deepExtend(mapLiteral1, extension);
-                        ((List<Object>)result).add(entry);
-                    }
+                    mapLiteral2.put("created", null);
+                    mapLiteral2.put("info", market);
+                    Map<String,Object> entry = this.deepExtend(mapLiteral2, extension);
+                    result.add(entry);
                 }
             }
-            return result;
-        });
+        }
+        return result;
 
     }
 
@@ -820,10 +822,10 @@ public class Bithumb extends BithumbApi
         Map<String, Object> balances = this.safeDict(response, "data", null);
         if (!java.util.Objects.equals(balances, null))
         {
-            List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+            List<String> codes = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
             for (var i = 0; i < codes.size(); i++)
             {
-                String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+                String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Map<String, Object> account = this.account();
                 Map<String, Object> currency = this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id", "");
@@ -834,12 +836,12 @@ public class Bithumb extends BithumbApi
             }
         } else
         {
-            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Map<String, Object> entry = this.safeDict(response, i, null);
                 Map<String, Object> account = this.account();
                 String currencyId = this.safeString(entry, "currency");
-                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 if (java.util.Objects.equals(code, null))
                 {
                     continue;
@@ -864,29 +866,31 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchBalance", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Object response = null;
-            if ((generation != null && generation == 2))
-            {
-                response = (this.privateGetV1Accounts(paramsGeneration)).join();
-            } else
-            {
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "currency", "ALL" );
-                }};
-                response = (this.privatePostInfoBalance(this.extend(request, paramsGeneration))).join();
-            }
-            return this.parseBalanceList(response);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchBalance", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Object response = null;
+        if ((generation != null && generation == 2))
+        {
+            response = (this.privateGetV1Accounts(paramsGeneration)).join();
+        } else
+        {
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "currency", "ALL" );
+            }};
+            response = (this.privatePostInfoBalance(this.extend(request, paramsGeneration))).join();
+        }
+        return this.parseBalanceList(response);
 
     }
 
@@ -902,104 +906,105 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> data = null;
+        Long timestamp = null;
+        if ((generation != null && generation == 2))
+        {
+            request.put("markets", this.getGen2MarketId(market));
+            List<Object> response = (this.publicGetV1Orderbook(this.extend(request, paramsGeneration))).join();
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "timestamp": 1782807920105,
+            //             "total_ask_size": 40322.8585,
+            //             "total_bid_size": 174206.4577,
+            //             "orderbook_units": [
+            //                 {
+            //                     "ask_price": 0.00001687,
+            //                     "bid_price": 0.0000168,
+            //                     "ask_size": 155,
+            //                     "bid_size": 41.6666
+            //                 },
+            //             ]
+            //         }
+            //     ]
+            //
+            Map<String, Object> result = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            timestamp = this.safeInteger(result, "timestamp");
+            List<Object> orderBookUnits = this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = new ArrayList<Object>(Arrays.asList());
+            List<Object> asks = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < orderBookUnits.size(); i++)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                Map<String, Object> entry = this.safeDict(orderBookUnits, i, null);
+                bids.add(new HashMap<String, Object>() {{
+                    put( "price", Bithumb.this.safeString(entry, "bid_price") );
+                    put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
+                }});
+                asks.add(new HashMap<String, Object>() {{
+                    put( "price", Bithumb.this.safeString(entry, "ask_price") );
+                    put( "quantity", Bithumb.this.safeString(entry, "ask_size") );
+                }});
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            Map<String, Object> data = null;
-            Long timestamp = null;
-            if ((generation != null && generation == 2))
+            data = new HashMap<String, Object>() {{
+                put( "bids", bids );
+                put( "asks", asks );
+            }};
+        } else
+        {
+            request.put("baseId", market.get("baseId"));
+            request.put("quoteId", market.get("quoteId"));
+            if (!java.util.Objects.equals(limit, null))
             {
-                request.put("markets", this.getGen2MarketId(market));
-                response = (this.publicGetV1Orderbook(this.extend(request, paramsGeneration))).join();
-                //
-                //     [
-                //         {
-                //             "market": "BTC-USDC",
-                //             "timestamp": 1782807920105,
-                //             "total_ask_size": 40322.8585,
-                //             "total_bid_size": 174206.4577,
-                //             "orderbook_units": [
-                //                 {
-                //                     "ask_price": 0.00001687,
-                //                     "bid_price": 0.0000168,
-                //                     "ask_size": 155,
-                //                     "bid_size": 41.6666
-                //                 },
-                //             ]
-                //         }
-                //     ]
-                //
-                Map<String, Object> result = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-                timestamp = this.safeInteger(result, "timestamp");
-                List<Object> orderBookUnits = this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
-                List<Object> bids = new ArrayList<Object>(Arrays.asList());
-                List<Object> asks = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < orderBookUnits.size(); i++)
-                {
-                    Map<String, Object> entry = this.safeDict(orderBookUnits, i, null);
-                    ((List<Object>)bids).add(new HashMap<String, Object>() {{
-                        put( "price", Bithumb.this.safeString(entry, "bid_price") );
-                        put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
-                    }});
-                    ((List<Object>)asks).add(new HashMap<String, Object>() {{
-                        put( "price", Bithumb.this.safeString(entry, "ask_price") );
-                        put( "quantity", Bithumb.this.safeString(entry, "ask_size") );
-                    }});
-                }
-                data = new HashMap<String, Object>() {{
-                    put( "bids", bids );
-                    put( "asks", asks );
-                }};
-            } else
-            {
-                request.put("baseId", market.get("baseId"));
-                request.put("quoteId", market.get("quoteId"));
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("count", limit); // default 30, max 30
-                }
-                response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
-                //
-                //     {
-                //         "status":"0000",
-                //         "data":{
-                //             "timestamp":"1587621553942",
-                //             "payment_currency":"KRW",
-                //             "order_currency":"BTC",
-                //             "bids":[
-                //                 {"price":"8652000","quantity":"0.0043"},
-                //                 {"price":"8651000","quantity":"0.0049"},
-                //                 {"price":"8650000","quantity":"8.4791"},
-                //             ],
-                //             "asks":[
-                //                 {"price":"8654000","quantity":"0.119"},
-                //                 {"price":"8655000","quantity":"0.254"},
-                //                 {"price":"8658000","quantity":"0.119"},
-                //             ]
-                //         }
-                //     }
-                //
-                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                timestamp = this.safeInteger(data, "timestamp");
+                request.put("count", limit); // default 30, max 30
             }
-            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
-        }).thenApply(OrderBook::new);
+            Map<String, Object> response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "timestamp":"1587621553942",
+            //             "payment_currency":"KRW",
+            //             "order_currency":"BTC",
+            //             "bids":[
+            //                 {"price":"8652000","quantity":"0.0043"},
+            //                 {"price":"8651000","quantity":"0.0049"},
+            //                 {"price":"8650000","quantity":"8.4791"},
+            //             ],
+            //             "asks":[
+            //                 {"price":"8654000","quantity":"0.119"},
+            //                 {"price":"8655000","quantity":"0.254"},
+            //                 {"price":"8658000","quantity":"0.119"},
+            //             ]
+            //         }
+            //     }
+            //
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            timestamp = this.safeInteger(data, "timestamp");
+        }
+        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Ticker parseTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1090,7 +1095,7 @@ public class Bithumb extends BithumbApi
         //
         Long timestamp = (Long) this.safeInteger2(ticker, "date", "trade_timestamp");
         String marketId = this.safeString(ticker, "market");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
         String open = this.safeString(ticker, "opening_price");
         String high = this.safeString2(ticker, "max_price", "high_price");
@@ -1104,28 +1109,28 @@ public class Bithumb extends BithumbApi
         {
             low = close;
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", high);
-        mapLiteral2.put("low", low);
-        mapLiteral2.put("bid", this.safeString(ticker, "buy_price"));
-        mapLiteral2.put("bidVolume", this.safeString(ticker, "acc_bid_volume"));
-        mapLiteral2.put("ask", this.safeString(ticker, "sell_price"));
-        mapLiteral2.put("askVolume", this.safeString(ticker, "acc_ask_volume"));
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", open);
-        mapLiteral2.put("close", close);
-        mapLiteral2.put("last", close);
-        mapLiteral2.put("previousClose", this.safeString(ticker, "prev_closing_price"));
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", null);
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"));
-        mapLiteral2.put("quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"));
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", high);
+        mapLiteral3.put("low", low);
+        mapLiteral3.put("bid", this.safeString(ticker, "buy_price"));
+        mapLiteral3.put("bidVolume", this.safeString(ticker, "acc_bid_volume"));
+        mapLiteral3.put("ask", this.safeString(ticker, "sell_price"));
+        mapLiteral3.put("askVolume", this.safeString(ticker, "acc_ask_volume"));
+        mapLiteral3.put("vwap", null);
+        mapLiteral3.put("open", open);
+        mapLiteral3.put("close", close);
+        mapLiteral3.put("last", close);
+        mapLiteral3.put("previousClose", this.safeString(ticker, "prev_closing_price"));
+        mapLiteral3.put("change", null);
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"));
+        mapLiteral3.put("quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"));
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, market);
     }
 
     /**
@@ -1141,204 +1146,212 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTickers", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        if ((generation != null && generation == 2))
+        {
+            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            // so we aggregate 300 markets per request only when symbols are not provided.
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
+            List<String> symbolsForMarketIds = this.symbols;
+            if (!java.util.Objects.equals(symbols, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                symbolsForMarketIds = symbols;
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTickers", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            if ((generation != null && generation == 2))
+            Integer symbolsForMarketIdsLength = symbolsForMarketIds.size();
+            for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
             {
-                // Bithumb v2 ticker payloads are inconsistent for all-market calls,
-                // so we aggregate 300 markets per request only when symbols are not provided.
-                List<String> marketIds = new ArrayList<String>(Arrays.asList());
-                List<String> symbolsForMarketIds = this.symbols;
-                if (!java.util.Objects.equals(symbols, null))
+                Map<String, Object> market = this.market((symbolsForMarketIds == null || i < 0 || i >= symbolsForMarketIds.size() ? null : symbolsForMarketIds.get(i)));
+                marketIds.add(this.getGen2MarketId(market));
+            }
+            Integer marketIdsLength = marketIds.size();
+            if (java.util.Objects.equals(marketIdsLength, 0))
+            {
+                return result;
+            }
+            List<String> singleMarketIds = new ArrayList<String>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+            // the exchange rejects more than 200 market ids per request
+            Long maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
+            Long maxMarketIdsPerRequest = 200L;
+            if ((!java.util.Objects.equals(maxMarketIdsOption, null)) && (((maxMarketIdsOption != null && maxMarketIdsOption >= 1))))
+            {
+                maxMarketIdsPerRequest = this.parseToInt(maxMarketIdsOption);
+            }
+            List<String> marketIdsChunk = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
+            {
+                marketIdsChunk.add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                Integer marketIdsChunkLength = marketIdsChunk.size();
+                Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
+                if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                 {
-                    symbolsForMarketIds = symbols;
-                }
-                Integer symbolsForMarketIdsLength = symbolsForMarketIds.size();
-                for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
-                {
-                    Map<String, Object> market = this.market((symbolsForMarketIds == null || i < 0 || i >= symbolsForMarketIds.size() ? null : symbolsForMarketIds.get(i)));
-                    marketIds.add(this.getGen2MarketId(market));
-                }
-                Integer marketIdsLength = marketIds.size();
-                if (java.util.Objects.equals(marketIdsLength, 0))
-                {
-                    return result;
-                }
-                List<Object> marketIdsChunks = new ArrayList<Object>(Arrays.asList());
-                List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                // the exchange rejects more than 200 market ids per request
-                Long maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
-                Long maxMarketIdsPerRequest = this.parseToInt(((((java.util.Objects.equals(maxMarketIdsOption, null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))))) ? 200 : maxMarketIdsOption);
-                List<String> marketIdsChunk = new ArrayList<String>(Arrays.asList());
-                for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
-                {
-                    marketIdsChunk.add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
-                    Integer marketIdsChunkLength = marketIdsChunk.size();
-                    Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
-                    if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
+                    if (java.util.Objects.equals(marketIdsChunkLength, 1))
                     {
-                        ((List<Object>)marketIdsChunks).add(marketIdsChunk);
-                        request.put("markets", String.join(",", (List<String>)marketIdsChunk));
-                        ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                        marketIdsChunk = new ArrayList<String>(Arrays.asList());
+                        singleMarketIds.add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    } else
+                    {
+                        singleMarketIds.add("");
                     }
+                    request.put("markets", String.join(",", (List<String>)marketIdsChunk));
+                    promises.add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
+                    marketIdsChunk = new ArrayList<String>(Arrays.asList());
                 }
-                //
-                //     [
-                //         {
-                //             "market": "BTC-USDC",
-                //             "trade_date": "20260701",
-                //             "trade_time": "233533",
-                //             "trade_date_kst": "20260702",
-                //             "trade_time_kst": "083533",
-                //             "trade_timestamp": 1782981333650,
-                //             "opening_price": 0.00001667,
-                //             "high_price": 0.00001667,
-                //             "low_price": 0.00001645,
-                //             "trade_price": 0.00001659,
-                //             "prev_closing_price": 0.00001673,
-                //             "change": "FALL",
-                //             "change_price": 1.4E-7,
-                //             "change_rate": 0.0084,
-                //             "signed_change_price": -1.4E-7,
-                //             "signed_change_rate": -0.0084,
-                //             "trade_volume": 1.43724182,
-                //             "acc_trade_price": 0.77934383561689,
-                //             "acc_trade_price_24h": 1.76373410121466379999997512,
-                //             "acc_trade_volume": 47175.3220805,
-                //             "acc_trade_volume_24h": 104565.90238645676844763,
-                //             "highest_52_week_price": 0.00006592,
-                //             "highest_52_week_date": "2025-11-05",
-                //             "lowest_52_week_price": 0.00000782,
-                //             "lowest_52_week_date": "2026-02-22",
-                //             "timestamp": 1782981333650
-                //         },
-                //     ]
-                //
-                List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                Integer responsesLength = responses.size();
-                for (var i = 0; (responsesLength != null && i < responsesLength); i++)
+            }
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
+            //
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+            Integer responsesLength = responses.size();
+            for (var i = 0; (responsesLength != null && i < responsesLength); i++)
+            {
+                Object response = this.safeValue(responses, i);
+                if (Boolean.TRUE.equals(this.isDictionary(response)) && (!java.util.Objects.equals(this.safeValue(response, "data"), null)))
                 {
-                    Object response = this.safeValue(responses, i);
-                    if (Boolean.TRUE.equals(this.isDictionary(response)) && (!java.util.Objects.equals(this.safeValue(response, "data"), null)))
+                    response = this.safeValue(response, "data");
+                }
+                String expectedMarketId = this.safeString(singleMarketIds, i);
+                Object tickers = new ArrayList<Object>(Arrays.asList());
+                if ((response instanceof List))
+                {
+                    tickers = response;
+                } else if (Boolean.TRUE.equals(this.isDictionary(response)))
+                {
+                    if ((!java.util.Objects.equals(this.safeString(response, "market"), null)) || (!java.util.Objects.equals(this.safeString(response, "trade_date"), null)) || (!java.util.Objects.equals(this.safeString(response, "trade_timestamp"), null)))
                     {
-                        response = this.safeValue(response, "data");
-                    }
-                    String expectedMarketId = null;
-                    List<Object> requestedMarketIds = this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
-                    String firstMarketId = this.safeString(requestedMarketIds, 0);
-                    if ((!java.util.Objects.equals(firstMarketId, null)) && (java.util.Objects.equals(this.safeString(requestedMarketIds, 1), null)))
+                        tickers = new ArrayList<Object>(Arrays.asList(response));
+                    } else
                     {
-                        expectedMarketId = firstMarketId;
-                    }
-                    Object tickers = new ArrayList<Object>(Arrays.asList());
-                    if ((response instanceof List))
-                    {
-                        tickers = response;
-                    } else if (Boolean.TRUE.equals(this.isDictionary(response)))
-                    {
-                        if (((switch ((Object)(response)) { case List<?> j39v11 -> j39v11.contains("market"); case Map<?, ?> j39v10 -> j39v10.containsKey("market"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v9 -> j39v9.contains("trade_date"); case Map<?, ?> j39v8 -> j39v8.containsKey("trade_date"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v7 -> j39v7.contains("trade_timestamp"); case Map<?, ?> j39v6 -> j39v6.containsKey("trade_timestamp"); case null, default -> false; })))
+                        Map<String, Object> responseDict = this.extend(new HashMap<String, Object>() {{}}, response);
+                        List<String> ids = new ArrayList<String>(responseDict.keySet());
+                        for (var j = 0; j < ids.size(); j++)
                         {
-                            tickers = new ArrayList<Object>(Arrays.asList(response));
-                        } else
-                        {
-                            List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
-                            for (var j = 0; j < ids.size(); j++)
+                            String id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
+                            Map<String, Object> ticker = this.safeDict(response, id, null);
+                            if (!java.util.Objects.equals(ticker, null))
                             {
-                                Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
-                                Map<String, Object> ticker = this.safeDict(response, id, null);
-                                if (!java.util.Objects.equals(ticker, null))
-                                {
-                                    ticker.put("market", this.safeString(ticker, "market", id));
-                                    ((List<Object>)tickers).add(ticker);
-                                }
+                                ticker.put("market", this.safeString(ticker, "market", id));
+                                ((List<Object>)tickers).add(ticker);
                             }
                         }
                     }
-                    for (var j = 0; j < ((List<?>)tickers).size(); j++)
-                    {
-                        Object entry = (tickers == null || j < 0 || j >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(j));
-                        String marketId = this.safeString(entry, "market", expectedMarketId);
-                        if (java.util.Objects.equals(marketId, null))
-                        {
-                            continue;
-                        }
-                        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-                        if (java.util.Objects.equals(symbol, null))
-                        {
-                            continue;
-                        }
-                        result.put(symbol, this.parseTicker(entry, market));
-                    }
                 }
-            } else
-            {
-                Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
-                if (!java.util.Objects.equals(symbols, null))
+                for (var j = 0; j < ((List<?>)tickers).size(); j++)
                 {
-                    Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
-                    for (var i = 0; i < symbols.size(); i++)
+                    Object entry = (tickers == null || j < 0 || j >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(j));
+                    String marketId = this.safeString(entry, "market", expectedMarketId);
+                    if (java.util.Objects.equals(marketId, null))
                     {
-                        String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                        Map<String, Object> market = this.market(symbol);
-                        String quoteId = this.safeString(market, "quoteId");
-                        if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
-                        {
-                            requiredQuotes.put(quoteId, true);
-                        }
+                        continue;
                     }
-                    List<String> requiredQuoteIds = new ArrayList<String>(requiredQuotes.keySet());
-                    String populatedQuotes = this.safeString(requiredQuoteIds, 0);
-                    if (!java.util.Objects.equals(populatedQuotes, null))
+                    Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+                    String symbol = this.safeSymbol(marketId, market, null, null);
+                    if (java.util.Objects.equals(symbol, null))
                     {
-                        quotes = requiredQuoteIds;
+                        continue;
                     }
-                }
-                List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < quotes.size(); i++)
-                {
-                    request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
-                    ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
-                }
-                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                for (var i = 0; i < quotes.size(); i++)
-                {
-                    String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    Object response = this.safeDict(responses, i, null);
-                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    Long timestamp = this.safeInteger(data, "date");
-                    Map<String, Object> tickers = this.omit(data, "date");
-                    List<String> currencyIds = new ArrayList<String>(tickers.keySet());
-                    for (var j = 0; j < currencyIds.size(); j++)
-                    {
-                        String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                        Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
-                        String base = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                        if (java.util.Objects.equals(base, null))
-                        {
-                            continue;
-                        }
-                        String symbol = ((base + "/") + quote);
-                        Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-                        Helpers.addElementToObject(ticker, "date", timestamp);
-                        result.put(symbol, this.parseTicker(ticker, market));
-                    }
+                    result.put(symbol, this.parseTicker(this.safeDict(tickers, j, new HashMap<String, Object>() {{}}), market));
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        } else
+        {
+            Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
+            List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
+            if (!java.util.Objects.equals(symbols, null))
+            {
+                Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
+                for (var i = 0; i < symbols.size(); i++)
+                {
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    Map<String, Object> market = this.market(symbol);
+                    String quoteId = this.safeString(market, "quoteId");
+                    if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
+                    {
+                        requiredQuotes.put(quoteId, true);
+                    }
+                }
+                List<String> requiredQuoteIds = new ArrayList<String>(requiredQuotes.keySet());
+                String populatedQuotes = this.safeString(requiredQuoteIds, 0);
+                if (!java.util.Objects.equals(populatedQuotes, null))
+                {
+                    quotes = requiredQuoteIds;
+                }
+            }
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+            for (var i = 0; i < quotes.size(); i++)
+            {
+                request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
+                promises.add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
+            }
+            Object responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+            for (var i = 0; i < quotes.size(); i++)
+            {
+                String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
+                Map<String, Object> response = (Map<String, Object>) this.safeDict(responses, i, null);
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Long timestamp = this.safeInteger(data, "date");
+                Map<String, Object> tickers = this.omit(data, "date");
+                List<String> currencyIds = new ArrayList<String>(tickers.keySet());
+                for (var j = 0; j < currencyIds.size(); j++)
+                {
+                    String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                    Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{}}, (data == null || currencyId == null ? null : data.get(currencyId)));
+                    String base = this.safeCurrencyCode(currencyId, null);
+                    if (java.util.Objects.equals(base, null))
+                    {
+                        continue;
+                    }
+                    String symbol = ((base + "/") + quote);
+                    Map<String, Object> market = this.safeMarket(symbol, null, null, null);
+                    result.put(symbol, this.parseTicker(this.extend(ticker, new HashMap<String, Object>() {{
+    put( "date", timestamp );
+}}), market));
+                }
+            }
+        }
+        return this.filterByArrayTickers(result, "symbol", symbols);
 
     }
 
@@ -1355,89 +1368,90 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTicker", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            Map<String, Object> data = new HashMap<String, Object>() {{}};
-            if ((generation != null && generation == 2))
-            {
-                request.put("markets", this.getGen2MarketId(market));
-                response = (this.publicGetV1Ticker(this.extend(request, paramsGeneration))).join();
-                //
-                //     [
-                //         {
-                //             "market": "BTC-USDC",
-                //             "trade_date": "20260701",
-                //             "trade_time": "233533",
-                //             "trade_date_kst": "20260702",
-                //             "trade_time_kst": "083533",
-                //             "trade_timestamp": 1782981333650,
-                //             "opening_price": 0.00001667,
-                //             "high_price": 0.00001667,
-                //             "low_price": 0.00001645,
-                //             "trade_price": 0.00001659,
-                //             "prev_closing_price": 0.00001673,
-                //             "change": "FALL",
-                //             "change_price": 1.4E-7,
-                //             "change_rate": 0.0084,
-                //             "signed_change_price": -1.4E-7,
-                //             "signed_change_rate": -0.0084,
-                //             "trade_volume": 1.43724182,
-                //             "acc_trade_price": 0.77934383561689,
-                //             "acc_trade_price_24h": 1.76373410121466379999997512,
-                //             "acc_trade_volume": 47175.3220805,
-                //             "acc_trade_volume_24h": 104565.90238645676844763,
-                //             "highest_52_week_price": 0.00006592,
-                //             "highest_52_week_date": "2025-11-05",
-                //             "lowest_52_week_price": 0.00000782,
-                //             "lowest_52_week_date": "2026-02-22",
-                //             "timestamp": 1782981333650
-                //         },
-                //     ]
-                //
-                data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            } else
-            {
-                request.put("baseId", market.get("baseId"));
-                request.put("quoteId", market.get("quoteId"));
-                response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
-                //
-                //     {
-                //         "status":"0000",
-                //         "data":{
-                //             "opening_price":"227100",
-                //             "closing_price":"228400",
-                //             "min_price":"222300",
-                //             "max_price":"230000",
-                //             "units_traded":"82618.56075337",
-                //             "acc_trade_value":"18767376138.6031",
-                //             "prev_closing_price":"227100",
-                //             "units_traded_24H":"151871.13484676",
-                //             "acc_trade_value_24H":"34247610416.8974",
-                //             "fluctate_24H":"8700",
-                //             "fluctate_rate_24H":"3.96",
-                //             "date":"1587710327264"
-                //         }
-                //     }
-                //
-                data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            }
-            return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTicker", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> data = new HashMap<String, Object>() {{}};
+        if ((generation != null && generation == 2))
+        {
+            request.put("markets", this.getGen2MarketId(market));
+            List<Object> response = (this.publicGetV1Ticker(this.extend(request, paramsGeneration))).join();
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
+            //
+            data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+        } else
+        {
+            request.put("baseId", market.get("baseId"));
+            request.put("quoteId", market.get("quoteId"));
+            Map<String, Object> response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "opening_price":"227100",
+            //             "closing_price":"228400",
+            //             "min_price":"222300",
+            //             "max_price":"230000",
+            //             "units_traded":"82618.56075337",
+            //             "acc_trade_value":"18767376138.6031",
+            //             "prev_closing_price":"227100",
+            //             "units_traded_24H":"151871.13484676",
+            //             "acc_trade_value_24H":"34247610416.8974",
+            //             "fluctate_24H":"8700",
+            //             "fluctate_rate_24H":"3.96",
+            //             "date":"1587710327264"
+            //         }
+            //     }
+            //
+            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        }
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // generation 1
@@ -1475,7 +1489,7 @@ public class Bithumb extends BithumbApi
         {
             timestamp = this.parse8601(this.safeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"));
         }
-        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price", (Object) null), this.safeNumber2(ohlcv, 3, "high_price", (Object) null), this.safeNumber2(ohlcv, 4, "low_price", (Object) null), this.safeNumber2(ohlcv, 2, "trade_price", (Object) null), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber2(ohlcv, 1, "opening_price", null), this.safeNumber2(ohlcv, 3, "high_price", null), this.safeNumber2(ohlcv, 4, "low_price", null), this.safeNumber2(ohlcv, 2, "trade_price", null), this.safeNumber2(ohlcv, 5, "candle_acc_trade_volume", null)));
     }
 
     /**
@@ -1499,145 +1513,147 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Object response = null;
+        Object data = new ArrayList<Object>(Arrays.asList());
+        if ((generation != null && generation == 2))
+        {
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+            if (Boolean.TRUE.equals(paginate))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 200L)).join();
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            Object data = new ArrayList<Object>(Arrays.asList());
-            if ((generation != null && generation == 2))
+            Long until = this.safeInteger(paramsGeneration, "until");
+            Map<String, Object> requestParams = this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("until", "paginate")));
+            request.put("market", this.getGen2MarketId(market));
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            Long count = 200L;
+            if (!java.util.Objects.equals(limit, null))
             {
-                List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-                var paginate = ((List<Object>) paginateparamsPaginateVariable).get(0);
-                Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-                if (Helpers.isTrue(paginate))
+                count = Math.min(limit, 200);
+            }
+            if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
+            {
+                request.put("count", count);
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            Object to = null;
+            if (!java.util.Objects.equals(until, null))
+            {
+                to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                Long sinceEnd = (Long) this.sum(since, (duration * count));
+                if ((java.util.Objects.equals(to, null)) || ((!(sinceEnd == null && to == null) && sinceEnd == null || (to != null && !(sinceEnd >= ((Number) to).doubleValue())))))
                 {
-                    return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 200L)).join();
+                    to = sinceEnd;
                 }
-                Long until = this.safeInteger(paramsGeneration, "until");
-                Map<String, Object> requestParams = this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("until", "paginate")));
-                request.put("market", this.getGen2MarketId(market));
-                // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
-                Long count = 200L;
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    count = Math.min(limit, 200);
-                }
-                if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
-                {
-                    request.put("count", count);
-                }
-                // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
-                // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
-                Object to = null;
-                if (!java.util.Objects.equals(until, null))
-                {
-                    to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
-                }
-                if (!java.util.Objects.equals(since, null))
-                {
-                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    Long sinceEnd = (Long) this.sum(since, (duration * count));
-                    if ((java.util.Objects.equals(to, null)) || ((!(sinceEnd == null && to == null) && sinceEnd == null || (to != null && !(sinceEnd >= ((Number) to).doubleValue())))))
-                    {
-                        to = sinceEnd;
-                    }
-                }
-                if (!java.util.Objects.equals(to, null))
-                {
-                    request.put("to", this.ymdhms(this.sum(to, 32400000), " "));
-                }
-                if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1d"))
-                {
-                    response = (this.publicGetV1CandlesDays(this.extend(request, requestParams))).join();
-                } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1w"))
-                {
-                    response = (this.publicGetV1CandlesWeeks(this.extend(request, requestParams))).join();
-                } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1M"))
-                {
-                    response = (this.publicGetV1CandlesMonths(this.extend(request, requestParams))).join();
-                } else
-                {
-                    Long timeframeInteger = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                    if (java.util.Objects.equals(timeframeInteger, null))
-                    {
-                        throw new BadRequest(((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
-                    }
-                    request.put("unit", timeframeInteger);
-                    response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams))).join();
-                }
-                //
-                //     [
-                //         {
-                //             "market": "BTC-USDC",
-                //             "candle_date_time_utc": "2026-07-02T08:59:00",
-                //             "candle_date_time_kst": "2026-07-02T17:59:00",
-                //             "opening_price": 0.0000165,
-                //             "high_price": 0.0000165,
-                //             "low_price": 0.0000165,
-                //             "trade_price": 0.0000165,
-                //             "timestamp": 1782982784329,
-                //             "candle_acc_trade_price": 0.001155,
-                //             "candle_acc_trade_volume": 70,
-                //             "unit": 1
-                //         },
-                //     ]
-                //
-                data = response;
+            }
+            if (!java.util.Objects.equals(to, null))
+            {
+                request.put("to", this.ymdhms(this.sum(to, 32400000), " "));
+            }
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1d"))
+            {
+                response = (this.publicGetV1CandlesDays(this.extend(request, requestParams))).join();
+            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1w"))
+            {
+                response = (this.publicGetV1CandlesWeeks(this.extend(request, requestParams))).join();
+            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1M"))
+            {
+                response = (this.publicGetV1CandlesMonths(this.extend(request, requestParams))).join();
             } else
             {
-                Map<String, Object> legacyTimeframes = new HashMap<String, Object>() {{
-                    put( "1m", "1m" );
-                    put( "3m", "3m" );
-                    put( "5m", "5m" );
-                    put( "10m", "10m" );
-                    put( "30m", "30m" );
-                    put( "1h", "1h" );
-                    put( "6h", "6h" );
-                    put( "12h", "12h" );
-                    put( "1d", "24h" );
-                    put( "1w", "1w" );
-                    put( "1M", "1mm" );
-                }};
-                request.put("interval", this.safeString(legacyTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-                request.put("baseId", market.get("baseId"));
-                request.put("quoteId", market.get("quoteId"));
-                response = (this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, paramsGeneration))).join();
-                //
-                //     {
-                //         "status": "0000",
-                //         "data": {
-                //             [
-                //                 1576823400000, // 기준 시간
-                //                 "8284000", // 시가
-                //                 "8286000", // 종가
-                //                 "8289000", // 고가
-                //                 "8276000", // 저가
-                //                 "15.41503692" // 거래량
-                //             ],
-                //             [
-                //                 1576824000000, // 기준 시간
-                //                 "8284000", // 시가
-                //                 "8281000", // 종가
-                //                 "8289000", // 고가
-                //                 "8275000", // 저가
-                //                 "6.19584467" // 거래량
-                //             ],
-                //         }
-                //     }
-                //
-                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                Long timeframeInteger = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
+                if (java.util.Objects.equals(timeframeInteger, null))
+                {
+                    throw new BadRequest(((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
+                }
+                request.put("unit", timeframeInteger);
+                response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams))).join();
             }
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "candle_date_time_utc": "2026-07-02T08:59:00",
+            //             "candle_date_time_kst": "2026-07-02T17:59:00",
+            //             "opening_price": 0.0000165,
+            //             "high_price": 0.0000165,
+            //             "low_price": 0.0000165,
+            //             "trade_price": 0.0000165,
+            //             "timestamp": 1782982784329,
+            //             "candle_acc_trade_price": 0.001155,
+            //             "candle_acc_trade_volume": 70,
+            //             "unit": 1
+            //         },
+            //     ]
+            //
+            data = response;
+        } else
+        {
+            Map<String, Object> legacyTimeframes = new HashMap<String, Object>() {{
+                put( "1m", "1m" );
+                put( "3m", "3m" );
+                put( "5m", "5m" );
+                put( "10m", "10m" );
+                put( "30m", "30m" );
+                put( "1h", "1h" );
+                put( "6h", "6h" );
+                put( "12h", "12h" );
+                put( "1d", "24h" );
+                put( "1w", "1w" );
+                put( "1M", "1mm" );
+            }};
+            request.put("interval", this.safeString(legacyTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("baseId", market.get("baseId"));
+            request.put("quoteId", market.get("quoteId"));
+            response = (this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, paramsGeneration))).join();
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             [
+            //                 1576823400000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8286000", // 종가
+            //                 "8289000", // 고가
+            //                 "8276000", // 저가
+            //                 "15.41503692" // 거래량
+            //             ],
+            //             [
+            //                 1576824000000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8281000", // 종가
+            //                 "8289000", // 고가
+            //                 "8275000", // 저가
+            //                 "6.19584467" // 거래량
+            //             ],
+            //         }
+            //     }
+            //
+            data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        }
+        return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -1701,7 +1717,7 @@ public class Bithumb extends BithumbApi
         //
         // a workaround for their bug in date format, hours are not 0-padded
         Long generationTwoTimestamp = this.safeInteger(trade, "timestamp");
-        Object timestamp = generationTwoTimestamp;
+        Long timestamp = generationTwoTimestamp;
         Boolean isGenerationTwo = (!java.util.Objects.equals(generationTwoTimestamp, null));
         String transactionDatetime = this.safeString(trade, "transaction_date");
         if (!java.util.Objects.equals(transactionDatetime, null))
@@ -1733,7 +1749,6 @@ public class Bithumb extends BithumbApi
                 }
             }
         }
-        List<String> type = null;
         String side = this.safeStringLower2(trade, "ask_bid", "type");
         if (java.util.Objects.equals(side, "bid"))
         {
@@ -1747,7 +1762,7 @@ public class Bithumb extends BithumbApi
         }
         String id = this.safeString2(trade, "cont_no", "sequential_id");
         String marketId = this.safeString(trade, "market");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String priceString = this.safeString2(trade, "price", "trade_price");
         String tradeVolume = this.safeString(trade, "trade_volume");
         String amountString = (((java.util.Objects.equals(tradeVolume, null)))) ? this.fixCommaNumber(this.safeString2(trade, "units_traded", "units")) : tradeVolume;
@@ -1757,7 +1772,7 @@ public class Bithumb extends BithumbApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
-            Object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCostString);
@@ -1765,21 +1780,21 @@ public class Bithumb extends BithumbApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("order", null);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("takerOrMaker", null);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("amount", amountString);
-        mapLiteral3.put("cost", costString);
-        mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("order", null);
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("takerOrMaker", null);
+        mapLiteral4.put("price", priceString);
+        mapLiteral4.put("amount", amountString);
+        mapLiteral4.put("cost", costString);
+        mapLiteral4.put("fee", fee);
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1797,68 +1812,69 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTrades", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("count", limit);
-            }
-            Object response = null;
-            Object data = new ArrayList<Object>(Arrays.asList());
-            if ((generation != null && generation == 2))
-            {
-                request.put("market", this.getGen2MarketId(market));
-                response = (this.publicGetV1TradesTicks(this.extend(request, paramsGeneration))).join();
-                //
-                //     [
-                //         {
-                //             "market": "BTC-USDC",
-                //             "trade_date_utc": "2026-07-02",
-                //             "trade_time_utc": "08:41:10",
-                //             "timestamp": "1782981670705",
-                //             "trade_price": "0.00001646",
-                //             "trade_volume": "42.0335581",
-                //             "prev_closing_price": "0.00001673",
-                //             "change_price": "-2.7E-7",
-                //             "ask_bid": "ASK",
-                //             "sequential_id": "17829816707050000"
-                //         }
-                //     ]
-                //
-                data = response;
-            } else
-            {
-                request.put("baseId", market.get("baseId"));
-                request.put("quoteId", market.get("quoteId"));
-                response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
-                //
-                //     {
-                //         "status":"0000",
-                //         "data":[
-                //             {
-                //                 "transaction_date":"2020-04-23 22:21:46",
-                //                 "type":"ask",
-                //                 "units_traded":"0.0125",
-                //                 "price":"8667000",
-                //                 "total":"108337"
-                //             },
-                //         ]
-                //     }
-                //
-                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            }
-            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTrades", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("count", limit);
+        }
+        List<Object> data = new ArrayList<Object>(Arrays.asList());
+        if ((generation != null && generation == 2))
+        {
+            request.put("market", this.getGen2MarketId(market));
+            List<Object> response = (this.publicGetV1TradesTicks(this.extend(request, paramsGeneration))).join();
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date_utc": "2026-07-02",
+            //             "trade_time_utc": "08:41:10",
+            //             "timestamp": "1782981670705",
+            //             "trade_price": "0.00001646",
+            //             "trade_volume": "42.0335581",
+            //             "prev_closing_price": "0.00001673",
+            //             "change_price": "-2.7E-7",
+            //             "ask_bid": "ASK",
+            //             "sequential_id": "17829816707050000"
+            //         }
+            //     ]
+            //
+            data = response;
+        } else
+        {
+            request.put("baseId", market.get("baseId"));
+            request.put("quoteId", market.get("quoteId"));
+            Map<String, Object> response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":[
+            //             {
+            //                 "transaction_date":"2020-04-23 22:21:46",
+            //                 "type":"ask",
+            //                 "units_traded":"0.0125",
+            //                 "price":"8667000",
+            //                 "total":"108337"
+            //             },
+            //         ]
+            //     }
+            //
+            data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        }
+        return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1875,81 +1891,83 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createOrders(List<?> orders, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrders", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " createOrders is only supported for the generation 2 API")) ;
+        }
+        Integer ordersCount = orders.size();
+        if (java.util.Objects.equals(ordersCount, 0))
+        {
+            throw new ArgumentsRequired((this.id + " createOrders() requires a non-empty orders array")) ;
+        }
+        List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+        List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < orders.size(); i++)
+        {
+            Map<String, Object> rawOrder = this.safeDict(orders, i, null);
+            String symbol = this.safeString(rawOrder, "symbol");
+            if (java.util.Objects.equals(symbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a symbol")) ;
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrders", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
+            orderSymbols.add(symbol);
+            String type = this.safeString(rawOrder, "type");
+            if (java.util.Objects.equals(type, null))
             {
-                throw new BadRequest((this.id + " createOrders is only supported for the generation 2 API")) ;
+                throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a type")) ;
             }
-            Integer ordersCount = ((List<?>)orders).size();
-            if (java.util.Objects.equals(ordersCount, 0))
+            String side = this.safeString(rawOrder, "side");
+            if (java.util.Objects.equals(side, null))
             {
-                throw new ArgumentsRequired((this.id + " createOrders() requires a non-empty orders array")) ;
+                throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a side")) ;
             }
-            List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
-            {
-                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
-                String symbol = this.safeString(rawOrder, "symbol");
-                if (java.util.Objects.equals(symbol, null))
-                {
-                    throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a symbol")) ;
-                }
-                orderSymbols.add(symbol);
-                String type = this.safeString(rawOrder, "type");
-                if (java.util.Objects.equals(type, null))
-                {
-                    throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a type")) ;
-                }
-                String side = this.safeString(rawOrder, "side");
-                if (java.util.Objects.equals(side, null))
-                {
-                    throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a side")) ;
-                }
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-                ((List<Object>)ordersRequests).add(orderRequest);
-            }
-            List<String> symbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
-            Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "batch_orders", ordersRequests );
-            }};
-            Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, paramsGeneration))).join();
-            //
-            //     {
-            //         "batch_orders_response": [
-            //             {
-            //                 "order_id": "C0101000003152500274",
-            //                 "market": "KRW-BTC",
-            //                 "side": "bid",
-            //                 "order_type": "limit",
-            //                 "created_at": "2026-07-04T15:49:24+09:00",
-            //                 "stp_type": "cancel_taker"
-            //             },
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+            Double amount = this.safeNumber(rawOrder, "amount", null);
+            Double price = this.safeNumber(rawOrder, "price", null);
+            Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            ordersRequests.add(orderRequest);
+        }
+        List<String> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "batch_orders", ordersRequests );
+        }};
+        Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, paramsGeneration))).join();
+        //
+        //     {
+        //         "batch_orders_response": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
+        //                 "market": "KRW-BTC",
+        //                 "side": "bid",
+        //                 "order_type": "limit",
+        //                 "created_at": "2026-07-04T15:49:24+09:00",
+        //                 "stp_type": "cancel_taker"
+        //             },
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(data, market, null, null, new HashMap<String, Object>() {{}});
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -1983,11 +2001,11 @@ public class Bithumb extends BithumbApi
         String timeInForceRaw = this.safeString2(parameters, "timeInForce", "time_in_force");
         String timeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? "GTC" : timeInForceRaw;
         Map<String, Object> paramsTimeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? parameters : this.omit(parameters, "timeInForce");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         Boolean isPostOnly = Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
-        Object paramsOrder = paramsPostOnly;
+        Map<String, Object> paramsOrder = paramsPostOnly;
         if (Boolean.TRUE.equals(isPostOnly))
         {
             paramsOrder = this.omit(paramsPostOnly, "postOnly");
@@ -2042,7 +2060,7 @@ public class Bithumb extends BithumbApi
         {
             request.put("client_order_id", clientOrderId);
         }
-        Object paramsRequest = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOrder, "clientOrderId") : paramsOrder;
+        Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOrder, "clientOrderId") : paramsOrder;
         return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
@@ -2068,64 +2086,66 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> response = null;
+        if ((generation != null && generation == 2))
+        {
+            request = this.createOrderRequest(symbol, type, side, amount, price, paramsGeneration);
+            response = (this.privatePostV2Orders(request)).join();
+        } else
+        {
+            request.put("order_currency", market.get("base"));
+            request.put("payment_currency", market.get("quote"));
+            request.put("units", this.amountToPrecision(symbol, amount));
+            if (java.util.Objects.equals(type, "limit"))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> response = null;
-            if ((generation != null && generation == 2))
-            {
-                request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGeneration);
-                response = (this.privatePostV2Orders(request)).join();
-            } else
-            {
-                request.put("order_currency", market.get("base"));
-                request.put("payment_currency", market.get("quote"));
-                request.put("units", this.amountToPrecision(symbol, amount));
-                if (java.util.Objects.equals(type, "limit"))
+                request.put("price", this.priceToPrecision(symbol, price));
+                String typeRequest = null;
+                if (java.util.Objects.equals(side, "buy"))
                 {
-                    request.put("price", this.priceToPrecision(symbol, price));
-                    String typeRequest = null;
-                    if (java.util.Objects.equals(side, "buy"))
-                    {
-                        typeRequest = "bid";
-                    } else
-                    {
-                        typeRequest = "ask";
-                    }
-                    request.put("type", typeRequest);
-                    response = (this.privatePostTradePlace(this.extend(request, paramsGeneration))).join();
-                } else if (java.util.Objects.equals(side, "buy"))
-                {
-                    response = (this.privatePostTradeMarketBuy(this.extend(request, paramsGeneration))).join();
+                    typeRequest = "bid";
                 } else
                 {
-                    response = (this.privatePostTradeMarketSell(this.extend(request, paramsGeneration))).join();
+                    typeRequest = "ask";
                 }
-            }
-            String id = this.safeString(response, "order_id");
-            if (java.util.Objects.equals(id, null))
+                request.put("type", typeRequest);
+                response = (this.privatePostTradePlace(this.extend(request, paramsGeneration))).join();
+            } else if (java.util.Objects.equals(side, "buy"))
             {
-                throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
+                response = (this.privatePostTradeMarketBuy(this.extend(request, paramsGeneration))).join();
+            } else
+            {
+                response = (this.privatePostTradeMarketSell(this.extend(request, paramsGeneration))).join();
             }
-            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-                j39v12.put("info", response);
-                j39v12.put("symbol", symbol);
-                j39v12.put("type", type);
-                j39v12.put("side", side);
-                j39v12.put("id", id);
-                yield j39v12; } }));
-        }).thenApply(Order::new);
+        }
+        String id = this.safeString(response, "order_id");
+        if (java.util.Objects.equals(id, null))
+        {
+            throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
+        }
+        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+        j39v4.put("info", response);
+        j39v4.put("symbol", symbol);
+        j39v4.put("type", type);
+        j39v4.put("side", side);
+        j39v4.put("id", id);
+        return this.extend(this.parseOrder(response, market), j39v4);
 
     }
 
@@ -2140,26 +2160,28 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
+    }
+
+    private Object createMarketBuyOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
-            }
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(paramsGeneration, new HashMap<String, Object>() {{
-                put( "createMarketBuyOrderRequiresPrice", false );
-            }}))).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
+        }
+        return (this.createOrder(symbol, "market", "buy", cost, (Double) null, this.extend(paramsGeneration, new HashMap<String, Object>() {{
+            put( "createMarketBuyOrderRequiresPrice", false );
+        }}))).join();
 
     }
 
@@ -2180,48 +2202,50 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTwapOrderCore(symbol, side, amount, duration, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTwapOrderCore(String symbol, String side, Object amount, Object duration, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createTwapOrder", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> market = this.market(symbol);
-            String durationString = this.numberToString(duration);
-            String durationSeconds = Precise.stringDiv(durationString, "1000");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Bithumb.this.getGen2MarketId(market) );
-                put( "duration", durationSeconds );
-            }};
-            if (!java.util.Objects.equals(amount, null))
-            {
-                request.put("volume", this.amountToPrecision(symbol, amount)); // required for sale
-            }
-            String sideRequest = null;
-            if (java.util.Objects.equals(side, "buy"))
-            {
-                sideRequest = "bid";
-            } else
-            {
-                sideRequest = "ask";
-            }
-            request.put("side", sideRequest);
-            Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, paramsGeneration))).join();
-            //
-            //     {
-            //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
-            //     }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createTwapOrder", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> market = this.market(symbol);
+        String durationString = this.numberToString(duration);
+        String durationSeconds = Precise.stringDiv(durationString, "1000");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "market", Bithumb.this.getGen2MarketId(market) );
+            put( "duration", durationSeconds );
+        }};
+        if (!java.util.Objects.equals(amount, null))
+        {
+            request.put("volume", this.amountToPrecision(symbol, amount)); // required for sale
+        }
+        String sideRequest = null;
+        if (java.util.Objects.equals(side, "buy"))
+        {
+            sideRequest = "bid";
+        } else
+        {
+            sideRequest = "ask";
+        }
+        request.put("side", sideRequest);
+        Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, paramsGeneration))).join();
+        //
+        //     {
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //     }
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -2241,151 +2265,153 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
+
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrder", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Boolean twap = this.safeBool(paramsGeneration, "twap", false);
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        Map<String, Object> data = null;
+        if ((generation != null && generation == 2))
+        {
+            if (Boolean.TRUE.equals(twap))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrder", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            Map<String, Object> data = null;
-            if ((generation != null && generation == 2))
-            {
-                if (Boolean.TRUE.equals(twap))
+                if (!java.util.Objects.equals(market, null))
                 {
-                    if (!java.util.Objects.equals(market, null))
-                    {
-                        request.put("market", this.getGen2MarketId(market));
-                    }
-                    request.put("uuids", new ArrayList<Object>(Arrays.asList(id)));
-                    response = (this.privateGetV1Twap(this.extend(request, paramsOmitted))).join();
-                    //
-                    //     {
-                    //         "has_next": false,
-                    //         "next_key": null,
-                    //         "orders": [
-                    //             {
-                    //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                    //                 "side": "bid",
-                    //                 "price": "92500000",
-                    //                 "state": "progress",
-                    //                 "market": "KRW-BTC",
-                    //                 "created_at": "2025-12-04T10:00:00+09:00",
-                    //                 "volume": "1.0",
-                    //                 "total_order_count": 60,
-                    //                 "total_trades_count": 10,
-                    //                 "progress_count": 25,
-                    //                 "total_executed_amount": "2312500000",
-                    //                 "total_executed_volume": "0.25",
-                    //                 "avg_trade_price": "92500000.000",
-                    //                 "wallet_id": "0000000000-00-0000"
-                    //             },
-                    //         ]
-                    //     }
-                    //
-                    List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-                    data = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
-                } else
-                {
-                    String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
-                    Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsOmitted;
-                    if (!java.util.Objects.equals(clientOrderId, null))
-                    {
-                        request.put("client_order_id", clientOrderId);
-                    } else
-                    {
-                        request.put("uuid", id);
-                    }
-                    response = (this.privateGetV1Order(this.extend(request, paramsClientOrderId))).join();
-                    //
-                    //     {
-                    //         "uuid": "C0101000003152406454",
-                    //         "side": "bid",
-                    //         "ord_type": "limit",
-                    //         "price": "9500000",
-                    //         "state": "wait",
-                    //         "market": "KRW-BTC",
-                    //         "created_at": "2026-07-04T15:05:46+09:00",
-                    //         "volume": "0.001",
-                    //         "remaining_volume": "0.001",
-                    //         "reserved_fee": "23.75",
-                    //         "remaining_fee": "23.75",
-                    //         "paid_fee": "0",
-                    //         "locked": "9524.75",
-                    //         "executed_volume": "0",
-                    //         "executed_funds": "0",
-                    //         "trades_count": 0,
-                    //         "stp_type": "cancel_taker",
-                    //         "trades": []
-                    //     }
-                    //
-                    data = response;
+                    request.put("market", this.getGen2MarketId(market));
                 }
-            } else
-            {
-                if (java.util.Objects.equals(symbol, null))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
-                }
-                String base = this.safeString(market, "base");
-                String quote = this.safeString(market, "quote");
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchOrder() requires a market with defined base and quote")) ;
-                }
-                request.put("order_id", id);
-                request.put("order_currency", base);
-                request.put("payment_currency", quote);
-                response = (this.privatePostInfoOrderDetail(this.extend(request, paramsOmitted))).join();
+                request.put("uuids", new ArrayList<Object>(Arrays.asList(id)));
+                response = (this.privateGetV1Twap(this.extend(request, paramsOmitted))).join();
                 //
                 //     {
-                //         "status": "0000",
-                //         "data": {
-                //             "order_date": "1603161798539254",
-                //             "type": "ask",
-                //             "order_status": "Cancel",
-                //             "order_currency": "BTC",
-                //             "payment_currency": "KRW",
-                //             "watch_price": "0",
-                //             "order_price": "13344000",
-                //             "order_qty": "0.0125",
-                //             "cancel_date": "1603161803809993",
-                //             "cancel_type": "사용자취소",
-                //             "contract": [
-                //                 {
-                //                     "transaction_date": "1603161799976383",
-                //                     "price": "13344000",
-                //                     "units": "0.0015",
-                //                     "fee_currency": "KRW",
-                //                     "fee": "0",
-                //                     "total": "20016"
-                //                 }
-                //             ],
-                //         }
+                //         "has_next": false,
+                //         "next_key": null,
+                //         "orders": [
+                //             {
+                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                //                 "side": "bid",
+                //                 "price": "92500000",
+                //                 "state": "progress",
+                //                 "market": "KRW-BTC",
+                //                 "created_at": "2025-12-04T10:00:00+09:00",
+                //                 "volume": "1.0",
+                //                 "total_order_count": 60,
+                //                 "total_trades_count": 10,
+                //                 "progress_count": 25,
+                //                 "total_executed_amount": "2312500000",
+                //                 "total_executed_volume": "0.25",
+                //                 "avg_trade_price": "92500000.000",
+                //                 "wallet_id": "0000000000-00-0000"
+                //             },
+                //         ]
                 //     }
                 //
-                data = (Map<String, Object>) this.safeDict(response, "data", null);
+                List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+                data = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+            } else
+            {
+                String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
+                Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsOmitted;
+                if (!java.util.Objects.equals(clientOrderId, null))
+                {
+                    request.put("client_order_id", clientOrderId);
+                } else
+                {
+                    request.put("uuid", id);
+                }
+                response = (this.privateGetV1Order(this.extend(request, paramsClientOrderId))).join();
+                //
+                //     {
+                //         "uuid": "C0101000003152406454",
+                //         "side": "bid",
+                //         "ord_type": "limit",
+                //         "price": "9500000",
+                //         "state": "wait",
+                //         "market": "KRW-BTC",
+                //         "created_at": "2026-07-04T15:05:46+09:00",
+                //         "volume": "0.001",
+                //         "remaining_volume": "0.001",
+                //         "reserved_fee": "23.75",
+                //         "remaining_fee": "23.75",
+                //         "paid_fee": "0",
+                //         "locked": "9524.75",
+                //         "executed_volume": "0",
+                //         "executed_funds": "0",
+                //         "trades_count": 0,
+                //         "stp_type": "cancel_taker",
+                //         "trades": []
+                //     }
+                //
+                data = response;
             }
-            Map<String, Object> orderData = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> parsedOrder = this.extend(data, orderData);
-            return this.parseOrder(parsedOrder, market);
-        }).thenApply(Order::new);
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
+            }
+            String base = this.safeString(market, "base");
+            String quote = this.safeString(market, "quote");
+            if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+            {
+                throw new ArgumentsRequired((this.id + " fetchOrder() requires a market with defined base and quote")) ;
+            }
+            request.put("order_id", id);
+            request.put("order_currency", base);
+            request.put("payment_currency", quote);
+            response = (this.privatePostInfoOrderDetail(this.extend(request, paramsOmitted))).join();
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             "order_date": "1603161798539254",
+            //             "type": "ask",
+            //             "order_status": "Cancel",
+            //             "order_currency": "BTC",
+            //             "payment_currency": "KRW",
+            //             "watch_price": "0",
+            //             "order_price": "13344000",
+            //             "order_qty": "0.0125",
+            //             "cancel_date": "1603161803809993",
+            //             "cancel_type": "사용자취소",
+            //             "contract": [
+            //                 {
+            //                     "transaction_date": "1603161799976383",
+            //                     "price": "13344000",
+            //                     "units": "0.0015",
+            //                     "fee_currency": "KRW",
+            //                     "fee": "0",
+            //                     "total": "20016"
+            //                 }
+            //             ],
+            //         }
+            //     }
+            //
+            data = this.safeDict(response, "data", null);
+        }
+        Map<String, Object> orderData = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> parsedOrder = this.extend(data, orderData);
+        return this.parseOrder(parsedOrder, market);
 
     }
 
@@ -2404,7 +2430,7 @@ public class Bithumb extends BithumbApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //
@@ -2523,7 +2549,7 @@ public class Bithumb extends BithumbApi
         //     }
         //
         String datetime = this.safeString(order, "created_at");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(datetime, null))
         {
             if (((String)datetime).indexOf("+09:00") > -1)
@@ -2584,21 +2610,21 @@ public class Bithumb extends BithumbApi
         String symbol = null;
         String baseId = this.safeString(order, "order_currency");
         String quoteId = this.safeString(order, "payment_currency");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);
         }
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, null, null) : market;
         if (java.util.Objects.equals(symbol, null))
         {
             symbol = this.safeString(marketResolved, "symbol");
         }
         String id = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "uuid", "algo_order_id")));
         List<Object> rawTrades = (List<Object>) this.safeList2(order, "contract", "trades", new ArrayList<Object>(Arrays.asList()));
-        Double feeCost = this.safeNumber(order, "reserved_fee", (Object) null);
+        Double feeCost = this.safeNumber(order, "reserved_fee", null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -2622,29 +2648,29 @@ public class Bithumb extends BithumbApi
             timeInForce = "PO";
             postOnly = true;
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", datetime);
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("triggerPrice", null);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("cost", null);
-        mapLiteral4.put("average", this.safeNumber(order, "avg_trade_price", (Object) null));
-        mapLiteral4.put("filled", null);
-        mapLiteral4.put("remaining", remaining);
-        mapLiteral4.put("status", status);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("trades", rawTrades);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", datetime);
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", postOnly);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", null);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("average", this.safeNumber(order, "avg_trade_price", null));
+        mapLiteral5.put("filled", null);
+        mapLiteral5.put("remaining", remaining);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", rawTrades);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     /**
@@ -2665,46 +2691,48 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = null;
+        Map<String, Object> response = null;
+        if ((generation != null && generation == 2))
+        {
+            Boolean twap = this.safeBool(paramsGeneration, "twap", false);
+            List<Order> orders = (this.fetchOrders(symbol, since, limit, this.extend(paramsGeneration, new HashMap<String, Object>() {{
+                put( "state", ((Boolean.TRUE.equals(twap))) ? "progress" : "wait" );
+            }}))).join();
+            return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
-            Map<String, Object> response = null;
-            if ((generation != null && generation == 2))
+            market = this.market(symbol);
+            if (!java.util.Objects.equals(since, null))
             {
-                Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-                List<Order> orders = (this.fetchOrders(symbol, since, limit, this.extend(paramsGeneration, new HashMap<String, Object>() {{
-                    put( "state", ((Boolean.TRUE.equals(twap))) ? "progress" : "wait" );
-                }}))).join();
-                return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
-            } else
-            {
-                if (java.util.Objects.equals(symbol, null))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
-                }
-                market = this.market(symbol);
-                if (!java.util.Objects.equals(since, null))
-                {
-                    request.put("after", since);
-                }
-                request.put("count", limitResolved);
-                request.put("order_currency", market.get("base"));
-                request.put("payment_currency", market.get("quote"));
-                response = (this.privatePostInfoOrders(this.extend(request, paramsGeneration))).join();
+                request.put("after", since);
             }
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+            request.put("count", limitResolved);
+            request.put("order_currency", market.get("base"));
+            request.put("payment_currency", market.get("quote"));
+            response = (this.privatePostInfoOrders(this.extend(request, paramsGeneration))).join();
+        }
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2726,106 +2754,107 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrders", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
-            List<Object> clientOrderIds = null;
-            if (Boolean.TRUE.equals(twap))
-            {
-                clientOrderIds = null;
-            } else
-            {
-                clientOrderIds = (List<Object>) this.safeList2(paramsOmitted, "client_order_ids", "clientOrderIds", (Object) null);
-            }
-            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsOmitted;
-            if (!java.util.Objects.equals(clientOrderIds, null))
-            {
-                request.put("client_order_ids", clientOrderIds);
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("market", this.getGen2MarketId(market));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Object response = null;
-            Object data = null;
-            if (Boolean.TRUE.equals(twap))
-            {
-                response = (this.privateGetV1Twap(this.extend(request, paramsRequest))).join();
-                //
-                //     {
-                //         "has_next": false,
-                //         "next_key": null,
-                //         "orders": [
-                //             {
-                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                //                 "side": "bid",
-                //                 "price": "92500000",
-                //                 "state": "progress",
-                //                 "market": "KRW-BTC",
-                //                 "created_at": "2025-12-04T10:00:00+09:00",
-                //                 "volume": "1.0",
-                //                 "total_order_count": 60,
-                //                 "total_trades_count": 10,
-                //                 "progress_count": 25,
-                //                 "total_executed_amount": "2312500000",
-                //                 "total_executed_volume": "0.25",
-                //                 "avg_trade_price": "92500000.000",
-                //                 "wallet_id": "0000000000-00-0000"
-                //             },
-                //         ]
-                //     }
-                //
-                data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            } else
-            {
-                response = (this.privateGetV1Orders(this.extend(request, paramsRequest))).join();
-                //
-                //     [
-                //         {
-                //             "uuid": "C0101000003152406454",
-                //             "side": "bid",
-                //             "ord_type": "limit",
-                //             "price": "9500000",
-                //             "state": "wait",
-                //             "market": "KRW-BTC",
-                //             "created_at": "2026-07-04T15:05:46+09:00",
-                //             "volume": "0.001",
-                //             "remaining_volume": "0.001",
-                //             "reserved_fee": "23.75",
-                //             "remaining_fee": "23.75",
-                //             "paid_fee": "0",
-                //             "locked": "9524.75",
-                //             "executed_volume": "0",
-                //             "executed_funds": "0",
-                //             "trades_count": 0,
-                //             "stp_type": "cancel_taker"
-                //         }
-                //     ]
-                //
-                data = response;
-            }
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrders", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Boolean twap = this.safeBool(paramsGeneration, "twap", false);
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
+        List<Object> clientOrderIds = null;
+        if (Boolean.TRUE.equals(twap))
+        {
+            clientOrderIds = null;
+        } else
+        {
+            clientOrderIds = (List<Object>) this.safeList2(paramsOmitted, "client_order_ids", "clientOrderIds", null);
+        }
+        Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsOmitted;
+        if (!java.util.Objects.equals(clientOrderIds, null))
+        {
+            request.put("client_order_ids", clientOrderIds);
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("market", this.getGen2MarketId(market));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> data = null;
+        if (Boolean.TRUE.equals(twap))
+        {
+            Map<String, Object> response = (this.privateGetV1Twap(this.extend(request, paramsRequest))).join();
+            //
+            //     {
+            //         "has_next": false,
+            //         "next_key": null,
+            //         "orders": [
+            //             {
+            //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+            //                 "side": "bid",
+            //                 "price": "92500000",
+            //                 "state": "progress",
+            //                 "market": "KRW-BTC",
+            //                 "created_at": "2025-12-04T10:00:00+09:00",
+            //                 "volume": "1.0",
+            //                 "total_order_count": 60,
+            //                 "total_trades_count": 10,
+            //                 "progress_count": 25,
+            //                 "total_executed_amount": "2312500000",
+            //                 "total_executed_volume": "0.25",
+            //                 "avg_trade_price": "92500000.000",
+            //                 "wallet_id": "0000000000-00-0000"
+            //             },
+            //         ]
+            //     }
+            //
+            data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        } else
+        {
+            List<Object> response = (this.privateGetV1Orders(this.extend(request, paramsRequest))).join();
+            //
+            //     [
+            //         {
+            //             "uuid": "C0101000003152406454",
+            //             "side": "bid",
+            //             "ord_type": "limit",
+            //             "price": "9500000",
+            //             "state": "wait",
+            //             "market": "KRW-BTC",
+            //             "created_at": "2026-07-04T15:05:46+09:00",
+            //             "volume": "0.001",
+            //             "remaining_volume": "0.001",
+            //             "reserved_fee": "23.75",
+            //             "remaining_fee": "23.75",
+            //             "paid_fee": "0",
+            //             "locked": "9524.75",
+            //             "executed_volume": "0",
+            //             "executed_funds": "0",
+            //             "trades_count": 0,
+            //             "stp_type": "cancel_taker"
+            //         }
+            //     ]
+            //
+            data = response;
+        }
+        return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2846,13 +2875,15 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            parameters.put("state", "done");
-            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
-            return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        parameters.put("state", "done");
+        List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+        return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
 
     }
 
@@ -2873,13 +2904,15 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            parameters.put("state", "cancel");
-            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
-            return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        parameters.put("state", "cancel");
+        List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+        return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
 
     }
 
@@ -2900,90 +2933,92 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrder", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
-            String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
-            Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && ((generation != null && generation == 2)) && (!java.util.Objects.equals(clientOrderId, null));
-            Map<String, Object> paramsRequest = paramsOmitted;
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrder", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        Boolean twap = this.safeBool(paramsGeneration, "twap", false);
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
+        String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
+        Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && ((generation != null && generation == 2)) && (!java.util.Objects.equals(clientOrderId, null));
+        Map<String, Object> paramsRequest = paramsOmitted;
+        if (Boolean.TRUE.equals(useClientOrderId))
+        {
+            paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+        }
+        if (Boolean.TRUE.equals(twap))
+        {
+            request.put("algo_order_id", id);
+        } else
+        {
             if (Boolean.TRUE.equals(useClientOrderId))
             {
-                paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+                request.put("client_order_id", clientOrderId);
+            } else
+            {
+                request.put("order_id", id);
             }
+        }
+        if ((generation != null && generation == 2))
+        {
             if (Boolean.TRUE.equals(twap))
             {
-                request.put("algo_order_id", id);
+                response = (this.privateDeleteV1Twap(this.extend(request, paramsRequest))).join();
             } else
             {
-                if (Boolean.TRUE.equals(useClientOrderId))
-                {
-                    request.put("client_order_id", clientOrderId);
-                } else
-                {
-                    request.put("order_id", id);
-                }
+                response = (this.privateDeleteV2Order(this.extend(request, paramsRequest))).join();
             }
-            if ((generation != null && generation == 2))
+        } else
+        {
+            if (java.util.Objects.equals(symbol, null))
             {
-                if (Boolean.TRUE.equals(twap))
-                {
-                    response = (this.privateDeleteV1Twap(this.extend(request, paramsRequest))).join();
-                } else
-                {
-                    response = (this.privateDeleteV2Order(this.extend(request, paramsRequest))).join();
-                }
+                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+            }
+            String base = this.safeString(market, "base");
+            String quote = this.safeString(market, "quote");
+            if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+            {
+                throw new ArgumentsRequired((this.id + " cancelOrder() requires a market with defined base and quote")) ;
+            }
+            Boolean side_in_params = (paramsRequest.containsKey("side"));
+            if (!Boolean.TRUE.equals(side_in_params))
+            {
+                throw new ArgumentsRequired((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+            }
+            String side = null;
+            if (java.util.Objects.equals(this.safeString(paramsRequest, "side"), "buy"))
+            {
+                side = "bid";
             } else
             {
-                if (java.util.Objects.equals(symbol, null))
-                {
-                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
-                }
-                String base = this.safeString(market, "base");
-                String quote = this.safeString(market, "quote");
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
-                {
-                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a market with defined base and quote")) ;
-                }
-                Boolean side_in_params = (paramsRequest.containsKey("side"));
-                if (!Boolean.TRUE.equals(side_in_params))
-                {
-                    throw new ArgumentsRequired((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
-                }
-                String side = null;
-                if (java.util.Objects.equals(this.safeString(paramsRequest, "side"), "buy"))
-                {
-                    side = "bid";
-                } else
-                {
-                    side = "ask";
-                }
-                Map<String, Object> paramsSide = this.omit(paramsRequest, "side");
-                // https://github.com/ccxt/ccxt/issues/6771
-                request.put("type", side);
-                request.put("order_currency", base);
-                request.put("payment_currency", quote);
-                response = (this.privatePostTradeCancel(this.extend(request, paramsSide))).join();
+                side = "ask";
             }
-            return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
-                put( "id", id );
-            }});
-        }).thenApply(Order::new);
+            Map<String, Object> paramsSide = this.omit(paramsRequest, "side");
+            // https://github.com/ccxt/ccxt/issues/6771
+            request.put("type", side);
+            request.put("order_currency", base);
+            request.put("payment_currency", quote);
+            response = (this.privatePostTradeCancel(this.extend(request, paramsSide))).join();
+        }
+        return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
+            put( "id", id );
+        }});
 
     }
 
@@ -2999,65 +3034,69 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(List<String> ids, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
+
+    private Object cancelOrdersCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " cancelOrders is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsGeneration, "client_order_ids", "clientOrderIds", (Object) null);
-            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsGeneration;
-            if (!java.util.Objects.equals(clientOrderIds, null))
-            {
-                request.put("client_order_ids", clientOrderIds);
-            } else
-            {
-                request.put("order_ids", ids);
-            }
-            Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, paramsRequest))).join();
-            //
-            //     {
-            //         "success": [
-            //             {
-            //                 "order_id": "C0101000003152500274",
-            //                 "created_at":"2026-07-04T15:49:24+09:00"
-            //             },
-            //         ],
-            //         "fail": []
-            //     }
-            //
-            List<Object> data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " cancelOrders is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsGeneration, "client_order_ids", "clientOrderIds", null);
+        Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsGeneration;
+        if (!java.util.Objects.equals(clientOrderIds, null))
+        {
+            request.put("client_order_ids", clientOrderIds);
+        } else
+        {
+            request.put("order_ids", ids);
+        }
+        Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, paramsRequest))).join();
+        //
+        //     {
+        //         "success": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
+        //                 "created_at":"2026-07-04T15:49:24+09:00"
+        //             },
+        //         ],
+        //         "fail": []
+        //     }
+        //
+        List<Object> data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(data, market, null, null, new HashMap<String, Object>() {{}});
 
     }
 
     public CompletableFuture<Order> cancelUnifiedOrder(Object order, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelUnifiedOrderCore(order, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelUnifiedOrderCore(Object order, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "side", Bithumb.this.safeString(order, "side") );
-            }};
-            return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), this.extend(request, parameters))).join();
-        }).thenApply(Order::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "side", Bithumb.this.safeString(order, "side") );
+        }};
+        return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), this.extend(request, parameters))).join();
 
     }
 
@@ -3087,116 +3126,118 @@ public class Bithumb extends BithumbApi
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
+
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        String tagWithdrawTag = this.safeString(paramsGeneration, "tag");
+        Map<String, Object> paramsWithdrawTag = this.omit(paramsGeneration, "tag");
+        this.checkAddress(address, code, tagWithdrawTag);
+        String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
+        Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
+        String destinationRequest = null;
+        Boolean requiresDestination = (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"));
+        Map<String, Object> paramsDestination = paramsNetwork;
+        if (Boolean.TRUE.equals(requiresDestination))
+        {
+            paramsDestination = this.omit(paramsNetwork, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
+        }
+        if (Boolean.TRUE.equals(requiresDestination))
+        {
+            String destination = this.safeString2(paramsNetwork, "destination", "secondary_address");
+            if ((java.util.Objects.equals(tagWithdrawTag, null)) && (java.util.Objects.equals(destination, null)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            String tagWithdrawTag = this.safeString(paramsGeneration, "tag");
-            Map<String, Object> paramsWithdrawTag = this.omit(paramsGeneration, "tag");
-            this.checkAddress(address, code, tagWithdrawTag);
-            String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
-            Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = null;
-            String destinationRequest = null;
-            Boolean requiresDestination = (java.util.Objects.equals(code, "XRP") || java.util.Objects.equals(code, "XMR") || java.util.Objects.equals(code, "EOS") || java.util.Objects.equals(code, "STEEM") || java.util.Objects.equals(code, "TON"));
-            Map<String, Object> paramsDestination = paramsNetwork;
-            if (Boolean.TRUE.equals(requiresDestination))
+                throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag or an extra destination param")) ;
+            } else if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                paramsDestination = this.omit(paramsNetwork, new ArrayList<Object>(Arrays.asList("destination", "secondary_address")));
-            }
-            if (Boolean.TRUE.equals(requiresDestination))
-            {
-                String destination = this.safeString2(paramsNetwork, "destination", "secondary_address");
-                if ((java.util.Objects.equals(tagWithdrawTag, null)) && (java.util.Objects.equals(destination, null)))
-                {
-                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a tag or an extra destination param")) ;
-                } else if (!java.util.Objects.equals(tagWithdrawTag, null))
-                {
-                    destinationRequest = tagWithdrawTag;
-                } else
-                {
-                    destinationRequest = destination;
-                }
-            }
-            String receiverType = this.safeString2(paramsDestination, "receiver_type", "cust_type_cd");
-            Map<String, Object> paramsReceiverType = this.omit(paramsDestination, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
-            if ((generation != null && generation == 2))
-            {
-                if (java.util.Objects.equals(code, "KRW"))
-                {
-                    String twoFactorType = this.safeString(paramsReceiverType, "two_factor_type");
-                    if (java.util.Objects.equals(twoFactorType, null))
-                    {
-                        throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
-                    }
-                    Map<String, Object> krwRequest = new HashMap<String, Object>() {{
-                        put( "amount", Bithumb.this.numberToString(amount) );
-                    }}; // KRW withdraw only accepts amount and two_factor_type parameters
-                    response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, paramsReceiverType))).join();
-                } else
-                {
-                    if (java.util.Objects.equals(network, null))
-                    {
-                        throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a network parameter")) ;
-                    }
-                    request.put("address", address);
-                    request.put("currency", currency.get("id"));
-                    request.put("net_type", this.networkCodeToId(network, code));
-                    request.put("amount", this.numberToString(amount));
-                    if (!java.util.Objects.equals(destinationRequest, null))
-                    {
-                        request.put("secondary_address", destinationRequest);
-                    }
-                    if (!java.util.Objects.equals(receiverType, null))
-                    {
-                        request.put("receiver_type", receiverType);
-                    }
-                    response = (this.privatePostV1WithdrawsCoin(this.extend(request, paramsReceiverType))).join();
-                }
+                destinationRequest = tagWithdrawTag;
             } else
             {
+                destinationRequest = destination;
+            }
+        }
+        String receiverType = this.safeString2(paramsDestination, "receiver_type", "cust_type_cd");
+        Map<String, Object> paramsReceiverType = this.omit(paramsDestination, new ArrayList<Object>(Arrays.asList("receiver_type", "cust_type_cd")));
+        if ((generation != null && generation == 2))
+        {
+            if (java.util.Objects.equals(code, "KRW"))
+            {
+                String twoFactorType = this.safeString(paramsReceiverType, "two_factor_type");
+                if (java.util.Objects.equals(twoFactorType, null))
+                {
+                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                }
+                Map<String, Object> krwRequest = new HashMap<String, Object>() {{
+                    put( "amount", Bithumb.this.numberToString(amount) );
+                }}; // KRW withdraw only accepts amount and two_factor_type parameters
+                response = (this.privatePostV1WithdrawsKrw(this.extend(krwRequest, paramsReceiverType))).join();
+            } else
+            {
+                if (java.util.Objects.equals(network, null))
+                {
+                    throw new ArgumentsRequired((((this.id + " ") + code) + " withdraw() requires a network parameter")) ;
+                }
                 request.put("address", address);
                 request.put("currency", currency.get("id"));
-                request.put("units", amount);
-                if (!java.util.Objects.equals(network, null))
-                {
-                    request.put("net_type", this.networkCodeToId(network, code));
-                }
+                request.put("net_type", this.networkCodeToId(network, code));
+                request.put("amount", this.numberToString(amount));
                 if (!java.util.Objects.equals(destinationRequest, null))
                 {
-                    request.put("destination", destinationRequest);
+                    request.put("secondary_address", destinationRequest);
                 }
                 if (!java.util.Objects.equals(receiverType, null))
                 {
-                    if (java.util.Objects.equals(receiverType, "corporation"))
-                    {
-                        request.put("cust_type_cd", "Corporation 02");
-                    } else if (java.util.Objects.equals(receiverType, "personal"))
-                    {
-                        request.put("cust_type_cd", "Individual 01");
-                    } else
-                    {
-                        request.put("cust_type_cd", receiverType);
-                    }
+                    request.put("receiver_type", receiverType);
                 }
-                response = (this.privatePostTradeBtcWithdrawal(this.extend(request, paramsReceiverType))).join();
+                response = (this.privatePostV1WithdrawsCoin(this.extend(request, paramsReceiverType))).join();
             }
-            return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        } else
+        {
+            request.put("address", address);
+            request.put("currency", currency.get("id"));
+            request.put("units", amount);
+            if (!java.util.Objects.equals(network, null))
+            {
+                request.put("net_type", this.networkCodeToId(network, code));
+            }
+            if (!java.util.Objects.equals(destinationRequest, null))
+            {
+                request.put("destination", destinationRequest);
+            }
+            if (!java.util.Objects.equals(receiverType, null))
+            {
+                if (java.util.Objects.equals(receiverType, "corporation"))
+                {
+                    request.put("cust_type_cd", "Corporation 02");
+                } else if (java.util.Objects.equals(receiverType, "personal"))
+                {
+                    request.put("cust_type_cd", "Individual 01");
+                } else
+                {
+                    request.put("cust_type_cd", receiverType);
+                }
+            }
+            response = (this.privatePostTradeBtcWithdrawal(this.extend(request, paramsReceiverType))).join();
+        }
+        return this.parseTransaction(response, currency);
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // generation 1: withdraw
@@ -3224,7 +3265,7 @@ public class Bithumb extends BithumbApi
         String currencyId = this.safeString(transaction, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String datetime = this.safeString(transaction, "created_at");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         if ((!java.util.Objects.equals(datetime, null)) && (((String)datetime).indexOf("+09:00") > -1))
         {
             String normalized = (datetime == null ? null : ((String)datetime).replaceFirst(java.util.regex.Pattern.quote("+09:00"), "Z"));
@@ -3244,7 +3285,7 @@ public class Bithumb extends BithumbApi
             h2kMap0.put("addressFrom", null);
             h2kMap0.put("address", null);
             h2kMap0.put("addressTo", null);
-            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", null));
             h2kMap0.put("type", type);
             h2kMap0.put("currency", currencyResolved.get("code"));
             h2kMap0.put("status", this.parseTransactionStatusByType(this.safeString(transaction, "state"), type));
@@ -3256,7 +3297,7 @@ public class Bithumb extends BithumbApi
             h2kMap0.put("internal", null);
             h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", null );
-                put( "cost", Bithumb.this.safeNumber(transaction, "fee", (Object) null) );
+                put( "cost", Bithumb.this.safeNumber(transaction, "fee", null) );
                 put( "rate", null );
             }});
             h2kMap0.put("info", transaction);
@@ -3303,37 +3344,39 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<Object> fetchWithdrawalWhitelist(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalWhitelistCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalWhitelistCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
-            }
-            List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(paramsGeneration)).join();
-            //
-            //     [
-            //         {
-            //             "currency": "BTC",
-            //             "wallet_state": "working",
-            //             "block_state": "normal",
-            //             "block_height": 852086,
-            //             "block_updated_at": "2024-07-14T13:43:57+09:00",
-            //             "block_elapsed_minutes": 2,
-            //             "net_type": "BTC",
-            //             "network_name": "Bitcoin"
-            //         },
-            //     ]
-            //
-            return response;
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
+        }
+        List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(paramsGeneration)).join();
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "wallet_state": "working",
+        //             "block_state": "normal",
+        //             "block_height": 852086,
+        //             "block_updated_at": "2024-07-14T13:43:57+09:00",
+        //             "block_elapsed_minutes": 2,
+        //             "net_type": "BTC",
+        //             "network_name": "Bitcoin"
+        //         },
+        //     ]
+        //
+        return response;
 
     }
 
@@ -3349,52 +3392,54 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalCore(id, code, parameters));
+    }
+
+    private Map<String, Object> fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawal", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
-            }
-            if (java.util.Objects.equals(code, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchWithdrawal() requires a code argument")) ;
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-            }};
-            if (!java.util.Objects.equals(id, null))
-            {
-                request.put("uuid", id);
-            }
-            Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, paramsGeneration))).join();
-            //
-            //     {
-            //         "type": "withdraw",
-            //         "uuid": "200377211",
-            //         "currency": "BTC",
-            //         "net_type": "BTC",
-            //         "state": "processing",
-            //         "created_at": "2024-07-14T14:54:24+09:00",
-            //         "done_at": null,
-            //         "amount": "0.00010000",
-            //         "fee": "0",
-            //         "transaction_type": null,
-            //         "txid": null
-            //     }
-            //
-            return this.parseTransaction(response, currency);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawal", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
+        }
+        if (java.util.Objects.equals(code, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchWithdrawal() requires a code argument")) ;
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+        }};
+        if (!java.util.Objects.equals(id, null))
+        {
+            request.put("uuid", id);
+        }
+        Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, paramsGeneration))).join();
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        return this.parseTransaction(response, currency);
 
     }
 
@@ -3418,59 +3463,61 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> response = null;
+        Map<String, Object> currency = null;
+        if (java.util.Objects.equals(code, "KRW"))
+        {
+            currency = this.currency(code);
+            response = (this.privateGetV1WithdrawsKrw(this.extend(request, paramsGeneration))).join();
+        } else
+        {
+            if (!java.util.Objects.equals(code, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                currency = this.currency(code);
+                request.put("currency", currency.get("id"));
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            List<Object> response = null;
-            Map<String, Object> currency = null;
-            if (java.util.Objects.equals(code, "KRW"))
-            {
-                currency = this.currency((String) (code));
-                response = (this.privateGetV1WithdrawsKrw(this.extend(request, paramsGeneration))).join();
-            } else
-            {
-                if (!java.util.Objects.equals(code, null))
-                {
-                    currency = this.currency((String) (code));
-                    request.put("currency", currency.get("id"));
-                }
-                response = (this.privateGetV1Withdraws(this.extend(request, paramsGeneration))).join();
-            }
-            //
-            //     [
-            //         {
-            //             "type": "withdraw",
-            //             "uuid": "200377211",
-            //             "currency": "BTC",
-            //             "net_type": "BTC",
-            //             "state": "processing",
-            //             "created_at": "2024-07-14T14:54:24+09:00",
-            //             "done_at": null,
-            //             "amount": "0.00010000",
-            //             "fee": "0",
-            //             "transaction_type": null,
-            //             "txid": null
-            //         }
-            //     ]
-            //
-            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+            response = (this.privateGetV1Withdraws(this.extend(request, paramsGeneration))).join();
+        }
+        //
+        //     [
+        //         {
+        //             "type": "withdraw",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "processing",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
+        //         }
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3486,52 +3533,54 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDeposit(String id, String code, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositCore(id, code, parameters));
+    }
+
+    private Map<String, Object> fetchDepositCore(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposit", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
-            }
-            if (java.util.Objects.equals(code, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchDeposit() requires a code argument")) ;
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-            }};
-            if (!java.util.Objects.equals(id, null))
-            {
-                request.put("uuid", id);
-            }
-            Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, paramsGeneration))).join();
-            //
-            //     {
-            //         "type": "deposit",
-            //         "uuid": "200377211",
-            //         "currency": "BTC",
-            //         "net_type": "BTC",
-            //         "state": "DEPOSIT_ACCEPTED",
-            //         "created_at": "2024-07-14T14:54:24+09:00",
-            //         "done_at": null,
-            //         "amount": "0.00010000",
-            //         "fee": "0",
-            //         "transaction_type": null,
-            //         "txid": null
-            //     }
-            //
-            return this.parseTransaction(response, currency);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposit", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
+        }
+        if (java.util.Objects.equals(code, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchDeposit() requires a code argument")) ;
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+        }};
+        if (!java.util.Objects.equals(id, null))
+        {
+            request.put("uuid", id);
+        }
+        Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, paramsGeneration))).join();
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "DEPOSIT_ACCEPTED",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
+        //     }
+        //
+        return this.parseTransaction(response, currency);
 
     }
 
@@ -3555,59 +3604,61 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> response = null;
+        Map<String, Object> currency = null;
+        if (java.util.Objects.equals(code, "KRW"))
+        {
+            currency = this.currency(code);
+            response = (this.privateGetV1DepositsKrw(this.extend(request, paramsGeneration))).join();
+        } else
+        {
+            if (!java.util.Objects.equals(code, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                currency = this.currency(code);
+                request.put("currency", currency.get("id"));
             }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            List<Object> response = null;
-            Map<String, Object> currency = null;
-            if (java.util.Objects.equals(code, "KRW"))
-            {
-                currency = this.currency((String) (code));
-                response = (this.privateGetV1DepositsKrw(this.extend(request, paramsGeneration))).join();
-            } else
-            {
-                if (!java.util.Objects.equals(code, null))
-                {
-                    currency = this.currency((String) (code));
-                    request.put("currency", currency.get("id"));
-                }
-                response = (this.privateGetV1Deposits(this.extend(request, paramsGeneration))).join();
-            }
-            //
-            //     [
-            //         {
-            //             "type": "deposit",
-            //             "uuid": "200377211",
-            //             "currency": "BTC",
-            //             "net_type": "BTC",
-            //             "state": "DEPOSIT_ACCEPTED",
-            //             "created_at": "2024-07-14T14:54:24+09:00",
-            //             "done_at": null,
-            //             "amount": "0.00010000",
-            //             "fee": "0",
-            //             "transaction_type": null,
-            //             "txid": null
-            //         }
-            //     ]
-            //
-            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+            response = (this.privateGetV1Deposits(this.extend(request, paramsGeneration))).join();
+        }
+        //
+        //     [
+        //         {
+        //             "type": "deposit",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "DEPOSIT_ACCEPTED",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
+        //         }
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3624,42 +3675,44 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createDepositAddress", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-            }};
-            String network = this.safeString2(paramsGeneration, "network", "net_type");
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
-            if (java.util.Objects.equals(network, null))
-            {
-                throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
-            }
-            request.put("net_type", this.networkCodeToId(network, code));
-            Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "currency": "BTC",
-            //         "net_type": "BTC",
-            //         "deposit_address": "195Y...rbJ3",
-            //         "secondary_address": null
-            //     }
-            //
-            return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createDepositAddress", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+        }};
+        String network = this.safeString2(paramsGeneration, "network", "net_type");
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
+        if (java.util.Objects.equals(network, null))
+        {
+            throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
+        }
+        request.put("net_type", this.networkCodeToId(network, code));
+        Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
 
     }
 
@@ -3676,42 +3729,44 @@ public class Bithumb extends BithumbApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddress", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-            }};
-            String network = this.safeString2(paramsGeneration, "network", "net_type");
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
-            if (java.util.Objects.equals(network, null))
-            {
-                throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
-            }
-            request.put("net_type", this.networkCodeToId(network, code));
-            Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "currency": "BTC",
-            //         "net_type": "BTC",
-            //         "deposit_address": "195Y...rbJ3",
-            //         "secondary_address": null
-            //     }
-            //
-            return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddress", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+        }};
+        String network = this.safeString2(paramsGeneration, "network", "net_type");
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
+        if (java.util.Objects.equals(network, null))
+        {
+            throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
+        }
+        request.put("net_type", this.networkCodeToId(network, code));
+        Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
 
     }
 
@@ -3725,39 +3780,41 @@ public class Bithumb extends BithumbApi
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(List<String> codes, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesCore(codes, parameters)).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchDepositAddressesCore(List<String> codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddresses", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " fetchDepositAddresses() is only supported for the generation 2 API")) ;
-            }
-            List<Object> response = (this.privateGetV1DepositsCoinAddresses(paramsGeneration)).join();
-            //
-            //     [
-            //         {
-            //             "currency": "BTC",
-            //             "net_type": "BTC",
-            //             "deposit_address": "195Y...rbJ3",
-            //             "secondary_address": null
-            //         }
-            //     ]
-            //
-            return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddresses", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " fetchDepositAddresses() is only supported for the generation 2 API")) ;
+        }
+        List<Object> response = (this.privateGetV1DepositsCoinAddresses(paramsGeneration)).join();
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "deposit_address": "195Y...rbJ3",
+        //             "secondary_address": null
+        //         }
+        //     ]
+        //
+        return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parseDepositAddress(Map<String, Object> response, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> response, Map<String, Object> currency)
     {
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
@@ -3776,7 +3833,7 @@ public class Bithumb extends BithumbApi
         {
             throw new ExchangeError((this.id + " parseDepositAddress() could not find deposit_address")) ;
         }
-        this.checkAddress(address, (String) null, (String) null);
+        this.checkAddress(address, null, null);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", response);
@@ -3810,7 +3867,8 @@ public class Bithumb extends BithumbApi
 
     public String urlencodeWithArrayBrackets(Map<String, Object> query)
     {
-        List<String> keys = new ArrayList<String>(query.keySet());
+        Map<String, Object> queryCopy = this.extend(new HashMap<String, Object>() {{}}, query);
+        List<String> keys = new ArrayList<String>(queryCopy.keySet());
         String result = "";
         for (var i = 0; i < keys.size(); i++)
         {
@@ -3848,11 +3906,11 @@ public class Bithumb extends BithumbApi
         return result;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
-        Object requestBody = null;
+        String requestBody = null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
@@ -3876,7 +3934,7 @@ public class Bithumb extends BithumbApi
         } else
         {
             this.checkRequiredCredentials(true);
-            Boolean isVersionedApi = ((endpoint.startsWith(((String)"/v1/"))) || (endpoint.startsWith(((String)"/v2/"))));
+            Boolean isVersionedApi = (endpoint.startsWith("/v1/") || endpoint.startsWith("/v2/"));
             if (Boolean.TRUE.equals(isVersionedApi))
             {
                 requestHeaders = new HashMap<String, Object>() {{
@@ -3911,15 +3969,15 @@ public class Bithumb extends BithumbApi
                 requestHeaders.put("Authorization", ("Bearer " + token));
             } else
             {
-                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                mapLiteral5.put("endpoint", endpoint);
-                String encodedBody = this.urlencode(this.extend(mapLiteral5, query));
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("endpoint", endpoint);
+                String encodedBody = this.urlencode(this.extend(mapLiteral6, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 List<String> bodyParts = new ArrayList<String>(Arrays.asList(((String)encodedBody).split(java.util.regex.Pattern.quote("%20"))));
                 requestBody = String.join("+", bodyParts);
                 String nonce = this.numberToString(this.nonce());
                 String authPayload = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(authPayload), this.encode(this.secret), sha512());
+                String signature = this.hmac(this.encode(authPayload), this.encode(this.secret), sha512());
                 String signature64 = this.stringToBase64(signature);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
@@ -3941,7 +3999,7 @@ public class Bithumb extends BithumbApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3959,11 +4017,11 @@ public class Bithumb extends BithumbApi
             String feedback = ((this.id + " ") + message);
             if (!java.util.Objects.equals(errorName, null))
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), errorName, (String) (feedback));
+                this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
             }
             if (!java.util.Objects.equals(message, null))
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), message, (String) (feedback));
+                this.throwExactlyMatchedException(this.exceptions, message, feedback);
             }
             throw new ExchangeError((String)feedback) ;
         }
@@ -3984,8 +4042,8 @@ public class Bithumb extends BithumbApi
                 return null;  // no error
             }
             String feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), status, (String) (feedback));
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), message, (String) (feedback));
+            this.throwExactlyMatchedException(this.exceptions, status, feedback);
+            this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         return null;

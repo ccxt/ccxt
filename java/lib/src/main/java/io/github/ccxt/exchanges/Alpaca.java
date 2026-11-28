@@ -528,8 +528,8 @@ public class Alpaca extends AlpacaApi
                     put( "maker", Alpaca.this.parseNumber("0.0015") );
                     put( "taker", Alpaca.this.parseNumber("0.0025") );
                     put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0025"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0022"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.0020"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0013"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.001"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("0"), Alpaca.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000"), Alpaca.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("500000"), Alpaca.this.parseNumber("0.001"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("1000000"), Alpaca.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("10000000"), Alpaca.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("25000000"), Alpaca.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("50000000"), Alpaca.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Alpaca.this.parseNumber("100000000"), Alpaca.this.parseNumber("0.00"))))) );
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.0025)), new ArrayList<Object>(Arrays.asList(100000.0, 0.0022)), new ArrayList<Object>(Arrays.asList(500000.0, 0.0020)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.0018)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.0015)), new ArrayList<Object>(Arrays.asList(25000000.0, 0.0013)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.0012)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.001)))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.0015)), new ArrayList<Object>(Arrays.asList(100000.0, 0.0012)), new ArrayList<Object>(Arrays.asList(500000.0, 0.001)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.0008)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.0005)), new ArrayList<Object>(Arrays.asList(25000000.0, 0.0002)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.0002)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.00)))) );
                     }} );
                 }} );
             }} );
@@ -659,25 +659,27 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTimeCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Long fetchTimeCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
-            //
-            //     {
-            //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
-            //         is_open: false,
-            //         next_open: '2023-11-22T09:30:00-05:00',
-            //         next_close: '2023-11-22T16:00:00-05:00'
-            //     }
-            //
-            Long timestamp = this.parse8601(this.safeString(response, "timestamp"));
-            if (java.util.Objects.equals(timestamp, null))
-            {
-                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
-            }
-            return timestamp;
-        });
+        Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
+        //
+        //     {
+        //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
+        //         is_open: false,
+        //         next_open: '2023-11-22T09:30:00-05:00',
+        //         next_close: '2023-11-22T16:00:00-05:00'
+        //     }
+        //
+        Long timestamp = this.parse8601(this.safeString(response, "timestamp"));
+        if (java.util.Objects.equals(timestamp, null))
+        {
+            throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
+        }
+        return timestamp;
 
     }
 
@@ -689,40 +691,42 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
+
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_class", "crypto" );
-                put( "status", "active" );
-            }};
-            List<Object> assets = (this.traderPrivateGetV2Assets(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         {
-            //             "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
-            //             "class": "crypto",
-            //             "exchange": "CRYPTO",
-            //             "symbol": "BTC/USDT",
-            //             "name": "Bitcoin / USD Tether",
-            //             "status": "active",
-            //             "tradable": true,
-            //             "marginable": false,
-            //             "maintenance_margin_requirement": 100,
-            //             "shortable": false,
-            //             "easy_to_borrow": false,
-            //             "fractionable": true,
-            //             "attributes": [],
-            //             "min_order_size": "0.000026873",
-            //             "min_trade_increment": "0.000000001",
-            //             "price_increment": "1"
-            //         }
-            //     ]
-            //
-            return this.parseMarkets(assets);
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "asset_class", "crypto" );
+            put( "status", "active" );
+        }};
+        List<Object> assets = (this.traderPrivateGetV2Assets(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         {
+        //             "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+        //             "class": "crypto",
+        //             "exchange": "CRYPTO",
+        //             "symbol": "BTC/USDT",
+        //             "name": "Bitcoin / USD Tether",
+        //             "status": "active",
+        //             "tradable": true,
+        //             "marginable": false,
+        //             "maintenance_margin_requirement": 100,
+        //             "shortable": false,
+        //             "easy_to_borrow": false,
+        //             "fractionable": true,
+        //             "attributes": [],
+        //             "min_order_size": "0.000026873",
+        //             "min_trade_increment": "0.000000001",
+        //             "price_increment": "1"
+        //         }
+        //     ]
+        //
+        return this.parseMarkets(assets);
 
     }
 
@@ -757,8 +761,8 @@ public class Alpaca extends AlpacaApi
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
         if (java.util.Objects.equals(quote, null) && java.util.Objects.equals(assetClass, "us_equity"))
@@ -772,9 +776,9 @@ public class Alpaca extends AlpacaApi
         String symbol = ((base + "/") + quote);
         String status = this.safeString(asset, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
-        Double minAmount = this.safeNumber(asset, "min_order_size", (Object) null);
-        Double amount = this.safeNumber(asset, "min_trade_increment", (Object) null);
-        Double price = this.safeNumber(asset, "price_increment", (Object) null);
+        Double minAmount = this.safeNumber(asset, "min_order_size", null);
+        Double amount = this.safeNumber(asset, "min_trade_increment", null);
+        Double price = this.safeNumber(asset, "price_increment", null);
         Double minCost = null;
         if ((java.util.Objects.equals(assetClass, "crypto")) && (java.util.Objects.equals(quote, "USD")))
         {
@@ -849,82 +853,84 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String marketId = this.safeString(market, "id");
+        String loc = this.safeString(parameters, "loc", "us");
+        String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbols", marketId );
+            put( "loc", loc );
+        }};
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
+        List<Object> symbolTrades = null;
+        if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocTrades"))
+        {
+            if (!java.util.Objects.equals(since, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                request.put("start", this.iso8601(since));
             }
-            Map<String, Object> market = this.market(symbol);
-            String marketId = this.safeString(market, "id");
-            String loc = this.safeString(parameters, "loc", "us");
-            String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbols", marketId );
-                put( "loc", loc );
-            }};
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
-            List<Object> symbolTrades = null;
-            if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocTrades"))
+            if (!java.util.Objects.equals(limit, null))
             {
-                if (!java.util.Objects.equals(since, null))
-                {
-                    request.put("start", this.iso8601(since));
-                }
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("limit", limit);
-                }
-                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, paramsOmitted))).join();
-                //
-                //    {
-                //        "next_page_token": null,
-                //        "trades": {
-                //            "BTC/USD": [
-                //                {
-                //                    "i": 36440704,
-                //                    "p": 22625,
-                //                    "s": 0.0001,
-                //                    "t": "2022-07-21T11:47:31.073391Z",
-                //                    "tks": "B"
-                //                }
-                //            ]
-                //        }
-                //    }
-                //
-                Map<String, Object> trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
-                symbolTrades = (List<Object>) this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
-            } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestTrades"))
-            {
-                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, paramsOmitted))).join();
-                //
-                //    {
-                //       "trades": {
-                //            "BTC/USD": {
-                //                "i": 36440704,
-                //                "p": 22625,
-                //                "s": 0.0001,
-                //                "t": "2022-07-21T11:47:31.073391Z",
-                //                "tks": "B"
-                //            }
-                //        }
-                //    }
-                //
-                Map<String, Object> trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
-                Map<String, Object> symbolTrade = this.safeDict(trades, marketId, new HashMap<String, Object>() {{}});
-                symbolTrades = new ArrayList<Object>(Arrays.asList(symbolTrade));
-            } else
-            {
-                throw new NotSupported((((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+                request.put("limit", limit);
             }
-            List<Object> symbolTradesList = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbolTrades, null))
-            {
-                symbolTradesList = symbolTrades;
-            }
-            return this.parseTrades(symbolTradesList, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, paramsOmitted))).join();
+            //
+            //    {
+            //        "next_page_token": null,
+            //        "trades": {
+            //            "BTC/USD": [
+            //                {
+            //                    "i": 36440704,
+            //                    "p": 22625,
+            //                    "s": 0.0001,
+            //                    "t": "2022-07-21T11:47:31.073391Z",
+            //                    "tks": "B"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            Map<String, Object> trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
+            symbolTrades = (List<Object>) this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
+        } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestTrades"))
+        {
+            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, paramsOmitted))).join();
+            //
+            //    {
+            //       "trades": {
+            //            "BTC/USD": {
+            //                "i": 36440704,
+            //                "p": 22625,
+            //                "s": 0.0001,
+            //                "t": "2022-07-21T11:47:31.073391Z",
+            //                "tks": "B"
+            //            }
+            //        }
+            //    }
+            //
+            Map<String, Object> trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
+            Map<String, Object> symbolTrade = this.safeDict(trades, marketId, new HashMap<String, Object>() {{}});
+            symbolTrades = new ArrayList<Object>(Arrays.asList(symbolTrade));
+        } else
+        {
+            throw new NotSupported((((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+        }
+        List<Object> symbolTradesList = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(symbolTrades, null))
+        {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades(symbolTradesList, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -939,65 +945,67 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
+
+    private Object fetchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String id = this.safeString(market, "id");
-            String loc = this.safeString(parameters, "loc", "us");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbols", id );
-                put( "loc", loc );
-            }};
-            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestOrderbooks(this.extend(request, parameters))).join();
-            //
-            //   {
-            //       "orderbooks":{
-            //          "BTC/USD":{
-            //             "a":[
-            //                {
-            //                   "p":22208,
-            //                   "s":0.0051
-            //                },
-            //                {
-            //                   "p":22209,
-            //                   "s":0.1123
-            //                },
-            //                {
-            //                   "p":22210,
-            //                   "s":0.2465
-            //                }
-            //             ],
-            //             "b":[
-            //                {
-            //                   "p":22203,
-            //                   "s":0.395
-            //                },
-            //                {
-            //                   "p":22202,
-            //                   "s":0.2465
-            //                },
-            //                {
-            //                   "p":22201,
-            //                   "s":0.6455
-            //                }
-            //             ],
-            //             "t":"2022-07-19T13:41:55.13210112Z"
-            //          }
-            //       }
-            //   }
-            //
-            Map<String, Object> orderbooks = this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
-            Map<String, Object> rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
-            Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-            return this.parseOrderBook(rawOrderbook, market.get("symbol"), timestamp, "b", "a", "p", "s", 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String id = this.safeString(market, "id");
+        String loc = this.safeString(parameters, "loc", "us");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbols", id );
+            put( "loc", loc );
+        }};
+        Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestOrderbooks(this.extend(request, parameters))).join();
+        //
+        //   {
+        //       "orderbooks":{
+        //          "BTC/USD":{
+        //             "a":[
+        //                {
+        //                   "p":22208,
+        //                   "s":0.0051
+        //                },
+        //                {
+        //                   "p":22209,
+        //                   "s":0.1123
+        //                },
+        //                {
+        //                   "p":22210,
+        //                   "s":0.2465
+        //                }
+        //             ],
+        //             "b":[
+        //                {
+        //                   "p":22203,
+        //                   "s":0.395
+        //                },
+        //                {
+        //                   "p":22202,
+        //                   "s":0.2465
+        //                },
+        //                {
+        //                   "p":22201,
+        //                   "s":0.6455
+        //                }
+        //             ],
+        //             "t":"2022-07-19T13:41:55.13210112Z"
+        //          }
+        //       }
+        //   }
+        //
+        Map<String, Object> orderbooks = this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
+        Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
+        return this.parseOrderBook(rawOrderbook, market.get("symbol"), timestamp, "b", "a", "p", "s", 2);
 
     }
 
@@ -1021,137 +1029,139 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String marketId = this.safeString(market, "id");
+        String loc = this.safeString(parameters, "loc", "us");
+        String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        Boolean paginate = false;
+        Object query = null;
+        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = paginatequeryVariable.first();
+        query = paginatequeryVariable.second();
+        List<Object> paginationCallsqueryPaginationVariable = (List<Object>) this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10L);
+        Long paginationCalls = (Long) ((List<Object>) paginationCallsqueryPaginationVariable).get(0);
+        var queryPagination = ((List<Object>) paginationCallsqueryPaginationVariable).get(1);
+        query = queryPagination;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbols", marketId );
+            put( "loc", loc );
+        }};
+        query = this.omit(query, new ArrayList<Object>(Arrays.asList("loc", "method")));
+        List<Object> ohlcvs = null;
+        if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocBars"))
+        {
+            if (!java.util.Objects.equals(limit, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                request.put("limit", limit);
             }
-            Map<String, Object> market = this.market(symbol);
-            String marketId = this.safeString(market, "id");
-            String loc = this.safeString(parameters, "loc", "us");
-            String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
-            Boolean paginate = false;
-            Object query = null;
-            Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
-            paginate = paginatequeryVariable.first();
-            query = paginatequeryVariable.second();
-            List<Object> paginationCallsqueryPaginationVariable = (List<Object>) this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10L);
-            Long paginationCalls = (Long) ((List<Object>) paginationCallsqueryPaginationVariable).get(0);
-            var queryPagination = ((List<Object>) paginationCallsqueryPaginationVariable).get(1);
-            query = queryPagination;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbols", marketId );
-                put( "loc", loc );
-            }};
-            query = this.omit(query, new ArrayList<Object>(Arrays.asList("loc", "method")));
-            List<Object> ohlcvs = null;
-            if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocBars"))
+            if (!java.util.Objects.equals(since, null))
             {
-                if (!java.util.Objects.equals(limit, null))
+                request.put("start", this.iso8601(since));
+            }
+            Long until = this.safeInteger(query, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                query = this.omit(query, "until");
+                request.put("end", this.iso8601(until));
+            }
+            request.put("timeframe", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query))).join();
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": [
+            //              {
+            //                 "c": 22887,
+            //                 "h": 22888,
+            //                 "l": 22873,
+            //                 "n": 11,
+            //                 "o": 22883,
+            //                 "t": "2022-07-21T05:00:00Z",
+            //                 "v": 1.1138,
+            //                 "vw": 22883.0155324116
+            //              },
+            //              {
+            //                 "c": 22895,
+            //                 "h": 22895,
+            //                 "l": 22884,
+            //                 "n": 6,
+            //                 "o": 22884,
+            //                 "t": "2022-07-21T05:01:00Z",
+            //                 "v": 0.001,
+            //                 "vw": 22889.5
+            //              }
+            //           ]
+            //        },
+            //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            //     }
+            //
+            Map<String, Object> bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+            ohlcvs = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
+            if (Boolean.TRUE.equals(paginate))
+            {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                String pageToken = this.safeString(response, "next_page_token");
+                for (var i = 1; (paginationCalls != null && i < paginationCalls); i++)
                 {
-                    request.put("limit", limit);
-                }
-                if (!java.util.Objects.equals(since, null))
-                {
-                    request.put("start", this.iso8601(since));
-                }
-                Long until = this.safeInteger(query, "until");
-                if (!java.util.Objects.equals(until, null))
-                {
-                    query = this.omit(query, "until");
-                    request.put("end", this.iso8601(until));
-                }
-                request.put("timeframe", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query))).join();
-                //
-                //    {
-                //        "bars": {
-                //           "BTC/USD": [
-                //              {
-                //                 "c": 22887,
-                //                 "h": 22888,
-                //                 "l": 22873,
-                //                 "n": 11,
-                //                 "o": 22883,
-                //                 "t": "2022-07-21T05:00:00Z",
-                //                 "v": 1.1138,
-                //                 "vw": 22883.0155324116
-                //              },
-                //              {
-                //                 "c": 22895,
-                //                 "h": 22895,
-                //                 "l": 22884,
-                //                 "n": 6,
-                //                 "o": 22884,
-                //                 "t": "2022-07-21T05:01:00Z",
-                //                 "v": 0.001,
-                //                 "vw": 22889.5
-                //              }
-                //           ]
-                //        },
-                //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-                //     }
-                //
-                Map<String, Object> bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                ohlcvs = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
-                if (Boolean.TRUE.equals(paginate))
-                {
-                    // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
-                    String pageToken = this.safeString(response, "next_page_token");
-                    for (var i = 1; (paginationCalls != null && i < paginationCalls); i++)
+                    Integer ohlcvsLength = ohlcvs.size();
+                    if ((java.util.Objects.equals(pageToken, null)) || ((!java.util.Objects.equals(limit, null)) && (((ohlcvsLength != null && ohlcvsLength >= limit)))))
                     {
-                        Integer ohlcvsLength = ohlcvs.size();
-                        if ((java.util.Objects.equals(pageToken, null)) || ((!java.util.Objects.equals(limit, null)) && (((ohlcvsLength != null && ohlcvsLength >= limit)))))
-                        {
-                            break;
-                        }
-                        request.put("page_token", pageToken);
-                        response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query))).join();
-                        bars = (Map<String, Object>) this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                        List<Object> page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
-                        Integer pageLength = page.size();
-                        if (java.util.Objects.equals(pageLength, 0))
-                        {
-                            break;
-                        }
-                        ohlcvs = (List<Object>) this.arrayConcat(ohlcvs, page);
-                        pageToken = this.safeString(response, "next_page_token");
+                        break;
                     }
+                    request.put("page_token", pageToken);
+                    response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query))).join();
+                    bars = (Map<String, Object>) this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+                    List<Object> page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
+                    Integer pageLength = page.size();
+                    if (java.util.Objects.equals(pageLength, 0))
+                    {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, "next_page_token");
                 }
-            } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestBars"))
-            {
-                Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, query))).join();
-                //
-                //    {
-                //        "bars": {
-                //           "BTC/USD": {
-                //              "c": 22887,
-                //              "h": 22888,
-                //              "l": 22873,
-                //              "n": 11,
-                //              "o": 22883,
-                //              "t": "2022-07-21T05:00:00Z",
-                //              "v": 1.1138,
-                //              "vw": 22883.0155324116
-                //           }
-                //        }
-                //     }
-                //
-                Map<String, Object> bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                Map<String, Object> bar = this.safeDict(bars, marketId, new HashMap<String, Object>() {{}});
-                ohlcvs = new ArrayList<Object>(Arrays.asList(bar));
-            } else
-            {
-                throw new NotSupported((((this.id + " fetchOHLCV() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
             }
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestBars"))
+        {
+            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, query))).join();
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": {
+            //              "c": 22887,
+            //              "h": 22888,
+            //              "l": 22873,
+            //              "n": 11,
+            //              "o": 22883,
+            //              "t": "2022-07-21T05:00:00Z",
+            //              "v": 1.1138,
+            //              "vw": 22883.0155324116
+            //           }
+            //        }
+            //     }
+            //
+            Map<String, Object> bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
+            Map<String, Object> bar = this.safeDict(bars, marketId, new HashMap<String, Object>() {{}});
+            ohlcvs = new ArrayList<Object>(Arrays.asList(bar));
+        } else
+        {
+            throw new NotSupported((((this.id + " fetchOHLCV() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
+        }
+        return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
+    public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1167,7 +1177,7 @@ public class Alpaca extends AlpacaApi
         //
         String datetime = this.safeString(ohlcv, "t");
         Long timestamp = this.parse8601(datetime);
-        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(ohlcv, "o", null), this.safeNumber(ohlcv, "h", null), this.safeNumber(ohlcv, "l", null), this.safeNumber(ohlcv, "c", null), this.safeNumber(ohlcv, "v", null)));
     }
 
     /**
@@ -1182,18 +1192,20 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            Map<String, Object> ticker = this.safeDict(tickers, symbolValue, null);
-            return ticker;
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String symbolValue = this.symbol(symbol);
+        Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
+        Map<String, Object> ticker = this.safeDict(tickers, symbolValue, null);
+        return ticker;
 
     }
 
@@ -1209,116 +1221,118 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            // symbol iteration order differs per language
-            Object symbolsSorted = (((java.util.Objects.equals(symbols, null)))) ? this.sort(this.symbols) : symbols;
-            List<String> symbolsNormalized = this.marketSymbols(symbolsSorted, (Object) null, true, false, false);
-            String loc = this.safeString(parameters, "loc", "us");
-            List<String> ids = this.marketIds(symbolsNormalized);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbols", String.join(",", (List<String>)ids) );
-                put( "loc", loc );
-            }};
-            Map<String, Object> paramsOmitted = this.omit(parameters, "loc");
-            Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "snapshots": {
-            //             "BTC/USD": {
-            //                 "dailyBar": {
-            //                     "c": 69403.554,
-            //                     "h": 69609.6515,
-            //                     "l": 69013.26,
-            //                     "n": 9,
-            //                     "o": 69536.7,
-            //                     "t": "2024-11-01T05:00:00Z",
-            //                     "v": 0.210809181,
-            //                     "vw": 69327.655393908
-            //                 },
-            //                 "latestQuote": {
-            //                     "ap": 69424.19,
-            //                     "as": 0.68149,
-            //                     "bp": 69366.086,
-            //                     "bs": 0.68312,
-            //                     "t": "2024-11-01T08:31:41.880246926Z"
-            //                 },
-            //                 "latestTrade": {
-            //                     "i": 5272941104897543146,
-            //                     "p": 69416.9,
-            //                     "s": 0.014017324,
-            //                     "t": "2024-11-01T08:14:28.245088803Z",
-            //                     "tks": "B"
-            //                 },
-            //                 "minuteBar": {
-            //                     "c": 69403.554,
-            //                     "h": 69403.554,
-            //                     "l": 69399.125,
-            //                     "n": 0,
-            //                     "o": 69399.125,
-            //                     "t": "2024-11-01T08:30:00Z",
-            //                     "v": 0,
-            //                     "vw": 0
-            //                 },
-            //                 "prevDailyBar": {
-            //                     "c": 69515.1415,
-            //                     "h": 72668.837,
-            //                     "l": 68796.85,
-            //                     "n": 129,
-            //                     "o": 72258.9,
-            //                     "t": "2024-10-31T05:00:00Z",
-            //                     "v": 2.217683307,
-            //                     "vw": 70782.6811608144
-            //                 }
-            //             },
-            //         }
-            //     }
-            //
-            List<Object> results = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
-            List<String> marketIds = new ArrayList<String>(snapshots.keySet());
-            for (var i = 0; i < marketIds.size(); i++)
-            {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> entry = this.safeDict(snapshots, marketId, null);
-                Map<String, Object> dailyBar = this.safeDict(entry, "dailyBar", new HashMap<String, Object>() {{}});
-                Map<String, Object> prevDailyBar = this.safeDict(entry, "prevDailyBar", new HashMap<String, Object>() {{}});
-                Map<String, Object> latestQuote = this.safeDict(entry, "latestQuote", new HashMap<String, Object>() {{}});
-                Map<String, Object> latestTrade = this.safeDict(entry, "latestTrade", new HashMap<String, Object>() {{}});
-                String datetime = this.safeString(latestQuote, "t");
-                Ticker ticker = this.safeTicker(new HashMap<String, Object>() {{
-                    put( "info", entry );
-                    put( "symbol", market.get("symbol") );
-                    put( "timestamp", Alpaca.this.parse8601(datetime) );
-                    put( "datetime", datetime );
-                    put( "high", Alpaca.this.safeString(dailyBar, "h") );
-                    put( "low", Alpaca.this.safeString(dailyBar, "l") );
-                    put( "bid", Alpaca.this.safeString(latestQuote, "bp") );
-                    put( "bidVolume", Alpaca.this.safeString(latestQuote, "bs") );
-                    put( "ask", Alpaca.this.safeString(latestQuote, "ap") );
-                    put( "askVolume", Alpaca.this.safeString(latestQuote, "as") );
-                    put( "vwap", Alpaca.this.safeString(dailyBar, "vw") );
-                    put( "open", Alpaca.this.safeString(dailyBar, "o") );
-                    put( "close", Alpaca.this.safeString(dailyBar, "c") );
-                    put( "last", Alpaca.this.safeString(latestTrade, "p") );
-                    put( "previousClose", Alpaca.this.safeString(prevDailyBar, "c") );
-                    put( "change", null );
-                    put( "percentage", null );
-                    put( "average", null );
-                    put( "baseVolume", Alpaca.this.safeString(dailyBar, "v") );
-                    put( "quoteVolume", Precise.stringMul(Alpaca.this.safeString(dailyBar, "v"), Alpaca.this.safeString(dailyBar, "vw")) );
-                }}, market);
-                ((List<Object>)results).add(ticker);
-            }
-            return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+        // symbol iteration order differs per language
+        Object symbolsSorted = (((java.util.Objects.equals(symbols, null)))) ? this.sort(this.symbols) : symbols;
+        List<String> symbolsNormalized = this.marketSymbols(symbolsSorted, null, true, false, false);
+        String loc = this.safeString(parameters, "loc", "us");
+        List<String> ids = this.marketIds(symbolsNormalized);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbols", String.join(",", (List<String>)ids) );
+            put( "loc", loc );
+        }};
+        Map<String, Object> paramsOmitted = this.omit(parameters, "loc");
+        Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "snapshots": {
+        //             "BTC/USD": {
+        //                 "dailyBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69609.6515,
+        //                     "l": 69013.26,
+        //                     "n": 9,
+        //                     "o": 69536.7,
+        //                     "t": "2024-11-01T05:00:00Z",
+        //                     "v": 0.210809181,
+        //                     "vw": 69327.655393908
+        //                 },
+        //                 "latestQuote": {
+        //                     "ap": 69424.19,
+        //                     "as": 0.68149,
+        //                     "bp": 69366.086,
+        //                     "bs": 0.68312,
+        //                     "t": "2024-11-01T08:31:41.880246926Z"
+        //                 },
+        //                 "latestTrade": {
+        //                     "i": 5272941104897543146,
+        //                     "p": 69416.9,
+        //                     "s": 0.014017324,
+        //                     "t": "2024-11-01T08:14:28.245088803Z",
+        //                     "tks": "B"
+        //                 },
+        //                 "minuteBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69403.554,
+        //                     "l": 69399.125,
+        //                     "n": 0,
+        //                     "o": 69399.125,
+        //                     "t": "2024-11-01T08:30:00Z",
+        //                     "v": 0,
+        //                     "vw": 0
+        //                 },
+        //                 "prevDailyBar": {
+        //                     "c": 69515.1415,
+        //                     "h": 72668.837,
+        //                     "l": 68796.85,
+        //                     "n": 129,
+        //                     "o": 72258.9,
+        //                     "t": "2024-10-31T05:00:00Z",
+        //                     "v": 2.217683307,
+        //                     "vw": 70782.6811608144
+        //                 }
+        //             },
+        //         }
+        //     }
+        //
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
+        List<String> marketIds = new ArrayList<String>(snapshots.keySet());
+        for (var i = 0; i < marketIds.size(); i++)
+        {
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+            Map<String, Object> entry = this.safeDict(snapshots, marketId, null);
+            Map<String, Object> dailyBar = this.safeDict(entry, "dailyBar", new HashMap<String, Object>() {{}});
+            Map<String, Object> prevDailyBar = this.safeDict(entry, "prevDailyBar", new HashMap<String, Object>() {{}});
+            Map<String, Object> latestQuote = this.safeDict(entry, "latestQuote", new HashMap<String, Object>() {{}});
+            Map<String, Object> latestTrade = this.safeDict(entry, "latestTrade", new HashMap<String, Object>() {{}});
+            String datetime = this.safeString(latestQuote, "t");
+            Ticker ticker = this.safeTicker(new HashMap<String, Object>() {{
+                put( "info", entry );
+                put( "symbol", market.get("symbol") );
+                put( "timestamp", Alpaca.this.parse8601(datetime) );
+                put( "datetime", datetime );
+                put( "high", Alpaca.this.safeString(dailyBar, "h") );
+                put( "low", Alpaca.this.safeString(dailyBar, "l") );
+                put( "bid", Alpaca.this.safeString(latestQuote, "bp") );
+                put( "bidVolume", Alpaca.this.safeString(latestQuote, "bs") );
+                put( "ask", Alpaca.this.safeString(latestQuote, "ap") );
+                put( "askVolume", Alpaca.this.safeString(latestQuote, "as") );
+                put( "vwap", Alpaca.this.safeString(dailyBar, "vw") );
+                put( "open", Alpaca.this.safeString(dailyBar, "o") );
+                put( "close", Alpaca.this.safeString(dailyBar, "c") );
+                put( "last", Alpaca.this.safeString(latestTrade, "p") );
+                put( "previousClose", Alpaca.this.safeString(prevDailyBar, "c") );
+                put( "change", null );
+                put( "percentage", null );
+                put( "average", null );
+                put( "baseVolume", Alpaca.this.safeString(dailyBar, "v") );
+                put( "quoteVolume", Precise.stringMul(Alpaca.this.safeString(dailyBar, "v"), Alpaca.this.safeString(dailyBar, "vw")) );
+            }}, market);
+            results.add(ticker);
+        }
+        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
 
     }
 
@@ -1345,20 +1359,22 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
+    }
+
+    private Object createMarketOrderWithCostCore(String symbol, String side, Double cost, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> req = new HashMap<String, Object>() {{
-                put( "cost", cost );
-            }};
-            return (this.createOrder(symbol, "market", (String) (side), 0, (Object) null, this.extend(req, parameters))).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> req = new HashMap<String, Object>() {{
+            put( "cost", cost );
+        }};
+        return (this.createOrder(symbol, "market", side, 0.0, (Double) null, this.extend(req, parameters))).join();
 
     }
 
@@ -1372,20 +1388,22 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
+    }
+
+    private Object createMarketBuyOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> req = new HashMap<String, Object>() {{
-                put( "cost", cost );
-            }};
-            return (this.createOrder(symbol, "market", "buy", 0, (Object) null, this.extend(req, parameters))).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> req = new HashMap<String, Object>() {{
+            put( "cost", cost );
+        }};
+        return (this.createOrder(symbol, "market", "buy", 0.0, (Double) null, this.extend(req, parameters))).join();
 
     }
 
@@ -1399,20 +1417,22 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
+    public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
+    }
+
+    private Object createMarketSellOrderWithCostCore(String symbol, Double cost, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> req = new HashMap<String, Object>() {{
-                put( "cost", cost );
-            }};
-            return (this.createOrder(symbol, "market", "sell", cost, (Object) null, this.extend(req, parameters))).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> req = new HashMap<String, Object>() {{
+            put( "cost", cost );
+        }};
+        return (this.createOrder(symbol, "market", "sell", cost, (Double) null, this.extend(req, parameters))).join();
 
     }
 
@@ -1432,95 +1452,103 @@ public class Alpaca extends AlpacaApi
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String id = this.safeString(market, "id");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", id );
+            put( "side", side );
+            put( "type", type );
+        }};
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
+        if (!java.util.Objects.equals(triggerPrice, null))
+        {
+            String newType = null;
+            if (type.indexOf("limit") >= 0)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String id = this.safeString(market, "id");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", id );
-                put( "side", side );
-                put( "type", type );
-            }};
-            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
-            if (!java.util.Objects.equals(triggerPrice, null))
-            {
-                String newType = null;
-                if (((String)type).indexOf("limit") >= 0)
-                {
-                    newType = "stop_limit";
-                } else
-                {
-                    throw new NotSupported((((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
-                }
-                request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
-                request.put("type", newType);
-            }
-            if (((String)type).indexOf("limit") >= 0)
-            {
-                request.put("limit_price", this.priceToPrecision(symbol, price));
-            }
-            String cost = this.safeString(parameters, "cost");
-            if (!java.util.Objects.equals(cost, null))
-            {
-                request.put("notional", this.costToPrecision(symbol, cost));
+                newType = "stop_limit";
             } else
             {
-                request.put("qty", this.amountToPrecision(symbol, amount));
+                throw new NotSupported((((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
             }
-            Map<String, Object> paramsCost = (((!java.util.Objects.equals(cost, null)))) ? this.omit(parameters, "cost") : parameters;
-            Pair<String, Map<String, Object>> defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce", (String) null);
-            String defaultTIF = defaultTIFparamsTimeInForceVariable.first();
-            Map<String, Object> paramsTimeInForce = defaultTIFparamsTimeInForceVariable.second();
-            // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            request.put("time_in_force", (((!java.util.Objects.equals(defaultTIF, null)))) ? ((String)defaultTIF).toLowerCase() : defaultTIF);
-            Map<String, Object> paramsOmitted = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
-            request.put("client_order_id", this.generateClientOrderId(paramsOmitted));
-            Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
-            //
-            //   {
-            //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
-            //      "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-            //      "created_at": "2021-03-16T18:38:01.942282Z",
-            //      "updated_at": "2021-03-16T18:38:01.942282Z",
-            //      "submitted_at": "2021-03-16T18:38:01.937734Z",
-            //      "filled_at": null,
-            //      "expired_at": null,
-            //      "canceled_at": null,
-            //      "failed_at": null,
-            //      "replaced_at": null,
-            //      "replaced_by": null,
-            //      "replaces": null,
-            //      "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-            //      "symbol": "AAPL",
-            //      "asset_class": "us_equity",
-            //      "notional": "500",
-            //      "qty": null,
-            //      "filled_qty": "0",
-            //      "filled_avg_price": null,
-            //      "order_class": "",
-            //      "order_type": "market",
-            //      "type": "market",
-            //      "side": "buy",
-            //      "time_in_force": "day",
-            //      "limit_price": null,
-            //      "stop_price": null,
-            //      "status": "accepted",
-            //      "extended_hours": false,
-            //      "legs": null,
-            //      "trail_percent": null,
-            //      "trail_price": null,
-            //      "hwm": null
-            //   }
-            //
-            return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+            request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
+            request.put("type", newType);
+        }
+        if (type.indexOf("limit") >= 0)
+        {
+            request.put("limit_price", this.priceToPrecision(symbol, price));
+        }
+        String cost = this.safeString(parameters, "cost");
+        if (!java.util.Objects.equals(cost, null))
+        {
+            request.put("notional", this.costToPrecision(symbol, cost));
+        } else
+        {
+            request.put("qty", this.amountToPrecision(symbol, amount));
+        }
+        Map<String, Object> paramsCost = (((!java.util.Objects.equals(cost, null)))) ? this.omit(parameters, "cost") : parameters;
+        Pair<String, Map<String, Object>> defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce", null);
+        String defaultTIF = defaultTIFparamsTimeInForceVariable.first();
+        Map<String, Object> paramsTimeInForce = defaultTIFparamsTimeInForceVariable.second();
+        // the venue only accepts lowercase values, normalize the unified uppercase spellings
+        if (!java.util.Objects.equals(defaultTIF, null))
+        {
+            request.put("time_in_force", ((String)defaultTIF).toLowerCase());
+        } else
+        {
+            request.put("time_in_force", null);
+        }
+        Map<String, Object> paramsOmitted = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
+        request.put("client_order_id", this.generateClientOrderId(paramsOmitted));
+        Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
+        //
+        //   {
+        //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+        //      "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+        //      "created_at": "2021-03-16T18:38:01.942282Z",
+        //      "updated_at": "2021-03-16T18:38:01.942282Z",
+        //      "submitted_at": "2021-03-16T18:38:01.937734Z",
+        //      "filled_at": null,
+        //      "expired_at": null,
+        //      "canceled_at": null,
+        //      "failed_at": null,
+        //      "replaced_at": null,
+        //      "replaced_by": null,
+        //      "replaces": null,
+        //      "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //      "symbol": "AAPL",
+        //      "asset_class": "us_equity",
+        //      "notional": "500",
+        //      "qty": null,
+        //      "filled_qty": "0",
+        //      "filled_avg_price": null,
+        //      "order_class": "",
+        //      "order_type": "market",
+        //      "type": "market",
+        //      "side": "buy",
+        //      "time_in_force": "day",
+        //      "limit_price": null,
+        //      "stop_price": null,
+        //      "status": "accepted",
+        //      "extended_hours": false,
+        //      "legs": null,
+        //      "trail_percent": null,
+        //      "trail_price": null,
+        //      "hwm": null
+        //   }
+        //
+        return this.parseOrder(order, market);
 
     }
 
@@ -1536,21 +1564,23 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> response = (this.traderPrivateDeleteV2OrdersOrderId(this.extend(request, parameters))).join();
-            //
-            //   {
-            //       "code": 40410000,
-            //       "message": "order is not found."
-            //   }
-            //
-            return this.parseOrder(response, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> response = (this.traderPrivateDeleteV2OrdersOrderId(this.extend(request, parameters))).join();
+        //
+        //   {
+        //       "code": 40410000,
+        //       "message": "order is not found."
+        //   }
+        //
+        return this.parseOrder(response, null);
 
     }
 
@@ -1565,24 +1595,18 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
-            if ((response instanceof List))
-            {
-                return this.parseOrders(response, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            } else
-            {
-                return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", response );
-    }}, (Map<String, Object>) null)));
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
+        return this.parseOrders(response, null, null, null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1596,23 +1620,25 @@ public class Alpaca extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(String id, String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
+
+    private Object fetchOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
-            String marketId = this.safeString(order, "symbol");
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
+        String marketId = this.safeString(order, "symbol");
+        Map<String, Object> market = this.safeMarket(marketId, null, null, null);
+        return this.parseOrder(order, market);
 
     }
 
@@ -1631,85 +1657,87 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "all" );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("symbols", market.get("id"));
+        }
+        Long until = this.safeInteger(parameters, "until");
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("until", this.iso8601(until));
+        }
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("after", this.iso8601(since));
+            String direction = this.safeString(paramsOmitted, "direction");
+            if (java.util.Objects.equals(direction, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                request.put("direction", "asc");
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "all" );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("symbols", market.get("id"));
-            }
-            Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("until", this.iso8601(until));
-            }
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("after", this.iso8601(since));
-                String direction = this.safeString(paramsOmitted, "direction");
-                if (java.util.Objects.equals(direction, null))
-                {
-                    // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
-                    request.put("direction", "asc");
-                }
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            List<Object> response = (this.traderPrivateGetV2Orders(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
-            //           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
-            //           "created_at": "2023-11-17T04:21:42.234579Z",
-            //           "updated_at": "2023-11-17T04:22:34.442765Z",
-            //           "submitted_at": "2023-11-17T04:21:42.233357Z",
-            //           "filled_at": null,
-            //           "expired_at": null,
-            //           "canceled_at": "2023-11-17T04:22:34.399019Z",
-            //           "failed_at": null,
-            //           "replaced_at": null,
-            //           "replaced_by": null,
-            //           "replaces": null,
-            //           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
-            //           "symbol": "LTC/USDT",
-            //           "asset_class": "crypto",
-            //           "notional": null,
-            //           "qty": "0.001",
-            //           "filled_qty": "0",
-            //           "filled_avg_price": null,
-            //           "order_class": "",
-            //           "order_type": "limit",
-            //           "type": "limit",
-            //           "side": "sell",
-            //           "time_in_force": "gtc",
-            //           "limit_price": "1000",
-            //           "stop_price": null,
-            //           "status": "canceled",
-            //           "extended_hours": false,
-            //           "legs": null,
-            //           "trail_percent": null,
-            //           "trail_price": null,
-            //           "hwm": null,
-            //           "subtag": null,
-            //           "source": "access_key"
-            //         }
-            //     ]
-            //
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> response = (this.traderPrivateGetV2Orders(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
+        //           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
+        //           "created_at": "2023-11-17T04:21:42.234579Z",
+        //           "updated_at": "2023-11-17T04:22:34.442765Z",
+        //           "submitted_at": "2023-11-17T04:21:42.233357Z",
+        //           "filled_at": null,
+        //           "expired_at": null,
+        //           "canceled_at": "2023-11-17T04:22:34.399019Z",
+        //           "failed_at": null,
+        //           "replaced_at": null,
+        //           "replaced_by": null,
+        //           "replaces": null,
+        //           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+        //           "symbol": "LTC/USDT",
+        //           "asset_class": "crypto",
+        //           "notional": null,
+        //           "qty": "0.001",
+        //           "filled_qty": "0",
+        //           "filled_avg_price": null,
+        //           "order_class": "",
+        //           "order_type": "limit",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "time_in_force": "gtc",
+        //           "limit_price": "1000",
+        //           "stop_price": null,
+        //           "status": "canceled",
+        //           "extended_hours": false,
+        //           "legs": null,
+        //           "trail_percent": null,
+        //           "trail_price": null,
+        //           "hwm": null,
+        //           "subtag": null,
+        //           "source": "access_key"
+        //         }
+        //     ]
+        //
+        return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1728,14 +1756,16 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "open" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "open" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1754,14 +1784,16 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "closed" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "closed" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1782,53 +1814,55 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
+
+    private Object editOrderCore(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            if (!java.util.Objects.equals(amount, null))
-            {
-                request.put("qty", this.amountToPrecision(symbol, amount));
-            }
-            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
-            if (!java.util.Objects.equals(triggerPrice, null))
-            {
-                request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
-            }
-            Map<String, Object> paramsTrigger = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(parameters, "triggerPrice") : parameters;
-            if (!java.util.Objects.equals(price, null))
-            {
-                request.put("limit_price", this.priceToPrecision(symbol, price));
-            }
-            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
-            String timeInForce = timeInForceparamsTimeInForceVariable.first();
-            Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
-            if (!java.util.Objects.equals(timeInForce, null))
-            {
-                // the venue only accepts lowercase values, normalize the unified uppercase spellings
-                request.put("time_in_force", ((String)timeInForce).toLowerCase());
-            }
-            request.put("client_order_id", this.generateClientOrderId((Map<String, Object>) (paramsTimeInForce)));
-            Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        if (!java.util.Objects.equals(amount, null))
+        {
+            request.put("qty", this.amountToPrecision(symbol, amount));
+        }
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
+        if (!java.util.Objects.equals(triggerPrice, null))
+        {
+            request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
+        }
+        Map<String, Object> paramsTrigger = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(parameters, "triggerPrice") : parameters;
+        if (!java.util.Objects.equals(price, null))
+        {
+            request.put("limit_price", this.priceToPrecision(symbol, price));
+        }
+        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
+        String timeInForce = timeInForceparamsTimeInForceVariable.first();
+        Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
+        if (!java.util.Objects.equals(timeInForce, null))
+        {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request.put("time_in_force", ((String)timeInForce).toLowerCase());
+        }
+        request.put("client_order_id", this.generateClientOrderId(paramsTimeInForce));
+        Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();
+        return this.parseOrder(response, market);
 
     }
 
-    public Order parseOrder(Object order, Map<String, Object> market)
+    public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {
@@ -1869,7 +1903,7 @@ public class Alpaca extends AlpacaApi
         //    }
         //
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String alpacaStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(alpacaStatus);
@@ -1907,12 +1941,12 @@ public class Alpaca extends AlpacaApi
         mapLiteral4.put("timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")));
         mapLiteral4.put("postOnly", null);
         mapLiteral4.put("side", this.safeString(order, "side"));
-        mapLiteral4.put("price", this.safeNumber(order, "limit_price", (Object) null));
-        mapLiteral4.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
+        mapLiteral4.put("price", this.safeNumber(order, "limit_price", null));
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "stop_price", null));
         mapLiteral4.put("cost", null);
-        mapLiteral4.put("average", this.safeNumber(order, "filled_avg_price", (Object) null));
-        mapLiteral4.put("amount", this.safeNumber(order, "qty", (Object) null));
-        mapLiteral4.put("filled", this.safeNumber(order, "filled_qty", (Object) null));
+        mapLiteral4.put("average", this.safeNumber(order, "filled_avg_price", null));
+        mapLiteral4.put("amount", this.safeNumber(order, "qty", null));
+        mapLiteral4.put("filled", this.safeNumber(order, "filled_qty", null));
         mapLiteral4.put("remaining", null);
         mapLiteral4.put("trades", null);
         mapLiteral4.put("fee", fee);
@@ -1971,60 +2005,62 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "activity_type", "FILL" );
-            }};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("until", this.iso8601(until));
-            }
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("after", this.iso8601(since));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("page_size", limit);
-            }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, paramsOmitted, 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil))).join();
-            //
-            //     [
-            //         {
-            //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
-            //             "activity_type": "FILL",
-            //             "transaction_time": "2022-12-28T12:19:29.579352Z",
-            //             "type": "fill",
-            //             "price": "67.31",
-            //             "qty": "0.07",
-            //             "side": "sell",
-            //             "symbol": "LTC/USD",
-            //             "leaves_qty": "0",
-            //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
-            //             "cum_qty": "0.07",
-            //             "order_status": "filled",
-            //             "swap_rate": "1"
-            //         },
-            //     ]
-            //
-            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "activity_type", "FILL" );
+        }};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Long until = this.safeInteger(parameters, "until");
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("until", this.iso8601(until));
+        }
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("after", this.iso8601(since));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("page_size", limit);
+        }
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, paramsOmitted, 1);
+        Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+        Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+        List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(requestUntil, paramsUntil))).join();
+        //
+        //     [
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2061,7 +2097,7 @@ public class Alpaca extends AlpacaApi
         //     },
         //
         String marketId = this.safeString2(trade, "S", "symbol");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market, null, null);
         String datetime = this.safeString2(trade, "t", "transaction_time");
         Long timestamp = this.parse8601(datetime);
         String alpacaSide = this.safeString(trade, "tks");
@@ -2103,31 +2139,33 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", currency.get("id") );
-            }};
-            Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
-            //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
-            //         "created_at": "2024-11-03T07:30:05.609976344Z"
-            //     }
-            //
-            return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "asset", currency.get("id") );
+        }};
+        Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
 
     }
 
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
+    public Map<String, Object> parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2164,48 +2202,50 @@ public class Alpaca extends AlpacaApi
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Double amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
+
+    private Object withdrawCore(String code, Double amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address, code, tagWithdrawTag);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            String tagSuffix = this.safeString(parameters, "tag", "");
-            String taggedAddress = ((address + ":") + tagSuffix);
-            Object addressValue = (((!java.util.Objects.equals(tagSuffix, "")))) ? taggedAddress : address;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", currency.get("id") );
-                put( "address", addressValue );
-                put( "amount", Alpaca.this.numberToString(amount) );
-            }};
-            Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag))).join();
-            //
-            //     {
-            //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
-            //         "tx_hash": null,
-            //         "direction": "OUTGOING",
-            //         "amount": "20",
-            //         "usd_value": "19.99856",
-            //         "chain": "ETH",
-            //         "asset": "USDT",
-            //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-            //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
-            //         "status": "PROCESSING",
-            //         "created_at": "2024-11-07T02:39:01.775495Z",
-            //         "network_fee": "4",
-            //         "fees": "0.1"
-            //     }
-            //
-            return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
+        String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+        Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+        this.checkAddress(address, code, tagWithdrawTag);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        String tagSuffix = this.safeString(parameters, "tag", "");
+        String taggedAddress = ((address + ":") + tagSuffix);
+        Object addressValue = (((!java.util.Objects.equals(tagSuffix, "")))) ? taggedAddress : address;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "asset", currency.get("id") );
+            put( "address", addressValue );
+            put( "amount", Alpaca.this.numberToString(amount) );
+        }};
+        Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag))).join();
+        //
+        //     {
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
 
     }
 
@@ -2215,103 +2255,105 @@ public class Alpaca extends AlpacaApi
         this.options.put("sandboxMode", enable);
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String type, String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Object>> fetchTransactionsHelper(String type, String code, Long since, Long limit, Object parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchTransactionsHelperCore(type, code, since, limit, parameters));
+    }
+
+    private List<Object> fetchTransactionsHelperCore(String type, String code, Long since, Long limit, Object parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            Boolean sandboxMode = this.isSandboxModeEnabled || Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false));
-            if (Boolean.TRUE.equals(sandboxMode))
-            {
-                // paper-trading hosts do not serve the crypto wallets api at all, so route
-                // through the account activities ledger instead, filtered to transfer-like
-                // entries, see https://github.com/ccxt/ccxt/issues/24847
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "activity_types", "CSD,CSW,TRANS" );
-                }};
-                List<Object> activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
-                //
-                //     [
-                //         {
-                //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
-                //             "activity_type": "CSD",
-                //             "date": "2025-01-10",
-                //             "net_amount": "1000",
-                //             "status": "executed"
-                //         }
-                //     ]
-                //
-                List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-                List<Object> ledger = new ArrayList<Object>(Arrays.asList());
-                if ((activities instanceof List))
-                {
-                    ledger = activities;
-                }
-                for (var i = 0; i < ledger.size(); i++)
-                {
-                    Object entry = (ledger == null || i < 0 || i >= ledger.size() ? null : ledger.get(i));
-                    String activityType = this.safeString(entry, "activity_type");
-                    String amount = this.safeString(entry, "net_amount");
-                    Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(amount, "0"));
-                    String entryDirection = "OUTGOING";
-                    if (Boolean.TRUE.equals(isIncoming))
-                    {
-                        entryDirection = "INCOMING";
-                    }
-                    if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
-                    {
-                        ((List<Object>)filtered).add(entry);
-                    }
-                }
-                return this.parseTransactions(filtered, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
-            }
-            List<Object> response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency(code);
+        }
+        Boolean sandboxMode = this.isSandboxModeEnabled || Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false));
+        if (Boolean.TRUE.equals(sandboxMode))
+        {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account activities ledger instead, filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "activity_types", "CSD,CSW,TRANS" );
+            }};
+            List<Object> activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
             //
-            //     {
-            //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
-            //         "tx_hash": null,
-            //         "direction": "OUTGOING",
-            //         "amount": "20",
-            //         "usd_value": "19.99856",
-            //         "chain": "ETH",
-            //         "asset": "USDT",
-            //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-            //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
-            //         "status": "PROCESSING",
-            //         "created_at": "2024-11-07T02:39:01.775495Z",
-            //         "network_fee": "4",
-            //         "fees": "0.1"
-            //     }
+            //     [
+            //         {
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
+            //         }
+            //     ]
             //
-            List<Object> results = new ArrayList<Object>(Arrays.asList());
-            List<Object> transfers = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
+            List<Object> filtered = new ArrayList<Object>(Arrays.asList());
+            List<Object> ledger = new ArrayList<Object>(Arrays.asList());
+            if ((activities instanceof List))
             {
-                transfers = response;
+                ledger = activities;
             }
-            for (var i = 0; i < transfers.size(); i++)
+            for (var i = 0; i < ledger.size(); i++)
             {
-                Object entry = (transfers == null || i < 0 || i >= transfers.size() ? null : transfers.get(i));
-                String direction = this.safeString(entry, "direction");
-                if (java.util.Objects.equals(direction, type))
+                Object entry = (ledger == null || i < 0 || i >= ledger.size() ? null : ledger.get(i));
+                String activityType = this.safeString(entry, "activity_type");
+                String amount = this.safeString(entry, "net_amount");
+                Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(amount, "0"));
+                String entryDirection = "OUTGOING";
+                if (Boolean.TRUE.equals(isIncoming))
                 {
-                    ((List<Object>)results).add(entry);
-                } else if (java.util.Objects.equals(type, "BOTH"))
+                    entryDirection = "INCOMING";
+                }
+                if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
                 {
-                    ((List<Object>)results).add(entry);
+                    filtered.add(entry);
                 }
             }
-            return this.parseTransactions(results, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-        });
+            return this.parseTransactions(filtered, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        }
+        List<Object> response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
+        //
+        //     {
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
+        //     }
+        //
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
+        List<Object> transfers = new ArrayList<Object>(Arrays.asList());
+        if ((response instanceof List))
+        {
+            transfers = response;
+        }
+        for (var i = 0; i < transfers.size(); i++)
+        {
+            Object entry = (transfers == null || i < 0 || i >= transfers.size() ? null : transfers.get(i));
+            String direction = this.safeString(entry, "direction");
+            if (java.util.Objects.equals(direction, type))
+            {
+                results.add(entry);
+            } else if (java.util.Objects.equals(type, "BOTH"))
+            {
+                results.add(entry);
+            }
+        }
+        return this.parseTransactions(results, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
 
     }
 
@@ -2328,12 +2370,14 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object transactions = (this.fetchTransactionsHelper("BOTH", (String) (code), since, limit, parameters)).join();
-            return this.toArray(transactions);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        List<Object> transactions = (this.fetchTransactionsHelper("BOTH", code, since, limit, parameters)).join();
+        return this.toArray(transactions);
 
     }
 
@@ -2350,12 +2394,14 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object transactions = (this.fetchTransactionsHelper("INCOMING", (String) (code), since, limit, parameters)).join();
-            return this.toArray(transactions);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        List<Object> transactions = (this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters)).join();
+        return this.toArray(transactions);
 
     }
 
@@ -2372,16 +2418,18 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object transactions = (this.fetchTransactionsHelper("OUTGOING", (String) (code), since, limit, parameters)).join();
-            return this.toArray(transactions);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        List<Object> transactions = (this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters)).join();
+        return this.toArray(transactions);
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -2442,13 +2490,13 @@ public class Alpaca extends AlpacaApi
             String activityCurrencyId = this.safeString2(transaction, "symbol", "asset");
             if (!java.util.Objects.equals(activityCurrencyId, null))
             {
-                code = this.safeCurrencyCode(activityCurrencyId, (Map<String, Object>) null);
+                code = this.safeCurrencyCode(activityCurrencyId, null);
             } else if ((java.util.Objects.equals(activityType, "CSD")) || (java.util.Objects.equals(activityType, "CSW")))
             {
                 code = "USD";
             } else
             {
-                code = this.safeCurrencyCode((String) (null), currency);
+                code = this.safeCurrencyCode(null, currency);
             }
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             comment = activityType;
@@ -2538,71 +2586,73 @@ public class Alpaca extends AlpacaApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            // the two calls stay sequential deliberately — the static request harness records one request per case,
-            // and concurrent calls make the recorded url nondeterministic per language
-            Map<String, Object> account = (this.traderPrivateGetV2Account(parameters)).join();
-            List<Object> positions = (this.traderPrivateGetV2Positions(new HashMap<String, Object>() {{}})).join();
-            //
-            //     {
-            //         "id": "43a01bde-4eb1-64fssc26adb5",
-            //         "admin_configurations": {
-            //             "allow_instant_ach": true,
-            //             "max_margin_multiplier": "4"
-            //         },
-            //         "user_configurations": {
-            //             "fractional_trading": true,
-            //             "max_margin_multiplier": "4"
-            //         },
-            //         "account_number": "744873727",
-            //         "status": "ACTIVE",
-            //         "crypto_status": "ACTIVE",
-            //         "currency": "USD",
-            //         "buying_power": "5.92",
-            //         "regt_buying_power": "5.92",
-            //         "daytrading_buying_power": "0",
-            //         "effective_buying_power": "5.92",
-            //         "non_marginable_buying_power": "5.92",
-            //         "bod_dtbp": "0",
-            //         "cash": "5.92",
-            //         "accrued_fees": "0",
-            //         "portfolio_value": "48.6",
-            //         "pattern_day_trader": false,
-            //         "trading_blocked": false,
-            //         "transfers_blocked": false,
-            //         "account_blocked": false,
-            //         "created_at": "2022-06-13T14:59:18.318096Z",
-            //         "trade_suspended_by_user": false,
-            //         "multiplier": "1",
-            //         "shorting_enabled": false,
-            //         "equity": "48.6",
-            //         "last_equity": "48.8014266",
-            //         "long_market_value": "42.68",
-            //         "short_market_value": "0",
-            //         "position_market_value": "42.68",
-            //         "initial_margin": "0",
-            //         "maintenance_margin": "0",
-            //         "last_maintenance_margin": "0",
-            //         "sma": "5.92",
-            //         "daytrade_count": 0,
-            //         "balance_asof": "2024-12-10",
-            //         "crypto_tier": 1,
-            //         "intraday_adjustments": "0",
-            //         "pending_reg_taf_fees": "0"
-            //     }
-            //
-            Map<String, Object> response = new HashMap<String, Object>() {{
-                put( "account", account );
-                put( "positions", positions );
-            }};
-            return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        Map<String, Object> account = (this.traderPrivateGetV2Account(parameters)).join();
+        List<Object> positions = (this.traderPrivateGetV2Positions(new HashMap<String, Object>() {{}})).join();
+        //
+        //     {
+        //         "id": "43a01bde-4eb1-64fssc26adb5",
+        //         "admin_configurations": {
+        //             "allow_instant_ach": true,
+        //             "max_margin_multiplier": "4"
+        //         },
+        //         "user_configurations": {
+        //             "fractional_trading": true,
+        //             "max_margin_multiplier": "4"
+        //         },
+        //         "account_number": "744873727",
+        //         "status": "ACTIVE",
+        //         "crypto_status": "ACTIVE",
+        //         "currency": "USD",
+        //         "buying_power": "5.92",
+        //         "regt_buying_power": "5.92",
+        //         "daytrading_buying_power": "0",
+        //         "effective_buying_power": "5.92",
+        //         "non_marginable_buying_power": "5.92",
+        //         "bod_dtbp": "0",
+        //         "cash": "5.92",
+        //         "accrued_fees": "0",
+        //         "portfolio_value": "48.6",
+        //         "pattern_day_trader": false,
+        //         "trading_blocked": false,
+        //         "transfers_blocked": false,
+        //         "account_blocked": false,
+        //         "created_at": "2022-06-13T14:59:18.318096Z",
+        //         "trade_suspended_by_user": false,
+        //         "multiplier": "1",
+        //         "shorting_enabled": false,
+        //         "equity": "48.6",
+        //         "last_equity": "48.8014266",
+        //         "long_market_value": "42.68",
+        //         "short_market_value": "0",
+        //         "position_market_value": "42.68",
+        //         "initial_margin": "0",
+        //         "maintenance_margin": "0",
+        //         "last_maintenance_margin": "0",
+        //         "sma": "5.92",
+        //         "daytrade_count": 0,
+        //         "balance_asof": "2024-12-10",
+        //         "crypto_tier": 1,
+        //         "intraday_adjustments": "0",
+        //         "pending_reg_taf_fees": "0"
+        //     }
+        //
+        Map<String, Object> response = new HashMap<String, Object>() {{
+            put( "account", account );
+            put( "positions", positions );
+        }};
+        return this.parseBalance(response);
 
     }
 
@@ -2636,7 +2686,7 @@ public class Alpaca extends AlpacaApi
             put( "info", response );
         }};
         String currencyId = this.safeString(account, "currency");
-        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(currencyId, null);
         if (!java.util.Objects.equals(code, null))
         {
             Map<String, Object> cashAccount = this.account();
@@ -2663,7 +2713,7 @@ public class Alpaca extends AlpacaApi
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 Long baseLength = (((long) positionSymbol.length()) - 3L);
-                if (((baseLength != null && baseLength > 0)) && (positionSymbol.endsWith(((String)"USD"))))
+                if (((baseLength != null && baseLength > 0)) && positionSymbol.endsWith("USD"))
                 {
                     baseId = (positionSymbol == null ? null : positionSymbol.substring(0, (int) Math.min(baseLength < 0 ? positionSymbol.length() + baseLength : baseLength, positionSymbol.length())));
                 }
@@ -2672,7 +2722,7 @@ public class Alpaca extends AlpacaApi
             {
                 continue;
             }
-            String positionCode = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+            String positionCode = this.safeCurrencyCode(baseId, null);
             if ((!java.util.Objects.equals(positionCode, null)) && !(result.containsKey(positionCode)))
             {
                 Map<String, Object> positionAccount = this.account();
@@ -2684,7 +2734,7 @@ public class Alpaca extends AlpacaApi
         return this.safeBalance(result);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String baseApiUrl = this.safeString(this.urls.get("api"), (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)));
@@ -2724,7 +2774,7 @@ public class Alpaca extends AlpacaApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
+    public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

@@ -918,7 +918,7 @@ class woo extends woo$1["default"] {
         //         "isMaker": 0
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const isFromFetchOrder = (this.safeString(trade, 'id') !== undefined);
         const timestampString = this.safeString2(trade, 'executed_timestamp', 'executedTimestamp');
         let timestamp = undefined;
         if (timestampString !== undefined) {
@@ -935,7 +935,7 @@ class woo extends woo$1["default"] {
         const price = this.safeString2(trade, 'executed_price', 'executedPrice');
         const amount = this.safeString2(trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString2(trade, 'order_id', 'orderId');
-        const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
+        const fee = this.parseTokenAndFeeTemp(this.extend({}, trade), ['fee_asset', 'feeAsset'], ['fee']);
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
@@ -1193,8 +1193,8 @@ class woo extends woo$1["default"] {
     parseCurrency(rawCurrency) {
         const currencyId = this.safeString(rawCurrency, '_coin_id');
         const code = this.safeCurrencyCode(currencyId);
-        const tokensByNetworkId = this.indexBy(rawCurrency['_tokens_by_id'], 'network');
-        const chainsByNetworkId = this.indexBy(rawCurrency['_networks_by_id'], 'network');
+        const tokensByNetworkId = this.indexBy(this.safeList(rawCurrency, '_tokens_by_id', []), 'network');
+        const chainsByNetworkId = this.indexBy(this.safeList(rawCurrency, '_networks_by_id', []), 'network');
         const keys = Object.keys(chainsByNetworkId);
         const resultingNetworks = {};
         for (let j = 0; j < keys.length; j++) {
@@ -1401,7 +1401,7 @@ class woo extends woo$1["default"] {
         const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeList(paramsMarginMode, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(paramsMarginMode, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, paramsMarginMode);
+        const postOnly = this.isPostOnly(isMarket, false, paramsMarginMode);
         let clientOrderIdKey = 'clientOrderId';
         if (isConditional) {
             clientOrderIdKey = 'clientAlgoOrderId';
@@ -3058,7 +3058,7 @@ class woo extends woo$1["default"] {
             const firstPart = this.safeString(parts, 0);
             let currencyId = this.safeString(parts, 1, firstPart);
             if (partsLength > 2) {
-                currencyId += '_' + this.safeString(parts, 2, '');
+                currencyId = this.safeString(parts, 1, '') + '_' + this.safeString(parts, 2, '');
             }
             return this.safeCurrency(currencyId);
         }
@@ -3427,7 +3427,7 @@ class woo extends woo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.market(symbol)['symbol'] : undefined;
+        const symbolResolved = (symbol !== undefined) ? this.safeString(this.market(symbol), 'symbol') : undefined;
         const currency = this.currency(code);
         const request = {
             'token': currency['id'], // interest token that you want to repay

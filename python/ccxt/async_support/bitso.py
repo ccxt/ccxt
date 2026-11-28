@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -497,8 +497,10 @@ class bitso(Exchange, ImplicitAPI):
             parts = id.split('_')
             baseId = self.safe_string(parts, 0, '')
             quoteId = self.safe_string(parts, 1, '')
-            base = self.safe_currency_code(baseId.upper())
-            quote = self.safe_currency_code(quoteId.upper())
+            baseIdUpper = baseId.upper()
+            quoteIdUpper = quoteId.upper()
+            base = self.safe_currency_code(baseIdUpper)
+            quote = self.safe_currency_code(quoteIdUpper)
             if (base is None) or (quote is None):
                 continue
             fees = self.safe_dict(market, 'fees', {})
@@ -1137,14 +1139,15 @@ class bitso(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        precisionSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'book': market['id'],
             'side': side,
             'type': type,
-            'major': self.amount_to_precision(market['symbol'], amount),
+            'major': self.amount_to_precision(precisionSymbol, amount),
         }
         if type == 'limit':
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['price'] = self.price_to_precision(precisionSymbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         payload = self.safe_dict(response, 'payload', {})
         id = self.safe_string(payload, 'oid')
@@ -1213,8 +1216,8 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         orders = []
         for i in range(0, len(payload)):
-            id = payload[i]
-            orders.append(self.parse_order(id, market))
+            id = self.safe_string(payload, i)
+            orders.append(self.safe_order({'info': self.safe_string(payload, i), 'id': id, 'symbol': self.safe_symbol(None, market, '_')}, market))
         return orders
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
@@ -1239,8 +1242,8 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         canceledOrders = []
         for i in range(0, len(payload)):
-            order = self.parse_order(payload[i])
-            canceledOrders.append(order)
+            id = self.safe_string(payload, i)
+            canceledOrders.append(self.safe_order({'info': self.safe_string(payload, i), 'id': id, 'symbol': self.safe_symbol(None, None, '_')}))
         return canceledOrders
 
     def parse_order_status(self, status: Str) -> Str:
@@ -1253,16 +1256,7 @@ class bitso(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
-        #
-        #
-        # canceledOrder
-        # yWTQGxDMZ0VimZgZ
-        #
-        id = None
-        if isinstance(order, str):
-            id = order
-        else:
-            id = self.safe_string(order, 'oid')
+        id = self.safe_string(order, 'oid')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'book')
@@ -1353,7 +1347,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         numOrders = len(payload)
         if numOrders == 1:
-            return self.parse_order(payload[0])
+            return self.parse_order(self.safe_dict(payload, 0, {}))
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1497,7 +1491,7 @@ class bitso(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}) -> dict:
         """
  @deprecated
         please use fetchDepositWithdrawFees instead
@@ -1719,9 +1713,15 @@ class bitso(Exchange, ImplicitAPI):
                 withdrawFee = self.parse_number(withdrawalResponse[currencyId])
                 resultValue = self.safe_dict(result, code)
                 if resultValue is None:
-                    result[code] = self.deposit_withdraw_fee({})
-                result[code]['withdraw']['fee'] = withdrawFee
-                result[code]['info'][code] = withdrawFee
+                    newInfo = {}
+                    newInfo[code] = self.parse_number(withdrawalResponse[currencyId])
+                    result[code] = self.extend(self.deposit_withdraw_fee(newInfo), {'withdraw': {'fee': withdrawFee, 'percentage': None}})
+                else:
+                    infoUpdate = {}
+                    infoUpdate[code] = self.parse_number(withdrawalResponse[currencyId])
+                    withdraw = self.extend(self.safe_dict(resultValue, 'withdraw', {}), {'fee': withdrawFee})
+                    info = self.extend(self.safe_dict(resultValue, 'info', {}), infoUpdate)
+                    result[code] = self.extend(resultValue, {'withdraw': withdraw, 'info': info})
         return result
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
@@ -1754,8 +1754,18 @@ class bitso(Exchange, ImplicitAPI):
             'address': address,
             'destination_tag': tagWithdrawTag,
         }
-        classMethod = 'privatePost' + method + 'Withdrawal'
-        response = await getattr(self, classMethod)(self.extend(request, paramsWithdrawTag))
+        withdrawRequest = self.extend(request, paramsWithdrawTag)
+        response = None
+        if method == 'Bitcoin':
+            response = await self.privatePostBitcoinWithdrawal(withdrawRequest)
+        elif method == 'Ether':
+            response = await self.privatePostEtherWithdrawal(withdrawRequest)
+        elif method == 'Ripple':
+            response = await self.privatePostRippleWithdrawal(withdrawRequest)
+        elif method == 'Bcash':
+            response = await self.privatePostBcashWithdrawal(withdrawRequest)
+        else:
+            response = await self.privatePostLitecoinWithdrawal(withdrawRequest)
         #
         #     {
         #         "success": true,
@@ -1893,10 +1903,10 @@ class bitso(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
-        if 'success' in response:
+        if self.safe_bool(response, 'success') is not None:
             #
             #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             #

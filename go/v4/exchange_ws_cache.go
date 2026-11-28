@@ -11,25 +11,27 @@ package ccxt
 // handler the venue does not declare is dropped, as the base stubs would.
 func (this *BaseExchange) wsFrameHandler() func(client any, message any) {
 	text, _ := this.DerivedExchange.(interface {
-		HandleTextMessage(client any, message any)
+		HandleTextMessage(client ClientInterface, message string)
 	})
 	list, _ := this.DerivedExchange.(interface {
-		HandleListMessage(client any, message any)
+		HandleListMessage(client ClientInterface, message []any)
 	})
 	binary, _ := this.DerivedExchange.(interface {
-		HandleBinaryMessage(client any, message any)
+		HandleBinaryMessage(client ClientInterface, message any)
 	})
-	object := func(client any, message map[string]any) {}
+	object := func(client ClientInterface, message map[string]any) {}
 	if venue, ok := this.DerivedExchange.(interface {
-		HandleMessage(client any, message map[string]any)
+		HandleMessage(client ClientInterface, message map[string]any)
 	}); ok {
 		object = venue.HandleMessage
 	} else if venue, ok := this.DerivedExchange.(interface {
-		HandleMessage(client any, message any)
+		HandleMessage(client ClientInterface, message any)
 	}); ok {
-		object = func(client any, message map[string]any) { venue.HandleMessage(client, message) }
+		object = func(client ClientInterface, message map[string]any) { venue.HandleMessage(client, message) }
 	}
-	return func(client any, message any) {
+	return func(transport any, message any) {
+		// the transport hands *Client (offline mocks) or *WSClient (live): both are the ClientInterface
+		client, _ := transport.(ClientInterface)
 		switch frame := message.(type) {
 		case string:
 			if text != nil {
@@ -69,7 +71,7 @@ func (this *BaseExchange) ApplyOrderBookSnapshot(stored any, snapshot any) bool 
 	if deltas == nil {
 		return false
 	}
-	index := ToFloat64(this.DerivedExchange.GetCacheIndex(book, deltas))
+	index := this.DerivedExchange.GetCacheIndex(book, deltas)
 	if index < 0 {
 		return false
 	}
@@ -79,15 +81,15 @@ func (this *BaseExchange) ApplyOrderBookSnapshot(stored any, snapshot any) bool 
 	return true
 }
 
-func (this *BaseExchange) wsClients() map[string]any {
+func (this *BaseExchange) wsClients() map[string]*WSClient {
 	if this.Clients == nil {
-		this.Clients = map[string]any{}
+		this.Clients = map[string]*WSClient{}
 	}
 	return this.Clients
 }
 
 // wsClientGetOrCreate answers the client registered for url, building it when absent.
-func (this *BaseExchange) wsClientGetOrCreate(url string, create func() any) any {
+func (this *BaseExchange) wsClientGetOrCreate(url string, create func() *WSClient) *WSClient {
 	clients := this.wsClients()
 	if existing, ok := clients[url]; ok {
 		return existing
@@ -105,13 +107,13 @@ func (this *BaseExchange) wsClientDelete(url string) {
 }
 
 func (this *BaseExchange) wsClientDeleteIfErrored(url string) {
-	if existing, ok := this.Clients[url]; ok && existing.(ClientInterface).GetError() != nil {
+	if existing, ok := this.Clients[url]; ok && existing.GetError() != nil {
 		delete(this.Clients, url)
 	}
 }
 
 func (this *BaseExchange) wsClientDeleteIfSame(url string, client any) {
-	if existing, ok := this.Clients[url]; ok && existing == client {
+	if existing, ok := this.Clients[url]; ok && any(existing) == client {
 		delete(this.Clients, url)
 	}
 }
@@ -120,8 +122,8 @@ func (this *BaseExchange) wsClientDeleteIfSame(url string, client any) {
 func (this *BaseExchange) wsClientDrain() []*WSClient {
 	clients := make([]*WSClient, 0, len(this.Clients))
 	for _, client := range this.Clients {
-		clients = append(clients, client.(*WSClient))
+		clients = append(clients, client)
 	}
-	this.Clients = map[string]any{}
+	this.Clients = map[string]*WSClient{}
 	return clients
 }

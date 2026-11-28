@@ -118,7 +118,8 @@ class coinone extends \ccxt\async\coinone {
         if (($base === null) || ($quote === null)) {
             return;
         }
-        $symbol = $this->symbol($base . '/' . $quote);
+        $marketSymbol = $base . '/' . $quote;
+        $symbol = $this->symbol($marketSymbol);
         $timestamp = $this->safe_integer($data, 'timestamp');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -250,7 +251,8 @@ class coinone extends \ccxt\async\coinone {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $this->symbol($base . '/' . $quote);
+            $marketSymbol = $base . '/' . $quote;
+            $symbol = $this->symbol($marketSymbol);
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -391,7 +393,7 @@ class coinone extends \ccxt\async\coinone {
         ), $marketResolved);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "response_type": "ERROR",

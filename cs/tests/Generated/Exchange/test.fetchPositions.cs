@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
         // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
         object positionsForSymbol = await invokeExchangeDynamically(exchange, "fetchPositions", new List<object>() {symbol});
-        assert(((positionsForSymbol is IList<object>) || (positionsForSymbol.GetType().IsGenericType && positionsForSymbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
+        assert(((positionsForSymbol is IList<object>) || (positionsForSymbol is not null && positionsForSymbol.GetType().IsGenericType && positionsForSymbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
         int positionsForSymbolLength = getArrayLength(positionsForSymbol);
         assert(positionsForSymbolLength <= 4, add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbol)));
         for (int i = 0; i < getArrayLength(positionsForSymbol); i++)

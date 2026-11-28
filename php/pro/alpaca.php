@@ -112,7 +112,7 @@ class alpaca extends \ccxt\async\alpaca {
         //    ]
         //
         $ticker = $this->parse_ticker($message);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         $tickerSymbol = $this->safe_string($ticker, 'symbol', '');
         $messageHash = 'ticker:' . $tickerSymbol;
         if ($symbol !== null) {
@@ -687,7 +687,7 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "T": "error",

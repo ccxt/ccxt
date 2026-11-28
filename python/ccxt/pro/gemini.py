@@ -58,7 +58,7 @@ class gemini(ccxt.async_support.gemini):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades:' + self.safe_string(market, 'symbol', '')
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         if marketId is None:
             raise ArgumentsRequired(self.id + ' watchTrades() marketId is required')
         request = {
@@ -170,7 +170,7 @@ class gemini(ccxt.async_support.gemini):
         #     }
         #
         trade = self.parse_ws_trade(message)
-        symbol = trade['symbol']
+        symbol = self.safe_string(trade, 'symbol')
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -178,7 +178,7 @@ class gemini(ccxt.async_support.gemini):
             if symbol is not None:
                 self.trades[symbol] = stored
         stored.append(trade)
-        messageHash = 'trades:' + symbol
+        messageHash = 'trades:' + self.safe_string(trade, 'symbol', '')
         client.resolve(stored, messageHash)
 
     def handle_trades(self, client: Client, message: dict):
@@ -344,8 +344,7 @@ class gemini(ccxt.async_support.gemini):
         changesLength = len(changes)
         # reverse order of array to store candles in ascending order
         for i in range(0, changesLength):
-            parsed = self.parse_ohlcv(self.safe_value(changes, changesLength - i - 1), market)
-            stored.append(parsed)
+            stored.append(self.parse_ohlcv(self.safe_value(changes, changesLength - i - 1), market))
         messageHash = 'ohlcv:' + symbol + ':' + timeframeId
         client.resolve(stored, messageHash)
         return message
@@ -365,7 +364,7 @@ class gemini(ccxt.async_support.gemini):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         if marketId is None:
             raise ArgumentsRequired(self.id + ' watchOrderBook() marketId is required')
         request = {
@@ -532,7 +531,8 @@ class gemini(ccxt.async_support.gemini):
             messageHash = itemHashName + ':' + symbol
             messageHashes.append(messageHash)
             market = self.market(symbol)
-            marketIds.append(market['id'])
+            marketId = self.safe_string(market, 'id', '')
+            marketIds.append(marketId)
         queryStr = ','.join(marketIds)
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
@@ -719,7 +719,7 @@ class gemini(ccxt.async_support.gemini):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         for i in range(0, len(message)):
-            order = self.parse_ws_order(self.safe_value(message, i))
+            order = self.parse_ws_order(self.safe_dict(message, i, {}))
             orders.append(order)
         client.resolve(self.orders, messageHash)
 
@@ -929,13 +929,11 @@ class gemini(ccxt.async_support.gemini):
         # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
         wsOptions = self.safe_dict(self.options, 'ws', {})
-        wsSubOptions = self.safe_dict(wsOptions, 'options', {})
-        originalHeaders = self.safe_dict(wsSubOptions, 'headers', {})
         headers = {
             'X-GEMINI-APIKEY': self.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         }
-        self.options['ws']['options']['headers'] = headers
+        self.options['ws'] = self.extend(wsOptions, {'options': self.extend(self.safe_dict(wsOptions, 'options'), {'headers': headers})})
         self.client(url)
-        self.options['ws']['options']['headers'] = originalHeaders
+        self.options['ws'] = wsOptions

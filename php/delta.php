@@ -351,7 +351,10 @@ class delta extends Exchange {
         }
         $optionType = $this->safe_string($optionParts, $hasSlash ? 3 : 0, '');
         $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3, '');
-        $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);
+        $expiryYear = mb_substr($rawExpiry, 4);
+        $expiryMonth = mb_substr($rawExpiry, 2, 4 - 2);
+        $expiryDay = mb_substr($rawExpiry, 0, 2 - 0);
+        $expiry = $expiryYear . $expiryMonth . $expiryDay;
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2, '');
         $datetime = $this->convert_expire_date($expiry);
@@ -408,7 +411,7 @@ class delta extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
-        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
+        if (($marketId !== null) && $isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -888,9 +891,11 @@ class delta extends Exchange {
             $optionType = null;
             $symbol = $base . '/' . $quote;
             if ($swap || $future || $option) {
-                $symbol = $symbol . ':' . $settle;
+                $settleCode = $this->safe_currency_code($settleId);
+                $symbol = $symbol . ':' . $settleCode;
                 if ($future || $option) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                    $expiryCode = $this->yymmdd($expiry);
+                    $symbol = $symbol . '-' . $expiryCode;
                     if ($option) {
                         $type = 'option';
                         $letter = 'C';
@@ -902,7 +907,8 @@ class delta extends Exchange {
                             $letter = 'M';
                             $optionType = 'move';
                         }
-                        $symbol = $symbol . '-' . $strike . '-' . $letter;
+                        $strikeString = $this->safe_string($market, 'strike_price', '');
+                        $symbol = $symbol . '-' . $strikeString . '-' . $letter;
                     } else {
                         $type = 'future';
                     }
@@ -911,7 +917,7 @@ class delta extends Exchange {
                 }
             }
             $state = $this->safe_string($market, 'state');
-            $result[] = $this->safe_market_structure(array(
+            $marketStructure = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
@@ -929,11 +935,11 @@ class delta extends Exchange {
                 'option' => $option,
                 'active' => ($state === 'live'),
                 'contract' => !$spot,
-                'linear' => $spot ? null : $linear,
-                'inverse' => $spot ? null : !$linear,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $this->safe_number($market, 'taker_commission_rate'),
                 'maker' => $this->safe_number($market, 'maker_commission_rate'),
-                'contractSize' => $spot ? null : $contractSize,
+                'contractSize' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry), // do not use raw expiry string
                 'strike' => $this->parse_number($strike),
@@ -962,7 +968,13 @@ class delta extends Exchange {
                 ),
                 'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                 'info' => $market,
-            ));
+            );
+            if (!$spot) {
+                $marketStructure['linear'] = $linear;
+                $marketStructure['inverse'] = !$linear;
+                $marketStructure['contractSize'] = $contractSize;
+            }
+            $result[] = $this->safe_market_structure($marketStructure);
         }
         return $result;
     }
@@ -1086,7 +1098,7 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'close');
         $quotes = $this->safe_dict($ticker, 'quotes', array());
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -1411,14 +1423,13 @@ class delta extends Exchange {
         $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $rawTicker = $tickers[$i];
-            $contractType = $this->safe_string($rawTicker, 'contract_type');
+            $contractType = $this->safe_string($tickers[$i], 'contract_type');
             if (($contractType === 'options_combos') || ($contractType === 'binary_call_options') || ($contractType === 'binary_put_options')) {
                 // these instruments are excluded from the unified markets, see fetchMarkets
                 continue;
             }
-            $ticker = $this->parse_ticker($rawTicker);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()));
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -1700,11 +1711,16 @@ class delta extends Exchange {
             $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset_id');
             $currency = $this->safe_dict($currenciesByNumericId, $currencyId);
-            $code = ($currency === null) ? $currencyId : $currency['code'];
+            $code = $currencyId;
+            if ($currency !== null) {
+                $code = $this->safe_string($currency, 'code');
+            }
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['free'] = $this->safe_string($balance, 'available_balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1841,7 +1857,7 @@ class delta extends Exchange {
         //
         $marketId = $this->safe_string($position, 'product_symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
         $sizeString = $this->safe_string($position, 'size');
         $side = null;
@@ -2035,10 +2051,11 @@ class delta extends Exchange {
         $this->load_markets();
         $orderType = $type . '_order';
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'product_id' => $market['numericId'],
             // 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size' => $this->amount_to_precision($market['symbol'], $amount),
+            'size' => $this->amount_to_precision($precisionSymbol, $amount),
             'side' => $side,
             'order_type' => $orderType,
             // 'client_order_id': 'string',
@@ -2047,7 +2064,7 @@ class delta extends Exchange {
             // 'reduce_only': 'false', // 'true',
         );
         if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['limit_price'] = $this->price_to_precision($precisionSymbol, $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
@@ -2564,10 +2581,8 @@ class delta extends Exchange {
         //
         $id = $this->safe_string($item, 'uuid');
         $direction = null;
-        $account = null;
         $metaData = $this->safe_dict($item, 'meta_data', array());
         $referenceId = $this->safe_string($metaData, 'transaction_id');
-        $referenceAccount = null;
         $type = $this->safe_string($item, 'transaction_type');
         if (($type === 'deposit') || ($type === 'commission_rebate') || ($type === 'referral_bonus') || ($type === 'pnl') || ($type === 'withdrawal_cancellation') || ($type === 'promo_credit')) {
             $direction = 'in';
@@ -2588,9 +2603,9 @@ class delta extends Exchange {
             'info' => $item,
             'id' => $id,
             'direction' => $direction,
-            'account' => $account,
+            'account' => null,
             'referenceId' => $referenceId,
-            'referenceAccount' => $referenceAccount,
+            'referenceAccount' => null,
             'type' => $type,
             'currency' => $code,
             'amount' => $this->parse_number($amount),
@@ -3352,7 +3367,8 @@ class delta extends Exchange {
     public function parse_settlements(array $settlements, array $market): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($settlements[$i], $market);
+            $settlementRow = $this->extend(array(), $settlements[$i]);
+            $result[] = $this->parse_settlement($settlementRow, $market);
         }
         return $result;
     }
@@ -3527,7 +3543,8 @@ class delta extends Exchange {
         //
         // {"result":{},"success":true}
         //
-        $position = $this->parse_position($this->safe_dict($response, 'result', array()));
+        $positionRow = $this->safe_dict($response, 'result', array());
+        $position = $this->parse_position($positionRow);
         return array( $position );
     }
 
@@ -4204,7 +4221,7 @@ class delta extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

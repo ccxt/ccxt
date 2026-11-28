@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Bool, Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -114,7 +114,8 @@ export default class coinone extends coinoneRest {
         if ((base === undefined) || (quote === undefined)) {
             return;
         }
-        const symbol = this.symbol (base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol (marketSymbol);
         const timestamp = this.safeInteger (data, 'timestamp');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -242,7 +243,8 @@ export default class coinone extends coinoneRest {
         const quote = this.safeCurrencyCode (quoteId);
         let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol (base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol (marketSymbol);
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -379,7 +381,7 @@ export default class coinone extends coinoneRest {
         }, marketResolved);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "response_type": "ERROR",

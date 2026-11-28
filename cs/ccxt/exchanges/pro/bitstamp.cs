@@ -92,7 +92,7 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -117,7 +117,7 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async virtual Task<object> unWatchChannel(object channel, object subHash, string topic, object symbols, object parameters = null)
+    public async virtual Task<object> unWatchChannel(string channel, string subHash, string topic, IList<object> symbols, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -190,7 +190,7 @@ public partial class bitstamp : ccxt.bitstamp
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
-        } else if ((deltaNonce == null || nonce >= deltaNonce))
+        } else if (nonce.Value >= deltaNonce.Value)
         {
             return;
         }
@@ -210,16 +210,16 @@ public partial class bitstamp : ccxt.bitstamp
         this.handleBidAsks(orderbook?.asks, asks);
     }
 
-    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
+    public virtual void handleBidAsks(ccxt.pro.IOrderBookSide bookSide, IList<object> bidAsks)
     {
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk((bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null));
+            List<object> bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
 
-    public override object getCacheIndex(object orderbook, IList<object> deltas)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> deltas)
     {
         // we will consider it a fail
         IDictionary<string, object> firstElement = this.safeDict(deltas, 0);
@@ -277,7 +277,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -326,7 +326,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? sideRaw = this.safeInteger(trade, "type");
         string side = "sell";
@@ -491,9 +491,9 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolValue, limit));
+            limitResolved = orders.getLimit(symbolValue, limit);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -564,9 +564,9 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolValue, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }
 
     /**
@@ -663,7 +663,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -820,7 +820,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         string? triggerPrice = this.safeString(order, "stop_price");
         Int64? timestamp = this.safeTimestamp(order, "datetime");
-        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? symbol = this.safeString(marketResolved, "symbol", "");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -949,7 +949,7 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public virtual ccxt.pro.ArrayCache pruneCachedBySymbols(ccxt.pro.ArrayCacheBySymbolById newCache, ccxt.pro.ArrayCache cache, IList<object> symbols)
     {
-        IList<object> entries = this.toArray(cache);
+        IList<object> entries = cache;
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
             object entry = entries[i];
@@ -962,7 +962,7 @@ public partial class bitstamp : ccxt.bitstamp
         return newCache;
     }
 
-    public virtual void handleSubject(WebSocketClient client, object message)
+    public virtual void handleSubject(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1025,7 +1025,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // {
         //     "event": "bts:error",
@@ -1038,14 +1038,14 @@ public partial class bitstamp : ccxt.bitstamp
             string feedback = ((this.id + " ") + this.json(message));
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? code = this.safeString(data, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        if (!(this.handleErrorMessage(client, message) == true))
+        if ((this.handleErrorMessage(client, message) != true))
         {
             return;
         }
@@ -1157,7 +1157,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -1167,7 +1167,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             throw new AuthenticationError ((this.id + " subscribePrivate() requires a userId from authenticate()")) ;
         }
-        object messageHashValue = add(messageHash, (("-" + userId)));
+        string messageHashValue = (messageHash + (("-" + userId)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {

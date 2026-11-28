@@ -68,7 +68,7 @@ public partial class testMainClass : BaseTest
             }
             if (success2)
             {
-                assert(((positionsForSymbols is IList<object>) || (positionsForSymbols.GetType().IsGenericType && positionsForSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
+                assert(((positionsForSymbols is IList<object>) || (positionsForSymbols is not null && positionsForSymbols.GetType().IsGenericType && positionsForSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode
                 assert(getArrayLength(positionsForSymbols) <= 4, add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
                 now = exchange.milliseconds();

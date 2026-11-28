@@ -49,7 +49,7 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the resolved value of the subscription
      */
-    public async virtual Task<object> subscribePublic(string name, object symbol, object messageHash, object parameters = null)
+    public async virtual Task<object> subscribePublic(string name, object symbol, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -75,7 +75,7 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the resolved value of the subscription
      */
-    public async virtual Task<object> subscribePrivate(string name, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(string name, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -163,9 +163,9 @@ public partial class bit2me : ccxt.bit2me
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            finalLimit = trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, finalLimit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, finalLimit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -184,10 +184,10 @@ public partial class bit2me : ccxt.bit2me
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         ccxt.Trade trade = this.parseWsTrade(data, market);
-        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);
@@ -285,20 +285,21 @@ public partial class bit2me : ccxt.bit2me
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         string messageHash = "orders";
-        object unifiedSymbol = null;
+        string? unifiedSymbol = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            unifiedSymbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ((messageHash + ":") + (unifiedSymbol));
+            string? marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("orders:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
         }
-        object orders = await this.subscribePrivate("my-orders", messageHash, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.subscribePrivate("my-orders", messageHash, parameters));
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, unifiedSymbol, limit));
+            finalLimit = orders.getLimit(unifiedSymbol, limit);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), unifiedSymbol, since, finalLimit, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -338,7 +339,7 @@ public partial class bit2me : ccxt.bit2me
         ccxt.pro.ArrayCache orders = this.orders;
         orders.append(ccxt.BaseExchange.FromOrder(order));
         client.resolve(orders, "orders");
-        client.resolve(orders, ("orders:" + ((((object)order.symbol)))));
+        client.resolve(orders, ("orders:" + this.safeString(ccxt.BaseExchange.FromOrder(order), "symbol", "")));
     }
 
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
@@ -422,20 +423,21 @@ public partial class bit2me : ccxt.bit2me
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         string messageHash = "myTrades";
-        object unifiedSymbol = null;
+        string? unifiedSymbol = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            unifiedSymbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ((messageHash + ":") + (unifiedSymbol));
+            string? marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("myTrades:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
         }
-        object trades = await this.subscribePrivate("my-trades", messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribePrivate("my-trades", messageHash, parameters));
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, unifiedSymbol, limit));
+            finalLimit = trades.getLimit(unifiedSymbol, limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), unifiedSymbol, since, finalLimit, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -470,7 +472,7 @@ public partial class bit2me : ccxt.bit2me
         ccxt.pro.ArrayCache myTrades = this.myTrades;
         myTrades.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(myTrades, "myTrades");
-        client.resolve(myTrades, ("myTrades:" + ((((object)trade.symbol)))));
+        client.resolve(myTrades, ("myTrades:" + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "")));
     }
 
     /**
@@ -560,11 +562,11 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} result the value to resolve with
      * @param {object} [error] when set the command is rejected with it instead
      */
-    public virtual void settleRequest(WebSocketClient client, object messageHash, object result, object error = null)
+    public virtual void settleRequest(WebSocketClient client, string messageHash, object result, object error = null)
     {
-        if ((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
         if ((error != null))
         {
@@ -661,7 +663,7 @@ public partial class bit2me : ccxt.bit2me
             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "status", this.parseOrderStatus(this.safeString(data, "status")) },
         }, market);
-        this.settleRequest(client, ("canceled-order:" + orderId), ccxt.BaseExchange.FromOrder(order));
+        this.settleRequest(client, ("canceled-order:" + this.safeString(data, "orderId", "")), ccxt.BaseExchange.FromOrder(order));
     }
 
     /**
@@ -758,7 +760,7 @@ public partial class bit2me : ccxt.bit2me
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
-        string messageHash = ("canceled-all-orders:" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string messageHash = ("canceled-all-orders:" + this.safeString(market, "id", ""));
         return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
@@ -783,12 +785,12 @@ public partial class bit2me : ccxt.bit2me
         {
             orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", message },
-                { "id", ids[i] },
-                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
+                { "id", this.safeString(ids, i) },
+                { "symbol", this.safeString(market, "symbol") },
                 { "status", "canceled" },
             }, market)));
         }
-        this.settleRequest(client, ("canceled-all-orders:" + marketId), orders);
+        this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders);
     }
 
     /**
@@ -806,8 +808,8 @@ public partial class bit2me : ccxt.bit2me
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             // the token is valid for one minute, it is only used to open the session
             Dictionary<string, object> response = await this.privatePostV1SigninApikey(parameters);
@@ -824,7 +826,7 @@ public partial class bit2me : ccxt.bit2me
         return await (future as Exchange.Future);
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, object message)
+    public virtual void handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "event": "authenticate" }
@@ -848,7 +850,7 @@ public partial class bit2me : ccxt.bit2me
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { "event": "subscribe", "symbol": "BTC/USDC", "subscription": { "name": "order-book" }, "result": "subscribed" }
@@ -857,7 +859,7 @@ public partial class bit2me : ccxt.bit2me
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
@@ -871,7 +873,7 @@ public partial class bit2me : ccxt.bit2me
         object exception = null;
         try
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             exception = new ExchangeError(feedback);
         } catch(Exception e)
@@ -887,7 +889,8 @@ public partial class bit2me : ccxt.bit2me
             for (int i = 0; i < clientOrderIds.Count; i++)
             {
                 string? clientOrderId = ((string)clientOrderIds[i]);
-                if (isEqual((clientOrderId != null && pending.ContainsKey(clientOrderId) ? pending[clientOrderId] : null), marketId))
+                string? pendingMarketId = this.safeString(pending, clientOrderId);
+                if ((pendingMarketId == marketId))
                 {
                     this.settleRequest(client, ("added-order:" + clientOrderId), null, exception);
                     this.options["pendingWsOrders"] = this.omit((this.options != null && this.options.ContainsKey("pendingWsOrders") ? this.options["pendingWsOrders"] : null), clientOrderId);
@@ -895,13 +898,13 @@ public partial class bit2me : ccxt.bit2me
             }
         } else if (eventVar == "canceled-order")
         {
-            this.settleRequest(client, ("canceled-order:" + this.safeString(message, "orderId")), null, exception);
+            this.settleRequest(client, ("canceled-order:" + this.safeString(message, "orderId", "")), null, exception);
         } else if (eventVar == "canceled-orders")
         {
             this.settleRequest(client, "canceled-orders", null, exception);
         } else if (eventVar == "canceled-all-orders")
         {
-            this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol")), null, exception);
+            this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), null, exception);
         } else if (eventVar == "subscribe")
         {
             // a refused subscription names the channel and the symbol it was asked for
@@ -944,9 +947,10 @@ public partial class bit2me : ccxt.bit2me
                 }
             }
         }
+        return false;
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? eventVar = this.safeString(message, "event");
         if (eventVar == "authenticate")

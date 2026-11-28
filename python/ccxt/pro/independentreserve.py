@@ -222,7 +222,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
         checksum = self.handle_option('watchOrderBook', 'checksum', True)
-        if (checksum) and (receivedSnapshot):
+        if (checksum is True) and (receivedSnapshot):
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']
             asksLength = len(storedAsks)
@@ -249,11 +249,10 @@ class independentreserve(ccxt.async_support.independentreserve):
         # toFixed returns a zero-padded *string* in js but a *number* in
         # go/c#/java, dropping trailing zeros. decimalToPrecision with
         # PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        result = self.decimal_to_precision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO)
-        result = result.replace('.', '')
+        padded = self.decimal_to_precision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO)
+        digits = padded.replace('.', '')
         # remove leading zeros
-        result = self.parse_number(result)
-        result = self.number_to_string(result)
+        result = self.number_to_string(self.parse_number(digits))
         return result
 
     def handle_delta(self, bookside: object, delta: object):

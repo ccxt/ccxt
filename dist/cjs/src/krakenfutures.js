@@ -469,7 +469,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             let symbol = id;
             const split = id.split('_');
             const splitMarket = this.safeString(split, 1, '');
-            const baseId = splitMarket.slice(0, splitMarket.length - 3);
+            const baseIdLength = splitMarket.length - 3;
+            const baseId = splitMarket.slice(0, baseIdLength);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -976,7 +977,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "more_candles": true
         //    }
         //
-        const candles = this.safeList(response, 'candles');
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1453,10 +1454,10 @@ class krakenfutures extends krakenfutures$1["default"] {
         //         }
         //     }
         //
-        const sendStatus = this.safeValue(response, 'sendStatus');
+        const sendStatus = this.safeDict(response, 'sendStatus');
         const status = this.safeString(sendStatus, 'status');
         this.verifyOrderActionSuccess(status, 'createOrder', ['filled']);
-        return this.parseOrder(sendStatus, market);
+        return this.parseOrder(this.extend({}, sendStatus), market);
     }
     /**
      * @method
@@ -1477,8 +1478,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
@@ -1561,12 +1562,14 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privatePostCancelorder(this.extend({ 'order_id': id }, params));
-        const status = this.safeString(this.safeDict(response, 'cancelStatus', {}), 'status');
+        const request = { 'order_id': id };
+        const response = await this.privatePostCancelorder(this.extend(request, params));
+        const cancelStatus = this.safeDict(response, 'cancelStatus');
+        const status = this.safeString(cancelStatus, 'status');
         this.verifyOrderActionSuccess(status, 'cancelOrder');
         let order = {};
-        if ('cancelStatus' in response) {
-            order = this.parseOrder(response['cancelStatus']);
+        if (cancelStatus !== undefined) {
+            order = this.parseOrder(cancelStatus);
         }
         return this.extend({ 'info': response }, order);
     }
@@ -1930,30 +1933,31 @@ class krakenfutures extends krakenfutures$1["default"] {
         return this.safeString(typesMap, orderType, orderType);
     }
     verifyOrderActionSuccess(status, method, omit = []) {
-        const errors$1 = {
-            'invalidOrderType': errors.InvalidOrder,
-            'invalidSide': errors.InvalidOrder,
-            'invalidSize': errors.InvalidOrder,
-            'invalidPrice': errors.InvalidOrder,
-            'insufficientAvailableFunds': errors.InsufficientFunds,
-            'selfFill': errors.ExchangeError,
-            'tooManySmallOrders': errors.ExchangeError,
-            'maxPositionViolation': errors.BadRequest,
-            'marketSuspended': errors.ExchangeNotAvailable,
-            'marketInactive': errors.ExchangeNotAvailable,
-            'clientOrderIdAlreadyExist': errors.DuplicateOrderId,
-            'clientOrderIdTooLong': errors.BadRequest,
-            'outsidePriceCollar': errors.InvalidOrder,
-            'postWouldExecute': errors.OrderImmediatelyFillable, // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
-            'iocWouldNotExecute': errors.OrderNotFillable, // -||-
-            'wouldNotReducePosition': errors.ExchangeError,
-            'orderForEditNotFound': errors.OrderNotFound,
-            'orderForEditNotAStop': errors.InvalidOrder,
-            'filled': errors.OrderNotFound,
-            'notFound': errors.OrderNotFound,
-        };
-        if ((status in errors$1) && !this.inArray(status, omit)) {
-            throw new errors$1[status](this.id + ': ' + method + ' failed due to ' + status);
+        if (status !== undefined) {
+            if (!this.inArray(status, omit)) {
+                this.throwExactlyMatchedException({
+                    'invalidOrderType': errors.InvalidOrder,
+                    'invalidSide': errors.InvalidOrder,
+                    'invalidSize': errors.InvalidOrder,
+                    'invalidPrice': errors.InvalidOrder,
+                    'insufficientAvailableFunds': errors.InsufficientFunds,
+                    'selfFill': errors.ExchangeError,
+                    'tooManySmallOrders': errors.ExchangeError,
+                    'maxPositionViolation': errors.BadRequest,
+                    'marketSuspended': errors.ExchangeNotAvailable,
+                    'marketInactive': errors.ExchangeNotAvailable,
+                    'clientOrderIdAlreadyExist': errors.DuplicateOrderId,
+                    'clientOrderIdTooLong': errors.BadRequest,
+                    'outsidePriceCollar': errors.InvalidOrder,
+                    'postWouldExecute': errors.OrderImmediatelyFillable, // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+                    'iocWouldNotExecute': errors.OrderNotFillable, // -||-
+                    'wouldNotReducePosition': errors.ExchangeError,
+                    'orderForEditNotFound': errors.OrderNotFound,
+                    'orderForEditNotAStop': errors.InvalidOrder,
+                    'filled': errors.OrderNotFound,
+                    'notFound': errors.OrderNotFound,
+                }, status, this.id + ': ' + method + ' failed due to ' + status);
+            }
         }
     }
     parseOrderStatus(status) {
@@ -2352,7 +2356,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 // Final order (after placement / editing / execution / canceling)
                 const orderTrigger = this.safeDict(item, 'orderTrigger');
                 if (details === undefined) {
-                    details = this.safeValue2(item, 'new', 'order', orderTrigger);
+                    details = this.safeDict2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
                         isPrior = false;
                         fixed = true;
@@ -2360,7 +2364,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     else if (!fixed) {
                         const executedPrice = this.safeString(item, 'price');
                         const orderPriorExecution = this.safeDict(item, 'orderPriorExecution');
-                        details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
+                        details = this.safeDict2(item, 'orderPriorExecution', 'orderPriorEdit');
                         if (executedPrice === undefined) {
                             price = this.safeString(orderPriorExecution, 'limitPrice');
                         }
@@ -2435,16 +2439,21 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         let cost = undefined;
         if ((filled !== undefined) && (marketResolved !== undefined)) {
-            let whichPrice = price;
+            const isLinear = this.safeBool(marketResolved, 'linear', false);
             if (average !== undefined) {
-                whichPrice = average;
-            }
-            if (whichPrice !== undefined) {
-                if (this.safeBool(marketResolved, 'linear', false)) {
-                    cost = Precise["default"].stringMul(filled, whichPrice); // in quote
+                if (isLinear) {
+                    cost = Precise["default"].stringMul(filled, average); // in quote
                 }
                 else {
-                    cost = Precise["default"].stringDiv(filled, whichPrice); // in base
+                    cost = Precise["default"].stringDiv(filled, average); // in base
+                }
+            }
+            else if (price !== undefined) {
+                if (isLinear) {
+                    cost = Precise["default"].stringMul(filled, price); // in quote
+                }
+                else {
+                    cost = Precise["default"].stringDiv(filled, price); // in base
                 }
             }
         }
@@ -3618,7 +3627,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             'multiCollateralMargin': 'flex',
         };
         if (account in accountByType) {
-            return accountByType[account];
+            const accountName = this.safeString(accountByType, account, '');
+            return accountName;
         }
         else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market(account);

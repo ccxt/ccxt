@@ -1,5 +1,5 @@
 import hollaexRest from '../hollaex.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hollaex extends hollaexRest {
     describe(): Dict;
@@ -66,7 +66,7 @@ export default class hollaex extends hollaexRest {
     handleBalance(client: Client, message: Dict): void;
     watchPublic(messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;

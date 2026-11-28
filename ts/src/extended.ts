@@ -564,7 +564,10 @@ export default class extended extends Exchange {
         const maxCost = this.safeNumber (tradingConfig, 'maxLimitOrderValue');
         const created = this.safeInteger (market, 'createdAt');
         const category = this.safeStringLower (market, 'category');
-        const takerFees = (category === 'rwa') ? this.safeDict (this.fees, 'rwa', {}) : this.fees;
+        let takerFees: Dict = this.fees;
+        if (category === 'rwa') {
+            takerFees = this.safeDict (this.fees, 'rwa', {});
+        }
         let settleId: Str = undefined;
         let settle: Str = undefined;
         let symbol = base + '/' + quote;
@@ -831,7 +834,7 @@ export default class extended extends Exchange {
             const market = this.safeMarket (marketId);
             const stats = this.safeDict (marketData, 'marketStats', {});
             const ticker = this.parseTicker (stats, market);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
             }
@@ -1127,7 +1130,7 @@ export default class extended extends Exchange {
         return this.parseFundingHistories (result, market, since, limit);
     }
 
-    parseFundingHistory (history: Dict, market: Market = undefined) {
+    parseFundingHistory (history: Dict, market: Market = undefined): Dict {
         //
         //     {
         //         "id": 8341,
@@ -1207,10 +1210,17 @@ export default class extended extends Exchange {
         const sideRaw = this.safeString2 (trade, 'S', 'side');
         const side = (sideRaw !== undefined) ? sideRaw.toLowerCase () : undefined;
         const feeCost = this.safeString (trade, 'fee');
-        const fee = (feeCost === undefined) ? undefined : {
-            'cost': feeCost,
-            'currency': (marketResolved === undefined) ? undefined : marketResolved['settle'],
-        };
+        let fee: NullableDict = undefined;
+        if (feeCost !== undefined) {
+            const feeDict: Dict = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+            if (marketResolved !== undefined) {
+                feeDict['currency'] = marketResolved['settle'];
+            }
+            fee = feeDict;
+        }
         const isTaker = this.safeBool (trade, 'isTaker');
         let takerOrMaker: Str = undefined;
         if (isTaker !== undefined) {
@@ -1387,7 +1397,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbolValue, sinceResolved, limitResolved) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //       "m": "BTC-USD",
@@ -2376,10 +2386,7 @@ export default class extended extends Exchange {
      */
     override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let symbolsList: Strings = symbols;
-        if (typeof symbols === 'string') {
-            symbolsList = [ symbols ];
-        }
+        const symbolsList: Strings = symbols;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchPositionsHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as Position[];
@@ -2528,10 +2535,8 @@ export default class extended extends Exchange {
         const syntheticResolution = this.safeInteger (params, 'syntheticResolution');
         const collateralResolution = this.safeInteger (params, 'collateralResolution');
         const quoteAmount = Precise.stringMul (amountString, priceString);
-        const baseRoundUp = isBuy;
-        const quoteRoundUp = isBuy;
-        let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
-        let collateralAmount = this.getExtendedStarkAmount (quoteAmount as string, collateralResolution, quoteRoundUp);
+        let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, isBuy);
+        let collateralAmount = this.getExtendedStarkAmount (quoteAmount as string, collateralResolution, isBuy);
         if (isBuy) {
             collateralAmount = Precise.stringNeg (collateralAmount) as string;
         } else {
@@ -2646,7 +2651,7 @@ export default class extended extends Exchange {
         }
         const amountString = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
-        const postOnly = this.isPostOnly (uppercaseType === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly (uppercaseType === 'MARKET', false, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (timeInForce === undefined) {
@@ -3135,17 +3140,15 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
-        let order: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
             const request: Dict = {
                 'externalId': clientOrderId,
             };
-            response = await this.v1PrivateGetUserOrdersExternalExternalId (this.extend (request, paramsOmitted));
-            const data = this.safeList (response, 'data', []);
-            order = this.safeDict (data, 0, {});
+            const response = await this.v1PrivateGetUserOrdersExternalExternalId (this.extend (request, paramsOmitted));
+            const data: Dict[] = this.safeList (response, 'data', []);
+            return this.parseOrder (this.safeDict (data, 0, {}), market);
         } else {
             if (id === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
@@ -3153,10 +3156,10 @@ export default class extended extends Exchange {
             const request: Dict = {
                 'id': id,
             };
-            response = await this.v1PrivateGetUserOrdersId (this.extend (request, paramsOmitted));
-            order = this.safeDict (response, 'data', {});
+            const response = await this.v1PrivateGetUserOrdersId (this.extend (request, paramsOmitted));
+            const order: Dict = this.safeDict (response, 'data', {});
+            return this.parseOrder (order, market);
         }
-        return this.parseOrder (order, market);
     }
 
     /**
@@ -3564,7 +3567,7 @@ export default class extended extends Exchange {
         ]);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -122,21 +122,20 @@ impl Market {
         m.created = crate::value::safe_integer(&v, "created", None);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
-        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
-        let limits = sub(&v, "limits");
+        let limits = v.at("limits");
         m.limits = MarketLimits {
-            amount:   MinMax::from_value(&sub(&limits, "amount")),
-            price:    MinMax::from_value(&sub(&limits, "price")),
-            cost:     MinMax::from_value(&sub(&limits, "cost")),
-            leverage: MinMax::from_value(&sub(&limits, "leverage")),
+            amount:   MinMax::from_value(limits.at("amount")),
+            price:    MinMax::from_value(limits.at("price")),
+            cost:     MinMax::from_value(limits.at("cost")),
+            leverage: MinMax::from_value(limits.at("leverage")),
         };
-        let precision = sub(&v, "precision");
+        let precision = v.at("precision");
         m.precision = MarketPrecision {
-            amount: safe_number(&precision, "amount", None),
-            price:  safe_number(&precision, "price",  None),
-            cost:   safe_number(&precision, "cost",   None),
-            base:   safe_number(&precision, "base",   None),
-            quote:  safe_number(&precision, "quote",  None),
+            amount: safe_number(precision, "amount", None),
+            price:  safe_number(precision, "price",  None),
+            cost:   safe_number(precision, "cost",   None),
+            base:   safe_number(precision, "base",   None),
+            quote:  safe_number(precision, "quote",  None),
         };
         m.raw     = v;
         m
@@ -233,7 +232,7 @@ impl Trade {
         t.price          = safe_number(&v, "price",     None);
         t.amount         = safe_number(&v, "amount",    None);
         t.cost           = safe_number(&v, "cost",      None);
-        t.fee            = match crate::get_value(&v, &Value::Str("fee".into())) {
+        t.fee            = match v.at("fee").to_owned() {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -300,9 +299,9 @@ impl Order {
         o.stop_loss_price   = safe_number(&v, "stopLossPrice",   None);
         o.post_only       = safe_bool(&v, "postOnly",   None);
         o.reduce_only     = safe_bool(&v, "reduceOnly", None);
-        o.trades          = vec_from_value(&crate::get_value(&v, &Value::Str("trades".into())), Trade::from_value);
-        o.fee             = match crate::get_value(&v, &Value::Str("fee".into())) {
-            Value::Dict(m) => Some((*m).clone()),
+        o.trades          = vec_from_value(v.at("trades"), Trade::from_value);
+        o.fee             = match v.at("fee") {
+            Value::Dict(m) => Some((**m).clone()),
             _ => None,
         };
         o.raw = v;
@@ -337,13 +336,13 @@ impl OrderBook {
         // valid book entry and would corrupt best-bid/ask and depth math
         // downstream (review #7).
         let extract_side = |key: &str| -> Vec<[f64; 2]> {
-            let side = get_value(&v, &Value::Str(key.to_string().into()));
+            let side = v.at(key);
             // A resolved WS book keeps its sides as shared markers (entries in
             // the side store), not inline arrays — read those levels straight
             // from the store as `[price, amount]` pairs (no intermediate Value
             // clone). Without this the match below misses and the typed book
             // comes back empty. Falls through to plain-array parsing otherwise.
-            if let Some(pairs) = crate::value::side_price_amounts(&side) {
+            if let Some(pairs) = crate::value::side_price_amounts(side) {
                 return pairs;
             }
             match side {
@@ -403,7 +402,7 @@ impl OrderBookL3 {
         // Rows are `[price, amount, orderId]`. Rows whose price/amount are not
         // parseable numbers are dropped (same policy as `OrderBook`).
         let extract_side = |key: &str| -> Vec<OrderBookL3Entry> {
-            let side = get_value(&v, &Value::Str(key.to_string().into()));
+            let side = v.at(key);
             match side {
                 Value::Arr(rows) => rows.iter().filter_map(|row| {
                     let num = |cell: Option<&Value>| -> f64 {
@@ -457,13 +456,12 @@ pub struct Balances {
 
 impl Balances {
     pub fn from_value(v: Value) -> Self {
-        use crate::value::get_value;
         let mut b = Balances::default();
-        b.info = get_value(&v, &Value::Str("info".into()));
+        b.info = v.at("info").to_owned();
         // The top-level `free`/`used`/`total` keys are dicts of
         // `<currency-code> → number`. Walk them and collect.
         let extract = |key: &str| -> HashMap<String, f64> {
-            let m = get_value(&v, &Value::Str(key.to_string().into()));
+            let m = v.at(key);
             match m {
                 Value::Dict(d) => d.iter().filter_map(|(k, val)| {
                     let n = match val {
@@ -529,7 +527,7 @@ impl Transaction {
         t.currency     = safe_string(&v, "currency",    None);
         t.status       = safe_string(&v, "status",      None);
         t.updated      = safe_integer(&v, "updated",    None);
-        t.fee          = match crate::get_value(&v, &Value::Str("fee".into())) {
+        t.fee          = match v.at("fee").to_owned() {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -709,7 +707,7 @@ impl LedgerEntry {
         l.before    = safe_number(&v, "before",    None);
         l.after     = safe_number(&v, "after",     None);
         l.status    = safe_string(&v, "status",    None);
-        l.fee       = match crate::get_value(&v, &Value::Str("fee".into())) {
+        l.fee       = match v.at("fee").to_owned() {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -1503,15 +1501,14 @@ pub struct DepositWithdrawFeeNetwork {
 
 impl DepositWithdrawFee {
     pub fn from_value(v: Value) -> Self {
-        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
         let mut d = DepositWithdrawFee::default();
-        d.withdraw = DepositWithdrawFeeLeg::from_value(&sub(&v, "withdraw"));
-        d.deposit  = DepositWithdrawFeeLeg::from_value(&sub(&v, "deposit"));
-        if let Value::Dict(networks) = sub(&v, "networks") {
+        d.withdraw = DepositWithdrawFeeLeg::from_value(v.at("withdraw"));
+        d.deposit  = DepositWithdrawFeeLeg::from_value(v.at("deposit"));
+        if let Value::Dict(networks) = v.at("networks") {
             for (id, net) in networks.iter() {
                 d.networks.insert(id.clone(), DepositWithdrawFeeNetwork {
-                    withdraw: DepositWithdrawFeeLeg::from_value(&sub(net, "withdraw")),
-                    deposit:  DepositWithdrawFeeLeg::from_value(&sub(net, "deposit")),
+                    withdraw: DepositWithdrawFeeLeg::from_value(net.at("withdraw")),
+                    deposit:  DepositWithdrawFeeLeg::from_value(net.at("deposit")),
                 });
             }
         }
@@ -2056,13 +2053,17 @@ mod from_value_tests {
 }
 
 /// Decodes a transpiled body's `Value` result into a typed unified return.
-pub trait FromRaw { fn from_raw(v: Value) -> Self; }
+/// `S` is the body's result: a `Value`, or a typed parser's `Option<Dict>` (`None` decodes as `Null` did).
+pub trait FromRaw<S = Value> { fn from_raw(v: S) -> Self; }
 /// Lowers a typed unified return back to the `Value` the transpiled bodies and dispatch carry.
 pub trait IntoRaw { fn into_raw(self) -> Value; }
 
 macro_rules! raw_struct {
     ($($t:ident),*) => { $(
         impl FromRaw for $t { fn from_raw(v: Value) -> Self { $t::from_value(v) } }
+        impl FromRaw<Option<crate::value::Dict>> for $t {
+            fn from_raw(v: Option<crate::value::Dict>) -> Self { $t::from_value(v.map_or(Value::Null, Value::Dict)) }
+        }
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
         /// A record read out of a typed result, handed to a `Value` slot: its decoded row (a shared handle, no re-encode).
         impl From<&$t> for Value { fn from(x: &$t) -> Value { Value::clone(&x.raw) } }
@@ -2082,7 +2083,7 @@ raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL
 macro_rules! record_elem {
     ($($t:ident),*) => { $(
         impl crate::value::KeyRead for &Option<&$t> {
-            fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |r| crate::value::get_value_k(&r.raw, key)) }
+            fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |r| crate::value::KeyRead::key_read(&r.raw, key)) }
             fn read(&self, key: &Value) -> Value { self.map_or(Value::Null, |r| crate::value::get_value(&r.raw, key)) }
         }
         impl From<Option<&$t>> for Value { fn from(r: Option<&$t>) -> Value { r.map(Value::from).unwrap_or_default() } }
@@ -2093,16 +2094,37 @@ record_elem!(Ticker, Trade, Order, Position, Transaction, DepositAddress, Transf
     LeverageTier, Greeks, OptionContract, LastPrice, PredictionEvent, PredictionSettlement, Account, BorrowRate,
     IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest);
 
+/// A typed record map's row read by key text (`None` reads "null"): the row's decoded map as a shared handle,
+/// `None` for a missing key or a non-map row, as `safe_dict_o` answered on the boxed map.
+pub trait RecordRows { fn row_dict(&self, key: impl crate::value::ScalarArg) -> Option<crate::value::Dict>; }
+macro_rules! record_rows {
+    ($($t:ident),*) => { $(
+        impl RecordRows for HashMap<String, $t> {
+            fn row_dict(&self, key: impl crate::value::ScalarArg) -> Option<crate::value::Dict> {
+                let row = match key.scalar() {
+                    crate::value::ScalarRef::Str(k) => self.get(k),
+                    crate::value::ScalarRef::Null => self.get("null"),
+                    crate::value::ScalarRef::Num(v) => self.get(crate::runtime::stringify_param(&v).as_str()),
+                    crate::value::ScalarRef::Other(v) => self.get(crate::runtime::stringify_param(v).as_str()),
+                };
+                match row.map(|r| &r.raw) { Some(Value::Dict(m)) => Some(std::sync::Arc::clone(m)), _ => None }
+            }
+        }
+    )* };
+}
+record_rows!(Ticker, FundingRate, OpenInterest, Leverage, MarginMode, TradingFee, BorrowRate, IsolatedBorrowRate, Currency,
+    OrderBook, LastPrice, DepositWithdrawFee, Greeks, OptionContract, DepositAddress);
+
 /// A keyed read on a typed `Tickers` result: the ticker's decoded row, as the boxed map read answered it.
 impl crate::value::KeyRead for &Tickers {
     fn key_read(&self, key: &str) -> Value { self.get(key).map(Value::from).unwrap_or_default() }
-    fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
+    fn read(&self, key: &Value) -> Value { key.as_str().map_or(Value::Null, |k| self.key_read(k)) }
 }
 
 /// A keyed read on a typed `OHLCVsBySymbol` result: the symbol's timeframe map boxed, as the boxed map read answered it.
 impl crate::value::KeyRead for &OHLCVsBySymbol {
     fn key_read(&self, key: &str) -> Value { self.get(key).cloned().map(IntoRaw::into_raw).unwrap_or_default() }
-    fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
+    fn read(&self, key: &Value) -> Value { key.as_str().map_or(Value::Null, |k| self.key_read(k)) }
 }
 
 #[cfg(test)]
@@ -2136,7 +2158,7 @@ mod ohlcvs_by_symbol_key_read_tests {
 #[cfg(test)]
 mod prediction_outcome_record_tests {
     use super::{FromRaw, IntoRaw, Market};
-    use crate::value::{get_value_k, KeyRead};
+    use crate::value::KeyRead;
     use crate::Value;
 
     fn outcome_token() -> Value {
@@ -2166,7 +2188,7 @@ mod prediction_outcome_record_tests {
         let miss: Option<Market> = FromRaw::from_raw(Value::Null);
         assert!(miss.is_none());
         assert_eq!((&miss).key_read("outcome"), Value::Null);
-        assert_eq!(get_value_k(&miss.into_raw(), "outcome"), Value::Null);
+        assert_eq!(KeyRead::key_read(&miss.into_raw(), "outcome"), Value::Null);
     }
 }
 
@@ -2211,6 +2233,9 @@ impl FromRaw for Option<Market> { fn from_raw(v: Value) -> Self { if matches!(v,
 /// An optional currency argument: `Null` is `None`, any other value decodes the record once.
 impl FromRaw for Option<Currency> { fn from_raw(v: Value) -> Self { if matches!(v, Value::Null) { None } else { Some(Currency::from_value(v)) } } }
 impl IntoRaw for Option<String> { fn into_raw(self) -> Value { self.map(Value::from).unwrap_or_default() } }
+/// A dict return (`cancelAllOrdersAfter`): any other shape reads `None`, which boxes back as `Null`.
+impl FromRaw for Option<crate::value::Dict> { fn from_raw(v: Value) -> Self { if let Value::Dict(m) = v { Some(m) } else { None } } }
+impl IntoRaw for Option<crate::value::Dict> { fn into_raw(self) -> Value { self.map_or(Value::Null, Value::Dict) } }
 
 /// One entry of a `cancel_orders_for_symbols` batch (TS `CancellationRequest`); `raw` keeps any other key.
 #[derive(Debug, Clone, Default)]
@@ -2274,7 +2299,7 @@ impl OrderRequest {
 impl FromRaw for OrderRequest {
     fn from_raw(v: Value) -> Self {
         use crate::value::{safe_string, safe_number};
-        let params = match crate::get_value(&v, &Value::Str("params".into())) { Value::Dict(d) => Some(crate::Params::from(Value::Dict(d))), _ => None };
+        let params = match v.at("params").to_owned() { Value::Dict(d) => Some(crate::Params::from(Value::Dict(d))), _ => None };
         OrderRequest {
             id: safe_string(&v, "id", None), symbol: safe_string(&v, "symbol", None), outcome: safe_string(&v, "outcome", None),
             order_type: safe_string(&v, "type", None), side: safe_string(&v, "side", None),
@@ -2322,7 +2347,7 @@ impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
         // a ws cache (ArrayCache*) resolves as its marker dict; its rows live in the cache store
         let v = crate::value::cache_entries_as_value(&v).unwrap_or(v);
-        match v { Value::Arr(rows) => rows.iter().map(|r| T::from_raw(r.clone())).collect(), _ => Vec::new() }
+        v.as_array().map(|rows| rows.iter().map(|r| T::from_raw(r.clone())).collect()).unwrap_or_default()
     }
 }
 impl<T: IntoRaw> IntoRaw for Vec<T> {
@@ -2330,7 +2355,7 @@ impl<T: IntoRaw> IntoRaw for Vec<T> {
 }
 impl<T: FromRaw> FromRaw for HashMap<String, T> {
     fn from_raw(v: Value) -> Self {
-        match v { Value::Dict(d) => d.iter().map(|(k, x)| (k.clone(), T::from_raw(x.clone()))).collect(), _ => HashMap::new() }
+        v.as_map().map(|d| d.iter().map(|(k, x)| (k.clone(), T::from_raw(x.clone()))).collect()).unwrap_or_default()
     }
 }
 impl<T: IntoRaw> IntoRaw for HashMap<String, T> {
@@ -2340,5 +2365,30 @@ impl<T: IntoRaw> IntoRaw for HashMap<String, T> {
 impl<T: IntoRaw> IntoRaw for crate::Result<T> {
     fn into_raw(self) -> Value {
         match self { Ok(t) => t.into_raw(), Err(e) => panic!("{}", e) }
+    }
+}
+
+#[cfg(test)]
+mod typed_body_from_raw_tests {
+    use super::{FromRaw, IntoRaw, Order};
+    use crate::value::Dict;
+    use crate::Value;
+
+    // a typed parser's `Option<Dict>` decodes exactly as its boxed `map_or(Value::Null, Value::Dict)` did
+    #[test]
+    fn option_dict_decodes_as_the_boxed_result() {
+        let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("o1".into()));
+        m.insert("amount".to_string(), Value::Float(2.5));
+        let d: Dict = std::sync::Arc::new(m);
+        let typed: Order = FromRaw::from_raw(Some(std::sync::Arc::clone(&d)));
+        let raw = Value::Dict(std::sync::Arc::clone(&d));
+        let boxed: Order = FromRaw::from_raw(Value::Dict(d));
+        assert_eq!(typed.id, boxed.id);
+        assert_eq!(typed.amount, Some(2.5));
+        assert_eq!(typed.into_raw(), raw);
+        let none: Order = FromRaw::from_raw(None::<Dict>);
+        let null: Order = FromRaw::from_raw(Value::Null);
+        assert_eq!((none.id, none.symbol, none.raw), (null.id, null.symbol, null.raw));
     }
 }

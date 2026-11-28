@@ -4,8 +4,8 @@
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List } from './base/types.js';
+import { TICK_SIZE, ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from './base/functions/number.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -475,7 +475,6 @@ export default class mercado extends Exchange {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'executed_timestamp');
         const marketResolved: Market = this.safeMarket (undefined, market);
         const id = this.safeString2 (trade, 'tid', 'operation_id');
-        const type = undefined;
         const side = this.safeString (trade, 'type');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'quantity');
@@ -486,9 +485,13 @@ export default class mercado extends Exchange {
             const rate = Precise.stringDiv (feeRate, '100');
             const isBuy = (side === 'buy');
             const feeBase = (isBuy) ? amount : Precise.stringMul (amount, price);
+            let feeCurrency = this.safeString (marketResolved, 'quote');
+            if (isBuy) {
+                feeCurrency = this.safeString (marketResolved, 'base');
+            }
             fee = {
                 'cost': Precise.stringMul (feeBase, rate),
-                'currency': (isBuy) ? marketResolved['base'] : marketResolved['quote'],
+                'currency': feeCurrency,
                 'rate': rate,
             };
         }
@@ -499,7 +502,7 @@ export default class mercado extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
@@ -595,13 +598,14 @@ export default class mercado extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'coin_pair': market['id'],
         };
         let response: NullableDict = undefined;
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision (market['symbol'], price);
-            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            request['limit_price'] = this.priceToPrecision (precisionSymbol, price);
+            request['quantity'] = this.amountToPrecision (precisionSymbol, amount);
             if (side === 'buy') {
                 response = await this.privatePostPlaceBuyOrder (this.extend (request, params));
             } else {
@@ -614,10 +618,10 @@ export default class mercado extends Exchange {
                 }
                 const amountString = this.numberToString (amount);
                 const priceString = this.numberToString (price);
-                request['cost'] = this.priceToPrecision (market['symbol'], this.parseToNumeric (Precise.stringMul (amountString, priceString)));
+                request['cost'] = this.priceToPrecision (precisionSymbol, this.parseToNumeric (Precise.stringMul (amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder (this.extend (request, params));
             } else {
-                request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+                request['quantity'] = this.amountToPrecision (precisionSymbol, amount);
                 response = await this.privatePostPlaceMarketSellOrder (this.extend (request, params));
             }
         }
@@ -675,7 +679,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeDict (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order', {});
-        return this.parseOrder (order as Dict, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -739,7 +743,7 @@ export default class mercado extends Exchange {
             // operations carry no side, parseTrade reads it from 'type' like in public trades
             rawTrades.push (this.extend (operations[i], { 'type': side }));
         }
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -789,7 +793,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeDict (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order');
-        return this.parseOrder (order as Dict, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**
@@ -812,7 +816,7 @@ export default class mercado extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
-            'quantity': amount.toFixed (10),
+            'quantity': this.decimalToPrecision (amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address': address,
         };
         if (code === 'BRL') {
@@ -1090,7 +1094,7 @@ export default class mercado extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

@@ -1286,7 +1286,7 @@ export default class derive extends Exchange {
         const settlements = this.safeList (result, 'settlements', []);
         const parsed = this.parseSettlements (settlements, market);
         const sorted = this.sortBy (parsed, 'timestamp');
-        const symbolResolved = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
@@ -1328,10 +1328,11 @@ export default class derive extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any[], market: Market = undefined): List {
+    parseSettlements (settlements: Dict[], market: Market = undefined): List {
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (settlements[i], market));
+            const settlementRow: Dict = this.extend ({}, settlements[i]);
+            result.push (this.parseSettlement (settlementRow, market));
         }
         return result;
     }
@@ -1554,13 +1555,13 @@ export default class derive extends Exchange {
         let result: Trade[] = [];
         for (let i = 0; i < tradesArray.length; i++) {
             const rawTrade = tradesArray[i];
-            const isFetchTrades = !('order_id' in rawTrade);
+            const isFetchTrades = (this.safeString (rawTrade, 'order_id') === undefined);
             const liquidityRole = this.safeString (rawTrade, 'liquidity_role');
             if (isFetchTrades && (liquidityRole === 'maker')) {
                 // skip maker trades
                 continue;
             }
-            const parsed = this.parseTrade (rawTrade, market);
+            const parsed = this.parseTrade (this.safeDict (tradesArray, i, {}), market);
             const trade = this.extend (parsed, params);
             result.push (trade);
         }
@@ -1914,7 +1915,7 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (order: any): string {
+    hashOrderMessage (order: List): string {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
@@ -1929,7 +1930,7 @@ export default class derive extends Exchange {
         return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
     }
 
-    signOrder (order: any, privateKey: string): string {
+    signOrder (order: List, privateKey: string): string {
         const hashOrder = this.hashOrderMessage (order);
         return this.signHash (hashOrder, privateKey);
     }
@@ -3633,9 +3634,10 @@ export default class derive extends Exchange {
             if (Precise.stringGt (used, totalUsdc)) {
                 used = totalUsdc;
             }
-            usdcAccount['used'] = used;
-            usdcAccount['free'] = Precise.stringSub (totalUsdc, used);
-            result['USDC'] = usdcAccount;
+            result['USDC'] = this.extend (usdcAccount, {
+                'used': used,
+                'free': Precise.stringSub (totalUsdc, used),
+            });
         }
         return this.safeBalance (result);
     }
@@ -3814,7 +3816,8 @@ export default class derive extends Exchange {
         const transfers = this.safeList (result, 'transfers', []);
         const parsed = [];
         for (let i = 0; i < transfers.length; i++) {
-            parsed.push (this.parseTransfer (this.safeDict (transfers, i, {})));
+            const transfer = this.extend (this.parseTransfer (this.safeDict (transfers, i, {})), {});
+            parsed.push (transfer);
         }
         const sorted = this.sortBy (parsed, 'timestamp');
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
@@ -4298,7 +4301,7 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

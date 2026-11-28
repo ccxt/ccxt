@@ -76,7 +76,8 @@ class modetrade(ccxt.async_support.modetrade):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
@@ -491,7 +492,7 @@ class modetrade(ccxt.async_support.modetrade):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade = self.parse_ws_trade(self.extend(data, {'timestamp': timestamp}), market)
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -541,7 +542,7 @@ class modetrade(ccxt.async_support.modetrade):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(trade, 'executedPrice', 'price')
         amount = self.safe_string_2(trade, 'executedQuantity', 'size')
         cost = Precise.string_mul(price, amount)
@@ -802,7 +803,7 @@ class modetrade(ccxt.async_support.modetrade):
         orderId = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
             'cost': self.safe_string(order, 'totalFee'),
@@ -880,29 +881,29 @@ class modetrade(ccxt.async_support.modetrade):
         #         }
         #     }
         #
-        topic = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
-        dataIsArray = isinstance(data, list)
-        if dataIsArray:
+        topic = self.safe_string(message, 'topic', '')
+        dataRows = self.safe_list(message, 'data')
+        if dataRows is not None:
             # algoexecutionreport
             dataList = self.safe_list(message, 'data', [])
             dataListLength = len(dataList)
             for i in range(0, dataListLength):
                 order = dataList[i]
-                tradeIdStr = self.safe_string(data, 'tradeId')
+                tradeIdStr = self.safe_string(dataRows, 'tradeId')
                 tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
                 if tradeId is not None:
                     self.handle_my_trade(client, order)
                 self.handle_order(client, order, topic)
         else:
             # executionreport
-            tradeIdStr = self.safe_string(data, 'tradeId')
+            dataDict = self.safe_dict(message, 'data', {})
+            tradeIdStr = self.safe_string(dataDict, 'tradeId')
             tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
             if tradeId is not None:
-                self.handle_my_trade(client, data)
-            self.handle_order(client, data, topic)
+                self.handle_my_trade(client, dataDict)
+            self.handle_order(client, dataDict, topic)
 
-    def handle_order(self, client: Client, message: dict, topic: Str):
+    def handle_order(self, client: Client, message: dict, topic: str):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -959,7 +960,7 @@ class modetrade(ccxt.async_support.modetrade):
         messageHash = 'myTrades'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         trade = self.parse_ws_trade(message, market)
         trades = self.myTrades
         if trades is None:

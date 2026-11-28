@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hibachi import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, OpenInterest, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -540,7 +540,7 @@ class hibachi(Exchange, ImplicitAPI):
         #      }
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'id')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
@@ -875,7 +875,7 @@ class hibachi(Exchange, ImplicitAPI):
             'signature': signature,
             'maxFeesPercent': self.number_to_string(feeRate),
         }
-        postOnly = self.is_post_only(type.upper() == 'MARKET', None, params)
+        postOnly = self.is_post_only(type.upper() == 'MARKET', False, params)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
@@ -1733,7 +1733,7 @@ class hibachi(Exchange, ImplicitAPI):
             headersValue['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
@@ -2093,7 +2093,8 @@ class hibachi(Exchange, ImplicitAPI):
     def parse_settlements(self, settlements: list[object], market: Market = None) -> list[dict]:
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:

@@ -377,7 +377,7 @@ class polymarket extends Exchange {
             for ($mi = 0; $mi < count($ccxtMarkets); $mi++) {
                 $flatMarkets[] = $ccxtMarkets[$mi];
             }
-            $parsedEvent = $this->parse_event($rawEvent);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawEvent));
             $eventSlug = $this->safe_string($rawEvent, 'slug');
             if (($eventSlug !== null) && ($eventSlug !== '')) {
                 $eventKey = $this->shorten_slug($eventSlug);
@@ -451,7 +451,7 @@ class polymarket extends Exchange {
                 }
             } else {
                 $optionMaxPages = $this->safe_integer($this->options, 'maxSearchPages', 5);
-                $maxSearchPages = $this->safe_integer($params, 'maxSearchPages', $optionMaxPages);
+                $maxSearchPages = $this->parse_to_int($this->safe_integer($params, 'maxSearchPages', $optionMaxPages));
                 if ($maxSearchPages < $totalPages) {
                     $totalPages = $maxSearchPages;
                 }
@@ -774,8 +774,8 @@ class polymarket extends Exchange {
             // Build outcomes array
             $outcomes = array();
             for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
-                $outcomeLabel = $outcomeLabels[$oi];
-                $clobTokenId = $clobTokenIds[$oi];
+                $outcomeLabel = $this->safe_string($outcomeLabels, $oi);
+                $clobTokenId = $this->safe_string($clobTokenIds, $oi);
                 $outcomePrice = $this->safe_number($outcomePrices, $oi);
                 if (($clobTokenId === null) || ($clobTokenId === '')) {
                     continue;
@@ -907,7 +907,7 @@ class polymarket extends Exchange {
                 $ccxtMarkets = $this->parse_event_to_markets(array( 'markets' => $rawMarkets ));
                 $ccxtMarketsLength = count($ccxtMarkets);
                 for ($i = 0; $i < $ccxtMarketsLength; $i++) {
-                    $mkt = $ccxtMarkets[$i];
+                    $mkt = $this->safe_dict($ccxtMarkets, $i);
                     if ($mkt === null) {
                         throw new ExchangeError($this->id . ' fetchOutcome() could not resolve mkt');
                     }
@@ -938,7 +938,7 @@ class polymarket extends Exchange {
          */
         $tokenIds = array();
         for ($i = 0; $i < count($outcomeSymbols); $i++) {
-            $outcomeSymbol = $outcomeSymbols[$i];
+            $outcomeSymbol = $this->safe_string($outcomeSymbols, $i, '');
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -962,7 +962,8 @@ class polymarket extends Exchange {
                 }
                 $chunk = array();
                 for ($i = $startIndex; $i < $endIndex; $i++) {
-                    $chunk[] = $tokenIds[$i];
+                    $chunkId = $this->safe_string($tokenIds, $i, '');
+                    $chunk[] = $chunkId;
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -970,7 +971,7 @@ class polymarket extends Exchange {
                 $rawMarkets = ($response !== null) ? $response : array();
                 $ccxtMarkets = $this->parse_event_to_markets(array( 'markets' => $rawMarkets ));
                 for ($i = 0; $i < count($ccxtMarkets); $i++) {
-                    $mkt = $ccxtMarkets[$i];
+                    $mkt = $this->safe_dict($ccxtMarkets, $i);
                     if ($mkt === null) {
                         throw new ExchangeError($this->id . ' fetchOutcomes() could not resolve mkt');
                     }
@@ -981,8 +982,9 @@ class polymarket extends Exchange {
             $this->populate_outcomes();
         }
         for ($i = 0; $i < count($outcomeSymbols); $i++) {
-            if (!$this->has_outcome($outcomeSymbols[$i])) {
-                Async\await($this->fetch_outcome($outcomeSymbols[$i]));
+            $pendingSymbol = $this->safe_string($outcomeSymbols, $i, '');
+            if (!$this->has_outcome($pendingSymbol)) {
+                Async\await($this->fetch_outcome($pendingSymbol));
             }
         }
         return $this->outcomes;
@@ -1098,7 +1100,7 @@ class polymarket extends Exchange {
             }
             $bookParams = array();
             for ($i = $startIndex; $i < $endIndex; $i++) {
-                $bookParams[] = array( 'token_id' => $tokenIds[$i] );
+                $bookParams[] = array( 'token_id' => $this->safe_string($tokenIds, $i) );
             }
             $promises = array(
                 $this->clobPublicPostBooks($bookParams),
@@ -1205,7 +1207,7 @@ class polymarket extends Exchange {
         $timestamp = $this->safe_integer($bookData, 'timestamp');
         $quoteVolume = null;
         if ($market !== null) {
-            $quoteVolume = $this->safe_number_2($market['info'], 'volume24hr', 'volume');
+            $quoteVolume = $this->safe_number_2($this->safe_dict($market, 'info'), 'volume24hr', 'volume');
         }
         return $this->safe_prediction_ticker(array(
             'outcome' => $outcome,
@@ -1289,16 +1291,16 @@ class polymarket extends Exchange {
 
     private function do_fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches $price $history ticks for a single $outcome token and $buckets them client-side into OHLCV $candles, snapping tick timestamps to the $candle boundary
+         * fetches $price $history ticks for a single $outcome token and $buckets them client-side into OHLCV $candles, snapping tick timestamps to the candle boundary
          *
          * @see https://docs.polymarket.com/api-reference/markets/get-prices-$history
          *
          * @param {string} $outcome unified $outcome or $outcome token id
-         * @param {string} $timeframe the length of time each $candle represents
-         * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of $candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, $open, $high, $low, close, volume
          */
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
@@ -1309,16 +1311,20 @@ class polymarket extends Exchange {
         $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
         $fidelityMin = $this->safe_integer($this->timeframes, $timeframe, 1); // fidelity in minutes
         $nowS = $this->seconds();
-        $endS = $nowS;
+        $startS = $this->parse_to_int(0);
+        $endS = $this->parse_to_int($nowS);
         if ($since !== null) {
             $startS = $this->parse_to_int($since / 1000);
             if ($limit !== null) {
-                $endBound = $this->sum($startS, $limit * $fidelityMin * 60);
+                $endBound = $this->parse_to_int($this->sum($startS, $limit * $fidelityMin * 60));
                 $endS = ($endBound < $nowS) ? $endBound : $nowS;
             }
         } else {
-            $barCount = ($limit !== null) ? $limit : 100;
-            $startS = $nowS - ($barCount * $fidelityMin * 60);
+            if ($limit !== null) {
+                $startS = $this->parse_to_int($nowS - ($limit * $fidelityMin * 60));
+            } else {
+                $startS = $this->parse_to_int($nowS - (100 * $fidelityMin * 60));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -1327,9 +1333,9 @@ class polymarket extends Exchange {
         $maxWindow = $this->safe_integer($this->options, 'maxPricesHistoryWindow', 1296000);
         if (($endS - $startS) > $maxWindow) {
             if ($since !== null) {
-                $endS = $this->sum($startS, $maxWindow);
+                $endS = $this->parse_to_int($this->sum($startS, $maxWindow));
             } else {
-                $startS = $endS - $maxWindow;
+                $startS = $this->parse_to_int($endS - $maxWindow);
             }
         }
         $request = array(
@@ -1350,6 +1356,9 @@ class polymarket extends Exchange {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         $resolutionMs = $fidelityMin * 60 * 1000;
+        if ($resolutionMs <= 0) {
+            throw new BadRequest($this->id . ' fetchOHLCV() invalid timeframe resolution');
+        }
         $buckets = array();
         for ($i = 0; $i < count($history); $i++) {
             $item = $this->safe_dict($history, $i);
@@ -1370,15 +1379,28 @@ class polymarket extends Exchange {
             if (!(is_array($buckets) && array_key_exists($bucketKey ?? '', $buckets))) {
                 $buckets[$bucketKey] = array( $snappedMs, $price, $price, $price, $price, $vol );
             } else {
-                $candle = $this->safe_list($buckets, $bucketKey, array());
-                $candle[2] = max($candle[2], $price); // high
-                $candle[3] = min($candle[3], $price); // low
-                $candle[4] = $price;                                  // close (last tick wins)
+                $prevVol = $this->safe_number($buckets[$bucketKey], 5);
+                $candleVol = $prevVol;
                 if ($vol !== null) {
-                    $prevVol = $candle[5];
-                    $candle[5] = ($prevVol === null) ? $vol : $this->sum($prevVol, $vol); // volume
+                    if ($prevVol === null) {
+                        $candleVol = $vol;
+                    } else {
+                        $candleVol = $this->sum($prevVol, $vol);
+                    }
                 }
-                $buckets[$bucketKey] = $candle; // reassign after mutation, php arrays are value types
+                $open = $this->safe_number($buckets[$bucketKey], 1);
+                $high = $price;
+                $prevHigh = $this->safe_number($buckets[$bucketKey], 2);
+                if (($prevHigh !== null) && ($price !== null) && ($prevHigh > $price)) {
+                    $high = $prevHigh;
+                }
+                $low = $price;
+                $prevLow = $this->safe_number($buckets[$bucketKey], 3);
+                if (($prevLow !== null) && ($price !== null) && ($price > $prevLow)) {
+                    $low = $prevLow;
+                }
+                // close is the last tick
+                $buckets[$bucketKey] = array( $snappedMs, $open, $high, $low, $price, $candleVol );
             }
         }
         $bucketKeys = is_array($buckets) ? array_keys($buckets) : array();
@@ -1803,7 +1825,8 @@ class polymarket extends Exchange {
         }
         for ($i = 0; $i < count($outcomes); $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
-            $wantedIds[$outcomeObj['outcomeId']] = true;
+            $outcomeId = $this->safe_string($outcomeObj, 'outcomeId', '');
+            $wantedIds[$outcomeId] = true;
         }
         $result = array();
         for ($i = 0; $i < count($parsed); $i++) {
@@ -2104,13 +2127,13 @@ class polymarket extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 // request echo first so the response's real orderID/status win on overlap
                 $rawItem = $response[$i];
-                $enriched = $this->extend($requests[$i], $rawItem);
-                $parsedItem = $this->parse_prediction_order($enriched, $outcomes[$i]);
+                $enriched = $this->extend($this->safe_dict($requests, $i), $rawItem);
+                $parsedItem = $this->parse_prediction_order($enriched, $this->safe_dict($outcomes, $i));
                 $parsedItem['info'] = $rawItem;   // keep info the raw exchange response
                 $result[] = $parsedItem;
             }
         } else {
-            $result[] = $this->parse_prediction_order($response);
+            $result[] = $this->parse_prediction_order($this->safe_dict($response, 0, array()));
         }
         return $result;
     }
@@ -2170,7 +2193,8 @@ class polymarket extends Exchange {
         $signatureType = $this->safe_integer_2($params, 'signatureType', 'signature_type', $this->safe_integer($this->options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         $eoa = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
-        $funder = $this->eth_checksum_address($this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress)));
+        $funderAddress = $this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress));
+        $funder = $this->eth_checksum_address($funderAddress);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         $defaultSalt = $this->incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         $salt = $this->safe_string($params, 'salt', $this->number_to_string($defaultSalt));
@@ -2376,7 +2400,7 @@ class polymarket extends Exchange {
             $eoaSig = $this->sign_message($encoded, $this->privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            $eoaSignature = '0x' . $this->remove0x_prefix($eoaSig['r']) . $this->remove0x_prefix($eoaSig['s']) . $this->int_to_base16($eoaSig['v']);
+            $eoaSignature = '0x' . $this->remove0x_prefix($this->safe_string($eoaSig, 'r')) . $this->remove0x_prefix($this->safe_string($eoaSig, 's')) . $this->int_to_base16($eoaSig['v']);
             return strtolower($eoaSignature);
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2600,13 +2624,13 @@ class polymarket extends Exchange {
                 }
             }
             for ($mi = 0; $mi < count($ccxtMarkets); $mi++) {
-                $m = $ccxtMarkets[$mi];
+                $m = $this->safe_dict($ccxtMarkets, $mi);
                 if ($m === null) {
                     throw new ExchangeError($this->id . ' fetchEvents() missing m');
                 }
                 $this->markets[$m['market']] = $m;
             }
-            $parsedEvent = $this->parse_event($eventForParsing);
+            $parsedEvent = $this->parse_event($this->extend(array(), $eventForParsing));
             $result[] = $parsedEvent;
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -2619,9 +2643,11 @@ class polymarket extends Exchange {
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
             // the single behaviour definition
-            $effectiveParams = $this->extend(array(), $params);
-            $effectiveParams['status'] = $this->safe_string($params, 'status', 'active');
-            $effectiveParams['searchIn'] = $this->safe_string($params, 'searchIn', 'title');
+            $defaults = array(
+                'status' => $this->safe_string($params, 'status', 'active'),
+                'searchIn' => $this->safe_string($params, 'searchIn', 'title'),
+            );
+            $effectiveParams = $this->extend($params, $defaults);
         }
         return $this->apply_event_fetch_params($result, $effectiveParams, $queries);
     }
@@ -2651,7 +2677,7 @@ class polymarket extends Exchange {
         if ($eventForParsing === null) {
             $eventForParsing = array();
         }
-        $event = $this->parse_event($eventForParsing);
+        $event = $this->parse_event($this->extend(array(), $eventForParsing));
         $this->index_event_outcomes($event);
         return $event;
     }
@@ -2774,13 +2800,12 @@ class polymarket extends Exchange {
          */
         $result = array();
         for ($i = 0; $i < count($rawEvents); $i++) {
-            $rawEvent = $rawEvents[$i];
-            $result[] = $this->parse_event($rawEvent);
+            $result[] = $this->parse_event($this->extend(array(), $rawEvents[$i]));
         }
         return $result;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
@@ -2959,8 +2984,8 @@ class polymarket extends Exchange {
     public function sign_hash(string $hash, string $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         return array(
@@ -2997,7 +3022,7 @@ class polymarket extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $messageData);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($sig['v']);
     }
 
     public function derive_api_key($params = array()): PromiseInterface {
@@ -3098,12 +3123,7 @@ class polymarket extends Exchange {
             return;
         }
         $apiKey = ($this->apiKey !== null) ? $this->apiKey : $this->safe_string($this->options, 'l2ApiKey');
-        $secret = null;
-        if ($this->secret !== null) {
-            $secret = $this->secret;
-        } else {
-            $secret = $this->safe_string($this->options, 'l2Secret');
-        }
+        $secret = ($this->secret !== null) ? $this->secret : $this->safe_string($this->options, 'l2Secret');
         $passphrase = ($this->password !== null) ? $this->password : $this->safe_string($this->options, 'l2Passphrase');
         $hasL2 = ($apiKey !== null) && ($secret !== null) && ($passphrase !== null);
         if ($hasL2) {
@@ -3131,11 +3151,8 @@ class polymarket extends Exchange {
 
     public function handle_list_message(Client $client, array $message) {
         for ($i = 0; $i < count($message); $i++) {
-            $event = $message[$i];
-            if (($event === null) || ($event === null) || (gettype($event) !== 'array')) {
-                continue;
-            }
-            $this->handle_message_event($client, $event);
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            $this->handle_message_event($client, $this->safe_dict($message, $i, array()));
         }
     }
 
@@ -3341,8 +3358,8 @@ class polymarket extends Exchange {
         }
         $url = $this->urls['api']['ws'];
         $orderbook = Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscribeHash));
-        $bids = $orderbook['bids'];
-        $asks = $orderbook['asks'];
+        $bids = $this->safe_list($orderbook, 'bids', array());
+        $asks = $this->safe_list($orderbook, 'asks', array());
         $bestBid = null;
         $bestBidVolume = null;
         $bidsLength = 0;
@@ -3378,8 +3395,8 @@ class polymarket extends Exchange {
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
-            'timestamp' => $orderbook['timestamp'],
-            'datetime' => $orderbook['datetime'],
+            'timestamp' => $this->safe_integer($orderbook, 'timestamp'),
+            'datetime' => $this->safe_string($orderbook, 'datetime'),
             'high' => null,
             'low' => null,
             'bid' => $bestBid,
@@ -3494,7 +3511,7 @@ class polymarket extends Exchange {
             $this->orders = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->orders;
-        $parsed = $this->parse_prediction_order($event);
+        $parsed = $this->parse_prediction_order($this->extend(array(), $event));
         $stored->append($parsed);
         $client->resolve($stored, 'orders');
         $outcome = $this->safe_string($parsed, 'outcome');
@@ -3509,7 +3526,7 @@ class polymarket extends Exchange {
             $this->myTrades = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->myTrades;
-        $parsed = $this->parse_prediction_trade($event);
+        $parsed = $this->parse_prediction_trade($this->extend(array(), $event));
         $stored->append($parsed);
         $client->resolve($stored, 'myTrades');
         $outcome = $this->safe_string($parsed, 'outcome');

@@ -1266,7 +1266,7 @@ class derive extends derive$1["default"] {
         const settlements = this.safeList(result, 'settlements', []);
         const parsed = this.parseSettlements(settlements, market);
         const sorted = this.sortBy(parsed, 'timestamp');
-        const symbolResolved = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     parseSettlement(settlement, market = undefined) {
@@ -1309,7 +1309,8 @@ class derive extends derive$1["default"] {
     parseSettlements(settlements, market = undefined) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(settlements[i], market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -1529,13 +1530,13 @@ class derive extends derive$1["default"] {
         let result = [];
         for (let i = 0; i < tradesArray.length; i++) {
             const rawTrade = tradesArray[i];
-            const isFetchTrades = !('order_id' in rawTrade);
+            const isFetchTrades = (this.safeString(rawTrade, 'order_id') === undefined);
             const liquidityRole = this.safeString(rawTrade, 'liquidity_role');
             if (isFetchTrades && (liquidityRole === 'maker')) {
                 // skip maker trades
                 continue;
             }
-            const parsed = this.parseTrade(rawTrade, market);
+            const parsed = this.parseTrade(this.safeDict(tradesArray, i, {}), market);
             const trade = this.extend(parsed, params);
             result.push(trade);
         }
@@ -3589,9 +3590,10 @@ class derive extends derive$1["default"] {
             if (Precise["default"].stringGt(used, totalUsdc)) {
                 used = totalUsdc;
             }
-            usdcAccount['used'] = used;
-            usdcAccount['free'] = Precise["default"].stringSub(totalUsdc, used);
-            result['USDC'] = usdcAccount;
+            result['USDC'] = this.extend(usdcAccount, {
+                'used': used,
+                'free': Precise["default"].stringSub(totalUsdc, used),
+            });
         }
         return this.safeBalance(result);
     }
@@ -3767,7 +3769,8 @@ class derive extends derive$1["default"] {
         const transfers = this.safeList(result, 'transfers', []);
         const parsed = [];
         for (let i = 0; i < transfers.length; i++) {
-            parsed.push(this.parseTransfer(this.safeDict(transfers, i, {})));
+            const transfer = this.extend(this.parseTransfer(this.safeDict(transfers, i, {})), {});
+            parsed.push(transfer);
         }
         const sorted = this.sortBy(parsed, 'timestamp');
         return this.filterByCurrencySinceLimit(sorted, code, since, limit);

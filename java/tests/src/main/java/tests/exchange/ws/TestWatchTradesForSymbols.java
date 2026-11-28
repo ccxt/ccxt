@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -26,12 +27,12 @@ public class TestWatchTradesForSymbols extends BaseTest {
         String method = "watchTradesForSymbols";
         String logText = (((((exchange.id + " ") + method) + " [symbols: ") + exchange.json(symbols)) + "] ");
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 30000);
-        Object symbolsLength = ((List<?>)symbols).size();
+        Object ends = TestHelpers.add(now, 30000);
+        Integer symbolsLength = ((List<?>)symbols).size();
         List<String> returnedSymbols = new ArrayList<String>(Arrays.asList());
         Boolean allReceived = false;
         // keep watching until every symbol traded or the deadline passed, a quiet market can stay silent for a while
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(allReceived))
+        while ((TestHelpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(allReceived))
         {
             Object response = null;
             Boolean success = true;
@@ -40,7 +41,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTradesForSymbols", new Object[]{symbols, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -57,12 +58,12 @@ public class TestWatchTradesForSymbols extends BaseTest {
                     Assert(!java.util.Objects.equals(symbol, null), ((logText + "returned a trade without a symbol ") + exchange.json(trade)));
                     TestTrade.testTrade(exchange, skippedProperties, method, trade, (String) (symbol), now, true);
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
-                    if (!Helpers.isTrue(exchange.inArray(symbol, returnedSymbols)))
+                    if (!TestHelpers.isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
                         returnedSymbols.add(symbol);
                     }
                 }
-                Object returnedLength = returnedSymbols.size();
+                Integer returnedLength = returnedSymbols.size();
                 if (java.util.Objects.equals(returnedLength, symbolsLength))
                 {
                     allReceived = true;

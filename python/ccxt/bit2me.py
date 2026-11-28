@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bit2me import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -439,7 +439,7 @@ class bit2me(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         status = self.safe_string(market, 'marketEnabled')
-        fees = self.fees
+        tradingFees = self.safe_value(self.fees, 'trading')
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -464,8 +464,8 @@ class bit2me(Exchange, ImplicitAPI):
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
+            'taker': self.safe_number(tradingFees, 'taker'),
+            'maker': self.safe_number(tradingFees, 'maker'),
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
                 'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
@@ -922,8 +922,10 @@ class bit2me(Exchange, ImplicitAPI):
         else:
             # the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             duration = self.parse_timeframe(timeframe) * 1000
-            end = until if (until is not None) else self.milliseconds()
-            request['startTime'] = end - requestLimit * duration
+            if until is not None:
+                request['startTime'] = until - requestLimit * duration
+            else:
+                request['startTime'] = self.milliseconds() - requestLimit * duration
         if until is not None:
             request['endTime'] = until
         response = self.publicGetV1TradingCandle(self.extend(request, paramsUntil))
@@ -1055,7 +1057,7 @@ class bit2me(Exchange, ImplicitAPI):
         #         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> dict:
         """
@@ -1105,18 +1107,20 @@ class bit2me(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
             stopLossLimit = stopLimitPrice
             if stopLossLimit is None:
-                stopLossLimit = self.number_to_string(price) if (price is not None) else stopLossPrice
+                if price is not None:
+                    stopLossLimit = self.number_to_string(price)
+                else:
+                    stopLossLimit = stopLossPrice
             request['stopLimitPrice'] = self.price_to_precision(symbol, stopLossLimit)
         elif isMarketOrder:
             if triggerPrice is not None:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order')
-            quoteAmount = None
             if cost is not None:
-                quoteAmount = cost
+                request['amount'] = self.cost_to_precision(symbol, cost)
+                request['amountInQuote'] = True
             elif (side == 'buy') and (price is not None):
                 # the unified convention for market buy orders, the cost to spend is amount * price
                 quoteAmount = Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))
-            if quoteAmount is not None:
                 request['amount'] = self.cost_to_precision(symbol, quoteAmount)
                 request['amountInQuote'] = True
             else:
@@ -1299,9 +1303,11 @@ class bit2me(Exchange, ImplicitAPI):
         # startTime and endTime must always be sent together
         if (since is not None) or (until is not None):
             start = since if (since is not None) else 0
-            end = until if (until is not None) else self.milliseconds()
             request['startTime'] = self.iso8601(start)
-            request['endTime'] = self.iso8601(end)
+            if until is not None:
+                request['endTime'] = self.iso8601(until)
+            else:
+                request['endTime'] = self.iso8601(self.milliseconds())
         response = self.privateGetV1TradingOrder(self.extend(request, query))
         #
         #     [
@@ -1511,9 +1517,11 @@ class bit2me(Exchange, ImplicitAPI):
         # startTime and endTime must always be sent together
         if (since is not None) or (until is not None):
             start = since if (since is not None) else 0
-            end = until if (until is not None) else self.milliseconds()
             request['startTime'] = self.iso8601(start)
-            request['endTime'] = self.iso8601(end)
+            if until is not None:
+                request['endTime'] = self.iso8601(until)
+            else:
+                request['endTime'] = self.iso8601(self.milliseconds())
         response = self.privateGetV1TradingTrade(self.extend(request, query))
         #
         #     {
@@ -1796,7 +1804,7 @@ class bit2me(Exchange, ImplicitAPI):
         fullUrl = apiUrl + url
         return {'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #

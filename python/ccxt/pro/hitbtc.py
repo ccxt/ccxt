@@ -18,7 +18,7 @@ class hitbtc(ccxt.async_support.hitbtc):
     def describe(self) -> dict:
         return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
 
-    def describe_data(self) -> object:
+    def describe_data(self) -> dict:
         return {
             'has': {
                 'ws': True,
@@ -483,7 +483,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = self.safe_symbol(marketId, market)
-            ticker = self.parse_ws_ticker(data[marketId], market)
+            ticker = self.parse_ws_ticker(self.safe_dict(data, marketId, {}), market)
             self.tickers[symbol] = ticker
             result.append(ticker)
             messageHash = topic + '::' + symbol
@@ -605,7 +605,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = self.safe_symbol(marketId, market)
-            ticker = self.parse_ws_bid_ask(data[marketId], market)
+            ticker = self.parse_ws_bid_ask(self.safe_dict(data, marketId, {}), market)
             self.bidsasks[symbol] = ticker
             result.append(ticker)
             messageHash = topic + '::' + symbol
@@ -616,7 +616,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         timestamp = self.safe_integer(ticker, 't')
         bidAskSymbol = None
         if market is not None:
-            bidAskSymbol = market['symbol']
+            bidAskSymbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -726,7 +726,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             if stored is None:
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
-            trades = self.parse_ws_trades(data[marketId], market)
+            trades = self.parse_ws_trades(self.safe_list(data, marketId, []), market)
             for j in range(0, len(trades)):
                 stored.append(trades[j])
             messageHash = 'trades::' + symbol
@@ -1000,13 +1000,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
             self.orders = ArrayCacheBySymbolById(limit)
-        data = self.safe_value(message, 'params', [])
-        if isinstance(data, list):
+        dataDict = self.safe_dict(message, 'params')
+        if dataDict is not None:
+            self.handle_order_helper(client, message, dataDict)
+        else:
+            data = self.safe_list(message, 'params', [])
             for i in range(0, len(data)):
                 order = data[i]
                 self.handle_order_helper(client, message, order)
-        else:
-            self.handle_order_helper(client, message, data)
         return message
 
     def handle_order_helper(self, client: Client, message: dict, order: dict):
@@ -1018,7 +1019,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         splitMethod = method.split('_order')
         messageHash = self.safe_string(splitMethod, 0)
         symbol = self.safe_symbol(marketId)
-        parsed = self.parse_order(order)
+        parsed = self.parse_order(self.extend({}, order))
         orders.append(parsed)
         client.resolve(orders, messageHash)
         if messageHash is not None:
@@ -1368,16 +1369,17 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_value(message, 'result', {})
-        if isinstance(result, list):
+        rows = self.safe_list(message, 'result')
+        if rows is None:
+            parsedOrder = self.parse_ws_order(self.safe_dict(message, 'result', {}))
+            client.resolve(parsedOrder, messageHash)
+        else:
             parsedOrders = []
-            for i in range(0, len(result)):
-                parsedOrder = self.parse_ws_order(result[i])
+            rowsLength = len(rows)
+            for i in range(0, rowsLength):
+                parsedOrder = self.parse_ws_order(self.safe_dict(rows, i, {}))
                 parsedOrders.append(parsedOrder)
             client.resolve(parsedOrders, messageHash)
-        else:
-            parsedOrder = self.parse_ws_order(result)
-            client.resolve(parsedOrder, messageHash)
         return message
 
     def handle_message(self, client: Client, message: dict):
@@ -1420,10 +1422,11 @@ class hitbtc(ccxt.async_support.hitbtc):
                 self.handle_order_request(client, message)
             if (result is True) and not ('id' in message):
                 self.handle_authenticate(client, message)
-            if isinstance(result, list):
+            rows = self.safe_list(message, 'result')
+            if rows is not None:
                 # to do improve this, not very reliable right now
-                first = self.safe_dict(result, 0, {})
-                arrayLength = len(result)
+                first = self.safe_dict(rows, 0, {})
+                arrayLength = len(rows)
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
 
@@ -1451,7 +1454,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
                 messageHashes = self.safe_list(subscription, 'messageHashes', [])
                 for j in range(0, len(subMessageHashes)):
-                    self.clean_unsubscription(client, subMessageHashes[j], messageHashes[j])
+                    self.clean_unsubscription(client, self.safe_string(subMessageHashes, j), self.safe_string(messageHashes, j))
                 self.clean_cache(subscription)
                 return
 

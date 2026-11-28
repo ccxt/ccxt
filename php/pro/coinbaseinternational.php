@@ -217,7 +217,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
          * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
          *
-         * @param {string[]} $channels exchange channel names
+         * @param {string[]} $channels exchange $channel names
          * @param {boolean} [$isPrivate] whether to authenticate and unsubscribe privately
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
@@ -247,7 +247,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client = $this->client($url);
         $this->watch_multiple($url, $unWatchMessageHashes, $this->deep_extend($request, $paramsResolved), $unWatchMessageHashes);
         for ($i = 0; $i < $channelsLength; $i++) {
-            $this->clean_unsubscription($client, $this->safe_string($channels, $i, ''), $this->safe_string($unWatchMessageHashes, $i, ''));
+            $channel = $this->safe_string($channels, $i, '');
+            $this->clean_unsubscription($client, $channel, $this->safe_string($unWatchMessageHashes, $i, ''));
         }
         return true;
     }
@@ -277,7 +278,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     public function handle_balance(Client $client, array $message) {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
-        $parsed = $this->parseBalanceList($data);
+        $parsed = $this->parseBalanceList($data, array( $data ));
         $this->balance = $this->deep_extend($this->balance, $parsed);
         $client->resolve($this->balance, 'balance');
     }
@@ -310,7 +311,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $channel = 'user.trades.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $trades = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
@@ -389,7 +390,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $channel = 'user.orders.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $orders = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
@@ -473,11 +474,12 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel');
-        $data = $this->safe_value($params, 'data', array());
+        $dataList = $this->safe_list($params, 'data');
         $orders = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $orders = $this->parse_orders($data);
+        if ($dataList !== null) {
+            $orders = $this->parse_orders($dataList);
         } else {
+            $data = $this->safe_dict($params, 'data', array());
             $orders = array( $this->parse_order($data) );
         }
         $ordersLength = count($orders);
@@ -580,12 +582,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
             $position = $positions[$i];
-            if ($position['side'] === null) {
+            if ($this->safe_string($position, 'side') === null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                $position['side'] = 'long';
-                $shortPosition = $this->clone($position);
-                $shortPosition['side'] = 'short';
+                $shortPosition = $this->extend($position, array( 'side' => 'short' ));
                 $this->positions->append($shortPosition);
+                $longPosition = $this->extend($position, array( 'side' => 'long' ));
+                $this->positions->append($longPosition);
+                continue;
             }
             $this->positions->append($position);
         }
@@ -610,7 +613,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          */
         $paramsResolved = $this->handleRouteAndParams('watchFundingRate', $params);
         $ticker = Async\await($this->watch_ticker($symbol, $paramsResolved));
-        return $this->parse_funding_rate($ticker['info'], $this->market($symbol));
+        return $this->parse_funding_rate($this->extend(array(), $ticker['info']), $this->market($symbol));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -643,7 +646,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         for ($i = 0; $i < $tickerSymbolsLength; $i++) {
             $symbol = $tickerSymbols[$i];
             $ticker = $tickers[$symbol];
-            $result[$symbol] = $this->parse_funding_rate($ticker['info'], $this->market($symbol));
+            $result[$symbol] = $this->parse_funding_rate($this->extend(array(), $ticker['info']), $this->market($symbol));
         }
         return $result;
     }
@@ -920,7 +923,10 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $ticker = Async\await($this->subscribe($channels, $channels, false, $paramsResolved));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsResolved);
@@ -1016,7 +1022,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         $symbolResolved = $this->symbol($symbol);
         $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolResolved, $timeframe ) ), $since, $limit, $paramsResolved));
-        return $ohlcvs[$symbolResolved][$timeframe];
+        $bySymbol = $ohlcvs[$symbolResolved];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -1048,7 +1055,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
             $current = $symbolsAndTimeframes[$i];
-            $currentTimeframe = $this->safe_string($current, 1);
+            $currentTimeframe = $this->safe_string($current, 1, '');
             $resolution = $this->safe_string($this->timeframes, $currentTimeframe, $currentTimeframe);
             $market = $this->market($this->safe_string($current, 0));
             $channels[] = 'chart.trades.' . $this->safe_string($market, 'id', '') . '.' . $resolution;
@@ -1110,7 +1117,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolsAndTimeframesLength = count($symbolsAndTimeframes);
         for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
             $current = $symbolsAndTimeframes[$i];
-            $timeframe = $this->safe_string($current, 1);
+            $timeframe = $this->safe_string($current, 1, '');
             $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $market = $this->market($this->safe_string($current, 0));
             $channels[] = 'chart.trades.' . $this->safe_string($market, 'id', '') . '.' . $resolution;
@@ -1282,12 +1289,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $tradesArray = $this->trades[$symbol];
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $trade = $this->parse_trade($data[$i], $market);
+            $trade = $this->parse_trade($this->safe_dict($data, $i, array()), $market);
             $tradesArray->append($trade);
         }
         $this->trades[$symbol] = $tradesArray;
         $client->resolve($tradesArray, $channel);
-        return $message;
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1421,12 +1427,19 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
         $channel = $this->safe_string($params, 'channel');
+        if ($channel === null) {
+            throw new ExchangeError($this->id . ' order book update has no channel');
+        }
         $channelParts = explode('.', $channel);
         $channelPartsLength = count($channelParts);
         $isGrouped = $channelPartsLength === 5;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $this->orderbooks[$symbol] = $isGrouped ? $this->order_book(array(), $limit) : $this->counted_order_book(array(), $limit);
+            if ($isGrouped) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            } else {
+                $this->orderbooks[$symbol] = $this->counted_order_book(array(), $limit);
+            }
         }
         $orderbook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($orderbook, 'nonce');
@@ -1460,7 +1473,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
     }
 
-    public function resubscribe_order_book(string $channel) {
+    public function resubscribe_order_book(string $channel): PromiseInterface {
         return Async\async(self::do_resubscribe_order_book(...))($channel);
     }
 
@@ -1506,7 +1519,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         $error = $this->safe_dict($message, 'error');
         if ($error === null) {
             return false;
@@ -1596,7 +1609,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 $this->handle_authentication_message($client, $message);
                 return;
             }
-            $client->resolve($this->safe_value($message, 'result', $message), $requestId);
+            if (is_array($message) && array_key_exists('result' ?? '', $message)) {
+                $client->resolve($this->safe_value($message, 'result'), $requestId);
+            } else {
+                $client->resolve($message, $requestId);
+            }
         }
     }
 
@@ -1644,14 +1661,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future !== null) {
+        $subscribed = ($future !== null);
+        if ($subscribed) {
             $refreshAt = $this->safe_integer($this->options, 'wsAuthRefreshAt');
             if (($refreshAt !== null) && ($this->milliseconds() >= $refreshAt) && !(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 unset($client->subscriptions[$messageHash]);
-                $future = null;
+                $subscribed = false;
             }
         }
-        if ($future === null) {
+        if (!$subscribed) {
             $this->check_required_credentials();
             $requestId = $this->request_id();
             $this->options['wsAuthRequestId'] = $requestId;
@@ -1862,7 +1880,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $market = $this->market($symbol);
         }
         $result = Async\await($this->request_ws('private/cancel', $this->extend(array( 'order_id' => $id ), $paramsResolved), true));
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1924,7 +1942,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $market = $this->market($symbol);
         }
         $result = Async\await($this->request_ws('private/get_order_state', $this->extend(array( 'order_id' => $id ), $paramsResolved), true));
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2018,7 +2036,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $balance = array( 'info' => $result );
         $summariesLength = count($summaries);
         for ($i = 0; $i < $summariesLength; $i++) {
-            $balance = $this->deep_extend($balance, $this->parseBalanceList($summaries[$i]));
+            $balance = $this->deep_extend($balance, $this->parseBalanceList($summaries[$i], array( $this->safe_dict($summaries, $i, array()) )));
         }
         return $this->safe_balance($balance);
     }
@@ -2081,7 +2099,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         $symbolsResolved = $this->market_symbols($symbols);
         $result = Async\await($this->request_ws('private/get_positions', $paramsResolved, true));
-        $positions = $this->parse_positions($result);
+        $positions = $this->parse_positions($this->to_array($result));
         return $this->filter_by_array_positions($positions, 'symbol', $symbolsResolved);
     }
 
@@ -2197,7 +2215,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($this->request_ws($method, $paramsResolved, $isPrivate));
     }
 
-    public function logout_ws($params = array()) {
+    public function logout_ws($params = array()): PromiseInterface {
         return Async\async(self::do_logout_ws(...))($params);
     }
 
@@ -2225,6 +2243,5 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             'params' => $paramsResolved,
         );
         Async\await($client->send($request));
-        return null;
     }
 }

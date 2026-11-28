@@ -91,7 +91,8 @@ class xt extends \ccxt\async\xt {
         if ($isContract) {
             $tradeType = 'contract';
         }
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, $tradeType);
         if (!$isContract) {
             $url = $url . '/private';
@@ -185,15 +186,13 @@ class xt extends \ccxt\async\xt {
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($obBids); $i++) {
-            $bid = $this->safe_list($obBids, $i);
-            $price = $this->safe_number($bid, 0);
-            $quantity = $this->safe_number($bid, 1);
+            $price = $this->safe_number($obBids[$i], 0);
+            $quantity = $this->safe_number($obBids[$i], 1);
             $bids->store($price, $quantity);
         }
         for ($i = 0; $i < count($obAsks); $i++) {
-            $ask = $this->safe_list($obAsks, $i);
-            $price = $this->safe_number($ask, 0);
-            $quantity = $this->safe_number($ask, 1);
+            $price = $this->safe_number($obAsks[$i], 0);
+            $quantity = $this->safe_number($obAsks[$i], 1);
             $asks->store($price, $quantity);
         }
         // this.handleBidAsks (storedBids, bids);
@@ -256,7 +255,8 @@ class xt extends \ccxt\async\xt {
         $subscription = array(
             'id' => $id,
         );
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, $tradeType, '') . '/' . $tail;
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
     }
@@ -314,7 +314,8 @@ class xt extends \ccxt\async\xt {
         if ($isContract) {
             $tail = $privateAccess ? 'user' : 'market';
         }
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, $tradeType, '') . '/' . $tail;
         $subscription = array(
             'unsubscribe' => true,
@@ -413,7 +414,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = null;
         if ($symbols !== null) {
-            $market = $this->market($symbols[0]);
+            $market = $this->market($this->safe_string($symbols, 0));
         }
         if ($name !== null) {
             $tickers = Async\await($this->subscribe($name, 'public', 'watchTickers', $market, $symbols, $params));
@@ -741,7 +742,8 @@ class xt extends \ccxt\async\xt {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, 'contract', '') . '/' . 'user';
         $client = $this->client($url);
         $this->set_positions_cache($client);
@@ -833,7 +835,7 @@ class xt extends \ccxt\async\xt {
             $timestamp = $this->safe_integer($data, 't');
             $fundingRate['timestamp'] = $timestamp;
             $fundingRate['datetime'] = $this->iso8601($timestamp);
-            $symbol = $fundingRate['symbol'];
+            $symbol = $this->safe_string($fundingRate, 'symbol', '');
             $this->fundingRates[$symbol] = $fundingRate;
             $event = $this->safe_string($message, 'event');
             if ($event !== null) {
@@ -1000,7 +1002,7 @@ class xt extends \ccxt\async\xt {
             $cv = $this->safe_string($data, 'cv');
             $isSpot = $cv !== null;
             $ticker = $this->parse_ticker($data);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
@@ -1096,7 +1098,7 @@ class xt extends \ccxt\async\xt {
         for ($i = 0; $i < count($data); $i++) {
             $tickerData = $data[$i];
             $ticker = $this->parse_ticker($tickerData);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
@@ -1167,7 +1169,7 @@ class xt extends \ccxt\async\xt {
                 $tradeType = 'spot';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $parsed = $this->parse_ohlcv($data, $market);
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -1227,7 +1229,7 @@ class xt extends \ccxt\async\xt {
                 $tradeType = 'spot';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $event = $this->safe_string($message, 'event');
             $tradesArray = $this->safe_value($this->trades, $symbol);
             if ($tradesArray === null) {
@@ -1304,7 +1306,7 @@ class xt extends \ccxt\async\xt {
         //        }
         //    }
         //
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
             $event = $this->safe_string($message, 'event', '');
@@ -1315,7 +1317,7 @@ class xt extends \ccxt\async\xt {
                 $tradeType = 'contract';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $obAsks = $this->safe_list($data, 'a');
             $obBids = $this->safe_list($data, 'b');
             $messageHash = $event . '::' . $tradeType;
@@ -1327,8 +1329,8 @@ class xt extends \ccxt\async\xt {
             $orderbook = $this->orderbooks[$symbol];
             $nonce = $this->safe_integer($orderbook, 'nonce');
             if ($nonce === null) {
-                $cacheLength = count($orderbook->cache);
-                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
+                $cacheLength = $this->parse_to_int(strlen($orderbook->cache));
+                $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 25));
                 if ($cacheLength === $snapshotDelay) {
                     $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
                 }
@@ -1338,18 +1340,16 @@ class xt extends \ccxt\async\xt {
             if ($obAsks !== null) {
                 $asks = $orderbook['asks'];
                 for ($i = 0; $i < count($obAsks); $i++) {
-                    $ask = $this->safe_list($obAsks, $i);
-                    $price = $this->safe_number($ask, 0);
-                    $quantity = $this->safe_number($ask, 1);
+                    $price = $this->safe_number($obAsks[$i], 0);
+                    $quantity = $this->safe_number($obAsks[$i], 1);
                     $asks->store($price, $quantity);
                 }
             }
             if ($obBids !== null) {
                 $bids = $orderbook['bids'];
                 for ($i = 0; $i < count($obBids); $i++) {
-                    $bid = $this->safe_list($obBids, $i);
-                    $price = $this->safe_number($bid, 0);
-                    $quantity = $this->safe_number($bid, 1);
+                    $price = $this->safe_number($obBids[$i], 0);
+                    $quantity = $this->safe_number($obBids[$i], 1);
                     $bids->store($price, $quantity);
                 }
             }
@@ -1397,7 +1397,7 @@ class xt extends \ccxt\async\xt {
         //
         $marketId = $this->safe_string($trade, 's');
         $tradeType = 'spot';
-        if (is_array($trade) && array_key_exists('symbol' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'symbol') !== null) {
             $tradeType = 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $tradeType);
@@ -1468,7 +1468,7 @@ class xt extends \ccxt\async\xt {
         //
         $marketId = $this->safe_string_2($order, 's', 'symbol');
         $tradeType = 'spot';
-        if (is_array($order) && array_key_exists('symbol' ?? '', $order)) {
+        if ($this->safe_string($order, 'symbol') !== null) {
             $tradeType = 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $tradeType);
@@ -1661,7 +1661,7 @@ class xt extends \ccxt\async\xt {
         }
         $stored = $this->myTrades;
         $parsedTrade = $this->parse_trade($data);
-        $tradeSymbol = $parsedTrade['symbol'];
+        $tradeSymbol = $this->safe_string($parsedTrade, 'symbol');
         if ($tradeSymbol === null) {
             return;
         }
@@ -1750,17 +1750,19 @@ class xt extends \ccxt\async\xt {
     }
 
     public function handle_un_subscription(Client $client, array $subscription) {
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-        for ($j = 0; $j < count($messageHashes); $j++) {
-            $unsubHash = $messageHashes[$j];
-            $subHash = $subMessageHashes[$j];
-            $this->clean_unsubscription($client, $subHash, $unsubHash);
+        if ($messageHashes !== null) {
+            for ($j = 0; $j < count($messageHashes); $j++) {
+                $unsubHash = $messageHashes[$j];
+                $subHash = $subMessageHashes[$j];
+                $this->clean_unsubscription($client, $subHash, $unsubHash);
+            }
         }
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "id": "123",
@@ -1774,9 +1776,10 @@ class xt extends \ccxt\async\xt {
                 unset($client->subscriptions['token']);
             }
             $this->get_listen_key(true);
-            return;
+            return false;
         }
         $error = new ExchangeError($this->id . ' ' . $this->json($message));
         $client->reject($error);
+        return false;
     }
 }

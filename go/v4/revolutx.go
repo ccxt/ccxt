@@ -14,7 +14,6 @@ type Revolutx struct {
 
 func newRevolutx() *Revolutx {
 	p := &Revolutx{}
-	setDefaults(p)
 	return p
 }
 
@@ -247,7 +246,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var implodedPath string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiName string = api[0]
@@ -301,13 +300,14 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var headersResult any = requestHeaders
-	var bodyResult *string = func() *string {
-		if bodyString != "" {
-			return SafeStringPtr(bodyString)
-		}
-		return nil
-	}()
+	var headersResult map[string]any = requestHeaders
+	var bodyResult *string
+	if bodyString != "" {
+		retStr := bodyString
+		bodyResult = &retStr
+	} else {
+		bodyResult = nil
+	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -420,11 +420,11 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		request["region"] = region
 	}
 
-	r := <-this.PublicGet10PublicConfigurationPairs(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGet10PublicConfigurationPairs(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "BTC/USD": {
@@ -435,8 +435,18 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         }
 	//     }
 	//
-	var markets any = this.SafeDict(response, "data", response)
-	var keys []string = ObjectKeys(markets)
+	var markets map[string]any
+	markets, _ = response["data"].(map[string]any)
+	if markets == nil {
+		markets = response
+	}
+	var keys []string = nil
+	if markets != nil {
+		keys = make([]string, 0, len(markets))
+		for objectKey := range markets {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -479,12 +489,12 @@ func (this *Revolutx) ParseCurrency(currency any) map[string]any {
 	} else {
 		typeVar = "fiat"
 	}
-	var precision any = func() any {
-		if scale != nil {
-			return math.Pow(10, float64((-*scale)))
-		}
-		return nil
-	}()
+	var precision any
+	if scale != nil {
+		precision = math.Pow(10, float64((-*scale)))
+	} else {
+		precision = nil
+	}
 	return map[string]any{
 		"info":      currency,
 		"id":        id,
@@ -539,19 +549,29 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		request["region"] = region
 	}
 
-	r := <-this.PublicGet10PublicConfigurationCurrencies(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGet10PublicConfigurationCurrencies(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
 	//         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
 	//     }
 	//
-	var currencies any = this.SafeDict(response, "data", response)
-	var keys []string = ObjectKeys(currencies)
+	var currencies map[string]any
+	currencies, _ = response["data"].(map[string]any)
+	if currencies == nil {
+		currencies = response
+	}
+	var keys []string = nil
+	if currencies != nil {
+		keys = make([]string, 0, len(currencies))
+		for objectKey := range currencies {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -580,7 +600,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
  * @param {object} [market] the market the ticker is for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Revolutx) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tickerSymbol *string = this.SafeString(ticker, "symbol")
@@ -602,7 +622,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
 		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
 	}
-	return this.SafeTicker(map[string]any{
+	var literal50832 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -613,7 +633,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"ask":           ask,
 		"askVolume":     nil,
 		"vwap":          nil,
-		"open":          open,
+		"open":          nil,
 		"close":         last,
 		"last":          last,
 		"previousClose": nil,
@@ -623,7 +643,11 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}
+	if open != nil {
+		literal50832["open"] = *open
+	}
+	return this.SafeTicker(literal50832, market)
 }
 
 /**
@@ -657,13 +681,13 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIds []any = []any{}
+		var marketIds []string = []string{}
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = SafeStringPtr(symbols[i])
-			var market map[string]any = this.Market(symbol)
-			marketIds = append(marketIds, market["id"])
+			var symbol string = symbols[i]
+			var market map[string]any = this.Market(&symbol)
+			marketIds = append(marketIds, *this.SafeString(market, "id", ""))
 		}
-		request["symbols"] = Join(marketIds, ",")
+		request["symbols"] = strings.Join(marketIds, ",")
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
@@ -685,12 +709,16 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//         "metadata": { "timestamp": 1785313433816 }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
-	var metadata map[string]any = SafeMapTyped(response, "metadata")
+	var data []any
+	data, _ = response["data"].([]any)
+	var metadata, _ = response["metadata"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var tickerData map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var tickerData, _ = data[i].(map[string]any)
+		if tickerData == nil {
+			tickerData = map[string]any{}
+		}
 		tickerData["timestamp"] = timestamp
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickerData))
 		var symbol *string = this.SafeString(ticker, "symbol", "")
@@ -704,20 +732,9 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < len(symbols); i++ {
-			var s *string = SafeStringPtr(symbols[i])
-			if func() bool {
-				if s == nil {
-					return false
-				}
-				_, ok := result[*s]
-				return ok
-			}() {
-				AddElementToObject(filtered, s, func() any {
-					if s == nil {
-						return nil
-					}
-					return result[*s]
-				}())
+			var s string = symbols[i]
+			if _, ok := result[s]; ok {
+				filtered[s] = result[s]
 			}
 		}
 
@@ -761,13 +778,15 @@ func (this *Revolutx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbol)
-	if ticker == nil {
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker
+	var tickerOk bool
+	ticker, tickerOk = tickers[symbol]
+	if !tickerOk {
 		panic(ExchangeError(this.Id + " fetchTicker() could not find ticker for symbol " + symbol))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 
@@ -801,12 +820,15 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
@@ -827,8 +849,12 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//         "metadata": { "region": "UK", "timestamp": 1785313433816 }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var metadata map[string]any = SafeMapTyped(response, "metadata")
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
+	var metadata, _ = response["metadata"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
@@ -893,13 +919,13 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeInteger(this.Timeframes, timeframe, 5),
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 	var defaultLimit int = 1000 // default max limit if not specified
 	var limitValue int64
@@ -914,9 +940,9 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["until"] = until
 	}
 	if (since != nil) && (until == nil) {
-		request["until"] = this.Sum(since, limitValue*duration)
+		request["until"] = *since + limitValue*duration
 	} else if (since == nil) && (until != nil) {
-		request["since"] = (*until - (limitValue * duration))
+		request["since"] = *until - (limitValue * duration)
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
@@ -937,7 +963,11 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -999,12 +1029,12 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Revolutx) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1020,13 +1050,13 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	if market != nil {
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_date"] = since
+		request["start_date"] = *since
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
@@ -1056,10 +1086,14 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var trade, _ = data[i].(map[string]any)
+		if trade == nil {
+			trade = map[string]any{}
+		}
 		result = append(result, TradeToMap(this.ParseTrade(trade, market)))
 	}
 
@@ -1115,7 +1149,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		"info": response,
 	}
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currency *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currency)
 		if code == nil {
@@ -1127,12 +1161,11 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		var staked *string = this.SafeString(balance, "staked")
 		var used any = reserved
 		if staked != nil {
-			used = func() any {
-				if reserved == nil {
-					return staked
-				}
-				return Precise.StringAdd(reserved, staked)
-			}()
+			if reserved == nil {
+				used = staked
+			} else {
+				used = Precise.StringAdd(reserved, staked)
+			}
 		}
 		account["used"] = used
 		account["total"] = this.SafeString(balance, "total")
@@ -1174,7 +1207,7 @@ func (this *Revolutx) ParseOrderStatus(status *string) *string {
  * @param {object} [market] the market the order was placed in
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Revolutx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderId *string = this.SafeString2(order, "id", "venue_order_id")
@@ -1195,9 +1228,9 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 	//     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
 	//     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
 	//
-	var conditional map[string]any = SafeMapTyped(order, "conditional")
-	var takeProfit map[string]any = this.SafeDictMap(order, "take_profit")
-	var stopLoss map[string]any = this.SafeDictMap(order, "stop_loss")
+	var conditional, _ = order["conditional"].(map[string]any)
+	var takeProfit, _ = order["take_profit"].(map[string]any)
+	var stopLoss, _ = order["stop_loss"].(map[string]any)
 	var triggerPrice *string = nil
 	if orderType != nil && *orderType == "conditional" {
 		triggerPrice = this.SafeString(conditional, "trigger_price")
@@ -1207,7 +1240,7 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	} else if orderType != nil && *orderType == "tpsl" {
 		// a single leg tells us the order type and limit price, with both legs they can differ
-		var leg any = nil
+		var leg map[string]any = nil
 		if (takeProfit != nil) && (stopLoss == nil) {
 			leg = takeProfit
 		} else if (stopLoss != nil) && (takeProfit == nil) {
@@ -1317,7 +1350,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1325,8 +1358,8 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
 	var hasStopLoss bool = (stopLossPrice != nil) || (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfitPrice != nil) || (takeProfit != nil)
 	var isTpsl bool = hasStopLoss || hasTakeProfit
@@ -1344,17 +1377,17 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else if triggerPrice != nil {
 		var conditionalConfig map[string]any = map[string]any{}
 		if cost != nil {
-			conditionalConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+			conditionalConfig["quote_size"] = this.CostToPrecision(&symbol, cost)
 		} else {
-			conditionalConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+			conditionalConfig["base_size"] = this.AmountToPrecision(&symbol, amount)
 		}
 		if typeVar == "limit" {
 			if price == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
 			}
-			conditionalConfig["limit_price"] = this.PriceToPrecision(symbol, price)
+			conditionalConfig["limit_price"] = this.PriceToPrecision(&symbol, price)
 		}
-		conditionalConfig["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		conditionalConfig["trigger_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		orderConfiguration["conditional"] = conditionalConfig
 	} else if isTpsl {
 		if cost != nil {
@@ -1362,7 +1395,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		var singleLeg bool = !(hasStopLoss && hasTakeProfit)
 		var tpslConfig map[string]any = map[string]any{
-			"base_size": this.AmountToPrecision(symbol, amount),
+			"base_size": this.AmountToPrecision(&symbol, amount),
 		}
 		if hasTakeProfit {
 			tpslConfig["take_profit"] = this.CreateTriggerLegRequest(symbol, typeVar, price, takeProfitPrice, takeProfit, singleLeg)
@@ -1374,11 +1407,11 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else if typeVar == "limit" {
 		var limitConfig map[string]any = map[string]any{}
 		if cost != nil {
-			limitConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+			limitConfig["quote_size"] = this.CostToPrecision(&symbol, cost)
 		} else {
-			limitConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+			limitConfig["base_size"] = this.AmountToPrecision(&symbol, amount)
 		}
-		limitConfig["price"] = this.PriceToPrecision(symbol, price)
+		limitConfig["price"] = this.PriceToPrecision(&symbol, price)
 		if timeInForce != nil {
 			limitConfig["time_in_force"] = timeInForce
 		}
@@ -1395,9 +1428,9 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		var marketConfig map[string]any = map[string]any{}
 		if cost != nil {
-			marketConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+			marketConfig["quote_size"] = this.CostToPrecision(&symbol, cost)
 		} else {
-			marketConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+			marketConfig["base_size"] = this.AmountToPrecision(&symbol, amount)
 		}
 		orderConfiguration["market"] = marketConfig
 	} else {
@@ -1423,12 +1456,12 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var orderData any = func() any {
-		if IsArray(data) {
-			return this.SafeDict(data, 0, map[string]any{})
-		}
-		return this.SafeDict(response, "data", map[string]any{})
-	}()
+	var orderData any
+	if IsArray(data) {
+		orderData = this.SafeDict(data, 0, map[string]any{})
+	} else {
+		orderData = this.SafeDict(response, "data", map[string]any{})
+	}
 	var venueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
 	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(orderData, map[string]any{
@@ -1462,7 +1495,7 @@ func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, pri
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg"))
 	}
 	var result map[string]any = map[string]any{
-		"trigger_price": this.PriceToPrecision(symbol, legTriggerPrice),
+		"trigger_price": this.PriceToPrecision(&symbol, legTriggerPrice),
 	}
 	var legPrice *string = this.SafeString(leg, "price")
 	if (legPrice == nil) && (typeVar == "limit") {
@@ -1472,7 +1505,7 @@ func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, pri
 		legPrice = this.NumberToString(price)
 	}
 	if legPrice != nil {
-		result["limit_price"] = this.PriceToPrecision(symbol, legPrice)
+		result["limit_price"] = this.PriceToPrecision(&symbol, legPrice)
 	}
 	return result
 }
@@ -1613,7 +1646,11 @@ func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1664,11 +1701,14 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbols"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbols"] = nil
+		if market.Id != nil {
+			request["symbols"] = *market.Id
+		}
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
@@ -1702,10 +1742,14 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var order, _ = data[i].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
@@ -1754,13 +1798,16 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbols"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbols"] = nil
+		if market.Id != nil {
+			request["symbols"] = *market.Id
+		}
 	}
 	var thirtyDays int64 = (30 * 24) * 60 * 60 * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if since != nil {
-		request["start_date"] = since
+		request["start_date"] = *since
 	} else if until != nil {
 		request["start_date"] = *until - thirtyDays
 	}
@@ -1769,15 +1816,14 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var thirtyDaysAgo int64 = now - thirtyDays
-		request["end_date"] = func() any {
-			if *since < thirtyDaysAgo {
-				return *since + thirtyDays
-			}
-			return now
-		}()
+		if *since < thirtyDaysAgo {
+			request["end_date"] = *since + thirtyDays
+		} else {
+			request["end_date"] = now
+		}
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
@@ -1801,10 +1847,14 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var order, _ = data[i].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
@@ -1866,7 +1916,7 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
  * @param {object} [market] the market the trade was executed in
  * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "tid")
@@ -1953,7 +2003,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	var thirtyDays int64 = (30 * 24) * 60 * 60 * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if since != nil {
-		request["start_date"] = since
+		request["start_date"] = *since
 	} else if until != nil {
 		request["start_date"] = *until - thirtyDays
 	}
@@ -1962,15 +2012,14 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var thirtyDaysAgo int64 = now - thirtyDays
-		request["end_date"] = func() any {
-			if *since < thirtyDaysAgo {
-				return *since + thirtyDays
-			}
-			return now
-		}()
+		if *since < thirtyDaysAgo {
+			request["end_date"] = *since + thirtyDays
+		} else {
+			request["end_date"] = now
+		}
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
@@ -1992,10 +2041,14 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var trade, _ = data[i].(map[string]any)
+		if trade == nil {
+			trade = map[string]any{}
+		}
 		result = append(result, this.ParseMyTrade(trade, market))
 	}
 
@@ -2021,12 +2074,12 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
  * @param {string[]} [params.executionInstructions] e.g. ['post_only']
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Revolutx) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
@@ -2043,7 +2096,7 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -2053,12 +2106,12 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		"venue_order_id":  id,
 	}
 	if cost != nil {
-		request["quote_size"] = this.CostToPrecision(symbol, cost)
+		request["quote_size"] = this.CostToPrecision(&symbol, cost)
 	} else if amount != nil {
-		request["base_size"] = this.AmountToPrecision(symbol, amount)
+		request["base_size"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if timeInForce != nil {
 		request["time_in_force"] = timeInForce
@@ -2080,12 +2133,12 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var orderData any = func() any {
-		if IsArray(data) {
-			return this.SafeDict(data, 0, map[string]any{})
-		}
-		return this.SafeDict(response, "data", map[string]any{})
-	}()
+	var orderData any
+	if IsArray(data) {
+		orderData = this.SafeDict(data, 0, map[string]any{})
+	} else {
+		orderData = this.SafeDict(response, "data", map[string]any{})
+	}
 	var newVenueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
 	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(orderData, map[string]any{
@@ -2099,17 +2152,14 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
-func (this *Revolutx) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Revolutx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	var statusCode int64 = this.ParseToInt(code)
 	if statusCode >= 400 {
 		if response == nil {
 			return nil
 		}
 		var feedback string = this.Id + " " + body
-		var errorMessage *string = nil
-		if IsObject(response) {
-			errorMessage = this.SafeString2(response, "message", "error")
-		}
+		var errorMessage *string = this.SafeString2(response, "message", "error")
 		if errorMessage != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		}

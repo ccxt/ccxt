@@ -455,7 +455,7 @@ class coinmate extends coinmate$1["default"] {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode(currencyId);
-            const balance = this.safeDict(balances, currencyId);
+            const balance = this.safeDict(balances, currencyId, {});
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'reserved');
@@ -538,7 +538,7 @@ class coinmate extends coinmate$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     /**
@@ -581,7 +581,10 @@ class coinmate extends coinmate$1["default"] {
         for (let i = 0; i < keys.length; i++) {
             const market = this.market(keys[i]);
             const ticker = this.parseTicker(this.safeDict(data, keys[i], {}), market);
-            result[market['symbol']] = ticker;
+            const symbol = this.safeString(market, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
@@ -1237,7 +1240,7 @@ class coinmate extends coinmate$1["default"] {
             market = this.market(symbol);
         }
         const response = await this.privatePostOrderById(this.extend(request, params));
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     /**
@@ -1264,7 +1267,7 @@ class coinmate extends coinmate$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
     nonce() {

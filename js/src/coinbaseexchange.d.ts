@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseexchange.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict, Bool } from './base/types.js';
 /**
  * @class coinbaseexchange
  * @augments Exchange
@@ -60,7 +60,8 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseTicker(ticker: Dict | List, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTickerList(ticker: List, market?: Market): Ticker;
     /**
      * @method
      * @name coinbaseexchange#fetchTickers
@@ -324,6 +325,6 @@ export default class coinbaseexchange extends Exchange {
      */
     createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     request(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
 }

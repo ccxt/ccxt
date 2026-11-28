@@ -19,6 +19,22 @@ public partial class BaseExchange
         return new ConcurrentDictionary<string, object>(value);
     }
 
+    private IDictionary<string, IDictionary<string, object>> wrapWsCache(IDictionary<string, IDictionary<string, object>> value)
+    {
+        if (value == null || value is ConcurrentDictionary<string, IDictionary<string, object>>)
+        {
+            return value;
+        }
+        return new ConcurrentDictionary<string, IDictionary<string, object>>(value);
+    }
+
+    // safeDict on a typed-row cache: the row itself (a stored row is never an empty-string box)
+    public IDictionary<string, object> safeDict(IDictionary<string, IDictionary<string, object>> rows, object key, object defaultValue = null)
+    {
+        IDictionary<string, object> row = null;
+        return (rows != null && key != null && rows.TryGetValue(key.ToString(), out row) && row != null) ? row : defaultValue as IDictionary<string, object>;
+    }
+
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(string url)
@@ -127,18 +143,18 @@ public partial class BaseExchange
             .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
     }
 
-    public virtual void handleMessage(WebSocketClient client, object messageContent)
+    public virtual void handleMessage(WebSocketClient client, IDictionary<string, object> messageContent)
     {
         // Console.WriteLine("handleMessage");
         // Console.WriteLine(messageContent);
     }
 
     // a venue overrides the handler that takes the frame shape it receives, see routeMessage
-    public virtual void handleTextMessage(WebSocketClient client, object messageContent)
+    public virtual void handleTextMessage(WebSocketClient client, string messageContent)
     {
     }
 
-    public virtual void handleListMessage(WebSocketClient client, object messageContent)
+    public virtual void handleListMessage(WebSocketClient client, IList<object> messageContent)
     {
     }
 
@@ -149,13 +165,13 @@ public partial class BaseExchange
     // hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object
     public void routeMessage(WebSocketClient client, object messageContent)
     {
-        if (messageContent is string)
+        if (messageContent is string textContent)
         {
-            handleTextMessage(client, messageContent);
+            handleTextMessage(client, textContent);
         }
-        else if (messageContent is IList<object>)
+        else if (messageContent is IList<object> listContent)
         {
-            handleListMessage(client, messageContent);
+            handleListMessage(client, listContent);
         }
         else if (messageContent is byte[])
         {
@@ -163,7 +179,7 @@ public partial class BaseExchange
         }
         else
         {
-            handleMessage(client, messageContent);
+            handleMessage(client, messageContent as IDictionary<string, object>);
         }
     }
 
@@ -294,6 +310,18 @@ public partial class BaseExchange
         return await future;
     }
 
+    // the generator proves T from every resolve that can meet the watched hash
+    public async Task<T> watch<T>(object url2, object messageHash2, object message = null, object subscribeHash2 = null, object subscription = null)
+    {
+        return (T)(await this.watch(url2, messageHash2, message, subscribeHash2, subscription));
+    }
+
+    // the generator proves T from the TypeScript cache annotation of the caller
+    public async Task<T> watchMultiple<T>(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
+    {
+        return (T)(await this.watchMultiple(url2, messageHashes2, message, subscribeHashes2, subscription));
+    }
+
     public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
     {
         var url = url2.ToString();
@@ -349,23 +377,25 @@ public partial class Exchange
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue((inOp(this.orderbooks, symbol))))
+        if (!(this.orderbooks != null && symbol is string symbolKey && this.orderbooks.ContainsKey(symbolKey)))
         {
-            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
+            (client).reject(new ExchangeError(this.id + " loadOrderBook() orderbook is not initiated"), messageHash);
             return;
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        Int64 maxTries = Convert.ToInt64(maxRetries);
         int tries = 0;
         Exception error = null;
         try
         {
-            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
-            while (isLessThan(tries, maxRetries))
+            var stored = this.getOrderBook(this.orderbooks, symbol);
+            while (tries < maxTries)
             {
                 var cache = stored.cache;
-                object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
-                object index = this.getCacheIndex(orderBook, cache);
-                if (isTrue(isGreaterThanOrEqual(index, 0)))
+                Dictionary<string, object> orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
+                object indexValue = this.getCacheIndex(orderBook, cache);
+                Int64 index = indexValue == null ? -1 : Convert.ToInt64(indexValue);
+                if (index >= 0)
                 {
                     stored.reset(orderBook);
                     this.handleBookDeltas(stored, (IList<object>)arraySlice(cache, index));
@@ -375,7 +405,7 @@ public partial class Exchange
                 }
                 tries++;
             }
-            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
+            error = new ExchangeError(this.id + " nonce is behind the cache after " + ((object)maxRetries).ToString() + " tries.");
         }
         catch (Exception e)
         {

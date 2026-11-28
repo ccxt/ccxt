@@ -671,9 +671,9 @@ class bitteam extends Exchange {
         $fee = null;
         $withdrawCommissionFixed = $this->safe_dict($txLimits, 'withdrawCommissionFixed', array());
         $feesByNetworkId = array();
-        $blockChain = $this->safe_string($currency, 'blockChain');
+        $blockChain = $this->safe_string($currency, 'blockChain', '');
         // if only one blockChain
-        if (($blockChain !== null) && ($blockChain !== '')) {
+        if ($blockChain !== '') {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
         } else {
@@ -1047,7 +1047,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1169,7 +1169,7 @@ class bitteam extends Exchange {
         //     }
         //
         $order = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -1199,7 +1199,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {
@@ -1462,8 +1462,7 @@ class bitteam extends Exchange {
             $rawTickers = $response;
         }
         for ($i = 0; $i < count($rawTickers); $i++) {
-            $rawTicker = $rawTickers[$i];
-            $ticker = $this->parse_ticker($rawTicker);
+            $ticker = $this->parse_ticker($this->safe_dict($rawTickers, $i, array()));
             $tickers[] = $ticker;
         }
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
@@ -2067,7 +2066,7 @@ class bitteam extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'pair');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string_2($trade, 'id', 'trade_id');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'quantity', 'base_volume');
@@ -2189,7 +2188,8 @@ class bitteam extends Exchange {
             $free = $this->safe_string($currencyBalance, 'free');
             $used = $this->safe_string($currencyBalance, 'used');
             $total = $this->safe_string($currencyBalance, 'total');
-            $currencyCode = $this->safe_currency_code(strtolower($rawCurrencyId));
+            $rawCurrencyIdLower = strtolower($rawCurrencyId);
+            $currencyCode = $this->safe_currency_code($rawCurrencyIdLower);
             if ($currencyCode !== null) {
                 $balance[$currencyCode] = array(
                     'free' => $free,
@@ -2460,7 +2460,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

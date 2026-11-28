@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -352,7 +352,8 @@ class hollaex(ccxt.async_support.hollaex):
         if dataDict is not None:
             rawOrders = [dataDict]
         # usually the first message is an empty array
-        if len(rawOrders) == 0:
+        rawOrdersLength = len(rawOrders)
+        if rawOrdersLength == 0:
             return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -418,9 +419,7 @@ class hollaex(ccxt.async_support.hollaex):
             parts = key.split('_')
             currencyId = self.safe_string(parts, 0)
             code = self.safe_currency_code(currencyId)
-            account = self.account()
-            if (code is not None) and (code in self.balance):
-                account = self.balance[code]
+            account = self.safe_dict(self.balance, code, self.account())
             second = self.safe_string(parts, 1)
             freeOrTotal = 'free' if (second == 'available') else 'total'
             account[freeOrTotal] = self.safe_string(data, key)
@@ -464,7 +463,7 @@ class hollaex(ccxt.async_support.hollaex):
         message = self.extend(request, params)
         return await self.watch(signedUrl, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     { error: "Bearer or HMAC authentication required" }
         #     { error: "Error: wrong input" }

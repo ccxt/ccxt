@@ -175,7 +175,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -186,15 +190,15 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@ticker';
             $messageHashes[] = 'ticker:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
@@ -229,7 +233,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTickers');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -240,15 +248,15 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'UNSUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@ticker';
             $messageHashes[] = 'unsubscribe:ticker:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
     }
 
@@ -318,7 +326,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchMarkPrices');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -330,10 +342,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         $use1sFreq = $this->safe_bool($paramsOmitted, 'use1sFreq', true);
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
@@ -344,6 +352,10 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@markPrice' . $suffix;
             $messageHashes[] = 'ticker:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
@@ -377,7 +389,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchMarkPrices');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -389,10 +405,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'UNSUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         $use1sFreq = $this->safe_bool($paramsOmitted, 'use1sFreq', true);
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
@@ -403,6 +415,10 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@markPrice' . $suffix;
             $messageHashes[] = 'unsubscribe:ticker:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsOmitted), $messageHashes));
     }
 
@@ -510,7 +526,11 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -521,15 +541,15 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@bookTicker';
             $messageHashes[] = 'bidask:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
@@ -563,7 +583,11 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -574,15 +598,15 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'UNSUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@bookTicker';
             $messageHashes[] = 'unsubscribe:bidask:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
@@ -616,7 +640,7 @@ class aster extends \ccxt\async\aster {
         $timestamp = $this->safe_integer($message, 'T');
         $bidAskSymbol = null;
         if ($market !== null) {
-            $bidAskSymbol = $market['symbol'];
+            $bidAskSymbol = $this->safe_string($market, 'symbol');
         }
         return $this->safe_ticker(array(
             'symbol' => $bidAskSymbol,
@@ -707,11 +731,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => $subscriptionArgs,
-            'id' => 1,
-        );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $marketId = $this->safe_string_lower($market, 'id');
@@ -721,6 +740,11 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $marketId . '@aggTrade';
             $messageHashes[] = 'trade::' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+            'id' => 1,
+        );
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -763,15 +787,15 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'UNSUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@aggTrade';
             $messageHashes[] = 'unsubscribe:trade:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
     }
 
@@ -927,11 +951,12 @@ class aster extends \ccxt\async\aster {
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
         $orderId = $this->safe_string($trade, 'i');
-        if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
+        $isMaker = $this->safe_bool($trade, 'm');
+        if ($isMaker !== null) {
             if ($side === null) {
-                $side = ($this->safe_bool($trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = $isMaker ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = ($this->safe_bool($trade, 'm', false)) ? 'maker' : 'taker';
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -1040,10 +1065,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         $depthSuffix = '@depth20';
         if ($limit === 5) {
             $depthSuffix = '@depth5';
@@ -1055,6 +1076,10 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . $depthSuffix;
             $messageHashes[] = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         return $orderbook->limit();
     }
@@ -1095,10 +1120,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'UNSUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         $limit = $this->safe_number($paramsOmitted, 'limit');
         $depthSuffix = '@depth20';
         if ($limit === 5) {
@@ -1111,6 +1132,10 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . $depthSuffix;
             $messageHashes[] = 'unsubscribe:orderbook:' . $this->safe_string($market, 'symbol', '');
         }
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsOmitted, 'limit')), $messageHashes));
     }
 
@@ -1178,7 +1203,8 @@ class aster extends \ccxt\async\aster {
         }
         $symbolValue = $this->safe_symbol($symbol);
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
@@ -1236,10 +1262,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < $symbolsLength; $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
@@ -1253,6 +1275,10 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@kline_' . $timeframeId;
             $messageHashes[] = 'ohlcv:' . $this->safe_string($market, 'symbol', '') . ':' . $unfiedTimeframe;
         }
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         list($symbol, $timeframe, $stored) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -1295,10 +1321,6 @@ class aster extends \ccxt\async\aster {
         }
         $subscriptionArgs = array();
         $messageHashes = array();
-        $request = array(
-            'method' => 'UNSUBSCRIBE',
-            'params' => $subscriptionArgs,
-        );
         for ($i = 0; $i < $symbolsLength; $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
@@ -1312,6 +1334,10 @@ class aster extends \ccxt\async\aster {
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@kline_' . $timeframeId;
             $messageHashes[] = 'unsubscribe:ohlcv:' . $this->safe_string($market, 'symbol', '') . ':' . $unfiedTimeframe;
         }
+        $request = array(
+            'method' => 'UNSUBSCRIBE',
+            'params' => $subscriptionArgs,
+        );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
     }
 
@@ -1355,7 +1381,7 @@ class aster extends \ccxt\async\aster {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if ($this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe) === null) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -1423,8 +1449,12 @@ class aster extends \ccxt\async\aster {
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
-                $this->options['listenKey'][$type] = $listenKey;
-                $this->options['lastAuthenticatedTime'][$type] = $time;
+                $listenKeys = $this->safe_dict($this->options, 'listenKey', array());
+                $listenKeys[$type] = $listenKey;
+                $this->options['listenKey'] = $listenKeys;
+                $lastAuthenticatedTimes = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+                $lastAuthenticatedTimes[$type] = $time;
+                $this->options['lastAuthenticatedTime'] = $lastAuthenticatedTimes;
                 $keepAliveParams = $this->extend(array( 'type' => $type ), $params);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $keepAliveParams);
                 // settle the flight: client.resolve () removes the future from
@@ -1466,7 +1496,9 @@ class aster extends \ccxt\async\aster {
                 $client->reject($error, $messageHash);
             }
             $this->options['listenKey'][$type] = null;
-            $this->options['lastAuthenticatedTime'][$type] = 0;
+            $lastAuthenticatedTimes = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+            $lastAuthenticatedTimes[$type] = 0;
+            $this->options['lastAuthenticatedTime'] = $lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1613,7 +1645,8 @@ class aster extends \ccxt\async\aster {
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
         }
-        $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $messageValue = $this->safe_dict($message, 'a', $message);
         $B = $this->safe_list($messageValue, 'B', array());
         $wallet = $this->safe_string($this->options, 'wallet', 'wb');
@@ -1626,13 +1659,13 @@ class aster extends \ccxt\async\aster {
             $account['used'] = $this->safe_string($entry, 'l');
             $account['total'] = $this->safe_string($entry, $wallet);
             if ($code !== null) {
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($messageValue, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $messageHash);
     }
 
@@ -1937,12 +1970,13 @@ class aster extends \ccxt\async\aster {
         $rawOrder = $this->safe_dict($message, 'o', $message);
         $e = $this->safe_string($message, 'e');
         $isOrderUpdate = ($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE');
-        $tradeMessage = $message;
-        if ($isOrderUpdate) {
-            $tradeMessage = $rawOrder;
-        }
+        $tradeOrder = $this->safe_dict($message, 'o');
         $this->handle_order($client, $rawOrder);
-        $this->handle_my_trade($client, $tradeMessage);
+        if ($isOrderUpdate && ($tradeOrder !== null)) {
+            $this->handle_my_trade($client, $tradeOrder);
+        } else {
+            $this->handle_my_trade($client, $message);
+        }
     }
 
     public function handle_my_trade(Client $client, array $message) {
@@ -1968,27 +2002,42 @@ class aster extends \ccxt\async\aster {
                         // accumulate order fees
                         $fees = $this->safe_list($order, 'fees', array());
                         $fee = $this->safe_dict($order, 'fee');
+                        $tradeFeeCurrency = $this->safe_string($tradeFee, 'currency');
+                        $tradeFeeCost = $this->safe_number($tradeFee, 'cost');
                         if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
+                            $newFees = array();
                             for ($i = 0; $i < count($fees); $i++) {
-                                $orderFee = $fees[$i];
-                                if ($this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
-                                    $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
-                                    $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
-                                    $order['fees'][$i]['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
+                                $orderFee = $this->extend(array(), $fees[$i]);
+                                if ($insertNewFeeCurrency && $this->safe_string($orderFee, 'currency') === $tradeFeeCurrency) {
+                                    $feeCost = $this->sum($tradeFeeCost, $this->safe_number($orderFee, 'cost'));
+                                    $feeCostString = $this->currency_to_precision($tradeFeeCurrency, $feeCost);
+                                    if ($feeCostString !== null) {
+                                        $orderFee['cost'] = floatval($feeCostString);
+                                    } else {
+                                        $orderFee['cost'] = null;
+                                    }
                                     $insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                $newFees[] = $orderFee;
                             }
                             if ($insertNewFeeCurrency) {
-                                $order['fees'][] = $tradeFee;
+                                $newFees[] = $tradeFee;
                             }
+                            $order['fees'] = $newFees;
                         } elseif ($fee !== null) {
-                            if ($this->safe_string($fee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
-                                $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
-                                $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
-                                $order['fee']['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
-                            } elseif ($this->safe_string($fee, 'currency') === null) {
+                            $feeCurrency = $this->safe_string($fee, 'currency');
+                            if ($feeCurrency === $tradeFeeCurrency) {
+                                $feeCost = $this->sum($this->safe_number($fee, 'cost'), $tradeFeeCost);
+                                $feeCostString = $this->currency_to_precision($tradeFeeCurrency, $feeCost);
+                                $newFee = $this->extend(array(), $fee);
+                                if ($feeCostString !== null) {
+                                    $newFee['cost'] = floatval($feeCostString);
+                                } else {
+                                    $newFee['cost'] = null;
+                                }
+                                $order['fee'] = $newFee;
+                            } elseif ($feeCurrency === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
                                 $order['fees'] = array( $fee, $tradeFee );

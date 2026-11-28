@@ -397,7 +397,8 @@ class hollaex extends \ccxt\async\hollaex {
             $rawOrders = array( $dataDict );
         }
         // usually the first message is an empty array
-        if (strlen($rawOrders) === 0) {
+        $rawOrdersLength = count($rawOrders);
+        if ($rawOrdersLength === 0) {
             return;
         }
         if ($this->orders === null) {
@@ -475,10 +476,7 @@ class hollaex extends \ccxt\async\hollaex {
             $parts = explode('_', $key);
             $currencyId = $this->safe_string($parts, 0);
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                $account = $this->balance[$code];
-            }
+            $account = $this->safe_dict($this->balance, $code, $this->account());
             $second = $this->safe_string($parts, 1);
             $freeOrTotal = ($second === 'available') ? 'free' : 'total';
             $account[$freeOrTotal] = $this->safe_string($data, $key);
@@ -536,7 +534,7 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }

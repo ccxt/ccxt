@@ -485,7 +485,7 @@ export default class independentreserve extends Exchange {
             defaultMarketId = baseId + '/' + quoteId;
         }
         const marketResolved = this.safeMarket(defaultMarketId, market, '/');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'LastPrice');
         return this.safeTicker({
             'symbol': symbol,
@@ -897,7 +897,8 @@ export default class independentreserve extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeDict(fees, market['base'], {});
+            const baseCode = this.safeString(market, 'base', '');
+            const fee = this.safeDict(fees, baseCode, {});
             result[symbol] = {
                 'info': this.safeDict(fee, 'info'),
                 'symbol': symbol,

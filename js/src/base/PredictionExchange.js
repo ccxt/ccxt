@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
-import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
+import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired, BadRequest } from './errors.js';
 // ----------------------------------------------------------------------------
 /**
  * @class PredictionExchange
@@ -92,7 +92,18 @@ export default class PredictionExchange extends BaseExchange {
         if (singleQuery !== undefined) {
             return [singleQuery];
         }
-        return this.safeList(params, 'queries', []);
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        const rawQueries = this.toArray(this.safeList(params, 'queries', []));
+        const rawQueriesLength = rawQueries.length;
+        const queries = [];
+        for (let i = 0; i < rawQueriesLength; i++) {
+            const query = this.safeString(rawQueries, i);
+            if (query === undefined) {
+                throw new BadRequest(this.id + ' params.queries must be a list of strings');
+            }
+            queries.push(query);
+        }
+        return queries;
     }
     requireEventQuery(params = {}) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -117,7 +128,7 @@ export default class PredictionExchange extends BaseExchange {
             if (scopeKey in params) {
                 return undefined;
             }
-            extraNames = extraNames + ', ' + scopeKey;
+            extraNames = extraNames + ', ' + this.safeString(extraScopeParams, i, '');
         }
         throw new ArgumentsRequired(this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }
@@ -155,7 +166,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const sort = this.safeString(params, 'sort');
         if (sort !== undefined) {
-            let sortKey = undefined;
+            let sortKey = '';
             if (sort === 'volume') {
                 sortKey = 'volume';
             }
@@ -165,7 +176,7 @@ export default class PredictionExchange extends BaseExchange {
             else if (sort === 'newest') {
                 sortKey = 'created';
             }
-            if (sortKey !== undefined) {
+            if (sortKey !== '') {
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
@@ -180,9 +191,10 @@ export default class PredictionExchange extends BaseExchange {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             const resultLength = result.length;
-            let sliceEnd = limit;
-            if (sliceEnd > resultLength) {
-                sliceEnd = resultLength;
+            const limitValue = this.safeInteger(params, 'limit', 0);
+            let sliceEnd = resultLength;
+            if (limitValue < resultLength) {
+                sliceEnd = limitValue;
             }
             result = this.arraySlice(result, 0, sliceEnd);
         }
@@ -225,15 +237,9 @@ export default class PredictionExchange extends BaseExchange {
             let matched = false;
             for (let qi = 0; qi < queriesLength; qi++) {
                 const q = this.safeString(queries, qi, '').toLowerCase();
-                if (title === undefined) {
-                    throw new ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
-                }
                 if (checkTitle && (title.indexOf(q) >= 0)) {
                     matched = true;
                     break;
-                }
-                if (description === undefined) {
-                    throw new ExchangeError(this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && (description.indexOf(q) >= 0)) {
                     matched = true;
@@ -297,15 +303,16 @@ export default class PredictionExchange extends BaseExchange {
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
                 const tag = eventTags[ti];
-                let tagLabel = undefined;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                let tagLabel = '';
                 if (typeof tag === 'string') {
-                    tagLabel = tag;
+                    tagLabel = this.safeString(eventTags, ti, '');
                 }
                 else {
-                    tagLabel = this.safeString2(tag, 'slug', 'title');
+                    tagLabel = this.safeString2(tag, 'slug', 'title', '');
                 }
-                if (tagLabel !== undefined) {
-                    const tagKey = this.normalizeTagKey(tagLabel);
+                const tagKey = this.normalizeTagKey(tagLabel);
+                if (tagKey !== '') {
                     for (let wi = 0; wi < wanted.length; wi++) {
                         if (tagKey.indexOf(wanted[wi]) >= 0) {
                             matched = true;
@@ -612,7 +619,10 @@ export default class PredictionExchange extends BaseExchange {
         }
         const outcomesList = this.safeList(market, 'outcomes', []);
         for (let j = 0; j < outcomesList.length; j++) {
-            const oc = outcomesList[j];
+            const oc = this.safeDict(outcomesList, j);
+            if (oc === undefined) {
+                continue;
+            }
             let ocSymbol = this.safeString2(oc, 'outcome', 'symbol');
             const ocId = this.safeString2(oc, 'outcomeId', 'id');
             // assign unconditionally — safeString2 keeps the canonical key when present
@@ -694,28 +704,28 @@ export default class PredictionExchange extends BaseExchange {
         // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if (outcomes !== undefined) {
-            let missing = [];
+            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
+            const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
+            if (loadAll && !wasWarm && !reload) {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                let coldMiss = false;
+                for (let i = 0; i < outcomes.length; i++) {
+                    if (!this.hasOutcome(outcomes[i])) {
+                        coldMiss = true;
+                    }
+                }
+                if (coldMiss) {
+                    await this.loadOutcomes();
+                }
+            }
+            const missing = [];
             for (let i = 0; i < outcomes.length; i++) {
                 if (reload || !this.hasOutcome(outcomes[i])) {
                     missing.push(outcomes[i]);
                 }
             }
-            let missingLength = missing.length;
-            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
-            const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && (loadAll) && !wasWarm && !reload) {
-                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                await this.loadOutcomes();
-                const stillMissing = [];
-                for (let i = 0; i < missingLength; i++) {
-                    if (!this.hasOutcome(missing[i])) {
-                        stillMissing.push(missing[i]);
-                    }
-                }
-                missing = stillMissing;
-                missingLength = missing.length;
-            }
+            const missingLength = missing.length;
             if (missingLength > 0) {
                 await this.fetchOutcomes(missing);
             }
@@ -738,7 +748,7 @@ export default class PredictionExchange extends BaseExchange {
      */
     async fetchOutcomes(outcomeSymbols) {
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            await this.fetchOutcome(outcomeSymbols[i]);
+            await this.fetchOutcome(this.safeString(outcomeSymbols, i, ''));
         }
         return this.outcomes;
     }
@@ -802,8 +812,6 @@ export default class PredictionExchange extends BaseExchange {
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         for (let i = 0; i < rawWords.length; i++) {
             const word = rawWords[i];
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if (word.length === 0) {
                 continue;
             }
@@ -1511,7 +1519,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray(trades);
         let results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePredictionTrade(rows[i], outcomeObj);
+            const parsed = this.parsePredictionTrade(this.safeDict(rows, i, {}), outcomeObj);
             const trade = this.extend(parsed, params);
             results.push(trade);
         }
@@ -1536,7 +1544,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray(orders);
         let results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePredictionOrder(rows[i], outcomeObj);
+            const parsed = this.parsePredictionOrder(this.safeDict(rows, i, {}), outcomeObj);
             const order = this.extend(parsed, params);
             results.push(order);
         }
@@ -1561,7 +1569,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray(positions);
         const results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePredictionPosition(rows[i]);
+            const parsed = this.parsePredictionPosition(this.safeDict(rows, i, {}));
             const position = this.extend(parsed, params);
             results.push(position);
         }
@@ -1597,7 +1605,7 @@ export default class PredictionExchange extends BaseExchange {
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     padHexToEven(hex) {
-        if (hex === undefined) {
+        if (hex === '') {
             return '';
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -1616,11 +1624,11 @@ export default class PredictionExchange extends BaseExchange {
         return '000000000000000000000000' + stripped;
     }
     rlpEncodeBytes(hex) {
-        if (hex === undefined) {
-            return '';
-        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt(hex.length / 2);
+        if (byteLength === undefined) {
+            return '';
+        }
         if (byteLength === 0) {
             return '80';
         }
@@ -1631,7 +1639,10 @@ export default class PredictionExchange extends BaseExchange {
             return this.intToBase16(128 + byteLength) + hex;
         }
         let lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        const lengthHexLength = lengthHex.length;
+        if ((lengthHexLength % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
         const lengthOfLength = this.parseToInt(lengthHex.length / 2);
         return this.intToBase16(183 + lengthOfLength) + lengthHex + hex;
     }
@@ -1641,11 +1652,17 @@ export default class PredictionExchange extends BaseExchange {
             concatenated = concatenated + this.safeString(items, i, '');
         }
         const byteLength = this.parseToInt(concatenated.length / 2);
+        if (byteLength === undefined) {
+            return '';
+        }
         if (byteLength < 56) {
             return this.intToBase16(192 + byteLength) + concatenated;
         }
         let lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        const lengthHexLength = lengthHex.length;
+        if ((lengthHexLength % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
         const lengthOfLength = this.parseToInt(lengthHex.length / 2);
         return this.intToBase16(247 + lengthOfLength) + lengthHex + concatenated;
     }
@@ -1658,7 +1675,10 @@ export default class PredictionExchange extends BaseExchange {
             return '';
         }
         let hex = this.intToBase16(value);
-        hex = this.padHexToEven(hex);
+        const hexLength = hex.length;
+        if ((hexLength % 2) !== 0) {
+            hex = '0' + hex;
+        }
         return hex;
     }
     hexToRlpBytes(hexValue) {

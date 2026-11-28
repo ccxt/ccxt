@@ -247,6 +247,8 @@ mod tests {
 pub struct Config {
     top: IndexMap<String, Value>,
     options: IndexMap<String, Value>,
+    // Dynamic config handed over as-is; returned unchanged when no builder entry was added.
+    raw: Option<Value>,
 }
 
 impl Config {
@@ -359,7 +361,7 @@ impl Config {
             };
             top.insert("options".to_string(), Value::Dict(std::sync::Arc::new(merged)));
         }
-        if top.is_empty() { Value::Null } else { Value::Dict(std::sync::Arc::new(top)) }
+        if top.is_empty() { self.raw.unwrap_or(Value::Null) } else { Value::Dict(std::sync::Arc::new(top)) }
     }
 
     /// `Some(value)` for the generated `new(Option<Value>)` constructors.
@@ -393,6 +395,17 @@ impl From<Config> for Value {
 
 impl From<Config> for Option<Value> {
     fn from(c: Config) -> Option<Value> { c.into_option() }
+}
+
+impl From<Value> for Config {
+    fn from(v: Value) -> Config {
+        let top = match &v { Value::Dict(m) => (**m).clone(), _ => IndexMap::new() };
+        Config { top, options: IndexMap::new(), raw: Some(v) }
+    }
+}
+
+impl From<Option<Value>> for Config {
+    fn from(v: Option<Value>) -> Config { v.map(Config::from).unwrap_or_default() }
 }
 
 #[cfg(test)]

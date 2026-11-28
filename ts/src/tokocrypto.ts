@@ -5,7 +5,7 @@ import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1389,7 +1389,7 @@ export default class tokocrypto extends Exchange {
             const firstTicker: Dict = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     /**
@@ -1500,12 +1500,6 @@ export default class tokocrypto extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response = undefined;
-        if (this.isNativeMarket (market)) {
-            response = await this.publicGetOpenV1MarketKlines (this.extend (request, paramsOmitted));
-        } else {
-            response = await this.binanceGetKlines (this.extend (request, paramsOmitted));
-        }
         //
         // binanceGetKlines
         //
@@ -1540,9 +1534,8 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         let data: List = [];
-        if (Array.isArray (response)) {
-            data = response;
-        } else {
+        if (this.isNativeMarket (market)) {
+            const response = await this.publicGetOpenV1MarketKlines (this.extend (request, paramsOmitted));
             const dataList = this.safeList (response, 'data');
             if (dataList !== undefined) {
                 data = dataList;
@@ -1550,6 +1543,8 @@ export default class tokocrypto extends Exchange {
                 const dataDict: Dict = this.safeDict (response, 'data', {});
                 data = this.safeList (dataDict, 'list', []);
             }
+        } else {
+            data = await this.binanceGetKlines (this.extend (request, paramsOmitted));
         }
         return this.parseOHLCVs (data, market, timeframe, since, limitValue);
     }
@@ -2687,7 +2682,7 @@ export default class tokocrypto extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        const restUrls = this.extend ({}, this.urls['api']['rest']);
+        const restUrls = this.extend ({}, this.safeDict (this.urls['api'], 'rest', {}));
         if (!(apiName in restUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
@@ -2755,7 +2750,7 @@ export default class tokocrypto extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }

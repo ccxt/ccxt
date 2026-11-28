@@ -7,7 +7,7 @@ import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, Insuffici
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint, NullableDict, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -951,7 +951,6 @@ export default class upbit extends Exchange {
         //         }
         //
         const id = this.safeString2 (trade, 'sequential_id', 'uuid');
-        const orderId = undefined;
         let timestamp = this.safeInteger (trade, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
@@ -979,7 +978,7 @@ export default class upbit extends Exchange {
         return this.safeTrade ({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': marketResolved['symbol'],
@@ -1334,8 +1333,9 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const paramsOrdType = (customType === 'best') ? this.omit (params, [ 'ordType', 'ord_type' ]) : params;
+        let paramsOrdType: Dict = params;
         if (customType === 'best') {
+            paramsOrdType = this.omit (paramsOrdType, [ 'ordType', 'ord_type' ]);
             request['ord_type'] = 'best';
             if (side === 'buy') {
                 const orderPrice = this.calcOrderPrice (symbol, amount, price, paramsOrdType);
@@ -2480,7 +2480,7 @@ export default class upbit extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': (apiName === 'private') ? headers : undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -38,7 +38,7 @@ public class TestFetchPositions extends BaseTest {
         Assert((positionsForSymbolLength == null || positionsForSymbolLength <= 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
         for (var i = 0; i < ((List<?>)positionsForSymbol).size(); i++)
         {
-            TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbol == null || i < 0 || i >= ((List<?>)positionsForSymbol).size() ? null : ((List<?>)positionsForSymbol).get(i)), (String) (symbol), now);
+            TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbol == null || i < 0 || i >= ((List<?>)positionsForSymbol).size() ? null : ((List<?>)positionsForSymbol).get(i)), symbol, now);
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, symbol, positionsForSymbol);
         return true;

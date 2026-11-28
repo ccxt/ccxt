@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, List, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, List, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -110,7 +110,7 @@ export default class p2b extends p2bRest {
             channel,
         ];
         const messageHash = 'kline::' + market['symbol'];
-        const ohlcv = await this.subscribe ('kline.subscribe', messageHash, request, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe ('kline.subscribe', messageHash, request, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -138,7 +138,7 @@ export default class p2b extends p2bRest {
         const [ nameOption, paramsName ] = this.handleOptionStringAndParams (params, 'watchTicker', 'name', name);
         const market = this.market (symbol);
         this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        const tickerSubs = this.options['tickerSubs'];
+        const tickerSubs = this.safeDict (this.options, 'tickerSubs', {});
         const request = Object.keys (tickerSubs);
         return await this.subscribe (nameOption + '.subscribe', nameOption + '::' + this.safeString (market, 'symbol', ''), request, paramsName);
     }
@@ -253,7 +253,7 @@ export default class p2b extends p2bRest {
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
         const interval = this.safeString (params, 'interval', '0.001');
-        const limitResolved = (limit === undefined) ? 100 : limit;
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const request = [
             market['id'],
             limitResolved,
@@ -293,7 +293,7 @@ export default class p2b extends p2bRest {
         const timeframe = this.findTimeframe (channel, timeframes);
         const symbol = this.safeString (market, 'symbol');
         const parsed = this.parseOHLCV (data, market);
-        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol as string] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol as string], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
@@ -342,8 +342,7 @@ export default class p2b extends p2bRest {
             this.trades[symbol as string] = tradesArray;
         }
         for (let i = 0; i < trades.length; i++) {
-            const item = trades[i];
-            const trade = this.parseTrade (item, market);
+            const trade = this.parseTrade (this.safeDict (trades, i, {}), market);
             tradesArray.append (trade);
         }
         const messageHash = 'deals::' + symbol;
@@ -498,7 +497,7 @@ export default class p2b extends p2bRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' error: ' + this.json (error));

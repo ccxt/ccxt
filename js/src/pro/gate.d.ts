@@ -2,9 +2,10 @@ import gateRest from '../gate.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, OrderRequest, Bool, NullableDict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 export default class gate extends gateRest {
     describe(): Dict;
-    describeData(): any;
+    describeData(): Dict;
     /**
      * @method
      * @name gate#createOrderWs
@@ -170,7 +171,7 @@ export default class gate extends gateRest {
     handleNewSpotOrderBook(client: Client, message: Dict): void;
     handleOrderBook(client: Client, message: Dict): void;
     getCacheIndex(orderBook: NullableDict, cache: any[]): number;
-    handleBidAsks(bookSide: any, bidAsks: any[]): void;
+    handleBidAsks(bookSide: OrderBookSide, bidAsks: any[]): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @method
@@ -386,13 +387,13 @@ export default class gate extends gateRest {
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: Dict): void;
     parseWsLiquidation(liquidation: Dict, market?: Market): Liquidation;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleBalanceSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     getUrlByMarket(market: any): string;
-    getTypeByMarket(market: Market): Str;
+    getTypeByMarket(market: Market): string;
     getUrlByMarketType(type: Str, isInverse?: Bool): Str;
     getMarketTypeByUrl(url: string): string;
     requestId(): int;

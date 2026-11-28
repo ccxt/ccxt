@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,27 +15,27 @@ pub fn testToArray() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut obj1: Value = Value::Map({
+    let obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::Int(3));
             m.insert("c".to_string(), Value::Int(2));
         m
     });
-    let mut obj2: Value = Value::Map({
+    let obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Str("x".into()));
             m.insert("b".to_string(), Value::Int(2));
         m
     });
-    let mut result1: Value = exchange.to_array(obj1);
-    let mut result2: Value = exchange.to_array(obj2);
+    let result1: Value = exchange.to_array(obj1);
+    let result2: Value = exchange.to_array(obj2);
     // we can't guarantee order of values in GO lang
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
     //
-    assert!(ccxt::runtime::is_true(&((Value::Int(result1.len() as i64).as_f64() == Some(3.0)))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(result2.len() as i64).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".into()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(result1.len() as i64).as_f64() == Some(3.0)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(result2.len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone()))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".into()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
 }

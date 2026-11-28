@@ -64,7 +64,7 @@ func InvalidNonce(v ...any) error {
 }
 
 func Error(v ...any) error {
-	return ccxt.NewError(v)
+	return ccxt.NewError("Exception", v...)
 }
 
 func NetworkError(v ...any) error {
@@ -114,13 +114,13 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 			panic(r)
 		}
 	}()
-	client.OnMessageCallback(client, message)
+	client.DispatchMessage(client, message)
 }
 
 func GetWsSentMessages(exchange ccxt.ICoreExchange, url any) []any {
 	// the frames the exchange sent over the mocked transport, already parsed
 	client := exchange.(wsClientProvider).Client(url)
-	return client.MockSentMessages
+	return client.MockSent()
 }
 
 func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
@@ -360,6 +360,10 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 		// Prepare the input arguments, starting with exchange and skippedProperties
 		in := []reflect.Value{reflect.ValueOf(exchange), reflect.ValueOf(skippedProperties)}
 		for _, arg := range args {
+			// a symbol or outcome read with a Safe* reader is a *string; a test taking `string` gets its value
+			if s, isPtr := arg.(*string); isPtr && s != nil && len(in) < methodVal.Type().NumIn() && methodVal.Type().In(len(in)).Kind() == reflect.String {
+				arg = *s
+			}
 			in = append(in, reflect.ValueOf(arg))
 		}
 

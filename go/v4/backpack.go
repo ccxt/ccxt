@@ -11,7 +11,6 @@ type Backpack struct {
 
 func newBackpack() *Backpack {
 	p := &Backpack{}
-	setDefaults(p)
 	return p
 }
 
@@ -699,9 +698,7 @@ func (this *Backpack) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var selection []any = this.HandleStockParams("fetchCurrencies", params)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stock, query := this.HandleOptionBoolAndParams(params, "fetchCurrencies", "stock", false)
 
 	responseRecv := <-this.PublicGetApiV1Assets(query)
 	if responseRecv.Err != nil {
@@ -734,8 +731,9 @@ func (this *Backpack) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var currencies map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
 		var currency map[string]any = this.ParseCurrency(this.SafeDict(response, i, map[string]any{}))
-		if !(stock != nil && *stock) || (this.SafeString(currency, "type") != nil && *this.SafeString(currency, "type") == "stock") {
-			AddElementToObject(currencies, currency["code"], currency)
+		if !stock || (this.SafeString(currency, "type") != nil && *this.SafeString(currency, "type") == "stock") {
+			var currencyCode string = *this.SafeString(currency, "code", "")
+			currencies[currencyCode] = currency
 		}
 	}
 
@@ -781,30 +779,26 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var deposit any = nil
 	var withdraw any = nil
 	if this.IsEmpty(parsedNetworks) {
-		active = func() any {
-			if stock {
-				return nil
-			}
-			return false
-		}()
+		if !stock {
+			active = false
+		}
 		deposit = false
 		withdraw = false
+	}
+	var ternaryStr63120 string = "crypto"
+	if stock {
+		ternaryStr63120 = "stock"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"precision": nil,
-		"type": func() string {
-			if stock {
-				return "stock"
-			}
-			return "crypto"
-		}(),
-		"name":     this.SafeString(rawCurrency, "displayName"),
-		"active":   active,
-		"deposit":  deposit,
-		"withdraw": withdraw,
-		"fee":      nil,
+		"type":      ternaryStr63120,
+		"name":      this.SafeString(rawCurrency, "displayName"),
+		"active":    active,
+		"deposit":   deposit,
+		"withdraw":  withdraw,
+		"fee":       nil,
 		"limits": map[string]any{
 			"deposit": map[string]any{
 				"min": nil,
@@ -848,22 +842,25 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			panic(r.Err)
 		}
 	}
-	var selection []any = this.HandleStockParams("fetchMarkets", params)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stock, query := this.HandleOptionBoolAndParams(params, "fetchMarkets", "stock", false)
 	var marketType *string = this.SafeString(query, "marketType")
-	var requestedTypes any = this.SafeList(query, "marketType", []any{"SPOT", "PERP", "RFQ"})
+	var defaultTypes []any = []any{}
 	if marketType != nil {
-		requestedTypes = []any{marketType}
+		defaultTypes = append(defaultTypes, *marketType)
+	} else {
+		defaultTypes = append(defaultTypes, "SPOT")
+		defaultTypes = append(defaultTypes, "PERP")
+		defaultTypes = append(defaultTypes, "RFQ")
 	}
+	var requestedTypes []any = this.SafeListSlice(query, "marketType", defaultTypes)
 	var aliases map[string]any = map[string]any{
 		"spot":  "SPOT",
 		"swap":  "PERP",
 		"stock": "RFQ",
 	}
-	var supportedTypes []any = []any{"SPOT", "PERP", "RFQ"}
+	var supportedTypes []string = []string{"SPOT", "PERP", "RFQ"}
 	var marketTypes []any = []any{}
-	for i := 0; i < GetArrayLength(requestedTypes); i++ {
+	for i := 0; i < len(requestedTypes); i++ {
 		var requestedType *string = this.SafeString(requestedTypes, i, "")
 		var normalizedType *string = this.SafeString(aliases, requestedType, requestedType)
 		if !this.InArray(normalizedType, supportedTypes) {
@@ -875,7 +872,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	}
 	var includeRfq bool = this.InArray("RFQ", marketTypes)
 	var marketQuery map[string]any = this.OmitDict(query, "marketType")
-	if _, ok := query["marketType"]; ok {
+	if _, queryHas := query["marketType"]; queryHas {
 		marketQuery["marketType"] = marketTypes
 	}
 
@@ -897,13 +894,19 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var markets []any = []any{}
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var rawMarket map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var rawMarket, _ = response[i].(map[string]any)
+		if rawMarket == nil {
+			rawMarket = map[string]any{}
+		}
 		var rawType *string = this.SafeString(rawMarket, "marketType", "")
 		if !this.InArray(rawType, marketTypes) {
 			continue
 		}
 		var baseId *string = this.SafeString(rawMarket, "baseSymbol")
-		var security map[string]any = SafeMapTyped(securityById, baseId)
+		var security map[string]any
+		if baseId != nil {
+			security, _ = securityById[*baseId].(map[string]any)
+		}
 		var market map[string]any = this.ParseMarket(func() any {
 			if security == nil {
 				return rawMarket
@@ -914,17 +917,15 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}())
 		if market != nil {
 			var marketId *string = this.SafeString(market, "id")
-			if (marketId == nil) || (func() bool {
-				if marketId == nil {
-					return false
-				}
-				_, ok := marketIds[*marketId]
-				return ok
-			}()) {
+			var marketIdInMarketIds bool
+			if marketId != nil {
+				_, marketIdInMarketIds = marketIds[*marketId]
+			}
+			if (marketId == nil) || (marketIdInMarketIds) {
 				continue
 			}
 			marketIds[*marketId] = true
-			if !(stock != nil && *stock) || (*this.SafeBool(market, "stock", false)) {
+			if !stock || (*this.SafeBool(market, "stock", false)) {
 				markets = append(markets, market)
 			}
 		}
@@ -1088,12 +1089,12 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	}
 	var symbol string = *base + "/" + *quote
 	var filters map[string]any = SafeMapTyped(market, "filters")
-	var priceFilter map[string]any = SafeMapTyped(filters, "price")
+	var priceFilter, _ = filters["price"].(map[string]any)
 	var maxPrice *float64 = this.SafeNumber(priceFilter, "maxPrice")
 	var minPrice *float64 = this.SafeNumber(priceFilter, "minPrice")
 	var pricePrecision *float64 = this.SafeNumber(priceFilter, "tickSize")
-	var quantityFilter map[string]any = SafeMapTyped(filters, "quantity")
-	var maxQuantity any = DerefScalar(this.SafeNumber(quantityFilter, "maxQuantity"))
+	var quantityFilter, _ = filters["quantity"].(map[string]any)
+	var maxQuantity *float64 = this.SafeNumber(quantityFilter, "maxQuantity")
 	var minQuantity *float64 = this.SafeNumber(quantityFilter, "minQuantity")
 	var amountPrecision *float64 = this.SafeNumber(quantityFilter, "stepSize")
 	var typeVar string
@@ -1107,7 +1108,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	var inverse any = nil
 	var settle *string = nil
 	var settleId *string = nil
-	var contractSize any = nil
+	var contractSize *float64 = nil
 	if (typeOfMarket != nil && *typeOfMarket == "spot") || rfq {
 		typeVar = "spot"
 		if rfq {
@@ -1118,12 +1119,12 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 			var maximum *string = nil
 			var unbounded bool = false
 			for i := 0; i < len(sessions); i++ {
-				var sessionStep *string = this.SafeString(DerefScalar(sessions[i]), "stepSize")
+				var sessionStep *string = this.SafeString(sessions[i], "stepSize")
 				if (sessionStep != nil) && ((stepSize == nil) || Precise.StringLt(sessionStep, stepSize)) {
 					stepSize = sessionStep
 				}
-				var sessionMin *string = this.SafeString(DerefScalar(sessions[i]), "minQuantity")
-				var sessionMax *string = this.SafeString(DerefScalar(sessions[i]), "maxQuantity")
+				var sessionMin *string = this.SafeString(sessions[i], "minQuantity")
+				var sessionMax *string = this.SafeString(sessions[i], "maxQuantity")
 				if (sessionMin != nil) && ((minimum == nil) || Precise.StringLt(sessionMin, minimum)) {
 					minimum = sessionMin
 				}
@@ -1137,12 +1138,11 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 			if sessionsLength > 0 {
 				amountPrecision = this.ParseNumber(stepSize)
 				minQuantity = this.ParseNumber(minimum)
-				maxQuantity = func() any {
-					if unbounded {
-						return nil
-					}
-					return this.ParseNumber(maximum)
-				}()
+				if unbounded {
+					maxQuantity = nil
+				} else {
+					maxQuantity = this.ParseNumber(maximum)
+				}
 			}
 		}
 	} else if typeOfMarket != nil && *typeOfMarket == "swap" {
@@ -1152,7 +1152,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		settleId = this.SafeString(market, "quoteSymbol")
 		settle = this.SafeCurrencyCode(settleId)
 		symbol = *base + "/" + *quote + ":" + *quote // settle is the quote currency
-		contractSize = 1
+		contractSize = this.ParseNumber("1")
 	} else {
 		return nil
 	}
@@ -1164,25 +1164,19 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	} else {
 		active = (orderBookState != nil && *orderBookState == "Open")
 	}
-	return this.SafeMarketStructure(map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   settle,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": settleId,
-		"type":     typeVar,
-		"spot":     (typeVar == "spot"),
-		"margin":   (typeVar == "spot") && !stock && !rfq,
-		"stock":    stock,
-		"executionModel": func() any {
-			if rfq {
-				return "rfq"
-			}
-			return nil
-		}(),
+	var literal94541 map[string]any = map[string]any{
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           typeVar,
+		"spot":           (typeVar == "spot"),
+		"margin":         (typeVar == "spot") && !stock && !rfq,
+		"stock":          stock,
 		"swap":           (typeVar == "swap"),
 		"future":         false,
 		"option":         false,
@@ -1221,7 +1215,13 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		},
 		"created": this.Parse8601(this.SafeString(market, "createdAt")),
 		"info":    market,
-	})
+	}
+	if rfq {
+		literal94541["executionModel"] = "rfq"
+	} else {
+		literal94541["executionModel"] = nil
+	}
+	return this.SafeMarketStructure(literal94541)
 }
 
 /**
@@ -1234,22 +1234,18 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
  * @param {object} [market] resolved market
  * @returns {Array} stock flag and remaining parameters
  */
-func (this *Backpack) HandleStockParams(methodName any, params any, optionalArgs ...any) []any {
+func (this *Backpack) HandleStockParams(methodName string, params any, optionalArgs ...any) (bool, map[string]any) {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var defaultStock *bool = this.SafeBool(market, "stock", false)
-	var stockqueryVariable []any = this.HandleOptionBoolAndParamsNullable(params, methodName, "stock", defaultStock)
-	stock := func() any {
-		if p, _ := stockqueryVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var query map[string]any = MapTyped(stockqueryVariable[1])
-	if (market != nil) && EvalTruthy(stock) && !(*this.SafeBool(market, "stock", false)) {
-		panic(BadSymbol(Add(Add(this.Id+" ", methodName), "() requires a stock market")))
+	stock, query := this.HandleOptionBoolAndParamsNullable(params, methodName, "stock", defaultStock)
+	if (market != nil) && (stock != nil && *stock) && !(*this.SafeBool(market, "stock", false)) {
+		panic(BadSymbol(this.Id + " " + methodName + "() requires a stock market"))
 	}
-	return []any{stock, query}
+	if stock != nil && *stock == true {
+		return true, query
+	}
+	return false, query
 }
 
 /**
@@ -1296,12 +1292,12 @@ func (this *Backpack) fetchSecuritiesBody(ch chan AsyncResult[any], optionalArgs
  * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
  * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
  */
-func (this *Backpack) FetchStockIndicativeQuoteAsync(symbol any, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Backpack) FetchStockIndicativeQuoteAsync(symbol *string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchStockIndicativeQuoteBody(ch, symbol, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], symbol any, side string, amount any, optionalArgs ...any) any {
+func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], symbol *string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1312,15 +1308,15 @@ func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], sy
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("fetchStockIndicativeQuote", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("fetchStockIndicativeQuote", params, market)
 	if market["stock"] != true {
 		panic(BadSymbol(this.Id + " fetchStockIndicativeQuote() requires a stock market"))
 	}
 	if (side != "buy") && (side != "sell") {
 		panic(BadRequest(this.Id + " fetchStockIndicativeQuote() requires buy or sell"))
 	}
-	if (IsEqual(amount, nil)) || !Precise.StringGt(this.NumberToString(amount), "0") {
+	var amountString *string = this.NumberToString(amount)
+	if (amountString == nil) || !Precise.StringGt(amountString, "0") {
 		panic(InvalidOrder(this.Id + " fetchStockIndicativeQuote() requires a positive base share quantity"))
 	}
 	var request map[string]any = map[string]any{
@@ -1328,13 +1324,12 @@ func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], sy
 		"side":     this.EncodeOrderSide(side),
 		"quantity": this.NumberToString(amount),
 	}
-	var requestMethod string = "publicGetApiV1StockIndicativeQuote"
 
-	r1 := <-this.CallDynamically(requestMethod, this.Extend(query, request))
+	r1 := <-this.PublicGetApiV1StockIndicativeQuote(this.Extend(query, request))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- AsyncResult[any]{Value: r1.Value}
+	ch <- AsyncResult[any]{Value: r1.Raw}
 	return nil
 }
 
@@ -1393,28 +1388,27 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	var cost *float64 = this.SafeNumber(order, "cost")
 	var fee map[string]any = SafeMapTyped(order, "fee")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
-	return ConversionFromMap(map[string]any{
+	var literal111915 map[string]any = map[string]any{
 		"info":         this.SafeDict(order, "info"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"id":           this.SafeString(order, "id"),
 		"fromCurrency": this.SafeCurrencyCode(fromCode),
-		"fromAmount": func() any {
-			if fromIsBase {
-				return filled
-			}
-			return cost
-		}(),
-		"toCurrency": this.SafeCurrencyCode(toCode),
-		"toAmount": func() any {
-			if fromIsBase {
-				return cost
-			}
-			return filled
-		}(),
-		"price": this.SafeNumber2(order, "average", "price"),
-		"fee":   this.SafeNumber(fee, "cost"),
-	})
+		"toCurrency":   this.SafeCurrencyCode(toCode),
+		"price":        this.SafeNumber2(order, "average", "price"),
+		"fee":          this.SafeNumber(fee, "cost"),
+	}
+	if fromIsBase {
+		literal111915["fromAmount"] = filled
+	} else {
+		literal111915["fromAmount"] = cost
+	}
+	if fromIsBase {
+		literal111915["toAmount"] = cost
+	} else {
+		literal111915["toAmount"] = filled
+	}
+	return ConversionFromMap(literal111915)
 }
 
 /**
@@ -1451,6 +1445,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		panic(r.Err)
 	}
 	var market map[string]any = MapTyped(this.RfqConversionMarket(fromCode, toCode))
+	var marketSymbol *string = this.SafeString(market, "symbol")
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
 	var side string
 	if fromIsBase {
@@ -1460,13 +1455,13 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	}
 	if !fromIsBase {
 
-		r1 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, 1, map[string]any{
+		r1 := <-this.FetchStockIndicativeQuoteAsync(marketSymbol, side, 1, map[string]any{
 			"stock": true,
 		})
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		initialQuote := r1.Value
+		initialQuote, _ := r1.Value.(map[string]any)
 		var initialPrice *string = this.SafeString(initialQuote, "price")
 		if !(*this.SafeBool(initialQuote, "available", false)) || (initialPrice == nil) {
 			panic(InvalidOrder(this.Id + " fetchConvertQuote() stock indicative quote unavailable: " + *this.SafeString(initialQuote, "reason", "priceUnavailable")))
@@ -1479,7 +1474,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 			panic(InvalidOrder(this.Id + " fetchConvertQuote() price must be positive"))
 		}
 		var rawQuantity *string = Precise.StringDiv(amountString, priceParam, 18)
-		var preciseQuantity *string = this.AmountToPrecision(market["symbol"], this.ParseNumber(rawQuantity))
+		var preciseQuantity *string = this.AmountToPrecision(marketSymbol, this.ParseNumber(rawQuantity))
 		if preciseQuantity == nil {
 			panic(InvalidOrder(this.Id + " fetchConvertQuote() could not determine a stock quantity"))
 		}
@@ -1489,7 +1484,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		}
 	}
 
-	r2 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, this.ParseNumber(amountString), map[string]any{
+	r2 := <-this.FetchStockIndicativeQuoteAsync(marketSymbol, side, this.ParseNumber(amountString), map[string]any{
 		"stock": true,
 	})
 	if r2.Err != nil {
@@ -1510,7 +1505,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 			}
 			amountString = reducedQuantity
 
-			r3 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, this.ParseNumber(amountString), map[string]any{
+			r3 := <-this.FetchStockIndicativeQuoteAsync(marketSymbol, side, this.ParseNumber(amountString), map[string]any{
 				"stock": true,
 			})
 			if r3.Err != nil {
@@ -1528,31 +1523,30 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	}
 	var quoteAmount *float64 = this.SafeNumber(quote, "quoteQuantity")
 	var baseAmount *float64 = this.ParseNumber(amountString)
-	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
-	var toCurrency *string = this.SafeCurrencyCode(toCode)
+	var fromCurrency *string = this.SafeCurrencyCode(&fromCode)
+	var toCurrency *string = this.SafeCurrencyCode(&toCode)
 
-	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(map[string]any{
+	var literal120615 map[string]any = map[string]any{
 		"info":         quote,
 		"timestamp":    this.SafeInteger(quote, "publishedAt"),
 		"datetime":     this.Iso8601(this.SafeInteger(quote, "publishedAt")),
 		"id":           nil,
 		"fromCurrency": fromCurrency,
-		"fromAmount": func() any {
-			if fromIsBase {
-				return baseAmount
-			}
-			return quoteAmount
-		}(),
-		"toCurrency": toCurrency,
-		"toAmount": func() any {
-			if fromIsBase {
-				return quoteAmount
-			}
-			return baseAmount
-		}(),
-		"price": this.SafeNumber(quote, "price"),
-		"fee":   nil,
-	})}
+		"toCurrency":   toCurrency,
+		"price":        this.SafeNumber(quote, "price"),
+		"fee":          nil,
+	}
+	if fromIsBase {
+		literal120615["fromAmount"] = baseAmount
+	} else {
+		literal120615["fromAmount"] = quoteAmount
+	}
+	if fromIsBase {
+		literal120615["toAmount"] = quoteAmount
+	} else {
+		literal120615["toAmount"] = baseAmount
+	}
+	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120615)}
 	return nil
 }
 
@@ -1591,8 +1585,7 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 		panic(r.Err)
 	}
 	var market any = this.RfqConversionMarket(fromCode, toCode)
-	var selection []any = this.HandleStockParams("createConvertTrade", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("createConvertTrade", params, market)
 	var quoteId *string = this.SafeString(query, "quoteId")
 	if quoteId != nil {
 		var acceptParams map[string]any = this.OmitDict(query, []any{"quoteId", "price", "baseAmount", "clientOrderId"})
@@ -1606,7 +1599,8 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 		ch <- AsyncResult[Conversion]{Value: this.ParseConversion(accepted, this.Currency(fromCode), this.Currency(toCode))}
 		return nil
 	}
-	if (amount == nil) || !Precise.StringGt(this.NumberToString(amount), "0") {
+	var amountString *string = this.NumberToString(amount)
+	if (amountString == nil) || !Precise.StringGt(amountString, "0") {
 		panic(ArgumentsRequired(this.Id + " createConvertTrade() requires a positive amount"))
 	}
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
@@ -1699,7 +1693,10 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
-	order := r4.Value
+	var order any = nil
+	if r4.Value != nil {
+		order = r4.Value
+	}
 
 	ch <- AsyncResult[Conversion]{Value: this.ParseConversion(order, this.Currency(fromCode), this.Currency(toCode))}
 	return nil
@@ -1715,36 +1712,36 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
  * @param {object} [market] resolved market
  * @returns {object} market data parameters
  */
-func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs ...any) map[string]any {
+func (this *Backpack) StockDataRequest(methodName string, params any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var selection []any = this.HandleStockParams(methodName, params, market)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stockValue, query := this.HandleStockParams(methodName, params, market)
+	var stock bool = (stockValue == true)
 	var request map[string]any = this.Extend(map[string]any{}, query)
 	var source *string = this.SafeString(query, "source")
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var isRfq bool = (market != nil) && (this.SafeString(marketInfo, "marketType") != nil && *this.SafeString(marketInfo, "marketType") == "RFQ")
 	if source == nil {
-		source = SafeStringPtr(func() string {
-			if isRfq {
-				return "External"
-			}
-			return "Venue"
-		}())
+		var sourceStr string
+		if isRfq {
+			sourceStr = "External"
+		} else {
+			sourceStr = "Venue"
+		}
+		source = &sourceStr
 	}
 	if (source == nil || *source != "Venue") && (source == nil || *source != "External") {
-		panic(BadRequest(Add(Add(this.Id+" ", methodName), "() source must be Venue or External")))
+		panic(BadRequest(this.Id + " " + methodName + "() source must be Venue or External"))
 	}
 	if source != nil && *source == "External" {
-		if !(stock != nil && *stock) {
-			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided")))
+		if !stock {
+			panic(BadRequest(this.Id + " " + methodName + "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided"))
 		}
 		if (market != nil) && !(*this.SafeBool(market, "stock", false)) {
-			panic(BadSymbol(Add(Add(this.Id+" ", methodName), "() External data requires a stock market")))
+			panic(BadSymbol(this.Id + " " + methodName + "() External data requires a stock market"))
 		}
 		request["source"] = source
-		if IsEqual(methodName, "fetchOHLCV") {
+		if methodName == "fetchOHLCV" {
 			var priceType string = *this.SafeString(query, "priceType", "Last")
 			var price *string = this.SafeString(query, "price")
 			if (priceType != "Last") || ((price != nil) && (price == nil || *price != "last")) {
@@ -1754,7 +1751,7 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
 		} else {
 			var interval *string = this.SafeString(query, "interval", "1d")
 			if interval == nil || *interval != "1d" {
-				panic(BadRequest(Add(Add(this.Id+" ", methodName), "() External tickers require interval=1d")))
+				panic(BadRequest(this.Id + " " + methodName + "() External tickers require interval=1d"))
 			}
 			request["interval"] = interval
 		}
@@ -1777,14 +1774,16 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
  * @param {Array} entries parsed trades or orders
  * @returns {Array} tokenized stock structures
  */
-func (this *Backpack) FilterStockStructures(entries any) []any {
+func (this *Backpack) FilterStockStructures(entries []any) []any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(entries); i++ {
-		var entry any = GetValue(entries, i)
-		var symbol *string = this.SafeString(entry, "symbol")
-		var market map[string]any = SafeMapTyped(this.Markets, symbol)
+	for i := 0; i < len(entries); i++ {
+		var symbol *string = this.SafeString(entries[i], "symbol")
+		var market map[string]any
+		if symbol != nil {
+			market, _ = this.Markets[*symbol].(map[string]any)
+		}
 		if *this.SafeBool(market, "stock", false) {
-			result = append(result, entry)
+			result = append(result, entries[i])
 		}
 	}
 	return result
@@ -1828,9 +1827,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			panic(r.Err)
 		}
 	}
-	var selection []any = this.HandleStockParams("fetchTickers", params)
-	var stockOnly *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stockOnly, query := this.HandleOptionBoolAndParams(params, "fetchTickers", "stock", false)
 	var source string = *this.SafeString(query, "source", "Venue")
 	var symbolsLength int = 0
 	if symbols != nil {
@@ -1862,7 +1859,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var stockExplicitlyDisabled bool = !(*this.SafeBool2(params, "stock", "defaultStock", true))
 	var needsExternalRfqTickers bool = (source == "Venue") && (this.SafeString(query, "source") == nil) && hasRfqSymbol && !stockExplicitlyDisabled
 	var requestParams any = query
-	if (source == "External") && ((stockOnly != nil && *stockOnly) || hasStockSymbol) && !stockExplicitlyDisabled {
+	if (source == "External") && (stockOnly || hasStockSymbol) && !stockExplicitlyDisabled {
 		requestParams = this.Extend(query, map[string]any{
 			"stock": true,
 		})
@@ -1876,7 +1873,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	response := r1.Raw
 	var tickers map[string]any = this.ParseTickers(response)
 	var responseById map[string]any = this.IndexBy(response, "symbol")
-	var externalResponse any = []any{}
+	var externalResponse []any = []any{}
 	var externalResponseById map[string]any = map[string]any{}
 	if needsExternalRfqTickers || (source == "External") {
 		var externalParams map[string]any = this.Extend(query, map[string]any{
@@ -1884,22 +1881,22 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			"source": "External",
 		})
 
-		r2 := <-this.PublicGetApiV1Tickers(this.StockDataRequest("fetchTickers", externalParams))
-		if r2.Err != nil {
-			panic(r2.Err)
+		externalResponseRecv := <-this.PublicGetApiV1Tickers(this.StockDataRequest("fetchTickers", externalParams))
+		if externalResponseRecv.Err != nil {
+			panic(externalResponseRecv.Err)
 		}
-		externalResponse = r2.Raw
+		externalResponse = externalResponseRecv.Value
 		externalResponseById = this.IndexBy(externalResponse, "symbol")
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(symbolsResolved); i++ {
 		var marketSymbol string = symbolsResolved[i]
-		var market map[string]any = this.Market(marketSymbol)
-		if (stockOnly != nil && *stockOnly) && (market["stock"] != true) {
+		var market map[string]any = this.Market(&marketSymbol)
+		if stockOnly && (market["stock"] != true) {
 			continue
 		}
 		var marketIsRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
-		var ticker map[string]any = this.SafeDictMap(tickers, marketSymbol)
+		var ticker, _ = tickers[marketSymbol].(map[string]any)
 		if (ticker != nil) && ((source != "External") || (market["stock"] == true)) {
 			result[marketSymbol] = ticker
 		} else if marketIsRfq {
@@ -1911,7 +1908,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			} else {
 				tickerSource = responseById
 			}
-			var underlyingTicker map[string]any = SafeMapTyped(tickerSource, underlyingId)
+			var underlyingTicker, _ = tickerSource[underlyingId].(map[string]any)
 			if underlyingTicker != nil {
 				result[marketSymbol] = TickerToMap(this.ParseTicker(underlyingTicker, market))
 			}
@@ -1951,7 +1948,7 @@ func (this *Backpack) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.StockDataRequest("fetchTicker", params, market)
 
 	r1 := <-this.PublicGetApiV1Ticker(request)
@@ -1963,7 +1960,7 @@ func (this *Backpack) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Backpack) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker/fetchTickers
 	//
@@ -2060,9 +2057,8 @@ func (this *Backpack) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("fetchOrderBook", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	var market map[string]any = this.Market(&symbol)
+	_, query := this.HandleStockParams("fetchOrderBook", params, market)
 	var source string = *this.SafeString(query, "source", "Venue")
 	if (source != "Venue") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
 		panic(NotSupported(this.Id + " fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices"))
@@ -2070,14 +2066,16 @@ func (this *Backpack) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var requestLimit any = nil
+	var requestLimit *int64 = nil
 	if limit != nil {
 		var supportedLimits []any = []any{5, 10, 20, 50, 100, 500}
-		requestLimit = 500
+		requestLimitValue := int64(500)
+		requestLimit = &requestLimitValue
 		for i := 0; i < len(supportedLimits); i++ {
-			var supportedLimit *int64 = this.SafeInteger(supportedLimits, i, 0)
-			if supportedLimit != nil && *limit <= *supportedLimit {
-				requestLimit = supportedLimit
+			var supportedLimit int64 = *this.SafeInteger(supportedLimits, i, 0)
+			if *limit <= supportedLimit {
+				requestLimitValue2 := supportedLimit
+				requestLimit = &requestLimitValue2
 				break
 			}
 		}
@@ -2145,8 +2143,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var maxLimit int = 2000
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var dataRequest map[string]any = this.StockDataRequest("fetchOHLCV", params, market)
@@ -2155,50 +2152,53 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"interval": interval,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(this.Omit(dataRequest, "symbol"), "fetchOHLCV", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
-	if until != nil {
-		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
+	var windowLimit int64 = 100
+	if limit != nil {
+		windowLimit = this.ParseToInt(min(*limit, 2000))
 	}
-	var defaultLimit int = 100
-	var limitResolved any = limit
-	if !IsEqual(limitResolved, nil) {
-		limitResolved = mathMin(limitResolved, maxLimit)
+	var limitResolved *int64 = nil
+	if limit != nil {
+		limitResolvedValue := windowLimit
+		limitResolved = &limitResolvedValue
 	}
-	var windowLimit any = func() any {
-		if IsEqual(limitResolved, nil) {
-			return defaultLimit
-		}
-		return limitResolved
-	}()
 	var now int64 = this.Milliseconds()
-	var startTime any = since
-	var untilValue any = until
-	if IsEqual(startTime, nil) {
-		if IsEqual(untilValue, nil) {
-			untilValue = now
+	var windowLength int64 = windowLimit * duration
+	var untilResolved int64
+	if until != nil {
+		untilResolved = *until
+	} else {
+		untilResolved = now
+	}
+	var defaultStart int64 = untilResolved - windowLength
+	var startSeconds int64 = this.ParseToInt(float64(defaultStart) / 1000) // convert milliseconds to seconds
+	if since != nil {
+		startSeconds = this.ParseToInt(float64(*since) / 1000)
+	}
+	var endSeconds int64 = this.ParseToInt(float64(untilResolved) / 1000)
+	if (since != nil) && (until == nil) {
+		var windowEnd int64 = this.ParseToInt(*since + windowLength)
+		var cappedEnd int64
+		if windowEnd > now {
+			cappedEnd = now
+		} else {
+			cappedEnd = windowEnd
 		}
-		startTime = Subtract(untilValue, (Multiply(windowLimit, duration)))
+		endSeconds = this.ParseToInt(float64(cappedEnd) / 1000)
 	}
-	request["startTime"] = this.ParseToInt(Divide(startTime, 1000))
-	// set until value
-	if IsEqual(untilValue, nil) {
-		var windowEnd any = this.Sum(startTime, Multiply(windowLimit, duration))
-		untilValue = mathMin(now, windowEnd)
-	}
-	request["endTime"] = this.ParseToInt(Divide(untilValue, 1000))
+	request["startTime"] = startSeconds
+	request["endTime"] = endSeconds
 	var price *string = this.SafeString(paramsUntil, "price")
-	var paramsOmitted any = func() any {
-		if price != nil {
-			return this.Omit(paramsUntil, "price")
-		}
-		return paramsUntil
-	}()
+	var paramsOmitted any
+	if price != nil {
+		paramsOmitted = this.Omit(paramsUntil, "price")
+	} else {
+		paramsOmitted = paramsUntil
+	}
 	if price != nil {
 		request["priceType"] = this.Capitalize(price)
 	}
@@ -2261,7 +2261,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support market " + symbol))
 	}
@@ -2274,12 +2274,18 @@ func (this *Backpack) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil
 }
-func (this *Backpack) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Backpack) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "fundingRate": "0.0001",
@@ -2343,7 +2349,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
@@ -2356,7 +2362,13 @@ func (this *Backpack) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var interest map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var interest map[string]any
+	if 0 < len(response) {
+		interest, _ = response[0].(map[string]any)
+	}
+	if interest == nil {
+		interest = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
 	return nil
@@ -2478,12 +2490,12 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
  * @param {boolean} [params.stock] selects tokenized stock spot trades; inferred from symbol when omitted
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Backpack) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Backpack) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2499,9 +2511,8 @@ func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("fetchTrades", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	var market map[string]any = this.Market(&symbol)
+	_, query := this.HandleStockParams("fetchTrades", params, market)
 	if (this.SafeString(query, "source", "Venue") == nil || *this.SafeString(query, "source", "Venue") != "Venue") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
 		panic(NotSupported(this.Id + " fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills"))
 	}
@@ -2582,11 +2593,10 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		market = this.Market(symbol)
 		request["symbol"] = this.SafeString(market, "id")
 	}
-	var selection []any = this.HandleStockParams("fetchMyTrades", params, market)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stockValue, query := this.HandleStockParams("fetchMyTrades", params, market)
+	var stock bool = (stockValue == true)
 	var rfq bool = (*this.SafeBool(query, "rfq", false)) || (this.SafeString(this.SafeDict(market, "info"), "marketType") != nil && *this.SafeString(this.SafeDict(market, "info"), "marketType") == "RFQ")
-	var aggregate bool = (stock != nil && *stock) && (market == nil) && !rfq
+	var aggregate bool = stock && (market == nil) && !rfq
 	if rfq && (market != nil) && (this.SafeString(market["info"], "marketType") == nil || *this.SafeString(market["info"], "marketType") != "RFQ") {
 		panic(BadSymbol(this.Id + " fetchMyTrades() rfq requires an RFQ market symbol"))
 	}
@@ -2624,15 +2634,14 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			}
 			rfqTrades = this.ArrayConcat(rfqTrades, venueTrades)
 		}
-		if stock != nil && *stock {
+		if stock {
 			rfqTrades = this.FilterStockStructures(rfqTrades)
 		}
 		var filtered []any = []any{}
 		for i := 0; i < len(rfqTrades); i++ {
-			var trade any = rfqTrades[i]
-			var timestamp *int64 = this.SafeInteger(trade, "timestamp")
+			var timestamp *int64 = this.SafeInteger(rfqTrades[i], "timestamp")
 			if (until == nil) || ((timestamp != nil) && (until != nil && *timestamp <= *until)) {
-				filtered = append(filtered, trade)
+				filtered = append(filtered, rfqTrades[i])
 			}
 		}
 		var sorted []any = this.SortBy(filtered, "timestamp")
@@ -2641,13 +2650,13 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		return nil
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var paramsOmitted map[string]any = accountParams
-	if stock != nil && *stock {
+	if stock {
 		request["assetClass"] = "STOCK"
 	}
 	if until != nil {
@@ -2708,20 +2717,23 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr
 	} else if isBuyerMaker != nil {
-		takerOrMaker = SafeStringPtr("taker")
-		side = SafeStringPtr(func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}())
+		takerOrMakerStr2 := "taker"
+		takerOrMaker = &takerOrMakerStr2
+		var sideStr string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
+		side = &sideStr
 	}
 	var orderId *string = this.SafeString2(trade, "orderId", "rfqId")
 	var fee map[string]any = nil
@@ -2780,11 +2792,11 @@ func (this *Backpack) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetApiV1Status(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetApiV1Status(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "message":null,
@@ -2801,7 +2813,7 @@ func (this *Backpack) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2864,18 +2876,16 @@ func (this *Backpack) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 			panic(r.Err)
 		}
 	}
-	var selection []any = this.HandleStockParams("fetchBalance", params)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stock, query := this.HandleOptionBoolAndParams(params, "fetchBalance", "stock", false)
 
 	r1 := <-this.PrivateGetApiV1Capital(query)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	if stock != nil && *stock {
+	if stock {
 		var securities any = this.SafeList(this.Options, "securities")
-		if IsEqual(securities, nil) {
+		if securities == nil {
 
 			r2 := <-this.FetchSecuritiesAsync()
 			if r2.Err != nil {
@@ -2906,7 +2916,7 @@ func (this *Backpack) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
-func (this *Backpack) ParseBalance(response any) map[string]any {
+func (this *Backpack) ParseBalance(response map[string]any) map[string]any {
 	//
 	//     {
 	//         "USDC": {
@@ -2916,12 +2926,18 @@ func (this *Backpack) ParseBalance(response any) map[string]any {
 	//         }
 	//     }
 	//
-	var balanceKeys []string = ObjectKeys(response)
+	var balanceKeys []string = nil
+	if response != nil {
+		balanceKeys = make([]string, 0, len(response))
+		for objectKey := range response {
+			balanceKeys = append(balanceKeys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = balanceKeys[i]
-		var code *string = this.SafeCurrencyCode(id)
-		var balance map[string]any = SafeMapTyped(response, id)
+		var code *string = this.SafeCurrencyCode(&id)
+		var balance, _ = response[id].(map[string]any)
 		var account map[string]any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
 		var staked *string = this.SafeString(balance, "staked")
@@ -2976,10 +2992,10 @@ func (this *Backpack) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 1000
+		request["limit"] = *limit // default 100, max 1000
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchDeposits", "until")
 	var until *int64 = nil
@@ -3042,10 +3058,10 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchWithdrawals", "until")
 	var until *int64 = nil
@@ -3080,12 +3096,12 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Backpack) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Backpack) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3123,7 +3139,7 @@ func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Backpack) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//     [
@@ -3301,7 +3317,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
-func (this *Backpack) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Backpack) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -3374,19 +3390,21 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("createOrder", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	var market map[string]any = this.Market(&symbol)
+	stock, query := this.HandleStockParams("createOrder", params, market)
 	var orderParams map[string]any = this.Extend(query, map[string]any{
-		"stock": this.SafeBool(selection, 0, false),
+		"stock": stock,
 	})
 	if this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ" {
 
-		r1 := <-this.CreateRfqOrderAsync(symbol, typeVar, side, amount, price, orderParams)
+		r1 := <-this.CreateRfqOrderAsync(&symbol, typeVar, side, amount, price, orderParams)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		rfqResponse := r1.Value
+		var rfqResponse any = nil
+		if r1.Value != nil {
+			rfqResponse = r1.Value
+		}
 		var rfqOrder map[string]any = SafeMapTyped(map[string]any{
 			"order": rfqResponse,
 		}, "order")
@@ -3423,12 +3441,12 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {int} [params.clientOrderId] requester client identifier
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) CreateRfqOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Backpack) CreateRfqOrderAsync(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createRfqOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[map[string]any], symbol *string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3441,8 +3459,8 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("createRfqOrder", params, market)
-	var paramsResolved map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, rfqParams := this.HandleStockParams("createRfqOrder", params, market)
+	var paramsResolved map[string]any = rfqParams
 	if this.SafeString(market["info"], "marketType") == nil || *this.SafeString(market["info"], "marketType") != "RFQ" {
 		panic(BadSymbol(this.Id + " createRfqOrder() requires an RFQ market"))
 	}
@@ -3452,7 +3470,8 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 	if (side != "buy") && (side != "sell") {
 		panic(InvalidOrder(this.Id + " createOrder() requires buy or sell"))
 	}
-	if (IsEqual(amount, nil)) || !Precise.StringGt(this.NumberToString(amount), "0") {
+	var amountString *string = this.NumberToString(amount)
+	if (amountString == nil) || !Precise.StringGt(amountString, "0") {
 		panic(InvalidOrder(this.Id + " createOrder() RFQs require a positive base quantity"))
 	}
 	var unsupported []string = []string{"cost", "quoteQuantity", "postOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "reduceOnly", "timeInForce", "selfTradePrevention"}
@@ -3467,7 +3486,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 		panic(NotSupported(this.Id + " createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price"))
 	}
 	var quantity *string = this.NumberToString(amount)
-	var precision map[string]any = SafeMapTyped(market, "precision")
+	var precision, _ = market["precision"].(map[string]any)
 	if this.SafeNumber(precision, "amount") != nil {
 		var preciseQuantity *string = this.AmountToPrecision(symbol, amount)
 		if !Precise.StringEq(quantity, preciseQuantity) {
@@ -3488,7 +3507,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		indicative := r1.Value
+		indicative, _ := r1.Value.(map[string]any)
 		var indicativePrice *string = this.SafeString(indicative, "price")
 		if !(*this.SafeBool(indicative, "available", false)) || (indicativePrice == nil) {
 			panic(InvalidOrder(this.Id + " createOrder() stock indicative quote unavailable: " + *this.SafeString(indicative, "reason", "priceUnavailable")))
@@ -3496,7 +3515,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 		if (typeVar == "market") && (limitPrice == nil) {
 			limitPrice = indicativePrice
 		}
-		var quantityFilter map[string]any = SafeMapTyped(indicative, "quantityFilter")
+		var quantityFilter, _ = indicative["quantityFilter"].(map[string]any)
 		var stepSize *string = this.SafeString(quantityFilter, "stepSize")
 		var minimum *string = this.SafeString(quantityFilter, "minQuantity")
 		var maximum *string = this.SafeString(quantityFilter, "maxQuantity")
@@ -3536,7 +3555,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
 	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 	order["type"] = typeVar
 
-	ch <- AsyncResult[any]{Value: order}
+	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil
 }
 
@@ -3552,12 +3571,12 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) AcceptRfqQuoteAsync(id string, quoteId string, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Backpack) AcceptRfqQuoteAsync(id string, quoteId string, symbol *string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.acceptRfqQuoteBody(ch, id, quoteId, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, quoteId string, symbol any, optionalArgs ...any) any {
+func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, quoteId string, symbol *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3568,8 +3587,7 @@ func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, qu
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("acceptRfqQuote", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("acceptRfqQuote", params, market)
 	if this.SafeString(market["info"], "marketType") == nil || *this.SafeString(market["info"], "marketType") != "RFQ" {
 		panic(BadSymbol(this.Id + " acceptRfqQuote() requires an RFQ market"))
 	}
@@ -3598,18 +3616,17 @@ func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, qu
  * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Backpack) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var selection []any = this.HandleStockParams("createOrders", params)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stock, query := this.HandleOptionBoolAndParams(params, "createOrders", "stock", false)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3618,17 +3635,20 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 		}
 	}
 	var ordersRequests []any = []any{}
-	var stock *bool = this.SafeBool(selection, 0, false)
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var baseParams map[string]any = map[string]any{}
-		if (stock != nil && *stock) || !(*this.SafeBool2(params, "stock", "defaultStock", true)) {
+		if stock || !(*this.SafeBool2(params, "stock", "defaultStock", true)) {
 			baseParams["stock"] = stock
 		}
 		var baseQuery map[string]any = this.Extend(baseParams, query)
@@ -3672,8 +3692,7 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("createOrder", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("createOrder", params, market)
 	if this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ" {
 		panic(NotSupported(this.Id + " createOrders() does not support RFQ batches; use createOrder()"))
 	}
@@ -3711,16 +3730,14 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		request["clientId"] = clientOrderId
 		omitKeys = append(omitKeys, "clientOrderId")
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, this.Omit(query, omitKeys))
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, this.Omit(query, omitKeys))
 	if postOnly {
 		if paramsPostOnly != nil {
 			paramsPostOnly["postOnly"] = true
 		}
 	}
 	var bracketKeys []any = []any{}
-	var takeProfit map[string]any = SafeMapTyped(paramsPostOnly, "takeProfit")
+	var takeProfit, _ = paramsPostOnly["takeProfit"].(map[string]any)
 	if takeProfit != nil {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
@@ -3732,7 +3749,7 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		}
 		bracketKeys = append(bracketKeys, "takeProfit")
 	}
-	var stopLoss map[string]any = SafeMapTyped(paramsPostOnly, "stopLoss")
+	var stopLoss, _ = paramsPostOnly["stopLoss"].(map[string]any)
 	if stopLoss != nil {
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if stopLossTriggerPrice != nil {
@@ -3808,35 +3825,34 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		market = this.Market(symbol)
 		request["symbol"] = this.SafeString(market, "id")
 	}
-	var selection []any = this.HandleStockParams("fetchOpenOrders", params, market)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stockValue, query := this.HandleStockParams("fetchOpenOrders", params, market)
+	var stock bool = (stockValue == true)
 	var rfq bool = (*this.SafeBool(query, "rfq", false)) || (this.SafeString(this.SafeDict(market, "info"), "marketType") != nil && *this.SafeString(this.SafeDict(market, "info"), "marketType") == "RFQ")
 	if rfq && (market != nil) && (this.SafeString(market["info"], "marketType") == nil || *this.SafeString(market["info"], "marketType") != "RFQ") {
 		panic(BadSymbol(this.Id + " fetchOpenOrders() rfq requires an RFQ market symbol"))
 	}
 	var accountParams map[string]any = this.OmitDict(query, "rfq")
-	var response any = []any{}
+	var response []any = []any{}
 	if !rfq {
 		var venueParams map[string]any = this.OmitDict(accountParams, []any{"rfqId", "deferredSettlement"})
 
-		r1 := <-this.PrivateGetApiV1Orders(this.Extend(request, venueParams))
+		responseRecv := <-this.PrivateGetApiV1Orders(this.Extend(request, venueParams))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
+		}
+		response = responseRecv.Value
+	}
+	if rfq || (stock && (market == nil)) {
+
+		r1 := <-this.PrivateGetApiV1Rfqs(this.Extend(request, this.Omit(accountParams, "marketType")))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
-	}
-	if rfq || ((stock != nil && *stock) && (market == nil)) {
-
-		r2 := <-this.PrivateGetApiV1Rfqs(this.Extend(request, this.Omit(accountParams, "marketType")))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		rfqResponse := r2.Raw
+		rfqResponse := r1.Raw
 		response = this.ArrayConcat(response, rfqResponse)
 	}
 	var orders []any = this.ParseOrders(response, market, since)
-	if stock != nil && *stock {
+	if stock {
 		orders = this.FilterStockStructures(orders)
 	}
 
@@ -3879,8 +3895,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrder() requires a symbol argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("fetchOpenOrder", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("fetchOpenOrder", params, market)
 	if this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ" {
 
 		r1 := <-this.PrivateGetApiV1Rfqs(this.Extend(query, map[string]any{
@@ -3892,8 +3907,12 @@ func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 		}
 		var rfqResponse []any = r1.Value
 		for i := 0; i < len(rfqResponse); i++ {
-			var order map[string]any = OrderToMap(this.ParseOrder(this.SafeDict(rfqResponse, i, map[string]any{}), market))
-			if IsEqual(order["id"], id) {
+			rfqResponseDict286447, _ := rfqResponse[i].(map[string]any)
+			if rfqResponseDict286447 == nil {
+				rfqResponseDict286447 = map[string]any{}
+			}
+			var order map[string]any = OrderToMap(this.ParseOrder(rfqResponseDict286447, market))
+			if this.SafeString(order, "id") != nil && *this.SafeString(order, "id") == id {
 
 				ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 				return nil
@@ -3950,8 +3969,7 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("fetchOrder", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stockSelected, query := this.HandleStockParams("fetchOrder", params, market)
 	var rfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3961,39 +3979,43 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	} else {
 		request["orderId"] = id
 	}
-	var response any = []any{}
+	var response []any = []any{}
 	if rfq {
 
-		r1 := <-this.PrivateGetWapiV1HistoryRfq(this.Extend(query, request))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetWapiV1HistoryRfq(this.Extend(query, request))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 
-		r2 := <-this.PrivateGetWapiV1HistoryOrders(this.Extend(query, request))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetWapiV1HistoryOrders(this.Extend(query, request))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var order map[string]any = OrderToMap(this.ParseOrder(this.SafeDict(response, i, map[string]any{}), market))
-		if IsEqual(order["id"], id) {
+	for i := 0; i < len(response); i++ {
+		responseDict291343, _ := response[i].(map[string]any)
+		if responseDict291343 == nil {
+			responseDict291343 = map[string]any{}
+		}
+		var order map[string]any = OrderToMap(this.ParseOrder(responseDict291343, market))
+		if this.SafeString(order, "id") != nil && *this.SafeString(order, "id") == id {
 
 			ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 			return nil
 		}
 	}
 	var openOrderParams map[string]any = this.Extend(query, map[string]any{
-		"stock": this.SafeBool(selection, 0, false),
+		"stock": stockSelected,
 	})
 
-	r3 := <-this.FetchOpenOrderAsync(id, symbol, openOrderParams)
-	if r3.Err != nil {
-		panic(r3.Err)
+	r1 := <-this.FetchOpenOrderAsync(id, symbol, openOrderParams)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	ch <- AsyncResult[Order]{Value: r3.Value}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -4033,8 +4055,7 @@ func (this *Backpack) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("cancelOrder", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("cancelOrder", params, market)
 	if this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ" {
 		var clientOrderId *int64 = this.SafeInteger(query, "clientOrderId")
 		var rfqRequest map[string]any = map[string]any{}
@@ -4102,8 +4123,7 @@ func (this *Backpack) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var selection []any = this.HandleStockParams("cancelAllOrders", params, market)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	_, query := this.HandleStockParams("cancelAllOrders", params, market)
 	if this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ" {
 		panic(NotSupported(this.Id + " cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()"))
 	}
@@ -4168,47 +4188,46 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
-	var selection []any = this.HandleStockParams("fetchOrders", params, market)
-	var stock *bool = this.SafeBool(selection, 0, false)
-	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
+	stockValue, query := this.HandleStockParams("fetchOrders", params, market)
+	var stock bool = (stockValue == true)
 	var rfq bool = (*this.SafeBool(query, "rfq", false)) || (this.SafeString(this.SafeDict(market, "info"), "marketType") != nil && *this.SafeString(this.SafeDict(market, "info"), "marketType") == "RFQ")
 	if rfq && (market != nil) && (this.SafeString(market["info"], "marketType") == nil || *this.SafeString(market["info"], "marketType") != "RFQ") {
 		panic(BadSymbol(this.Id + " fetchOrders() rfq requires an RFQ market symbol"))
 	}
 	var accountParams map[string]any = this.OmitDict(query, "rfq")
-	var response any = []any{}
+	var response []any = []any{}
 	if !rfq {
 		var venueParams map[string]any = this.OmitDict(accountParams, []any{"rfqId", "status", "side", "deferredSettlement"})
 
-		r1 := <-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, venueParams))
+		responseRecv := <-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, venueParams))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
+		}
+		response = responseRecv.Value
+	}
+	if rfq || (stock && (market == nil)) {
+
+		r1 := <-this.PrivateGetWapiV1HistoryRfq(this.Extend(request, this.Omit(accountParams, "marketType")))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
-	}
-	if rfq || ((stock != nil && *stock) && (market == nil)) {
-
-		r2 := <-this.PrivateGetWapiV1HistoryRfq(this.Extend(request, this.Omit(accountParams, "marketType")))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		rfqResponse := r2.Raw
+		rfqResponse := r1.Raw
 		response = this.ArrayConcat(response, rfqResponse)
 	}
 	var orders []any = this.ParseOrders(response, market, since)
-	if stock != nil && *stock {
+	if stock {
 		orders = this.FilterStockStructures(orders)
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySinceLimit(this.SortBy(orders, "timestamp"), since, limit))}
 	return nil
 }
-func (this *Backpack) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Backpack) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var rfq map[string]any = SafeMapTyped(order, "rfq")
+	var rfq, _ = order["rfq"].(map[string]any)
 	if rfq != nil {
 		var parsed map[string]any = OrderToMap(this.ParseOrder(rfq, market))
 		parsed["info"] = order
@@ -4319,7 +4338,8 @@ func (this *Backpack) ParseOrder(order any, optionalArgs ...any) Order {
 	var symbol *string = this.SafeSymbol(marketId, marketResolved)
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	if (typeVar == nil) && (this.SafeString(order, "rfqId") != nil) && (this.SafeString(order, "price") != nil) {
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	}
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var side *string = this.ParseOrderSide(this.SafeString(order, "side"))
@@ -4424,7 +4444,7 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, symbolsNormalized))}
 	return nil
 }
-func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPositions
 	//     {
@@ -4462,24 +4482,29 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 	_ = market
 	var id *string = this.SafeString(position, "positionId")
 	var marketId *string = this.SafeString(position, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var entryPrice *float64 = this.SafeNumber(position, "entryPrice")
 	var markPrice *float64 = this.SafeNumber(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")
-	var hedged any = false
-	var side any = "long"
-	if Precise.StringLt(netCost, "0") {
-		side = "short"
-	}
-	if netCost == nil {
-		hedged = nil
-		side = nil
+	var hedged any = nil
+	var side *string = nil
+	if netCost != nil {
+		hedged = false
+		sideStr := "long"
+		side = &sideStr
+		if Precise.StringLt(netCost, "0") {
+			sideStr2 := "short"
+			side = &sideStr2
+		}
 	}
 	var unrealizedPnl *float64 = this.SafeNumber(position, "pnlUnrealized")
 	var realizedPnl *float64 = this.SafeNumber(position, "pnlRealized")
 	var liquidationPrice *float64 = this.SafeNumber(position, "estLiquidationPrice")
-	return this.SafePosition(map[string]any{
+	var literal329534 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          id,
 		"symbol":                      symbol,
@@ -4487,7 +4512,7 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 		"datetime":                    this.Iso8601(this.Parse8601(this.SafeString(position, "timestamp"))),
 		"lastUpdateTimestamp":         nil,
 		"hedged":                      hedged,
-		"side":                        side,
+		"side":                        nil,
 		"contracts":                   this.SafeNumber(position, "netExposureQuantity"),
 		"contractSize":                nil,
 		"entryPrice":                  entryPrice,
@@ -4508,7 +4533,11 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 		"percentage":                  nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	})
+	}
+	if side != nil {
+		literal329534["side"] = *side
+	}
+	return this.SafePosition(literal329534)
 }
 
 /**
@@ -4553,7 +4582,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
@@ -4565,7 +4594,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil
 }
-func (this *Backpack) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Backpack) ParseIncome(income map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "fundingRate": "0.0001",
@@ -4615,26 +4644,26 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var requestParams any = func() any {
-		if IsArray(params) {
-			return params
-		}
-		return this.Omit(params, []any{"stock", "defaultStock", "rfq", "callerMethodName"})
-	}()
-	var sortedParams any = func() any {
-		if IsArray(requestParams) {
-			return requestParams
-		}
-		return this.Keysort(requestParams)
-	}()
+	var requestParams any
+	if IsArray(params) {
+		requestParams = params
+	} else {
+		requestParams = this.Omit(params, []any{"stock", "defaultStock", "rfq", "callerMethodName"})
+	}
+	var sortedParams any
+	if IsArray(requestParams) {
+		sortedParams = requestParams
+	} else {
+		sortedParams = this.Keysort(requestParams)
+	}
 	var headersSigned map[string]any = map[string]any{}
 	var bodySigned *string = nil
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var ts *string = this.NumberToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
-		var optionInstructions map[string]any = SafeMapTyped(this.Options, "instructions")
-		var optionPathInstructions map[string]any = SafeMapTyped(optionInstructions, path)
+		var optionInstructions, _ = this.Options["instructions"].(map[string]any)
+		var optionPathInstructions, _ = optionInstructions[path].(map[string]any)
 		var instruction string = *this.SafeString(optionPathInstructions, method, "")
 		var payload string = ""
 		if (path == "api/v1/orders") && (method == "POST") {
@@ -4669,12 +4698,12 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var url string = *apiUrl + endpoint
-	var headersResolved any = func() any {
-		if apiName == "private" {
-			return headersSigned
-		}
-		return nil
-	}()
+	var headersResolved map[string]any
+	if apiName == "private" {
+		headersResolved = headersSigned
+	} else {
+		headersResolved = nil
+	}
 	var bodyResolved *string = nil
 	if (apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned
@@ -4700,7 +4729,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts string, recvWindow str
 	}
 	return payload
 }
-func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -4803,7 +4832,7 @@ func (this *Backpack) FetchSecurities(params ...any) ([]map[string]any, error) {
  * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
  * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
  */
-func (this *Backpack) FetchStockIndicativeQuote(symbol string, side string, amount float64, options ...FetchStockIndicativeQuoteOptions) (map[string]any, error) {
+func (this *Backpack) FetchStockIndicativeQuote(symbol *string, side string, amount float64, options ...FetchStockIndicativeQuoteOptions) (map[string]any, error) {
 
 	opts := FetchStockIndicativeQuoteOptionsStruct{}
 
@@ -5355,7 +5384,7 @@ func (this *Backpack) CreateOrder(symbol string, typeVar string, side string, am
  * @param {int} [params.clientOrderId] requester client identifier
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) CreateRfqOrder(symbol string, typeVar string, side string, amount float64, options ...CreateRfqOrderOptions) (Order, error) {
+func (this *Backpack) CreateRfqOrder(symbol *string, typeVar string, side string, amount float64, options ...CreateRfqOrderOptions) (Order, error) {
 
 	opts := CreateRfqOrderOptionsStruct{}
 
@@ -5387,7 +5416,7 @@ func (this *Backpack) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

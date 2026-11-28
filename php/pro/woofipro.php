@@ -80,7 +80,8 @@ class woofipro extends \ccxt\async\woofipro {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 
@@ -601,7 +602,7 @@ class woofipro extends \ccxt\async\woofipro {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -892,7 +893,7 @@ class woofipro extends \ccxt\async\woofipro {
         $orderId = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->market($marketId);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -973,19 +974,19 @@ class woofipro extends \ccxt\async\woofipro {
         //         }
         //     }
         //
-        $topic = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data');
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        $topic = $this->safe_string($message, 'topic', '');
+        $dataList = $this->safe_list($message, 'data');
+        if ($dataList !== null) {
             // algoexecutionreport
-            for ($i = 0; $i < count($data); $i++) {
-                $order = $data[$i];
-                $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+            for ($i = 0; $i < count($dataList); $i++) {
+                $tradeId = $this->omit_zero($this->safe_string($dataList, 'tradeId'));
                 if ($tradeId !== null) {
-                    $this->handle_my_trade($client, $order);
+                    $this->handle_my_trade($client, $this->safe_dict($dataList, $i, array()));
                 }
-                $this->handle_order($client, $order, $topic);
+                $this->handle_order($client, $this->safe_dict($dataList, $i, array()), $topic);
             }
         } else {
+            $data = $this->safe_dict($message, 'data', array());
             // executionreport
             $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
             if ($tradeId !== null) {
@@ -995,7 +996,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function handle_order(Client $client, array $message, ?string $topic) {
+    public function handle_order(Client $client, array $message, string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -1059,7 +1060,7 @@ class woofipro extends \ccxt\async\woofipro {
         $messageHash = 'myTrades';
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $trade = $this->parse_ws_trade($message, $market);
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1210,7 +1211,7 @@ class woofipro extends \ccxt\async\woofipro {
             $position = $this->parse_ws_position($rawPosition, $market);
             $newPositions[] = $position;
             $cache->append($position);
-            $positionSymbol = $market['symbol'];
+            $positionSymbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'positions::' . $positionSymbol;
             $client->resolve($position, $messageHash);
         }

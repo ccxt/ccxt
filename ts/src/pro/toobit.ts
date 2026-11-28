@@ -3,7 +3,7 @@
 import toobitRest from '../toobit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -271,7 +271,7 @@ export default class toobit extends toobitRest {
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        return this.parseTrade (trade, market);
+        return this.parseTrade (this.extend ({}, trade), market);
     }
 
     /**
@@ -290,7 +290,8 @@ export default class toobit extends toobitRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol: Dict = result[symbol];
+        return bySymbol[timeframe];
     }
 
     /**
@@ -312,16 +313,16 @@ export default class toobit extends toobitRest {
         const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
-        const marketIds: Str[] = [];
-        let selectedTimeframe: Str = undefined;
+        const marketIds: string[] = [];
+        let selectedTimeframe: string = '';
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             const symbolStr = this.safeString (data, 0, '');
             const market = this.market (symbolStr);
-            const marketId = market['id'];
-            const unfiedTimeframe = this.safeString (data, 1, '1m');
-            const rawTimeframe = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
-            if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
+            const marketId: string = this.safeString (market, 'id', '');
+            const unfiedTimeframe: string = this.safeString (data, 1, '1m');
+            const rawTimeframe: string = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
+            if (selectedTimeframe !== '' && selectedTimeframe !== rawTimeframe) {
                 throw new NotSupported (this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 selectedTimeframe = rawTimeframe;
@@ -785,9 +786,10 @@ export default class toobit extends toobitRest {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = this.safeList (message, 'B', []);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601 (timestamp);
+        const typeBalance: Dict = this.safeDict (this.balance, type, {});
+        typeBalance['info'] = this.safeList (message, 'B', []);
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
@@ -797,10 +799,10 @@ export default class toobit extends toobitRest {
             account['used'] = this.safeString (balance, 'l');
             account['free'] = this.safeString (balance, 'f');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance (this.balance[type]);
+        this.balance[type] = this.safeBalance (typeBalance);
         client.resolve (this.balance[type], type + ':balance');
     }
 
@@ -1276,7 +1278,7 @@ export default class toobit extends toobitRest {
         return wsBaseUrl + '/api/v1/ws/' + listenKey;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        "code": '-100010',

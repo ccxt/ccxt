@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, NullableList, Market } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -167,10 +167,8 @@ export default class poloniex extends poloniexRest {
                 name,
             ],
         };
-        let marketIds: string[] = [];
-        if (this.isEmpty (symbols)) {
-            marketIds.push ('all');
-        } else {
+        let marketIds: string[] = [ 'all' ];
+        if (!this.isEmpty (symbols)) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' subscribe() symbols is required');
             }
@@ -257,6 +255,7 @@ export default class poloniex extends poloniexRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         let uppercaseType = type.toUpperCase ();
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrderWs() side is required');
@@ -294,7 +293,7 @@ export default class poloniex extends poloniexRest {
             }
             request['amount'] = quoteAmount;
         } else {
-            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            request['quantity'] = this.amountToPrecision (precisionSymbol, amount);
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
@@ -409,7 +408,7 @@ export default class poloniex extends poloniexRest {
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
-        const ohlcv = await this.subscribe (channel, channel, false, [ symbol ], params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe (channel, channel, false, [ symbol ], params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -614,7 +613,7 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
-        const orders = await this.subscribe (name, name, true, symbols, params);
+        const orders: ArrayCache = await this.subscribe (name, name, true, symbols, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -642,7 +641,7 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
-        const trades = await this.subscribe (name, messageHash, true, symbols, params);
+        const trades: ArrayCache = await this.subscribe (name, messageHash, true, symbols, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -714,8 +713,8 @@ export default class poloniex extends poloniexRest {
         }
         if (!('info' in this.balance)) {
             this.balance['info'] = response['info'];
-            this.balance['timestamp'] = response['timestamp'];
-            this.balance['datetime'] = response['datetime'];
+            this.balance['timestamp'] = this.safeInteger (response, 'timestamp');
+            this.balance['datetime'] = this.safeString (response, 'datetime');
         }
         this.balance = this.safeBalance (this.balance);
         // don't remove the future from the .futures cache
@@ -1020,7 +1019,7 @@ export default class poloniex extends poloniexRest {
         const orders = this.orders;
         const marketIds: string[] = [];
         for (let i = 0; i < data.length; i++) {
-            const order = this.safeDict (data, i);
+            const order = this.safeDict (data, i, {});
             const marketId = this.safeString (order, 'symbol');
             const eventType = this.safeString (order, 'eventType');
             if (marketId !== undefined) {
@@ -1046,7 +1045,7 @@ export default class poloniex extends poloniexRest {
                         previousOrder['trades'] = [];
                     }
                     previousOrder['trades'].push (trade);
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                    previousOrder['lastTradeTimestamp'] = this.safeInteger (trade, 'timestamp');
                     let totalCost: Str = '0';
                     let totalAmount: Str = '0';
                     const previousOrderTrades: Dict[] = this.safeList (previousOrder, 'trades', []);
@@ -1061,12 +1060,14 @@ export default class poloniex extends poloniexRest {
                         previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
                     }
                     previousOrder['cost'] = this.parseNumber (totalCost);
-                    if (previousOrder['filled'] !== undefined) {
+                    const previousOrderFilledRaw = this.safeString (previousOrder, 'filled');
+                    if (previousOrderFilledRaw !== undefined) {
                         const tradeAmount = this.numberToString (trade['amount']);
                         let previousOrderFilled = this.numberToString (previousOrder['filled']);
                         previousOrderFilled = Precise.stringAdd (previousOrderFilled, tradeAmount);
                         previousOrder['filled'] = previousOrderFilled;
-                        if (previousOrder['amount'] !== undefined) {
+                        const previousOrderAmountRaw = this.safeString (previousOrder, 'amount');
+                        if (previousOrderAmountRaw !== undefined) {
                             const previousOrderAmount = this.numberToString (previousOrder['amount']);
                             previousOrder['remaining'] = this.parseNumber (Precise.stringSub (previousOrderAmount, previousOrderFilled));
                         }
@@ -1078,8 +1079,8 @@ export default class poloniex extends poloniexRest {
                             'currency': this.safeString (trade['fee'], 'currency'),
                         };
                     }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
-                        const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                    if ((this.safeString (previousOrder['fee'], 'cost') !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
+                        const stringOrderCost = this.safeString (previousOrder['fee'], 'cost');
                         const stringTradeCost = this.numberToString (this.safeNumber (trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                     }
@@ -1103,7 +1104,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1200,10 +1201,9 @@ export default class poloniex extends poloniexRest {
         const data: Dict[] = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marketId = this.safeString (item, 'symbol');
+            const marketId = this.safeString (data[i], 'symbol');
             if (marketId !== undefined) {
-                const ticker = this.parseTicker (item);
+                const ticker = this.parseTicker (this.safeDict (data, i, {}));
                 const symbol = this.safeString (ticker, 'symbol');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = ticker;
@@ -1290,8 +1290,8 @@ export default class poloniex extends poloniexRest {
             const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const timestamp = this.safeInteger (item, 'ts');
-            const asks = this.safeList (item, 'asks');
-            const bids = this.safeList (item, 'bids');
+            const asks = this.safeList (item, 'asks', []);
+            const bids = this.safeList (item, 'bids', []);
             if (snapshot || update) {
                 let orderbook = this.safeValue (this.orderbooks, symbol);
                 if (snapshot && (orderbook === undefined)) {
@@ -1484,7 +1484,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',

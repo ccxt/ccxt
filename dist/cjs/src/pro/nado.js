@@ -1592,7 +1592,7 @@ class nado extends nado$1["default"] {
                     'bid': this.parseX18(bid),
                     'info': bbo,
                 }, market);
-                const symbol = market['symbol'];
+                const symbol = this.safeString(market, 'symbol', '');
                 result[symbol] = ticker;
             }
         }

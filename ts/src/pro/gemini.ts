@@ -55,7 +55,7 @@ export default class gemini extends geminiRest {
         }
         const market = this.market (symbol);
         const messageHash = 'trades:' + this.safeString (market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         if (marketId === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTrades() marketId is required');
         }
@@ -96,7 +96,7 @@ export default class gemini extends geminiRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
+        const trades: ArrayCache = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
@@ -176,7 +176,7 @@ export default class gemini extends geminiRest {
         //     }
         //
         const trade = this.parseWsTrade (message);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol');
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -186,7 +186,7 @@ export default class gemini extends geminiRest {
             }
         }
         stored.append (trade);
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + this.safeString (trade, 'symbol', '');
         client.resolve (stored, messageHash);
     }
 
@@ -368,8 +368,7 @@ export default class gemini extends geminiRest {
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
         for (let i = 0; i < changesLength; i++) {
-            const parsed = this.parseOHLCV (this.safeValue (changes, changesLength - i - 1), market);
-            stored.append (parsed);
+            stored.append (this.parseOHLCV (this.safeValue (changes, changesLength - i - 1), market));
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
         client.resolve (stored, messageHash);
@@ -392,7 +391,7 @@ export default class gemini extends geminiRest {
         }
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         if (marketId === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBook() marketId is required');
         }
@@ -573,13 +572,14 @@ export default class gemini extends geminiRest {
             throw new NotSupported (this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes: string[] = [];
-        const marketIds: Str[] = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = this.safeString (symbolsNormalized, i, '');
             const messageHash = itemHashName + ':' + symbol;
             messageHashes.push (messageHash);
             const market = this.market (symbol);
-            marketIds.push (market['id']);
+            const marketId: string = this.safeString (market, 'id', '');
+            marketIds.push (marketId);
         }
         const queryStr = marketIds.join (',');
         const wsUrl = this.safeString (this.urls['api'], 'ws');
@@ -783,7 +783,7 @@ export default class gemini extends geminiRest {
         }
         const orders = this.orders;
         for (let i = 0; i < message.length; i++) {
-            const order = this.parseWsOrder (this.safeValue (message, i));
+            const order = this.parseWsOrder (this.safeDict (message, i, {}));
             orders.append (order);
         }
         client.resolve (this.orders, messageHash);
@@ -1014,15 +1014,13 @@ export default class gemini extends geminiRest {
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
         const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
-        const wsSubOptions: Dict = this.safeDict (wsOptions, 'options', {});
-        const originalHeaders: Dict = this.safeDict (wsSubOptions, 'headers', {});
         const headers: Dict = {
             'X-GEMINI-APIKEY': this.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         };
-        this.options['ws']['options']['headers'] = headers;
+        this.options['ws'] = this.extend (wsOptions, { 'options': this.extend (this.safeDict (wsOptions, 'options'), { 'headers': headers }) });
         this.client (url);
-        this.options['ws']['options']['headers'] = originalHeaders;
+        this.options['ws'] = wsOptions;
     }
 }

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -295,7 +295,7 @@ class coinspot(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
-            rows = self.to_array(balances)
+            rows = self.safe_list_2(response, 'balance', 'balances', [])
             numRows = len(rows)
             for i in range(0, numRows):
                 currencies = self.safe_dict(rows, i, {})
@@ -309,7 +309,8 @@ class coinspot(Exchange, ImplicitAPI):
                     if code is not None:
                         result[code] = account
         else:
-            currencyIdsMap = list(balances.keys())
+            balancesDict = self.safe_dict_2(response, 'balance', 'balances', {})
+            currencyIdsMap = list(balancesDict.keys())
             for i in range(0, len(currencyIdsMap)):
                 currencyId = currencyIdsMap[i]
                 code = self.safe_currency_code(currencyId)
@@ -478,9 +479,8 @@ class coinspot(Exchange, ImplicitAPI):
             id = ids[i]
             market = self.safe_market(id)
             if self.safe_bool(market, 'spot', False):
-                symbol = market['symbol']
-                ticker = prices[id]
-                result[symbol] = self.parse_ticker(ticker, market)
+                symbol = self.safe_string(market, 'symbol', '')
+                result[symbol] = self.parse_ticker(self.safe_dict(prices, id, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -708,7 +708,7 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')

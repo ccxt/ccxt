@@ -989,9 +989,8 @@ class luno extends luno$1["default"] {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            const symbol = market['symbol'];
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker(ticker, market);
+            const symbol = this.safeString(market, 'symbol', '');
+            result[symbol] = this.parseTicker(this.safeDict(tickers, id, {}), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
@@ -1330,6 +1329,7 @@ class luno extends luno$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'pair': market['id'],
         };
@@ -1339,16 +1339,16 @@ class luno extends luno$1["default"] {
             request['type'] = side.toUpperCase();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = this.amountToPrecision(market['symbol'], amount);
+                request['counter_volume'] = this.amountToPrecision(precisionSymbol, amount);
             }
             else {
-                request['base_volume'] = this.amountToPrecision(market['symbol'], amount);
+                request['base_volume'] = this.amountToPrecision(precisionSymbol, amount);
             }
             response = await this.privatePostMarketorder(this.extend(request, params));
         }
         else {
-            request['volume'] = this.amountToPrecision(market['symbol'], amount);
-            request['price'] = this.priceToPrecision(market['symbol'], price);
+            request['volume'] = this.amountToPrecision(precisionSymbol, amount);
+            request['price'] = this.priceToPrecision(precisionSymbol, price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
             response = await this.privatePostPostorder(this.extend(request, params));
         }

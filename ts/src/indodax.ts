@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Dictionary, Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type{ Dictionary, Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -648,10 +648,9 @@ export default class indodax extends Exchange {
         const parsedTickers: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const rawTicker = tickers[key];
             const marketId = key.replace ('_', '');
             const market = this.safeMarket (marketId);
-            const parsed = this.parseTicker (rawTicker, market);
+            const parsed = this.parseTicker (this.safeDict (tickers, key, {}), market);
             parsedTickers[marketId] = parsed;
         }
         return this.filterByArrayTickers (parsedTickers, 'symbol', symbols);
@@ -852,7 +851,6 @@ export default class indodax extends Exchange {
             filled = this.safeString (order, 'receive_' + baseId);
         }
         const timestamp = this.safeInteger (order, 'submit_time');
-        const fee = undefined;
         const id = this.safeString (order, 'order_id');
         return this.safeOrder ({
             'info': order,
@@ -874,7 +872,7 @@ export default class indodax extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         });
     }
@@ -931,13 +929,10 @@ export default class indodax extends Exchange {
         }
         const response = await this.privatePostOpenOrders (this.extend (request, params));
         const openOrdersResult = this.safeDict (response, 'return', {});
-        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if ((rawOrders === undefined) || (rawOrders === null)) {
-            return [];
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol !== undefined) {
+            const rawOrders: Dict[] = this.safeList (openOrdersResult, 'orders', []);
             return this.parseOrders (rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
@@ -1013,6 +1008,8 @@ export default class indodax extends Exchange {
         if (isMarketBuy) {
             paramsOmitted = this.omit (params, 'cost');
         }
+        const quoteId = this.safeString (market, 'quoteId', '');
+        const baseId = this.safeString (market, 'baseId', '');
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
@@ -1028,7 +1025,7 @@ export default class indodax extends Exchange {
                     const costRequest = Precise.stringMul (amountString, priceString);
                     quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
-                request[market['quoteId'] as string] = quoteAmount;
+                request[quoteId] = quoteAmount;
             } else {
                 quantityIsRequired = true;
             }
@@ -1036,7 +1033,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId'] as string] = this.parseToNumeric (this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price))));
+                request[quoteId] = this.parseToNumeric (this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price))));
             }
         }
         if (priceIsRequired) {
@@ -1046,7 +1043,7 @@ export default class indodax extends Exchange {
             request['price'] = price;
         }
         if (quantityIsRequired) {
-            request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
+            request[baseId] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, paramsOmitted));
         const data = this.safeDict (result, 'return', {});
@@ -1105,7 +1102,7 @@ export default class indodax extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'return');
-        return this.parseOrder (data as Dict);
+        return this.parseOrder (this.extend ({}, data));
     }
 
     /**
@@ -1494,7 +1491,7 @@ export default class indodax extends Exchange {
                         throw new ExchangeError (this.id + ' fetchDepositAddresses() missing networkId');
                     }
                     if (networkId.indexOf (',') >= 0) {
-                        network = [];
+                        const networkCodes: List = [];
                         if (networkId === undefined) {
                             throw new ExchangeError (this.id + ' fetchDepositAddresses() missing networkId');
                         }
@@ -1502,9 +1499,10 @@ export default class indodax extends Exchange {
                         for (let j = 0; j < networkIds.length; j++) {
                             const _netIdTmp = this.networkIdToCode (networkIds[j], code);
                             if (_netIdTmp !== undefined) {
-                                network.push (_netIdTmp.toUpperCase ());
+                                networkCodes.push (_netIdTmp.toUpperCase ());
                             }
                         }
+                        network = networkCodes;
                     } else {
                         const _netIdTmp = this.networkIdToCode (networkId, code);
                         if (_netIdTmp !== undefined) {
@@ -1568,7 +1566,7 @@ export default class indodax extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined;
         }

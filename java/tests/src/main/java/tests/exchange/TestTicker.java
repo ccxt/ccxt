@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -23,7 +24,7 @@ public class TestTicker extends BaseTest {
         // books where bid==ask and a stale `last` far from the median are normal — skip the
         // crypto-oriented price-relationship checks for them. the PredictionTicker type also
         // omits vwap/previousClose entirely, so their presence must not be Asserted
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );
@@ -59,14 +60,14 @@ public class TestTicker extends BaseTest {
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
         // trick csharp-transpiler for string
-        if (!Helpers.isTrue((String.valueOf(method).contains("BidsAsks"))))
+        if (!TestHelpers.isTrue((String.valueOf(method).contains("BidsAsks"))))
         {
             emptyAllowedFor.add("bid");
             emptyAllowedFor.add("ask");
         }
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
-        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
+        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         // check market
         Object market = null;
         Boolean isUnrecognizedSymbol = false;
@@ -83,14 +84,14 @@ public class TestTicker extends BaseTest {
             }
         }
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
-        if (!(Helpers.inOp(skippedProperties, "checkInactiveMarkets")))
+        if (!(TestHelpers.inOp(skippedProperties, "checkInactiveMarkets")))
         {
             if (!java.util.Objects.equals(market, null) && java.util.Objects.equals(((Map<String, Object>)market).get("active"), false))
             {
                 return;
             }
         }
-        if (Helpers.inOp(skippedProperties, "skipNonActiveMarkets"))
+        if (TestHelpers.inOp(skippedProperties, "skipNonActiveMarkets"))
         {
             if (java.util.Objects.equals(market, null) || (!java.util.Objects.equals(((Map<String, Object>)market).get("active"), true)))
             {
@@ -98,24 +99,24 @@ public class TestTicker extends BaseTest {
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        Boolean isStandardMarket = (!java.util.Objects.equals(market, null) && Helpers.isTrue(exchange.inArray(((Map<String, Object>)market).get("type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
+        Boolean isStandardMarket = (!java.util.Objects.equals(market, null) && TestHelpers.isTrue(exchange.inArray(((Map<String, Object>)market).get("type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
         Boolean valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
-        if (Boolean.TRUE.equals(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
+        if (Boolean.TRUE.equals(valuesShouldBePositive) && !(TestHelpers.inOp(skippedProperties, "positiveValues")))
         {
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "open", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "high", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "low", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "close", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "ask", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "bid", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "average", "0");
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "vwap", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "open", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "high", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "low", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "close", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "bid", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "average", "0");
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0");
         }
         // volume can not be negative
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "askVolume", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "bidVolume", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "baseVolume", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "quoteVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0");
         //
         // close price
         //
@@ -132,7 +133,7 @@ public class TestTicker extends BaseTest {
         Object low = exchange.omitZero(exchange.safeString(entry, "low"));
         Object open = exchange.omitZero(exchange.safeString(entry, "open"));
         Object close = exchange.omitZero(exchange.safeString(entry, "close"));
-        if (!(Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume")))
+        if (!(TestHelpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume")))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
             // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
@@ -140,7 +141,7 @@ public class TestTicker extends BaseTest {
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             Object isInverse = exchange.safeBool(market, "inverse", false);
-            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!Helpers.isTrue(isInverse)))
+            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!TestHelpers.isTrue(isInverse)))
             {
                 String baseLow = Precise.stringMul(baseVolume, low);
                 String baseHigh = Precise.stringMul(baseVolume, high);
@@ -185,7 +186,7 @@ public class TestTicker extends BaseTest {
         // percentage is `(change/open) * 100`
         String changeString = exchange.safeString(entry, "change");
         String percentageString = exchange.safeString(entry, "percentage");
-        if ((!java.util.Objects.equals(changeString, null)) && (!java.util.Objects.equals(open, null)) && (!java.util.Objects.equals(close, null)) && !(Helpers.inOp(skippedProperties, "compareChange")))
+        if ((!java.util.Objects.equals(changeString, null)) && (!java.util.Objects.equals(open, null)) && (!java.util.Objects.equals(close, null)) && !(TestHelpers.inOp(skippedProperties, "compareChange")))
         {
             // the window is the larger of two roundings: float residue on a change
             // safeTicker derived, which needs a part per million of the price, and an
@@ -197,7 +198,7 @@ public class TestTicker extends BaseTest {
             // like that reveals no rounding at all, so fall back to the price part
             // instead of letting it widen the window
             String changeWindow = pricePart;
-            if (Helpers.isGreaterThanOrEqual(changeDecimals, 0))
+            if (TestHelpers.isGreaterThanOrEqual(changeDecimals, 0))
             {
                 Object changeQuantum = exchange.parsePrecision(exchange.numberToString(changeDecimals));
                 // a change of "0" prints no decimals, so its apparent step is a whole unit
@@ -210,7 +211,7 @@ public class TestTicker extends BaseTest {
             String difference = Precise.stringAbs(Precise.stringSub(changeString, Precise.stringSub(close, open)));
             Assert(Precise.stringLe(difference, changeWindow), ("`change` should be `last - open`" + logText));
         }
-        if ((!java.util.Objects.equals(changeString, null)) && (!java.util.Objects.equals(percentageString, null)) && (!java.util.Objects.equals(open, null)) && !(Helpers.inOp(skippedProperties, "comparePercentage")))
+        if ((!java.util.Objects.equals(changeString, null)) && (!java.util.Objects.equals(percentageString, null)) && (!java.util.Objects.equals(open, null)) && !(TestHelpers.inOp(skippedProperties, "comparePercentage")))
         {
             String derived = Precise.stringMul(Precise.stringDiv(changeString, open), "100");
             // exchanges round the percentage, so allow one part in fifty of the derived
@@ -222,7 +223,7 @@ public class TestTicker extends BaseTest {
             Assert(Precise.stringLe(gap, allowed), ("`percentage` should be `(change/open) * 100`" + logText));
         }
         // open and close should be between High & Low
-        if (!java.util.Objects.equals(high, null) && !java.util.Objects.equals(low, null) && !(Helpers.inOp(skippedProperties, "compareOHLC")))
+        if (!java.util.Objects.equals(high, null) && !java.util.Objects.equals(low, null) && !(TestHelpers.inOp(skippedProperties, "compareOHLC")))
         {
             if (!java.util.Objects.equals(open, null))
             {
@@ -258,14 +259,14 @@ public class TestTicker extends BaseTest {
         }
         String askString = exchange.safeString(entry, "ask");
         String bidString = exchange.safeString(entry, "bid");
-        if ((!java.util.Objects.equals(askString, null)) && (!java.util.Objects.equals(bidString, null)) && !(Helpers.inOp(skippedProperties, "spread")))
+        if ((!java.util.Objects.equals(askString, null)) && (!java.util.Objects.equals(bidString, null)) && !(TestHelpers.inOp(skippedProperties, "spread")))
         {
             // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "ask", (String) (exchange.safeString(entry, "bid")));
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", (String) (exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         String allowedPercentageVariation = "0.01";
-        if (Boolean.TRUE.equals(isFetchTickerCalled) && !java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(bidString, null) && !java.util.Objects.equals(askString, null) && !(Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))
+        if (Boolean.TRUE.equals(isFetchTickerCalled) && !java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(bidString, null) && !java.util.Objects.equals(askString, null) && !(TestHelpers.inOp(skippedProperties, "lastBetweenBidAsk")))
         {
             String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
@@ -282,7 +283,7 @@ public class TestTicker extends BaseTest {
         // intrinsic). the floors stay: a long option cannot lose more than its
         // premium, so percentage >= -100 and change >= -open hold for options too
         Object isOptionMarket = exchange.safeBool(market, "option", false);
-        if (!(Helpers.inOp(skippedProperties, "maxIncrease")) && !Boolean.TRUE.equals(isUnrecognizedSymbol))
+        if (!(TestHelpers.inOp(skippedProperties, "maxIncrease")) && !Boolean.TRUE.equals(isUnrecognizedSymbol))
         {
             //
             // percentage
@@ -292,7 +293,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -100 and (for non-options) below MAX
                 Assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + logText));
-                if (!Helpers.isTrue(isOptionMarket))
+                if (!TestHelpers.isTrue(isOptionMarket))
                 {
                     Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + logText));
                 }
@@ -305,7 +306,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + logText));
-                if (!Helpers.isTrue(isOptionMarket))
+                if (!TestHelpers.isTrue(isOptionMarket))
                 {
                     Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + logText));
                 }
@@ -342,7 +343,7 @@ public class TestTicker extends BaseTest {
         // else {
         //    Assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
         // }
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
     }
 
 }

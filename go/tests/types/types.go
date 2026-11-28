@@ -196,7 +196,7 @@ func testBalance(exchange *ccxt.Binance) {
 	file := GetRootDir() + BASE_DIR + "balance.json"
 	content := IoFileRead(file, true)
 
-	parsed := exchange.ParseBalanceCustom(content, "linear", nil, false)
+	parsed := exchange.ParseBalanceCustom(content.(map[string]any), "linear", nil, false)
 	typed := ccxt.NewBalances(parsed)
 	freeUsdt := typed.Free["USDT"]
 	usedUsdt := typed.Used["USDT"]

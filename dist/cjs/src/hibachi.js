@@ -541,7 +541,7 @@ class hibachi extends hibachi$1["default"] {
         //      }
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'id');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
@@ -903,7 +903,7 @@ class hibachi extends hibachi$1["default"] {
             'signature': signature,
             'maxFeesPercent': this.numberToString(feeRate),
         };
-        const postOnly = this.isPostOnly(type.toUpperCase() === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly(type.toUpperCase() === 'MARKET', false, params);
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -2173,7 +2173,8 @@ class hibachi extends hibachi$1["default"] {
     parseSettlements(settlements, market = undefined) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(settlements[i], market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

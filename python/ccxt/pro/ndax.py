@@ -280,7 +280,7 @@ class ndax(ccxt.async_support.ndax):
                 timestamp = self.safe_integer(ohlcv, 0)
                 if timestamp is None:
                     continue
-                candleTimestamp = self.parse_to_int((timestamp / duration) * duration)
+                candleTimestamp = self.parse_to_int(timestamp / duration) * duration
                 parsed = [
                     candleTimestamp,
                     self.safe_float(ohlcv, 3),
@@ -335,7 +335,7 @@ class ndax(ccxt.async_support.ndax):
         marketIds = list(updates.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            timeframes = list(updates[marketId].keys())
+            timeframes = list(self.safe_dict(updates, marketId, {}).keys())
             for j in range(0, len(timeframes)):
                 timeframe = timeframes[j]
                 messageHash = name + ':' + timeframe + ':' + marketId
@@ -520,7 +520,7 @@ class ndax(ccxt.async_support.ndax):
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
-                method(client, message, subscription)
+                self.handle_order_book_subscription(client, message, subscription)
 
     def handle_message(self, client: Client, message: dict):
         #

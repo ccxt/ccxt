@@ -22,11 +22,11 @@ public class TestFundingRateHistory extends BaseTest {
             put( "datetime", "2021-11-30T00:00:00.000Z" );
             put( "fundingRate", exchange.parseNumber("0.0006") );
         }};
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "fundingRate", "-100");
-        TestSharedMethods.AssertLess(exchange, skippedProperties, (String) (method), entry, "fundingRate", "100");
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "fundingRate", "-100");
+        TestSharedMethods.AssertLess(exchange, skippedProperties, method, entry, "fundingRate", "100");
     }
 
 }

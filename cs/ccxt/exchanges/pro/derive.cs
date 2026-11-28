@@ -53,11 +53,12 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
+    public async virtual Task<T> watchPublic<T>(string messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId(url);
@@ -68,7 +69,7 @@ public partial class derive : ccxt.derive
             { "id", requestId },
             { "method", "subscribe" },
         });
-        return await this.watch(url, messageHash, request, messageHash, subscriptionExtended);
+        return await this.watch<T>(url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -104,7 +105,7 @@ public partial class derive : ccxt.derive
             { "limit", limitResolved },
             { "params", parameters },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, request, subscription));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic<object>(topic, request, subscription));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -175,7 +176,7 @@ public partial class derive : ccxt.derive
             { "symbol", symbol },
             { "params", parameters },
         };
-        return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, request, subscription));
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic<object>(topic, request, subscription));
     }
 
     /**
@@ -219,14 +220,14 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
@@ -261,7 +262,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsResolved));
     }
 
-    public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    public virtual Dictionary<string, object> handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -336,7 +337,7 @@ public partial class derive : ccxt.derive
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    public async override Task<object> unWatchOrderBook(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -392,7 +393,7 @@ public partial class derive : ccxt.derive
         return await this.unWatchPublic(messageHah, request, subscription);
     }
 
-    public async virtual Task<object> unWatchPublic(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
+    public async virtual Task<object> unWatchPublic(string messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId(url);
@@ -468,7 +469,7 @@ public partial class derive : ccxt.derive
         this.cleanUnsubscription(client, topic, ("unwatch" + (topic)), true);
     }
 
-    public virtual object handleUnSubscribe(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleUnSubscribe(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -542,13 +543,13 @@ public partial class derive : ccxt.derive
             { "symbol", symbol },
             { "params", parameters },
         };
-        object trades = await this.watchPublic(topic, request, subscription);
+        ccxt.pro.ArrayCache trades = await this.watchPublic<ccxt.pro.ArrayCache>(topic, request, subscription);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -556,7 +557,7 @@ public partial class derive : ccxt.derive
         //
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params");
-        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(parameters, "data", new List<object>() {});
         string? topic = this.safeString(parameters, "channel", "");
         List<object> parsedTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
@@ -568,9 +569,9 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(getValue(data, i));
+            ccxt.Trade trade = this.parseTrade(this.safeDict(data, i, new Dictionary<string, object>() {}));
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = tradesArray;
@@ -585,8 +586,8 @@ public partial class derive : ccxt.derive
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             Int64 requestId = this.requestId(url);
             string? now = this.numberToString(this.nonce());
@@ -614,7 +615,7 @@ public partial class derive : ccxt.derive
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
+    public async virtual Task<T> watchPrivate<T>(string messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         await this.authenticate();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -626,7 +627,7 @@ public partial class derive : ccxt.derive
             { "id", requestId },
             { "method", "subscribe" },
         });
-        return await this.watch(url, messageHash, request, messageHash, subscriptionExtended);
+        return await this.watch<T>(url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -671,13 +672,13 @@ public partial class derive : ccxt.derive
             { "params", paramsDeriveSubaccountId },
         };
         Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
-        object orders = await this.watchPrivate(messageHash, message, subscription);
+        ccxt.pro.ArrayCache orders = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, message, subscription);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -728,7 +729,7 @@ public partial class derive : ccxt.derive
         List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            object data = rawOrders[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
             string? symbol = this.safeString(parsed, "symbol");
             string? orderId = this.safeString(parsed, "id");
@@ -847,13 +848,13 @@ public partial class derive : ccxt.derive
             { "params", paramsDeriveSubaccountId },
         };
         Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
-        object trades = await this.watchPrivate(messageHash, message, subscription);
+        ccxt.pro.ArrayCache trades = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, message, subscription);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -872,7 +873,7 @@ public partial class derive : ccxt.derive
         List<object> rawTrades = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(rawTrades[i]);
+            ccxt.Trade trade = this.parseTrade(this.safeDict(rawTrades, i, new Dictionary<string, object>() {}));
             myTrades.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(myTrades, topic);
             if ((topic != null))
@@ -977,7 +978,7 @@ public partial class derive : ccxt.derive
             { "params", paramsDeriveSubaccountId },
         };
         Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
-        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(topic, message, subscription));
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate<object>(topic, message, subscription));
     }
 
     /**
@@ -1000,7 +1001,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, true);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, true);
         (bool?, IDictionary<string, object>) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
         IDictionary<string, object> paramsSnapshot = (fetchSnapshotparamsSnapshotVariable.Item2);
@@ -1049,7 +1050,7 @@ public partial class derive : ccxt.derive
             { "params", paramsDeriveSubaccountId },
         };
         Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
-        object newPositions = await this.watchPrivate(messageHash, message, subscription);
+        object newPositions = await this.watchPrivate<object>(messageHash, message, subscription);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -1057,7 +1058,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, subaccountIdKey)), symbolsResolved, since, limit, true));
     }
 
-    public virtual IDictionary<string, object> handlePositionDelta(object subaccountIdKey, object entry)
+    public virtual IDictionary<string, object> handlePositionDelta(string subaccountIdKey, IDictionary<string, object> entry)
     {
         string? marketId = this.safeString(entry, "name");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1166,7 +1167,7 @@ public partial class derive : ccxt.derive
         }
         if (updated)
         {
-            this.balance[subaccountIdKey] = this.safeBalance(((object)subBalance));
+            this.balance[subaccountIdKey] = this.safeBalance(subBalance);
             client.resolve(this.safeValue(this.balance, subaccountIdKey), topic);
         }
         int positionUpdatesLength = (positionUpdates?.Count ?? 0);
@@ -1176,7 +1177,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual bool handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {
@@ -1184,7 +1185,7 @@ public partial class derive : ccxt.derive
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
+        if (!((message != null && message.ContainsKey("error"))))
         {
             return false;
         }
@@ -1195,7 +1196,7 @@ public partial class derive : ccxt.derive
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             }
             return false;
@@ -1217,7 +1218,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public override void handleMessage(WebSocketClient client, object message)
+    public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.handleErrorMessage(client, message) == true))
         {
@@ -1260,7 +1261,7 @@ public partial class derive : ccxt.derive
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             return;
         }
-        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("id")))
+        if ((message != null && message.ContainsKey("id")))
         {
             string? id = this.safeString(message, "id");
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
@@ -1297,7 +1298,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual void handleAuth(WebSocketClient client, object message)
+    public virtual void handleAuth(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

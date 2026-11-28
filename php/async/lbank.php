@@ -835,9 +835,10 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         if ($this->safe_bool($market, 'swap', false)) {
-            $responseForSwap = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
-            $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
+            $responseForSwap = Async\await($this->fetch_tickers(array( $marketSymbol ), $params));
+            $swapTicker = $this->safe_dict($responseForSwap, $marketSymbol);
             return $swapTicker;
         }
         $request = array(
@@ -1412,22 +1413,6 @@ class lbank extends Exchange {
             }
             return $this->safe_balance($result);
         }
-        // from spotPrivatePostSupplementUserInfo
-        $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
-        if ($isArray) {
-            for ($i = 0; $i < count($data); $i++) {
-                $item = $this->safe_dict($data, $i);
-                $currencyId = $this->safe_string($item, 'coin');
-                $codeInner = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($item, 'usableAmt');
-                $account['used'] = $this->safe_string($item, 'freezeAmt');
-                if ($codeInner !== null) {
-                    $result[$codeInner] = $account;
-                }
-            }
-            return $this->safe_balance($result);
-        }
         return $this->safe_balance($result);
     }
 
@@ -1497,7 +1482,8 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $responseForSwap = Async\await($this->fetch_funding_rates(array( $market['symbol'] ), $params));
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $responseForSwap = Async\await($this->fetch_funding_rates(array( $marketSymbol ), $params));
         $fundingRate = $this->safe_dict($responseForSwap, $market['symbol']);
         return $fundingRate;
     }
@@ -1678,8 +1664,8 @@ class lbank extends Exchange {
         $fees = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
+            $fee = $this->parse_trading_fee($this->extend(array(), $fees[$i]));
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -2093,12 +2079,6 @@ class lbank extends Exchange {
         if ($numOrders === 1) {
             return $this->parse_order($this->safe_dict($result, 0, array()));
         } else {
-            // const parsedOrders = [];
-            // for (let i = 0; i < numOrders; i++) {
-            //     const parsedOrder = this.parseOrder (result[i]);
-            //     parsedOrders.push (parsedOrder);
-            // }
-            // return parsedOrders;
             throw new BadRequest($this->id . ' fetchOrder() can only fetch one order at a time');
         }
     }
@@ -3309,7 +3289,7 @@ class lbank extends Exchange {
         return $pem . '-----END PRIVATE KEY-----';
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             throw new NullResponse($this->id . ' parseBalance() returned empty response');
         }
@@ -3370,7 +3350,7 @@ class lbank extends Exchange {
                 '10701' => 'invalid asset code',
                 '10702' => 'not allowed deposit',
             ), $errorCode, $this->json($response));
-            $ErrorClass = $this->safe_value(array(
+            $this->throw_exactly_matched_exception(array(
                 '10001' => '\\ccxt\\BadRequest',
                 '10002' => '\\ccxt\\AuthenticationError',
                 '10003' => '\\ccxt\\BadRequest',
@@ -3420,8 +3400,8 @@ class lbank extends Exchange {
                 '10601' => '\\ccxt\\ExchangeError', // 'Interface closed unavailable',
                 '10701' => '\\ccxt\\BadSymbol', // 'invalid asset code',
                 '10702' => '\\ccxt\\PermissionDenied', // 'not allowed deposit',
-            ), $errorCode, '\\ccxt\\ExchangeError');
-            throw new $ErrorClass($message);
+            ), $errorCode, $message);
+            throw new ExchangeError($message);
         }
         return null;
     }

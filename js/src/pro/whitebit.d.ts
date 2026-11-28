@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): Dict;
@@ -110,14 +110,14 @@ export default class whitebit extends whitebitRest {
     setBalanceCache(client: Client, type: Str, subscriptionHash: string): void;
     loadBalanceSnapshot(client: Client, messageHash: string, type: Str, subscriptionHash: string): Promise<void>;
     handleBalance(client: Client, message: Dict): void;
-    watchPublic(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
+    watchPublic(messageHash: string, method: string, reqParams: any[], params?: Dict): Promise<any>;
     watchMultipleSubscription(messageHash: string, method: string, symbol: Str, isNested?: boolean, params?: Dict): Promise<any>;
-    watchPrivate(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
+    watchPrivate(messageHash: string, method: string, reqParams: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<number>;
     handleAuthenticate(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
-    handleSubscriptionStatus(client: Client, message: Dict, id: Int): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
     handlePong(client: Client, message: Dict): Dict;
     ping(client: Client): Dict;
 }

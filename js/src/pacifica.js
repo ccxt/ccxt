@@ -996,7 +996,7 @@ export default class pacifica extends Exchange {
             const setting = settings[i];
             const marketId = this.safeString(setting, 'symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;
@@ -1184,7 +1184,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString(info, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const funding = this.safeNumber(info, 'funding');
         const markPx = this.safeNumber(info, 'mark');
         const oraclePx = this.safeNumber(info, 'oracle');
@@ -1245,22 +1245,21 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'interval': tf,
         };
-        let sinceValue = since;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
-        if (this.safeInteger(requestUntil, 'end_time') === undefined) {
-            if (sinceValue === undefined) {
-                sinceValue = nowMs - limitValue * duration;
-            }
-            const windowEnd = this.parseToInt(this.sum(sinceValue - 1, limitValue * duration));
+        const untilEnd = this.safeInteger(requestUntil, 'end_time');
+        let startTime = this.parseToInt(nowMs - limitValue * duration);
+        if (untilEnd !== undefined) {
+            startTime = this.parseToInt(untilEnd - limitValue * duration);
+        }
+        if (since !== undefined) {
+            startTime = this.parseToInt(since);
+        }
+        if (untilEnd === undefined) {
+            const windowEnd = this.parseToInt(this.sum(startTime - 1, limitValue * duration));
             const until = (windowEnd > nowMs) ? nowMs : windowEnd;
             requestUntil['end_time'] = until;
         }
-        else {
-            if (sinceValue === undefined) {
-                sinceValue = requestUntil['end_time'] - limitValue * duration;
-            }
-        }
-        requestUntil['start_time'] = sinceValue;
+        requestUntil['start_time'] = startTime;
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -1455,7 +1454,7 @@ export default class pacifica extends Exchange {
         const amount = this.safeString(trade, 'amount');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'history_id');
         let side = this.safeString(trade, 'side');
         if (side === 'open_long') {
@@ -1736,8 +1735,7 @@ export default class pacifica extends Exchange {
             const side = this.safeString(order, 'side');
             const price = this.safeString(order, 'price');
             const type = this.safeString(order, 'type', 'limit');
-            const orderParams = this.safeDict(order, 'params', {});
-            orderParams['timestamp'] = timestamp;
+            const orderParams = this.extend(this.safeDict(order, 'params', {}), { 'timestamp': timestamp });
             const amount = this.safeString(order, 'amount');
             const amountNumber = this.parseNumber(amount);
             const priceNumber = this.parseNumber(price);
@@ -2209,7 +2207,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
@@ -2410,10 +2408,7 @@ export default class pacifica extends Exchange {
         const dataLength = data.length;
         if (hasMore) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
-                const first = data[0];
-                first['next_cursor'] = paginationCursor;
-                first['has_more'] = hasMore;
-                data[0] = first;
+                data[0] = this.extend(data[0], { 'next_cursor': paginationCursor, 'has_more': hasMore });
             }
         }
         return data;
@@ -2489,11 +2484,10 @@ export default class pacifica extends Exchange {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         const sorted = this.sortBy(data, 'history_id', true);
         const lastIdx = sorted.length;
-        let lastInfo = {};
         if (lastIdx > 0) {
-            lastInfo = sorted[0];
+            return this.parseOrder(this.safeDict(sorted, 0, {}), market);
         }
-        return this.parseOrder(lastInfo, market);
+        return this.parseOrder({}, market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2628,7 +2622,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString2(order, 'symbol', 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger2(order, 'created_at', 'ct');
         const status = this.safeString2(order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString(order, 'side', 'd');
@@ -2726,7 +2720,8 @@ export default class pacifica extends Exchange {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parsePosition(data[i], undefined));
+            const parsedPosition = this.parsePosition(this.safeDict(data, i, {}), undefined);
+            result.push(parsedPosition);
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }
@@ -2746,7 +2741,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const margin = this.safeString(position, 'margin');
         const rawIsolated = this.safeBool(position, 'isolated');
         let isIsolated = (margin !== undefined) && (margin !== '0');
@@ -3234,6 +3229,7 @@ export default class pacifica extends Exchange {
         };
         const eventType = this.safeString(transaction, 'event_type');
         const amount = this.safeString(transaction, 'amount');
+        const currencyCode = this.safeCurrencyCode('USDC', currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -3249,7 +3245,7 @@ export default class pacifica extends Exchange {
             'tagFrom': undefined,
             'type': this.safeString(types, eventType),
             'amount': this.parseNumber(Precise.stringAbs(amount)),
-            'currency': this.safeCurrencyCode('USDC', currency),
+            'currency': currencyCode,
             'status': undefined,
             'updated': undefined,
             'comment': undefined,
@@ -3328,7 +3324,7 @@ export default class pacifica extends Exchange {
         const timestamp = this.safeInteger(income, 'created_at');
         const marketId = this.safeString(income, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const amount = this.safeString(income, 'payout');
         const code = this.safeCurrencyCode('USDC');
         const rate = this.safeNumber(income, 'rate');
@@ -3446,7 +3442,8 @@ export default class pacifica extends Exchange {
         if (subAccountPrivateKey === undefined) {
             throw new ArgumentsRequired(this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const [timestamp, paramsTimestamp] = this.handleParamInteger(paramsSubAccountPrivateKey, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(paramsSubAccountPrivateKey, 'timestamp', this.milliseconds());
+        const paramsTimestamp = this.omit(paramsSubAccountPrivateKey, 'timestamp');
         const [expiryWindow, paramsExpiryWindow] = this.handleOptionIntegerAndParams2(paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
             'timestamp': timestamp,
@@ -3687,11 +3684,12 @@ export default class pacifica extends Exchange {
     sortJsonKeys(value) {
         if (this.isDictionary(value)) {
             const result = {};
-            const keys = Object.keys(value);
+            const valueCopy = this.extend({}, value);
+            const keys = Object.keys(valueCopy);
             const sortedKeys = this.sort(keys);
             for (let i = 0; i < sortedKeys.length; i++) {
                 const key = this.safeString(sortedKeys, i, '');
-                result[key] = this.sortJsonKeys(value[key]);
+                result[key] = this.sortJsonKeys(valueCopy[key]);
             }
             return result;
         }
@@ -3755,7 +3753,7 @@ export default class pacifica extends Exchange {
         const signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         const finalHeaders = {};
         const [agentAddress, paramsAgentAddress] = this.handleOptionStringAndParams(paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        const originAddress = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress)[0];
+        const [originAddress] = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

@@ -156,12 +156,16 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         list($bookSubscriptionType, $paramsBookSubscriptionType) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         list($bookSubscriptionType2, $paramsBookSubscriptionType2) = $this->handle_option_string_and_params($paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
-        $paramsBookSubscriptionType2['params']['bookSubscriptionType'] = $bookSubscriptionType2;
-        list($bookUpdateFrequency, $paramsBookUpdateFrequency) = $this->handle_option_string_and_params($paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        $bookParams = $this->safe_dict($paramsBookSubscriptionType2, 'params', array());
+        $bookParams['bookSubscriptionType'] = $bookSubscriptionType2;
+        $paramsWithBook = $this->extend($paramsBookSubscriptionType2, array( 'params' => $bookParams ));
+        list($bookUpdateFrequency, $paramsBookUpdateFrequency) = $this->handle_option_string_and_params($paramsWithBook, 'watchOrderBook', 'bookUpdateFrequency');
         list($bookUpdateFrequency2, $paramsBookUpdateFrequency2) = $this->handle_option_string_and_params($paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
+        $frequencyParams = $this->safe_dict($paramsBookUpdateFrequency2, 'params', array());
         if ($bookUpdateFrequency2 !== null) {
-            $paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
+            $frequencyParams['bookSubscriptionType'] = $bookUpdateFrequency2;
         }
+        $paramsWithFrequency = $this->extend($paramsBookUpdateFrequency2, array( 'params' => $frequencyParams ));
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
@@ -169,7 +173,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $messageHashes[] = 'orderbook:' . $market['symbol'];
             $topics[] = 'book.' . $this->safe_string($market, 'id', '') . '.' . $limitString;
         }
-        $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $paramsBookUpdateFrequency2));
+        $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $paramsWithFrequency));
         return $orderbook->limit();
     }
 
@@ -204,12 +208,16 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         list($bookSubscriptionType, $paramsBookSubscriptionType) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         list($bookSubscriptionType2, $paramsBookSubscriptionType2) = $this->handle_option_string_and_params($paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', $bookSubscriptionType);
-        $paramsBookSubscriptionType2['params']['bookSubscriptionType'] = $bookSubscriptionType2;
-        list($bookUpdateFrequency, $paramsBookUpdateFrequency) = $this->handle_option_string_and_params($paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        $bookParams = $this->safe_dict($paramsBookSubscriptionType2, 'params', array());
+        $bookParams['bookSubscriptionType'] = $bookSubscriptionType2;
+        $paramsWithBook = $this->extend($paramsBookSubscriptionType2, array( 'params' => $bookParams ));
+        list($bookUpdateFrequency, $paramsBookUpdateFrequency) = $this->handle_option_string_and_params($paramsWithBook, 'watchOrderBook', 'bookUpdateFrequency');
         list($bookUpdateFrequency2, $paramsBookUpdateFrequency2) = $this->handle_option_string_and_params($paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', $bookUpdateFrequency);
+        $frequencyParams = $this->safe_dict($paramsBookUpdateFrequency2, 'params', array());
         if ($bookUpdateFrequency2 !== null) {
-            $paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = $bookUpdateFrequency2;
+            $frequencyParams['bookSubscriptionType'] = $bookUpdateFrequency2;
         }
+        $paramsWithFrequency = $this->extend($paramsBookUpdateFrequency2, array( 'params' => $frequencyParams ));
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
@@ -217,7 +225,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $messageHashes[] = 'unsubscribe:orderbook:' . $market['symbol'];
             $topics[] = 'book.' . $this->safe_string($market, 'id', '') . '.' . (string) $limit;
         }
-        return Async\await($this->un_watch_public_multiple('orderbook', $symbolsNormalized, $messageHashes, $subMessageHashes, $topics, $paramsBookUpdateFrequency2));
+        return Async\await($this->un_watch_public_multiple('orderbook', $symbolsNormalized, $messageHashes, $subMessageHashes, $topics, $paramsWithFrequency));
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
@@ -291,7 +299,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($this->safe_list($message, 'data'), 0);
         $timestamp = $this->safe_integer($data, 't');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -459,7 +467,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $marketId = $this->safe_string($message, 'instrument_name');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -475,7 +483,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         for ($j = 0; $j < count($parsedTrades); $j++) {
             $stored->append($this->safe_dict($parsedTrades, $j));
         }
-        $channelReplaced = str_replace('.' . $marketId, '', $channel);
+        $channelName = $this->safe_string($message, 'channel', '');
+        $marketIdName = $this->safe_string($message, 'instrument_name', '');
+        $channelReplaced = str_replace('.' . $marketIdName, '', $channelName);
         $client->resolve($stored, $symbolSpecificMessageHash);
         $client->resolve($stored, $channelReplaced);
     }
@@ -664,9 +674,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         $market = $this->safe_market($marketId);
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $data[$i];
+            $ticker = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_ticker($ticker, $market);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $parsed;
             }
@@ -1186,7 +1196,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $messageHash = $this->safe_string($message, 'subscription');
         $data = $this->safe_list($message, 'data', array());
-        $positionBalances = $this->safe_list($data[0], 'position_balances', array());
+        $positionBalances = $this->safe_list($this->safe_dict($data, 0), 'position_balances', array());
         $this->balance['info'] = $data;
         for ($i = 0; $i < count($positionBalances); $i++) {
             $balance = $this->safe_dict($positionBalances, $i);
@@ -1334,14 +1344,15 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = null;
-        $request = array(
-            'method' => 'private/cancel-all-orders',
-            'params' => $this->extend(array(), $params),
-        );
+        $requestParams = $this->extend(array(), $params);
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['params']['instrument_name'] = $market['id'];
+            $requestParams['instrument_name'] = $market['id'];
         }
+        $request = array(
+            'method' => 'private/cancel-all-orders',
+            'params' => $requestParams,
+        );
         $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
     }
@@ -1500,7 +1511,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'user.balance' => array($this, 'handle_balance'),
             'user.position_balance' => array($this, 'handle_positions'),
         );
-        $result = $this->safe_value_2($message, 'result', 'info');
+        $result = $this->safe_dict_2($message, 'result', 'info', array());
         $channel = $this->safe_string($result, 'channel');
         if (($channel !== null) && mb_strpos($channel, 'user.trade') > -1) {
             // channel might be user.trade.BTC_USDT
@@ -1629,12 +1640,14 @@ class cryptocom extends \ccxt\async\cryptocom {
                 if ($id !== $subId) {
                     continue;
                 }
-                $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+                $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-                for ($j = 0; $j < count($messageHashes); $j++) {
-                    $unsubHash = $messageHashes[$j];
-                    $subHash = $subMessageHashes[$j];
-                    $this->clean_unsubscription($client, $subHash, $unsubHash);
+                if ($messageHashes !== null) {
+                    for ($j = 0; $j < count($messageHashes); $j++) {
+                        $unsubHash = $messageHashes[$j];
+                        $subHash = $this->safe_string($subMessageHashes, $j, '');
+                        $this->clean_unsubscription($client, $subHash, $unsubHash);
+                    }
                 }
                 $this->clean_cache($subscription);
             }

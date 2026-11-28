@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -23,7 +24,7 @@ public class TestFetchMarkets extends BaseTest {
         String method = "fetchMarkets";
         Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
-        List<Object> marketValues = Helpers.objectValues(markets);
+        List<Object> marketValues = TestHelpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (var i = 0; i < marketValues.size(); i++)
         {
@@ -44,11 +45,11 @@ public class TestFetchMarkets extends BaseTest {
             Object symbol = Helpers.GetValue(market, "symbol");
             if (!((symbol != null && ids.containsKey(symbol))))
             {
-                Helpers.addElementToObject(ids, symbol, Helpers.GetValue(market, "id"));
+                ((Map<Object, Object>) (Map<?, ?>) ids).put(symbol, Helpers.GetValue(market, "id"));
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual((ids == null || !(symbol instanceof String) ? null : ids.get(symbol)), Helpers.GetValue(market, "id"));
-                Assert(!Boolean.TRUE.equals(isDifferent), ((((((exchange.id + " fetchMarkets() has different ids for the same symbol: ") + symbol) + " ") + (ids == null || !(symbol instanceof String) ? null : ids.get(symbol))) + " ") + Helpers.GetValue(market, "id")));
+                Assert(!Boolean.TRUE.equals(isDifferent), TestHelpers.add((TestHelpers.add((TestHelpers.add((exchange.id + " fetchMarkets() has different ids for the same symbol: "), symbol) + " "), (ids == null || !(symbol instanceof String) ? null : ids.get(symbol))) + " "), Helpers.GetValue(market, "id")));
             }
         }
         return true;

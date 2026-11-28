@@ -7,7 +7,8 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, Bool } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -260,7 +261,8 @@ export default class sxbet extends Exchange {
             }
             paginationKey = this.safeString (result, 'nextKey');
             page = page + 1;
-            const collectedLength = this.parseToInt (rawMarkets.length);
+            const rawMarketsCount = rawMarkets.length;
+            const collectedLength = this.parseToInt (rawMarketsCount);
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
             }
@@ -321,11 +323,12 @@ export default class sxbet extends Exchange {
         //     }
         //
         const marketHash = this.safeString (raw, 'marketHash', '');
-        const teamOneName = this.safeString (raw, 'teamOneName');
-        const teamTwoName = this.safeString (raw, 'teamTwoName');
+        const teamOneName: string = this.safeString (raw, 'teamOneName', '');
+        const teamTwoName: string = this.safeString (raw, 'teamTwoName', '');
         const outcomeOneName = this.safeString (raw, 'outcomeOneName');
         const outcomeTwoName = this.safeString (raw, 'outcomeTwoName');
-        const eventSlug = this.shortenSlug (teamOneName + ' ' + teamTwoName);
+        const matchTitle = teamOneName + ' ' + teamTwoName;
+        const eventSlug = this.shortenSlug (matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -342,14 +345,17 @@ export default class sxbet extends Exchange {
             gameTime = this.safeTimestamp (raw, 'gameTime');
         }
         const outcomeLabels = [ outcomeOneName, outcomeTwoName ];
-        const outcomeIds = [ marketHash, marketHash + '-2' ];
         const outcomes: any[] = [];
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, marketSlug, label);
+            let outcomeSuffix = '';
+            if (oi > 0) {
+                outcomeSuffix = '-2';
+            }
             outcomes.push ({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': marketHash + outcomeSuffix,
+                'outcomeId': marketHash + outcomeSuffix,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -440,10 +446,10 @@ export default class sxbet extends Exchange {
         const tags = this.safeList (params, 'tags', []);
         const tagsLength = tags.length;
         for (let i = 0; i < tagsLength; i++) {
-            queries.push (tags[i]);
+            queries.push (this.safeString (tags, i, ''));
         }
         const rest = this.omit (params, [ 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        let rawMarkets: Dict[];
+        let rawMarkets: Dict[] = [];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': eventId }, rest), undefined);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -496,7 +502,8 @@ export default class sxbet extends Exchange {
             const evMarketsLength = evMarkets.length;
             for (let j = 0; j < evMarketsLength; j++) {
                 const m = evMarkets[j];
-                this.markets[m['market']] = m;
+                const marketKey: string = this.safeString (m, 'market', '');
+                this.markets[marketKey] = m;
             }
             result.push (event);
         }
@@ -516,7 +523,8 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
-        let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined);
+        let rawMarkets: Dict[] = [];
+        rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture (rawMarkets, id);
         const rawMarketsLength = rawMarkets.length;
@@ -612,7 +620,8 @@ export default class sxbet extends Exchange {
         let eventSlug: Str = undefined;
         if ((teamOneName !== undefined) && (teamTwoName !== undefined)) {
             title = teamOneName + ' vs ' + teamTwoName;
-            eventSlug = this.shortenSlug (teamOneName + ' ' + teamTwoName);
+            const matchTitle = teamOneName + ' ' + teamTwoName;
+            eventSlug = this.shortenSlug (matchTitle);
         } else {
             eventSlug = this.shortenSlug (fixtureId);
         }
@@ -698,8 +707,8 @@ export default class sxbet extends Exchange {
         const signature = ecdsa (digest.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         const v = this.intToBase16 (this.sum (27, signature['v']));
@@ -759,7 +768,8 @@ export default class sxbet extends Exchange {
      */
     async fetchSxbetProxy (): Promise<Dict> {
         const response = await this.sxbetPrivateGetUserProxy ();
-        return this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
+        return data;
     }
 
     /**
@@ -1054,7 +1064,7 @@ export default class sxbet extends Exchange {
             'amount': amount,
             'fee': undefined,
             'trades': [],
-        }, outcomeObj as any);
+        }, outcomeObj);
     }
 
     /**
@@ -1715,7 +1725,7 @@ export default class sxbet extends Exchange {
         const result: any[] = [];
         const rawTradesLength = rawTrades.length;
         for (let i = 0; i < rawTradesLength; i++) {
-            const settlement = this.parseSettlement (rawTrades[i]);
+            const settlement = this.parseSettlement (this.safeDict (rawTrades, i, {}));
             if ((wantedOutcomeId === undefined) || (this.safeString (settlement, 'outcomeId') === wantedOutcomeId)) {
                 result.push (settlement);
             }
@@ -1811,7 +1821,8 @@ export default class sxbet extends Exchange {
     async fetchSxbetBookSnapshot (marketHash: Str): Promise<Dict> {
         const request: Dict = { 'marketHash': marketHash };
         const response = await this.sxbetPublicGetOrderbookV3Snapshot (request);
-        return this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
+        return data;
     }
 
     /**
@@ -1885,13 +1896,14 @@ export default class sxbet extends Exchange {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        const outcomesList: string[] = outcomes;
+        const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
         const outcomesLength = outcomesList.length;
         const hashesOrder: string[] = [];
         const seenHashes: Dict = {};
         for (let i = 0; i < outcomesLength; i++) {
-            await this.loadOutcome (outcomesList[i]);
-            const outcomeObj = this.outcome (outcomesList[i]);
+            const outcomeItem = this.safeString (outcomesList, i, '');
+            await this.loadOutcome (outcomeItem);
+            const outcomeObj = this.outcome (outcomeItem);
             const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
             if (this.safeBool (seenHashes, marketHash) === undefined) {
                 seenHashes[marketHash] = true;
@@ -1906,7 +1918,7 @@ export default class sxbet extends Exchange {
         const hasApiKey = !this.isEmptyString (this.apiKey);
         if (!hasApiKey) {
             for (let i = 0; i < hashesLength; i++) {
-                const marketHash = hashesOrder[i];
+                const marketHash = this.safeString (hashesOrder, i, '');
                 const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
                 rowsByHash[marketHash] = this.parseSxbetSnapshotBestOdds (snapshot);
             }
@@ -2135,11 +2147,12 @@ export default class sxbet extends Exchange {
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary ();
         }
-        const options = this.options['requestId'];
+        const options: Dict = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         if (url !== undefined) {
-            this.options['requestId'][url] = newValue;
+            options[url] = newValue;
+            this.options['requestId'] = options;
         }
         return newValue;
     }
@@ -2197,7 +2210,7 @@ export default class sxbet extends Exchange {
         return await client.future ('centrifugoConnected');
     }
 
-    async pong (client: Client, message: any = undefined) {
+    async pong (client: Client) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send ('{}');
     }
@@ -2216,7 +2229,7 @@ export default class sxbet extends Exchange {
         const lines = message.split ('\n');
         const linesLength = lines.length;
         for (let i = 0; i < linesLength; i++) {
-            const line = lines[i];
+            const line: string = lines[i];
             if (line.length > 0) {
                 const parsed = JSON.parse (line);
                 this.handleCentrifugoFrame (client, parsed);
@@ -2234,7 +2247,7 @@ export default class sxbet extends Exchange {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn (this.pong, client, msg);
+            this.spawn (this.pong, client);
             return;
         }
         const requestIdString = this.safeString (msg, 'id');
@@ -2352,7 +2365,7 @@ export default class sxbet extends Exchange {
             // return the freshly-seeded book immediately instead of blocking until the next publication
             client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
-        const orderbook = await future;
+        const orderbook: WsOrderBook = await future;
         return orderbook.limit ();
     }
 
@@ -2373,7 +2386,7 @@ export default class sxbet extends Exchange {
         }
         const held = this.safeString (this.safeDict (this.options, 'wsBookVersions', {}), marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if ((held !== '') && (version <= held)) {
+        if ((held !== '') && ((version === '') || Precise.stringLe (version, held))) {
             return refreshed;
         }
         this.setWsOption ('wsBookVersions', marketHash, version);
@@ -2408,7 +2421,7 @@ export default class sxbet extends Exchange {
         return refreshed;
     }
 
-    handleOrderBook (client: Client, rows: any[]) {
+    handleOrderBook (client: Client, rows: Dict[]) {
         //
         //     {
         //         "marketHash": "0x...",
@@ -2422,7 +2435,7 @@ export default class sxbet extends Exchange {
             const refreshed = this.applySxbetWsSnapshot (rows[i]);
             const refreshedLength = refreshed.length;
             for (let j = 0; j < refreshedLength; j++) {
-                const sym = refreshed[j];
+                const sym = this.safeString (refreshed, j, '');
                 client.resolve (this.safeValue (this.orderbooks, sym), 'orderbook::' + sym);
             }
         }
@@ -2449,7 +2462,9 @@ export default class sxbet extends Exchange {
         const client = this.client (url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeDict (this.safeDict (this.options, 'wsTickers', {}), sym) === undefined) {
+        const cachedTickers = this.safeDict (this.options, 'wsTickers', {});
+        const cachedTicker = this.safeDict (cachedTickers, sym);
+        if (cachedTicker === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
@@ -2502,7 +2517,7 @@ export default class sxbet extends Exchange {
                 if (this.safeString (watchedTickers, sym) !== marketHash) {
                     continue;
                 }
-                const outcomeObj = this.outcome (sym) as any;
+                const outcomeObj = this.outcome (sym);
                 const ticker = this.parsePredictionTicker (raw, outcomeObj);
                 this.setWsOption ('wsTickers', sym, ticker as any);
                 client.resolve (ticker, 'ticker::' + sym);
@@ -2575,7 +2590,7 @@ export default class sxbet extends Exchange {
         });
     }
 
-    handleTrades (client: Client, rows: any[]) {
+    handleTrades (client: Client, rows: Dict[]) {
         //
         //     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
         //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
@@ -2583,7 +2598,7 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const rawRow = rows[i];
+            const rawRow: any = rows[i];
             const row = this.safeDict (rawRow, 'trade', rawRow);
             const trade = this.parseSxbetV3PublicTrade (row);
             const sym = this.safeString (trade, 'outcome');
@@ -2631,13 +2646,13 @@ export default class sxbet extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: Client, rows: any[]) {
+    handleMyTrade (client: Client, rows: Dict[]) {
         //
         //     FillV3 rows - identical to GET /fills-v3
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const rawRow = rows[i];
+            const rawRow: any = rows[i];
             const row = this.safeDict (rawRow, 'fill', rawRow);
             const trade = this.parseSxbetV3Fill (row);
             const sym = this.safeString (trade, 'outcome');
@@ -2682,15 +2697,15 @@ export default class sxbet extends Exchange {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
-    handleOrder (client: Client, rows: any[]) {
+    handleOrder (client: Client, rows: Dict[]) {
         //
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const rawRow = rows[i];
+            const rawRow: any = rows[i];
             const row = this.safeDict (rawRow, 'order', rawRow);
-            const order = this.parsePredictionOrder (row);
+            const order = this.parsePredictionOrder (this.extend ({}, row));
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheByOutcomeById (cacheLimit);
@@ -2705,7 +2720,7 @@ export default class sxbet extends Exchange {
         }
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -2713,16 +2728,14 @@ export default class sxbet extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const message = this.safeValue (response, 'message');
-        if (message === undefined) {
-            return undefined;
-        }
         // validation failures arrive in string-array form, business errors in single-code-string form
-        let messageString = undefined;
-        if (Array.isArray (message)) {
-            messageString = message.join (', ');
-        } else {
-            messageString = message;
+        const messageList = this.safeList (response, 'message', []);
+        let messageString = this.safeString (response, 'message');
+        if (this.safeString (messageList, 0) !== undefined) {
+            messageString = messageList.join (', ');
+        }
+        if (messageString === undefined) {
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException (this.exceptions['exact'], messageString, feedback);
@@ -2752,10 +2765,13 @@ export default class sxbet extends Exchange {
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new AuthenticationError (this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
-        const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sxbet'] as string);
+        let baseUrl: string = this.safeString (this.urls['api'], 'sxbet', '');
+        const groupUrl = this.safeString (this.urls['api'], apiGroup);
+        if (groupUrl !== undefined) {
+            baseUrl = groupUrl;
+        }
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.extend ({}, this.omit (params, this.extractParams (path)));
         const existingHeaders = {};
         const headersExtended: any = this.extend ({
             'Accept': 'application/json',
@@ -2768,7 +2784,11 @@ export default class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            sendAsQuery = !('orders' in query);
+            if ('orders' in query) {
+                sendAsQuery = false;
+            } else {
+                sendAsQuery = true;
+            }
         }
         let bodyValue: any = undefined;
         if (sendAsQuery) {

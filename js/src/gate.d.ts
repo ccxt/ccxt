@@ -46,7 +46,7 @@ export default class gate extends Exchange {
     fetchFutureMarkets(params?: Dict): Promise<Market[]>;
     parseContractMarket(market: Dict, settleId: Str): Market;
     fetchOptionMarkets(params?: Dict): Promise<Market[]>;
-    fetchOptionUnderlyings(): Promise<Str[]>;
+    fetchOptionUnderlyings(): Promise<string[]>;
     prepareRequest(market?: Market, type?: Str, params?: Dict): [Dict, Dict];
     spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
     multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
@@ -514,7 +514,7 @@ export default class gate extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     prepareOrdersByStatusRequest(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): [Dict, Dict];
-    fetchOrdersByStatus(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersByStatus(status: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#cancelOrder
@@ -799,7 +799,7 @@ export default class gate extends Exchange {
      */
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseSettlement(settlement: Dict, market?: Market): Dict;
-    parseSettlements(settlements: any[], market?: Market): Dict[];
+    parseSettlements(settlements: Dict[], market?: Market): Dict[];
     /**
      * @method
      * @name gate#fetchLedger
@@ -960,5 +960,5 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
 }

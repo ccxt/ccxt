@@ -287,7 +287,7 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
-        return $this->parse_trade($trade, $market);
+        return $this->parse_trade($this->extend(array(), $trade), $market);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -310,7 +310,8 @@ class toobit extends \ccxt\async\toobit {
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbol][$timeframe];
+        $bySymbol = $result[$symbol];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -337,15 +338,15 @@ class toobit extends \ccxt\async\toobit {
         $messageHashes = array();
         $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
         $marketIds = array();
-        $selectedTimeframe = null;
+        $selectedTimeframe = '';
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolStr = $this->safe_string($data, 0, '');
             $market = $this->market($symbolStr);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $unfiedTimeframe = $this->safe_string($data, 1, '1m');
             $rawTimeframe = $this->safe_string($timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            if ($selectedTimeframe !== null && $selectedTimeframe !== $rawTimeframe) {
+            if ($selectedTimeframe !== '' && $selectedTimeframe !== $rawTimeframe) {
                 throw new NotSupported($this->id . ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 $selectedTimeframe = $rawTimeframe;
@@ -829,9 +830,10 @@ class toobit extends \ccxt\async\toobit {
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
-        $this->balance[$type]['info'] = $this->safe_list($message, 'B', array());
-        $this->balance[$type]['timestamp'] = $timestamp;
-        $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
+        $typeBalance = $this->safe_dict($this->balance, $type, array());
+        $typeBalance['info'] = $this->safe_list($message, 'B', array());
+        $typeBalance['timestamp'] = $timestamp;
+        $typeBalance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'a');
@@ -841,10 +843,10 @@ class toobit extends \ccxt\async\toobit {
             $account['used'] = $this->safe_string($balance, 'l');
             $account['free'] = $this->safe_string($balance, 'f');
             if ($code !== null) {
-                $this->balance[$type][$code] = $account;
+                $typeBalance[$code] = $account;
             }
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($typeBalance);
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 
@@ -1348,7 +1350,7 @@ class toobit extends \ccxt\async\toobit {
         return $wsBaseUrl . '/api/v1/ws/' . $listenKey;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "code": '-100010',

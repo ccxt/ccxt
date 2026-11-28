@@ -12,7 +12,6 @@ type Independentreserve struct {
 
 func newIndependentreserve() *Independentreserve {
 	p := &Independentreserve{}
-	setDefaults(p)
 	return p
 }
 
@@ -441,8 +440,11 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
-	var limits map[string]any = SafeMapTyped(responses, 2)
+	var responses []any = r.Value
+	var limits map[string]any
+	if 2 < len(responses) {
+		limits, _ = responses[2].(map[string]any)
+	}
 	//
 	//     {
 	//         "Xbt": 0.0001,
@@ -523,13 +525,13 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Independentreserve) ParseBalanceList(response any) map[string]any {
+func (this *Independentreserve) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var accounts []any = this.ToArray(response)
 	for i := 0; i < len(accounts); i++ {
-		var balance map[string]any = SafeMapTyped(accounts, i)
+		var balance, _ = accounts[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -605,10 +607,16 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode":   market["baseId"],
-		"secondaryCurrencyCode": market["quoteId"],
+		"primaryCurrencyCode":   nil,
+		"secondaryCurrencyCode": nil,
+	}
+	if market.BaseId != nil {
+		request["primaryCurrencyCode"] = *market.BaseId
+	}
+	if market.QuoteId != nil {
+		request["secondaryCurrencyCode"] = *market.QuoteId
 	}
 
 	r1 := <-this.PublicGetGetOrderBook(this.Extend(request, params))
@@ -618,10 +626,10 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 	var response map[string]any = r1.Value
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "BuyOrders", "SellOrders", "Price", "Volume"))}
 	return nil
 }
-func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Independentreserve) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	// {
 	//     "DayHighestPrice":43489.49,
 	//     "DayLowestPrice":41998.32,
@@ -640,12 +648,13 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) Tic
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "CreatedTimestampUtc"))
 	var baseId *string = this.SafeString(ticker, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(ticker, "SecondaryCurrencyCode")
-	var defaultMarketId any = nil
+	var defaultMarketId *string = nil
 	if (baseId != nil) && (quoteId != nil) {
-		defaultMarketId = *baseId + "/" + *quoteId
+		defaultMarketIdStr := *baseId + "/" + *quoteId
+		defaultMarketId = &defaultMarketIdStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(defaultMarketId, market, "/")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -696,7 +705,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[Ticker], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   market["baseId"],
 		"secondaryCurrencyCode": market["quoteId"],
@@ -724,7 +733,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[Ticker], sym
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Independentreserve) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrder
 	//
@@ -785,7 +794,8 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 		base = this.SafeCurrencyCode(baseId)
 		quote = this.SafeCurrencyCode(quoteId)
 		if (base != nil) && (quote != nil) {
-			symbol = SafeStringPtr(*base + "/" + *quote)
+			symbolStr := *base + "/" + *quote
+			symbol = &symbolStr
 		}
 	} else if market != nil {
 		symbol = this.SafeString(market, "symbol")
@@ -796,14 +806,18 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 	var side *string = nil
 	if orderType != nil {
 		if strings.Index(*orderType, "Bid") >= 0 {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if strings.Index(*orderType, "Offer") >= 0 {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 		if strings.Index(*orderType, "Market") >= 0 {
-			orderType = SafeStringPtr("market")
+			orderTypeStr := "market"
+			orderType = &orderTypeStr
 		} else if strings.Index(*orderType, "Limit") >= 0 {
-			orderType = SafeStringPtr("limit")
+			orderTypeStr2 := "limit"
+			orderType = &orderTypeStr2
 		}
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
@@ -813,18 +827,18 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 	if (feeRate != nil) && (filled != nil) {
 		feeCost = Precise.StringMul(feeRate, filled)
 	}
-	return this.SafeOrder(map[string]any{
+	var literal63831 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 this.SafeString(order, "OrderGuid"),
 		"clientOrderId":      nil,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               orderType,
 		"timeInForce":        this.ParseTimeInForce(this.SafeString(order, "TimeInForce")),
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              this.SafeString(order, "Price"),
 		"triggerPrice":       nil,
 		"cost":               this.SafeString(order, "Value"),
@@ -839,7 +853,14 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 			"currency": base,
 		},
 		"trades": nil,
-	}, market)
+	}
+	if symbol != nil {
+		literal63831["symbol"] = *symbol
+	}
+	if side != nil {
+		literal63831["side"] = *side
+	}
+	return this.SafeOrder(literal63831, market)
 }
 func (this *Independentreserve) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -963,7 +984,11 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan AsyncResult[[]Order]
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "Data", []any{})
+	var data []any
+	data, _ = response["Data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limitResolved))}
 	return nil
@@ -1023,7 +1048,11 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan AsyncResult[[]Orde
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "Data", []any{})
+	var data []any
+	data, _ = response["Data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limitResolved))}
 	return nil
@@ -1081,7 +1110,11 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan AsyncResult[[]Trade], 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var data []any = SafeListTypedDefault(response, "Data", []any{})
+	var data []any
+	data, _ = response["Data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limitResolved))}
 	return nil
@@ -1107,9 +1140,11 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) Trade
 	var side *string = this.SafeString(trade, "OrderType")
 	if side != nil {
 		if strings.Index(*side, "Bid") >= 0 {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if strings.Index(*side, "Offer") >= 0 {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -1139,12 +1174,12 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) Trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Independentreserve) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Independentreserve) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1160,7 +1195,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":            market["baseId"],
 		"secondaryCurrencyCode":          market["quoteId"],
@@ -1172,7 +1207,11 @@ func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], sy
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = SafeListTypedDefault(response, "Trades", []any{})
+	var trades []any
+	trades, _ = response["Trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1220,13 +1259,13 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	var fees map[string]any = map[string]any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var fee any = rows[i]
+		var fee, _ = rows[i].(map[string]any)
 		var currencyId *string = this.SafeString(fee, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var tradingFee *float64 = this.SafeNumber(fee, "Fee")
 		if code != nil {
 			fees[*code] = map[string]any{
-				"info": fee,
+				"info": rows[i],
 				"fee":  tradingFee,
 			}
 		}
@@ -1235,8 +1274,9 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
-		var fee map[string]any = SafeMapTyped(fees, market["base"])
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
+		var baseCode string = market.BaseCurrency
+		var fee, _ = fees[baseCode].(map[string]any)
 		result[symbol] = map[string]any{
 			"info":       this.SafeDict(fee, "info"),
 			"symbol":     symbol,
@@ -1282,14 +1322,15 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[Order], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderType string = this.Capitalize(typeVar)
-	orderType += func() string {
-		if side == "sell" {
-			return "Offer"
-		}
-		return "Bid"
-	}()
+	var branchValue string
+	if side == "sell" {
+		branchValue = "Offer"
+	} else {
+		branchValue = "Bid"
+	}
+	orderType += branchValue
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   market["baseId"],
 		"secondaryCurrencyCode": market["quoteId"],
@@ -1405,9 +1446,12 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[Depo
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode": currency["id"],
+		"primaryCurrencyCode": nil,
+	}
+	if currency.Id != nil {
+		request["primaryCurrencyCode"] = *currency.Id
 	}
 
 	r1 := <-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))
@@ -1427,7 +1471,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[Depo
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response)}
 	return nil
 }
-func (this *Independentreserve) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
+func (this *Independentreserve) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
 	//
 	//    {
 	//        Tag: '3307446684',
@@ -1464,12 +1508,12 @@ func (this *Independentreserve) ParseDepositAddress(depositAddress any, optional
  * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Independentreserve) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Independentreserve) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Independentreserve) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1523,7 +1567,7 @@ func (this *Independentreserve) withdrawBody(ch chan AsyncResult[Transaction], c
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Independentreserve) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//    {
 	//        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1543,8 +1587,8 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var amount map[string]any = SafeMapTyped(transaction, "Amount")
-	var destination map[string]any = SafeMapTyped(transaction, "Destination")
+	var amount, _ = transaction["Amount"].(map[string]any)
+	var destination, _ = transaction["Destination"].(map[string]any)
 	var currencyId *string = this.SafeString(transaction, "PrimaryCurrencyCode")
 	var datetime *string = this.SafeString(transaction, "CreatedTimestampUtc")
 	var address *string = this.SafeString(destination, "Address")

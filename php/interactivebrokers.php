@@ -15,7 +15,7 @@ class interactivebrokers extends Exchange {
             'name' => 'Interactive Brokers',
             'countries' => array( 'US' ),
             'version' => 'v1',
-            'rateLimit' => 100 * 1.2, // the client portal gateway allows ~10 requests per second
+            'rateLimit' => 120, // the client portal gateway allows ~10 requests per second
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -634,9 +634,9 @@ class interactivebrokers extends Exchange {
         if ($this->safe_bool($this->options, 'useGateway', false)) {
             return $this->ibkr_gateway_sign_in($params);
         }
-        $encryptionPemPath = $this->safe_string($this->options, 'encryptionPemPath');
-        $dhParamPemPath = $this->safe_string($this->options, 'dhParamPemPath');
-        if (!$encryptionPemPath || !$dhParamPemPath) {
+        $encryptionPemPath = $this->safe_string($this->options, 'encryptionPemPath', '');
+        $dhParamPemPath = $this->safe_string($this->options, 'dhParamPemPath', '');
+        if (($encryptionPemPath === '') || ($dhParamPemPath === '')) {
             throw new ArgumentsRequired($this->id . ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details');
         }
         $this->ibkr_check_oauth_credentials();
@@ -661,10 +661,11 @@ class interactivebrokers extends Exchange {
         //         "live_session_token_expiration": 1714661586311
         //     }
         //
-        $dhResponse = $this->safe_string($response, 'diffie_hellman_response');
+        $dhResponse = $this->safe_string($response, 'diffie_hellman_response', '');
         $sharedSecret = $this->mod_pow($this->convert_to_big_int('0x' . $dhResponse), $dhRandom, $dhPrime);
         $liveSessionToken = $this->hmac($this->base16_to_binary($accessTokenSecretHex), $this->big_to_bytes($sharedSecret), 'sha1', 'base64');
-        $check = $this->hmac($this->encode($this->options['consumer_key']), base64_decode($liveSessionToken), 'sha1', 'hex');
+        $consumerKey = $this->safe_string($this->options, 'consumer_key', '');
+        $check = $this->hmac($this->encode($consumerKey), base64_decode($liveSessionToken), 'sha1', 'hex');
         if ($check !== $this->safe_string($response, 'live_session_token_signature')) {
             throw new AuthenticationError($this->id . ' signIn() live session token validation failed');
         }
@@ -778,7 +779,8 @@ class interactivebrokers extends Exchange {
             }
             $regainTimestamp = $this->sum($lostTimestamp, $regainDelay);
             if ($this->milliseconds() < $regainTimestamp) {
-                throw new AuthenticationError($this->id . ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' . $this->iso8601($regainTimestamp) . ' (options.autoRegainSession), ' . $this->json($response));
+                $regainDatetime = $this->iso8601($regainTimestamp);
+                throw new AuthenticationError($this->id . ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' . $regainDatetime . ' (options.autoRegainSession), ' . $this->json($response));
             }
             $response = $this->ibkr_gateway_regain_session($params);
             $authenticated = $this->safe_bool($response, 'authenticated', false);
@@ -786,7 +788,8 @@ class interactivebrokers extends Exchange {
                 // try again options.autoRegainSession seconds later
                 $this->options['gatewaySessionLostTimestamp'] = $this->milliseconds();
                 $this->ibkr_gateway_schedule_regain();
-                throw new AuthenticationError($this->id . ' failed to take back the brokerage session of the client portal gateway, retrying at ' . $this->iso8601($this->sum($this->milliseconds(), $regainDelay)) . ' (options.autoRegainSession), ' . $this->json($response));
+                $retryDatetime = $this->iso8601($this->sum($this->milliseconds(), $regainDelay));
+                throw new AuthenticationError($this->id . ' failed to take back the brokerage session of the client portal gateway, retrying at ' . $retryDatetime . ' (options.autoRegainSession), ' . $this->json($response));
             }
         }
         $this->options['gatewaySessionLostTimestamp'] = null;
@@ -843,11 +846,13 @@ class interactivebrokers extends Exchange {
          * @return {int} the timestamp when the session was found lost
          */
         $this->options['gatewayAuthenticatedTimestamp'] = null;
-        $lostTimestamp = $this->safe_integer($this->options, 'gatewaySessionLostTimestamp');
-        if ($lostTimestamp === null) {
-            $lostTimestamp = $this->milliseconds();
+        $lostTimestamp = $this->milliseconds();
+        $storedTimestamp = $this->safe_integer($this->options, 'gatewaySessionLostTimestamp');
+        if ($storedTimestamp === null) {
             $this->options['gatewaySessionLostTimestamp'] = $lostTimestamp;
             $this->ibkr_gateway_schedule_regain();
+        } else {
+            $lostTimestamp = $storedTimestamp;
         }
         return $lostTimestamp;
     }
@@ -886,7 +891,8 @@ class interactivebrokers extends Exchange {
         $this->options['gatewayRegainScheduled'] = false;
         $useGateway = $this->safe_bool($this->options, 'useGateway', false);
         $lostTimestamp = $this->safe_integer($this->options, 'gatewaySessionLostTimestamp');
-        if (!$useGateway || ($lostTimestamp === null) || ($this->ibkr_gateway_regain_delay() <= 0)) {
+        $regainDelay = $this->ibkr_gateway_regain_delay();
+        if (!$useGateway || ($lostTimestamp === null) || ($regainDelay <= 0)) {
             return null; // already regained, or disabled
         }
         try {
@@ -1009,7 +1015,7 @@ class interactivebrokers extends Exchange {
          * @param {string} [$params->accountId] the account id to use
          * @return {Array} the account id and the $params without $accountId
          */
-        list($accountIdFromParams, $query) = $this->handle_option_and_params($params, 'loadAccountId', 'accountId');
+        list($accountIdFromParams, $query) = $this->handle_option_string_and_params($params, 'loadAccountId', 'accountId');
         $accountId = $accountIdFromParams;
         if ($accountId === null) {
             $this->fetch_accounts();
@@ -1037,8 +1043,9 @@ class interactivebrokers extends Exchange {
          */
         $this->authenticate();
         list($accountId, $accountQuery) = $this->load_account_id($params);
-        list($withPositions, $positionsQuery) = $this->handle_option_and_params($accountQuery, 'fetchBalance', 'positions', true);
-        list($withOpenOrders, $query) = $this->handle_option_and_params($positionsQuery, 'fetchBalance', 'openOrders', true);
+        $accountParams = $this->extend(array(), $accountQuery);
+        list($withPositions, $positionsQuery) = $this->handle_option_bool_and_params($accountParams, 'fetchBalance', 'positions', true);
+        list($withOpenOrders, $query) = $this->handle_option_bool_and_params($positionsQuery, 'fetchBalance', 'openOrders', true);
         $request = array(
             'accountId' => $accountId,
         );
@@ -1111,7 +1118,7 @@ class interactivebrokers extends Exchange {
         return $this->parse_balance($balanceResponse);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //     {
         //         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },
@@ -1204,7 +1211,9 @@ class interactivebrokers extends Exchange {
         $usedCodes = is_array($used) ? array_keys($used) : array();
         for ($i = 0; $i < count($usedCodes); $i++) {
             $code = $usedCodes[$i];
-            $result[$code]['used'] = $used[$code];
+            $usedAccount = $this->extend(array(), $this->safe_dict($result, $code, array()));
+            $usedAccount['used'] = $used[$code];
+            $result[$code] = $usedAccount;
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
         if (is_array($response) && array_key_exists('orders' ?? '', $response)) {
@@ -1212,7 +1221,9 @@ class interactivebrokers extends Exchange {
             for ($i = 0; $i < count($codes); $i++) {
                 $code = $codes[$i];
                 if (($code !== 'info') && ($this->safe_string($result[$code], 'used') === null)) {
-                    $result[$code]['used'] = '0';
+                    $zeroAccount = $this->extend(array(), $this->safe_dict($result, $code, array()));
+                    $zeroAccount['used'] = '0';
+                    $result[$code] = $zeroAccount;
                 }
             }
         }
@@ -1305,8 +1316,7 @@ class interactivebrokers extends Exchange {
         }
         $results = $promises;
         $markets = $this->arrays_concat($results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return $this->to_array($this->ibkr_disambiguate_contract_symbols($markets));
+        return $this->ibkr_disambiguate_contract_symbols($markets);
     }
 
     public function ibkr_disambiguate_contract_symbols(array $markets): array {
@@ -1325,12 +1335,13 @@ class interactivebrokers extends Exchange {
             if ((is_array($seen) && array_key_exists($symbol ?? '', $seen)) && $isContract) {
                 $info = $this->safe_dict($market, 'info', array());
                 $listingExchange = $this->safe_string_2($info, 'listingExchange', 'exchange', 'default');
-                $marketBase = $this->safe_string($market, 'base');
-                $marketBaseId = $this->safe_string($market, 'baseId');
+                $marketBase = $this->safe_string($market, 'base', '');
+                $marketBaseId = $this->safe_string($market, 'baseId', '');
                 $isFuture = $this->safe_bool($market, 'future', false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 $symbolParts = explode('/', $symbol);
-                $quoteAndSettle = '/' . $symbolParts[1];
+                $quotePart = $this->safe_string($symbolParts, 1, '');
+                $quoteAndSettle = '/' . $quotePart;
                 $base = $marketBase . '.' . $listingExchange;
                 if ($isFuture && ($marketBaseId !== $marketBase)) {
                     // the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
@@ -1338,7 +1349,8 @@ class interactivebrokers extends Exchange {
                 }
                 $newSymbol = $base . $quoteAndSettle;
                 if (is_array($seen) && array_key_exists($newSymbol ?? '', $seen)) {
-                    $base = $marketBase . '.' . $this->safe_string($market, 'id');
+                    $marketId = $this->safe_string($market, 'id', '');
+                    $base = $marketBase . '.' . $marketId;
                     $newSymbol = $base . $quoteAndSettle;
                 }
                 $market = $this->extend($market, array(
@@ -1353,7 +1365,7 @@ class interactivebrokers extends Exchange {
         return $result;
     }
 
-    public function fetch_sec_with_details(array $plainEntries) {
+    public function fetch_sec_with_details(array $plainEntries): array {
         $detailIds = is_array($plainEntries) ? array_keys($plainEntries) : array();
         $entries = array();
         $numDetails = count($detailIds);
@@ -1362,15 +1374,18 @@ class interactivebrokers extends Exchange {
         }
         $chunkSize = 330; // above this number, response becomes unreliable
         $promises = array();
-        $offset = 0;
-        while ($offset < $numDetails) {
-            $end = min($this->sum($offset, $chunkSize), $numDetails);
-            $chunk = $this->array_slice($detailIds, $offset, $end);
-            $secdefRequest = array(
-                'conids' => implode(',', $chunk),
-            );
-            $promises[] = $this->markets_endpoint_call($secdefRequest, 'webapiGetV1ApiTrsrvSecdef', array());
-            $offset = $end;
+        $chunk = array();
+        for ($k = 0; $k < $numDetails; $k++) {
+            $detailId = $this->safe_string($detailIds, $k, '');
+            $chunk[] = $detailId;
+            $chunkLength = count($chunk);
+            if (($chunkLength === $chunkSize) || ($k === $numDetails - 1)) {
+                $secdefRequest = array(
+                    'conids' => implode(',', $chunk),
+                );
+                $promises[] = $this->markets_endpoint_call($secdefRequest, 'webapiGetV1ApiTrsrvSecdef', array());
+                $chunk = array();
+            }
         }
         $responses = $promises;
         //
@@ -1392,7 +1407,7 @@ class interactivebrokers extends Exchange {
             $secdefs = $this->safe_list($responses[$i], 'secdef', array());
             for ($j = 0; $j < count($secdefs); $j++) {
                 $secdef = $secdefs[$j];
-                $conid = $this->safe_string($secdef, 'conid');
+                $conid = $this->safe_string($secdef, 'conid', '');
                 $entry = $this->safe_dict($plainEntries, $conid);
                 $entries[] = $this->extend($entry, $secdef);
             }
@@ -1459,7 +1474,7 @@ class interactivebrokers extends Exchange {
         $results = $promises;
         $neededSecTypes = array( 'CRYPTO' ); // CFD, OPT - they should already be fetched in other calls
         for ($i = 0; $i < count($results); $i++) {
-            $result = $results[$i];
+            $result = $this->safe_list($results, $i, array());
             for ($j = 0; $j < count($result); $j++) {
                 $entry = $result[$j];
                 $sections = $this->safe_list($entry, 'sections', array());
@@ -1551,8 +1566,15 @@ class interactivebrokers extends Exchange {
         $cmeSymbols = is_array($cryptoCmeFutureSymbols) ? array_keys($cryptoCmeFutureSymbols) : array();
         $cfeSymbols = is_array($cryptoCboeFutureSymbols) ? array_keys($cryptoCboeFutureSymbols) : array();
         $targetSymbols = $this->arrays_concat(array( $coinbaseDerivSymbols, $cmeSymbols, $cfeSymbols ));
-        $symbols = $this->unique($targetSymbols);
-        $joined = implode(',', ($symbols)); // c# fix, todo investigate
+        $symbols = array();
+        $targetSymbolsLength = count($targetSymbols);
+        for ($i = 0; $i < $targetSymbolsLength; $i++) {
+            $targetSymbol = $this->safe_string($targetSymbols, $i, '');
+            if (!$this->in_array($targetSymbol, $symbols)) {
+                $symbols[] = $targetSymbol;
+            }
+        }
+        $joined = implode(',', $symbols);
         $request = array(
             'symbols' => $joined,
         );
@@ -1591,10 +1613,9 @@ class interactivebrokers extends Exchange {
         $allowedVenues = array( 'CME', 'CFE', 'COINDERIV' );
         $detailMarkets = array();
         for ($i = 0; $i < count($details); $i++) {
-            $detail = $details[$i];
-            $venue = $this->safe_string($detail, 'listingExchange');
+            $venue = $this->safe_string($details[$i], 'listingExchange');
             if ($this->in_array($venue, $allowedVenues)) {
-                $detailMarkets[] = $detail;
+                $detailMarkets[] = $this->safe_dict($details, $i);
             }
         }
         $markets = $this->parse_markets($detailMarkets);
@@ -1629,7 +1650,7 @@ class interactivebrokers extends Exchange {
         $promises = array();
         for ($i = 0; $i < count($cfdExchanges); $i++) {
             $request = array(
-                'exchange' => $cfdExchanges[$i],
+                'exchange' => $this->safe_string($cfdExchanges, $i, ''),
                 'assetClass' => 'CFD',
             );
             $promises[] = $this->markets_endpoint_call($request, 'webapiGetV1ApiTrsrvAllConids', array());
@@ -1639,7 +1660,7 @@ class interactivebrokers extends Exchange {
         }
         $responses = $promises;
         for ($i = 0; $i < count($responses); $i++) {
-            $cfds = $responses[$i];
+            $cfds = $this->safe_list($responses, $i, array());
             for ($j = 0; $j < count($cfds); $j++) {
                 $cfd = $cfds[$j];
                 $conid = $this->safe_string($cfd, 'conid');
@@ -1649,11 +1670,13 @@ class interactivebrokers extends Exchange {
         $detailMarkets = $this->fetch_sec_with_details($entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         $result = array();
+        $detailMarketsLength = count($detailMarkets);
         for ($i = 0; $i < count($cfdExchanges); $i++) {
-            for ($j = 0; $j < count($detailMarkets); $j++) {
-                $detail = $detailMarkets[$j];
-                if ($this->safe_string($detail, 'listingExchange') === $cfdExchanges[$i]) {
-                    $result[] = $detail;
+            $cfdExchange = $this->safe_string($cfdExchanges, $i, '');
+            for ($j = 0; $j < $detailMarketsLength; $j++) {
+                $listingExchange = $this->safe_string($detailMarkets[$j], 'listingExchange', '');
+                if ($listingExchange === $cfdExchange) {
+                    $result[] = $this->safe_dict($detailMarkets, $j);
                 }
             }
         }
@@ -1679,7 +1702,7 @@ class interactivebrokers extends Exchange {
         $searchPromises = array();
         for ($i = 0; $i < count($bondSymbols); $i++) {
             $searchRequest = array(
-                'symbol' => $bondSymbols[$i],
+                'symbol' => $this->safe_string($bondSymbols, $i, ''),
                 'secType' => 'BOND',
             );
             $searchPromises[] = $this->markets_endpoint_call($this->extend($searchRequest, $params), 'webapiPostV1ApiIserverSecdefSearch', array());
@@ -1704,12 +1727,13 @@ class interactivebrokers extends Exchange {
         $filterParts = array();
         for ($i = 0; $i < count($filterIds); $i++) {
             $filterId = $filterIds[$i];
-            $filterParts[] = $filterId . ':' . $this->safe_string($bondFilters, $filterId);
+            $filterValue = $this->safe_string($bondFilters, $filterId, '');
+            $filterParts[] = $filterId . ':' . $filterValue;
         }
         $filterPartsLength = count($filterParts);
         $contractPromises = array();
         for ($i = 0; $i < count($searchResults); $i++) {
-            $searchResult = $searchResults[$i];
+            $searchResult = $this->safe_list($searchResults, $i, array());
             for ($j = 0; $j < count($searchResult); $j++) {
                 $issuers = $this->safe_list($searchResult[$j], 'issuers', array());
                 for ($k = 0; $k < count($issuers); $k++) {
@@ -1979,7 +2003,7 @@ class interactivebrokers extends Exchange {
         //  ]
         //
         for ($i = 0; $i < count($contractResults); $i++) {
-            $contracts = $contractResults[$i];
+            $contracts = $this->safe_list($contractResults, $i, array());
             for ($j = 0; $j < count($contracts); $j++) {
                 $contract = $contracts[$j];
                 $conid = $this->safe_string($contract, 'conid');
@@ -1995,10 +2019,15 @@ class interactivebrokers extends Exchange {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->extend(array(), $markets[$i]);
-            $symbol = $this->safe_string($market, 'symbol');
+            $symbol = $this->safe_string($market, 'symbol', '');
             if (is_array($seen) && array_key_exists($symbol ?? '', $seen)) {
-                $base = $this->safe_string($market, 'base') . '-' . $this->safe_string($market, 'id');
-                $symbol = $base . '.' . $this->safe_string($market['info'], 'exchange', 'SMART') . '/' . $this->safe_string($market, 'quote');
+                $marketBase = $this->safe_string($market, 'base', '');
+                $marketId = $this->safe_string($market, 'id', '');
+                $marketQuote = $this->safe_string($market, 'quote', '');
+                $marketInfo = $this->safe_dict($market, 'info', array());
+                $listingExchange = $this->safe_string($marketInfo, 'exchange', 'SMART');
+                $base = $marketBase . '-' . $marketId;
+                $symbol = $base . '.' . $listingExchange . '/' . $marketQuote;
                 $market = $this->extend($market, array(
                     'symbol' => $symbol,
                     'base' => $base,
@@ -2016,7 +2045,7 @@ class interactivebrokers extends Exchange {
         $exchangesDict = $this->safe_dict($options, 'exchanges', array());
         $stockExchanges = $this->safe_list($exchangesDict, 'STK', array());
         for ($j = 0; $j < count($stockExchanges); $j++) {
-            $exchange = $stockExchanges[$j];
+            $exchange = $this->safe_string($stockExchanges, $j, '');
             $stockRequest = array(
                 'exchange' => $exchange,
                 'assetClass' => 'STK',
@@ -2503,9 +2532,9 @@ class interactivebrokers extends Exchange {
         if ($isContract) {
             $settleId = $quoteId;
             $settle = $quote;
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '.' . $microNanoPrefix . $listingExchange . '/' . $quote . ':' . $settle;
             if ($isFuture) {
-                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $symbol = $base . '.' . $microNanoPrefix . $listingExchange . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry);
             }
         }
         $marketType = 'spot';
@@ -2585,8 +2614,9 @@ class interactivebrokers extends Exchange {
         }
         $symbolsNormalized = $this->market_symbols($symbols);
         list($fields, $query) = $this->handle_option_and_params($params, 'fetchTickers', 'fields');
-        $fieldsString = implode(',', $fields);
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fieldsString, $query);
+        $fieldsString = implode(',', ($fields));
+        $readyFields = array( '31', '84', '86' );
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fieldsString, $readyFields, $query);
         //
         //     [
         //         {
@@ -2608,7 +2638,7 @@ class interactivebrokers extends Exchange {
         return $this->parse_tickers($response, $symbolsNormalized);
     }
 
-    public function ibkr_fetch_snapshot(array $symbols, string $fields, $params = array(), ?array $readyFields = null): array {
+    public function ibkr_fetch_snapshot(array $symbols, string $fields, array $readyFields, $params = array()): array {
         /**
          * fetches a $market data snapshot, the first snapshot $request only subscribes to the $market data, so the $request is retried until data arrives
          * @ignore
@@ -2617,8 +2647,8 @@ class interactivebrokers extends Exchange {
          *
          * @param {string[]} $symbols unified $market $symbols
          * @param {string} $fields comma-separated snapshot field ids
+         * @param {string[]} $readyFields the snapshot is ready once every item has at least one of these $fields
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string[]} [$readyFields] the snapshot is ready once every item has at least one of these $fields, default array( '31', '84', '86' )
          * @return {array[]} the raw snapshot items
          */
         $conids = array();
@@ -2646,17 +2676,16 @@ class interactivebrokers extends Exchange {
         return $response;
     }
 
-    public function ibkr_snapshot_ready(array $response, ?array $readyFields = null): bool {
+    public function ibkr_snapshot_ready(array $response, array $fieldIds): bool {
         $numItems = count($response);
         if ($numItems === 0) {
             return false;
         }
-        $fieldIds = ($readyFields === null) ? array( '31', '84', '86' ) : $readyFields;
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
+        $numFields = count($fieldIds);
+        for ($i = 0; $i < $numItems; $i++) {
             $found = false;
-            for ($j = 0; $j < count($fieldIds); $j++) {
-                if ($this->safe_string($item, $fieldIds[$j]) !== null) {
+            for ($j = 0; $j < $numFields; $j++) {
+                if ($this->safe_string($response[$i], $fieldIds[$j]) !== null) {
                     $found = true;
                     break;
                 }
@@ -2689,7 +2718,7 @@ class interactivebrokers extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $fields = $this->safe_string($params, 'fields', '84,85,86,88');
         $query = $this->omit($params, 'fields');
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fields, $query, array( '84', '86' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fields, array( '84', '86' ), $query);
         //
         //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2714,7 +2743,7 @@ class interactivebrokers extends Exchange {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31', $params, array( '31' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31', array( '31' ), $params);
         //
         //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2753,7 +2782,7 @@ class interactivebrokers extends Exchange {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '7635', $params, array( '7635' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '7635', array( '7635' ), $params);
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2785,11 +2814,11 @@ class interactivebrokers extends Exchange {
             }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31,7697,7638', $params, array( '7697', '7638' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31,7697,7638', array( '7697', '7638' ), $params);
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return $this->parse_open_interests($response, $symbolsNormalized);
+        return $this->parse_open_interests($this->to_array($response), $symbolsNormalized);
     }
 
     public function parse_open_interest(?array $interest, ?array $market = null): array {
@@ -2869,11 +2898,7 @@ class interactivebrokers extends Exchange {
             $multiplier = '1000000000';
         }
         if ($multiplier !== null) {
-            $scaled = Precise::string_mul(mb_substr($result, 0, strlen($result) - 1 - 0), $multiplier);
-            if ($scaled === null) {
-                return null;
-            }
-            $result = $scaled;
+            return Precise::string_mul(mb_substr($result, 0, strlen($result) - 1 - 0), $multiplier);
         }
         if ($result === '') {
             return null;
@@ -2936,8 +2961,15 @@ class interactivebrokers extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $maxLimit = $this->safe_integer($this->safe_dict($this->options, 'fetchOHLCV', array()), 'limit', 1000);
-        $requestLimit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        $maxLimit = 1000;
+        $configuredLimit = $this->safe_integer($this->safe_dict($this->options, 'fetchOHLCV', array()), 'limit');
+        if ($configuredLimit !== null) {
+            $maxLimit = $configuredLimit;
+        }
+        $requestLimit = $maxLimit;
+        if ($limit !== null) {
+            $requestLimit = min($limit, $maxLimit);
+        }
         $duration = $this->parse_timeframe($timeframe);
         $request = array(
             'conid' => $market['id'],
@@ -2948,7 +2980,11 @@ class interactivebrokers extends Exchange {
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             $request['startTime'] = $this->ibkr_format_time($since - $duration * 1000);
             $request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
-            $requestLimit = min($requestLimit + 1, $maxLimit);
+            if ($limit !== null) {
+                if ($limit < $maxLimit) {
+                    $requestLimit = $limit + 1;
+                }
+            }
         }
         $request['period'] = $this->ibkr_period($duration, $requestLimit);
         $response = $this->webapiGetV1ApiIserverMarketdataHistory($this->extend($request, $params));
@@ -3016,7 +3052,8 @@ class interactivebrokers extends Exchange {
          */
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         $portfolioAccounts = $this->fetch_portfolio_accounts($params);
-        $accountIds = is_array($this->index_by($portfolioAccounts, 'accountId')) ? array_keys($this->index_by($portfolioAccounts, 'accountId')) : array();
+        $accountsById = $this->index_by($portfolioAccounts, 'accountId');
+        $accountIds = is_array($accountsById) ? array_keys($accountsById) : array();
         $length = count($accountIds);
         if ($length === 0) {
             throw new ExchangeError('No tradingaccount IDs found for the user');
@@ -3030,7 +3067,7 @@ class interactivebrokers extends Exchange {
         }
         $accounts = array();
         for ($i = 0; $i < count($portfolioAccounts); $i++) {
-            $accounts[] = $this->parse_account($portfolioAccounts[$i]);
+            $accounts[] = $this->parse_account($this->extend(array(), $portfolioAccounts[$i]));
         }
         return $accounts;
     }
@@ -3153,7 +3190,7 @@ class interactivebrokers extends Exchange {
          * fetch the accounts for which the user can view position and account information
          *
          * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-accounts
-         * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-subaccounts
+         * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-$subaccounts
          *
          * @ignore
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3162,48 +3199,47 @@ class interactivebrokers extends Exchange {
          */
         $this->authenticate();
         list($method, $query) = $this->handle_option_and_params($params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
-        $response = null;
         if ($method === 'privateGetPortfolioSubaccounts') {
-            $response = $this->webapiGetV1ApiPortfolioSubaccounts($query);
-        } else {
-            $response = $this->webapiGetV1ApiPortfolioAccounts($query);
-            //
-            //    [
-            //        {
-            //            "id": "U3448646",
-            //            "PrepaidCrypto-Z": false,
-            //            "PrepaidCrypto-P": true,
-            //            "brokerageAccess": true,
-            //            "accountId": "U3448646",
-            //            "accountVan": "U3448646",
-            //            "accountTitle": "Toma Todua",
-            //            "displayName": "Toma Todua",
-            //            "accountAlias": null,
-            //            "accountStatus": 1646607600000,
-            //            "currency": "USD",
-            //            "type": "INDIVIDUAL",
-            //            "tradingType": "STKNOPT",
-            //            "businessType": "INDEPENDENT",
-            //            "category": "",
-            //            "ibEntity": "IBLLC-US",
-            //            "faclient": false,
-            //            "clearingStatus": "O",
-            //            "covestor": false,
-            //            "noClientTrading": false,
-            //            "trackVirtualFXPortfolio": true,
-            //            "acctCustType": "INDIVIDUAL",
-            //            "parent": {
-            //                "mmc": [],
-            //                "accountId": "",
-            //                "isMParent": false,
-            //                "isMChild": false,
-            //                "isMultiplex": false
-            //            },
-            //            "desc": "U3448646"
-            //        }
-            //    ]
-            //
+            $subaccounts = $this->webapiGetV1ApiPortfolioSubaccounts($query);
+            return $subaccounts;
         }
+        $response = $this->webapiGetV1ApiPortfolioAccounts($query);
+        //
+        //    [
+        //        {
+        //            "id": "U3448646",
+        //            "PrepaidCrypto-Z": false,
+        //            "PrepaidCrypto-P": true,
+        //            "brokerageAccess": true,
+        //            "accountId": "U3448646",
+        //            "accountVan": "U3448646",
+        //            "accountTitle": "Toma Todua",
+        //            "displayName": "Toma Todua",
+        //            "accountAlias": null,
+        //            "accountStatus": 1646607600000,
+        //            "currency": "USD",
+        //            "type": "INDIVIDUAL",
+        //            "tradingType": "STKNOPT",
+        //            "businessType": "INDEPENDENT",
+        //            "category": "",
+        //            "ibEntity": "IBLLC-US",
+        //            "faclient": false,
+        //            "clearingStatus": "O",
+        //            "covestor": false,
+        //            "noClientTrading": false,
+        //            "trackVirtualFXPortfolio": true,
+        //            "acctCustType": "INDIVIDUAL",
+        //            "parent": {
+        //                "mmc": [],
+        //                "accountId": "",
+        //                "isMParent": false,
+        //                "isMChild": false,
+        //                "isMultiplex": false
+        //            },
+        //            "desc": "U3448646"
+        //        }
+        //    ]
+        //
         return $response;
     }
 
@@ -3384,8 +3420,12 @@ class interactivebrokers extends Exchange {
         }
         $request['cOID'] = $clientOrderId;
         $query = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty' ));
-        $orderTicket = $this->extend($request, $query); // typed local, so the go transpiler returns a dict
-        return $orderTicket;
+        $queryKeys = is_array($query) ? array_keys($query) : array();
+        for ($i = 0; $i < count($queryKeys); $i++) {
+            $key = $queryKeys[$i];
+            $request[$key] = $query[$key];
+        }
+        return $request;
     }
 
     public function ibkr_handle_order_replies(mixed $response, string $methodName): array {
@@ -3399,6 +3439,7 @@ class interactivebrokers extends Exchange {
         $options = $this->safe_dict($this->options, 'createOrder', array());
         $autoConfirm = $this->safe_bool($options, 'autoConfirmOrderReplies', true);
         $maxReplies = $this->safe_integer($options, 'maxReplies', 10);
+        $errorPrefix = $this->id . ' ' . $methodName . '() ';
         $current = $response;
         for ($i = 0; $i <= $maxReplies; $i++) {
             if ((gettype($current) !== 'array' || array_keys($current) !== array_keys(array_keys($current)))) {
@@ -3408,7 +3449,7 @@ class interactivebrokers extends Exchange {
                 //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 //
                 $text = $this->safe_string($current, 'text');
-                throw new InvalidOrder($this->id . ' ' . $methodName . '() rejected => ' . $text);
+                throw new InvalidOrder($errorPrefix . 'rejected => ' . $text);
             }
             $first = $this->safe_dict($current, 0, array());
             $orderId = $this->safe_string_2($first, 'order_id', 'orderId');
@@ -3424,10 +3465,10 @@ class interactivebrokers extends Exchange {
             $messages = $this->safe_list($first, 'message', array());
             $message = implode(' ', $messages);
             if ($replyId === null) {
-                throw new InvalidOrder($this->id . ' ' . $methodName . '() unexpected response => ' . $this->json($current));
+                throw new InvalidOrder($errorPrefix . 'unexpected response => ' . $this->json($current));
             }
             if (!$autoConfirm) {
-                throw new InvalidOrder($this->id . ' ' . $methodName . '() requires confirmation (reply id ' . $replyId . ') => ' . $message);
+                throw new InvalidOrder($errorPrefix . 'requires confirmation (reply id ' . $replyId . ') => ' . $message);
             }
             $replyRequest = array(
                 'replyId' => $replyId,
@@ -3435,7 +3476,7 @@ class interactivebrokers extends Exchange {
             );
             $current = $this->webapiPostV1ApiIserverReplyReplyId($replyRequest);
         }
-        throw new InvalidOrder($this->id . ' ' . $methodName . '() exceeded options.createOrder.maxReplies order reply confirmations');
+        throw new InvalidOrder($errorPrefix . 'exceeded options.createOrder.maxReplies order reply confirmations');
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -3505,7 +3546,7 @@ class interactivebrokers extends Exchange {
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3568,7 +3609,7 @@ class interactivebrokers extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchOrder() returned empty response');
         }
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3657,11 +3698,11 @@ class interactivebrokers extends Exchange {
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of $order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->filters] an exchange-side $status filter, by default all $orders are fetched and filtered by their unified $status
-         * @param {boolean} [$params->force] refresh the cached $order list first, default true
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
+         * @param {boolean} [$params->force] refresh the cached order list first, default true
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate();
         if ($this->markets === null) {
@@ -3675,10 +3716,9 @@ class interactivebrokers extends Exchange {
         $parsed = $this->parse_orders($orders, $market, null, null);
         $result = array();
         for ($i = 0; $i < count($parsed); $i++) {
-            $order = $parsed[$i];
-            $status = $order['status'];
+            $status = $this->safe_string($parsed[$i], 'status');
             if (($status === 'closed') || ($status === 'canceled')) {
-                $result[] = $order;
+                $result[] = $parsed[$i];
             }
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
@@ -3931,8 +3971,10 @@ class interactivebrokers extends Exchange {
         }
         $options = $this->safe_dict($this->options, 'fetchMyTrades', array());
         $defaultMethod = 'privateGetIserverAccountTrades';
-        if ($market !== null) {
-            $assetClass = $this->safe_string($market['info'], 'assetClass');
+        if ($symbol !== null) {
+            $symbolMarket = $this->market($symbol);
+            $symbolInfo = $this->safe_dict($symbolMarket, 'info');
+            $assetClass = $this->safe_string($symbolInfo, 'assetClass');
             if ($assetClass === 'CRYPTO') {
                 $defaultMethod = 'privatePostPaTransactions';
             }
@@ -4002,7 +4044,7 @@ class interactivebrokers extends Exchange {
         }
         $request = array(
             'acctIds' => array( $accountId ),
-            'conids' => array( $this->parse_to_int($market['id']) ), // only one conid at a time is supported
+            'conids' => array( $this->parse_to_int($this->safe_string($market, 'id')) ), // only one conid at a time is supported
             'currency' => $currency,
             'days' => $days,
         );
@@ -4071,14 +4113,15 @@ class interactivebrokers extends Exchange {
         if ($month === null) {
             return null;
         }
-        $dayPart = $parts[2];
+        $dayPart = $this->safe_string($parts, 2, '');
         $day = str_pad($dayPart, 2, '0', STR_PAD_LEFT);
         $offset = $this->safe_string($offsets, $parts[4], '+00:00');
         return $this->parse8601($parts[5] . '-' . $month . '-' . $day . 'T' . $parts[3] . $offset);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
-        if (is_array($trade) && array_key_exists('qty' ?? '', $trade)) {
+        $transactionQty = $this->safe_string($trade, 'qty');
+        if ($transactionQty !== null) {
             //
             // pa/transactions
             //
@@ -4251,7 +4294,7 @@ class interactivebrokers extends Exchange {
         $positions = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : array();
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->parse_position($positions[$i], $market);
+            $position = $this->parse_position($this->safe_dict($positions, $i, array()), $market);
             if (Precise::string_gt($this->safe_string($position, 'contracts', '0'), '0')) {
                 $result[] = $position;
             }
@@ -4319,9 +4362,11 @@ class interactivebrokers extends Exchange {
         $parts = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $parts[] = $key . '="' . $sorted[$key] . '"';
+            $value = $this->safe_string($sorted, $key, '');
+            $parts[] = $key . '="' . $value . '"';
         }
-        return 'OAuth realm="' . $this->options['realm'] . '", ' . implode(', ', $parts);
+        $realm = $this->safe_string($this->options, 'realm', '');
+        return 'OAuth realm="' . $realm . '", ' . implode(', ', $parts);
     }
 
     public function ibkr_oauth_base(string $consumerKey, string $consumerAccessToken): array {
@@ -4333,25 +4378,45 @@ class interactivebrokers extends Exchange {
         );
     }
 
-    public function ibkr_implode_path(string $path, array $params): array {
+    public function ibkr_implode_path(string $path, array $params): string {
         /**
          * replaces the ':name' $path parameters of the webapi endpoints with the matching values of $params
          * @ignore
          * @param {string} $path the endpoint $path, e.g. 'v1/api/iserver/account/:accountId/orders'
          * @param {array} $params the request $params, the $path $params are read from here
-         * @return {Array} the imploded $path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the $path $params
+         * @return {string} the $imploded $path, e.g. 'v1/api/iserver/account/U1234567/orders'
+         */
+        $segments = explode('/', $path);
+        $imploded = array();
+        for ($i = 0; $i < count($segments); $i++) {
+            $segment = $segments[$i];
+            if (str_starts_with($segment, ':')) {
+                $name = mb_substr($segment, 1);
+                $value = $this->safe_string($params, $name, $segment);
+                $imploded[] = $value;
+            } else {
+                $imploded[] = $segment;
+            }
+        }
+        return implode('/', $imploded);
+    }
+
+    public function ibkr_path_params(string $path): array {
+        /**
+         * the names of the ':name' $path parameters of a webapi endpoint
+         * @ignore
+         * @param {string} $path the endpoint $path, e.g. 'v1/api/iserver/account/:accountId/orders'
+         * @return {string[]} the names of the $path params, e.g. array( 'accountId' )
          */
         $segments = explode('/', $path);
         $pathParams = array();
         for ($i = 0; $i < count($segments); $i++) {
             $segment = $segments[$i];
             if (str_starts_with($segment, ':')) {
-                $name = mb_substr($segment, 1);
-                $pathParams[] = $name;
-                $segments[$i] = $this->safe_string($params, $name, $segment);
+                $pathParams[] = mb_substr($segment, 1);
             }
         }
-        return array( implode('/', $segments), $pathParams );
+        return $pathParams;
     }
 
     public function ibkr_gateway_base_url(string $baseUrl, string $gatewayUrl): string {
@@ -4411,11 +4476,12 @@ class interactivebrokers extends Exchange {
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
-        list($implodedPath, $pathParams) = $this->ibkr_implode_path($path, $params);
+        $implodedPath = $this->ibkr_implode_path($path, $params);
         $apiBase = $api[0];
-        $baseUrl = $this->urls['api'][$apiBase] . $implodedPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $apiBase, '');
+        $baseUrl = $apiUrl . $implodedPath;
         $url = $baseUrl;
-        $query = $this->omit($params, $pathParams);
+        $query = $this->omit($params, $this->ibkr_path_params($path));
         $hasQuery = count($query) > 0;
         $isGetOrDelete = ($method === 'GET') || ($method === 'DELETE');
         $requestBody = null;
@@ -4424,7 +4490,7 @@ class interactivebrokers extends Exchange {
         if ($this->ibkr_is_gateway_request($path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             $gatewayUrl = $this->safe_string($this->options, 'gatewayUrl');
-            $url = $this->ibkr_gateway_base_url($this->urls['api'][$apiBase], $gatewayUrl) . $implodedPath;
+            $url = $this->ibkr_gateway_base_url($apiUrl, $gatewayUrl) . $implodedPath;
             if ($isGetOrDelete) {
                 if ($hasQuery) {
                     $url .= '?' . $this->urlencode($query);
@@ -4528,7 +4594,7 @@ class interactivebrokers extends Exchange {
             } catch (Exception $e) {
                 $message = $this->exception_message($e, false);
                 $mustQueryAccounts = mb_strpos($message, 'query /accounts first') !== false;
-                if ($isAccountsPath || !$mustQueryAccounts || ($i === $retries)) {
+                if ($isAccountsPath || !$mustQueryAccounts || ($i >= $retries)) {
                     throw $e;
                 }
                 $this->options['serviceAccountsLoaded'] = false;
@@ -4540,7 +4606,7 @@ class interactivebrokers extends Exchange {
         return null;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($code === 401) && $this->safe_bool($this->options, 'useGateway', false)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             $this->options['gatewayAuthenticatedTimestamp'] = null;

@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -16,11 +17,11 @@ pub fn testIncrementingNonce() {
     }));
     // seed lastNonce above the current clock so two successive calls land in the same
     // tick and must return n and n + 1 deterministically (avoids a second-boundary flake)
-    let mut seed: Value = Value::Int(9999999999999);
+    let seed: Value = Value::Int(9999999999999);
     add_element_to_object(&mut exchange.options, &Value::Str("lastNonce".into()), seed.clone());
-    let mut first: i64 = exchange.incrementing_nonce();
-    let mut second: i64 = exchange.incrementing_nonce();
-    assert!(ccxt::runtime::is_true(&(((first as f64) > seed.as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&((second == ((first + 1))))));
-    assert!(ccxt::runtime::is_true(&((second > first))));
+    let first: i64 = exchange.incrementing_nonce();
+    let second: i64 = exchange.incrementing_nonce();
+    assert!(crate::test_helpers::is_true(&(((first as f64) > seed.as_f64().unwrap_or(f64::NAN)))));
+    assert!(crate::test_helpers::is_true(&((second == ((first + 1))))));
+    assert!(crate::test_helpers::is_true(&((second > first))));
 }

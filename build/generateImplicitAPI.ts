@@ -939,10 +939,13 @@ function createImplicitMethodsRust(){
             // either way via the dispatch table.
             if (seen.has(snake)) return [];
             seen.add(snake);
+            // a leaf declared List answers Some(list), any other body None (C# narrows the same leaf)
+            const list = typescriptReturnType (exchange, camel) === 'List';
+            const call = `self.call_method(Value::Str("${snake}".into()), optional_args).await`;
             return [[
                 `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
-                `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
-                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".into()), optional_args).await`,
+                `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[&Value]) -> ${list ? 'Option<crate::value::List>' : 'Value'} {`,
+                `${IDEN}${IDEN}${list ? `self.call_method_as("${snake}", optional_args).await` : call}`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')];

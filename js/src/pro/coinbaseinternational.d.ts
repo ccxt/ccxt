@@ -429,7 +429,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
-    handleTrades(client: Client, message: Dict): Dict;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook
@@ -486,7 +486,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     resubscribeOrderBook(channel: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
-    handleErrorMessage(client: Client, message: any): Bool;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleHeartbeat(client: Client, message: Dict): Promise<void>;
     handleMessage(client: Client, message: Dict): void;
     handleAuthenticationMessage(client: Client, message: Dict): void;
@@ -737,5 +737,5 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    logoutWs(params?: Dict): Promise<undefined>;
+    logoutWs(params?: Dict): Promise<void>;
 }

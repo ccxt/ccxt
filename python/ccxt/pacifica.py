@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Bool, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -982,7 +982,7 @@ class pacifica(Exchange, ImplicitAPI):
             setting = settings[i]
             marketId = self.safe_string(setting, 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             settingsBySymbol[symbol] = setting
         return settingsBySymbol
 
@@ -1163,7 +1163,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(info, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         funding = self.safe_number(info, 'funding')
         markPx = self.safe_number(info, 'mark')
         oraclePx = self.safe_number(info, 'oracle')
@@ -1222,18 +1222,18 @@ class pacifica(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': tf,
         }
-        sinceValue = since
         requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
-        if self.safe_integer(requestUntil, 'end_time') is None:
-            if sinceValue is None:
-                sinceValue = nowMs - limitValue * duration
-            windowEnd = self.parse_to_int(self.sum(sinceValue - 1, limitValue * duration))
+        untilEnd = self.safe_integer(requestUntil, 'end_time')
+        startTime = self.parse_to_int(nowMs - limitValue * duration)
+        if untilEnd is not None:
+            startTime = self.parse_to_int(untilEnd - limitValue * duration)
+        if since is not None:
+            startTime = self.parse_to_int(since)
+        if untilEnd is None:
+            windowEnd = self.parse_to_int(self.sum(startTime - 1, limitValue * duration))
             until = nowMs if (windowEnd > nowMs) else windowEnd
             requestUntil['end_time'] = until
-        else:
-            if sinceValue is None:
-                sinceValue = requestUntil['end_time'] - limitValue * duration
-        requestUntil['start_time'] = sinceValue
+        requestUntil['start_time'] = startTime
         response = self.publicGetKline(self.extend(requestUntil, paramsUntil))
         #
         # {
@@ -1421,7 +1421,7 @@ class pacifica(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':
@@ -1670,8 +1670,7 @@ class pacifica(Exchange, ImplicitAPI):
             side = self.safe_string(order, 'side')
             price = self.safe_string(order, 'price')
             type = self.safe_string(order, 'type', 'limit')
-            orderParams = self.safe_dict(order, 'params', {})
-            orderParams['timestamp'] = timestamp
+            orderParams = self.extend(self.safe_dict(order, 'params', {}), {'timestamp': timestamp})
             amount = self.safe_string(order, 'amount')
             amountNumber = self.parse_number(amount)
             priceNumber = self.parse_number(price)
@@ -1789,7 +1788,7 @@ class pacifica(Exchange, ImplicitAPI):
             ordersToReturn.append(self.safe_order({'info': order, 'status': status, 'symbol': symbol}))
         return ordersToReturn
 
-    def cancel_orders_request(self, ids: list[Str], symbol: Str = None, params: dict = {}) -> dict:
+    def cancel_orders_request(self, ids: list[str], symbol: Str = None, params: dict = {}) -> dict:
         actions = []
         for i in range(0, len(ids)):
             id = self.safe_string(ids, i)
@@ -2104,7 +2103,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': symbol,
@@ -2296,10 +2295,7 @@ class pacifica(Exchange, ImplicitAPI):
         dataLength = len(data)
         if hasMore:
             if (paginationCursor is not None) and (dataLength > 0):
-                first = data[0]
-                first['next_cursor'] = paginationCursor
-                first['has_more'] = hasMore
-                data[0] = first
+                data[0] = self.extend(data[0], {'next_cursor': paginationCursor, 'has_more': hasMore})
         return data
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -2371,10 +2367,9 @@ class pacifica(Exchange, ImplicitAPI):
         # return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         sorted = self.sort_by(data, 'history_id', True)
         lastIdx = len(sorted)
-        lastInfo = {}
         if lastIdx > 0:
-            lastInfo = sorted[0]
-        return self.parse_order(lastInfo, market)
+            return self.parse_order(self.safe_dict(sorted, 0, {}), market)
+        return self.parse_order({}, market)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -2508,7 +2503,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(order, 'symbol', 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_2(order, 'created_at', 'ct')
         status = self.safe_string_2(order, 'order_status', 'os', 'open')  # open if method is fetchOpenOrders
         side = self.safe_string(order, 'side', 'd')
@@ -2603,7 +2598,8 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_position(data[i], None))
+            parsedPosition = self.parse_position(self.safe_dict(data, i, {}), None)
+            result.append(parsedPosition)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
@@ -2622,7 +2618,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         margin = self.safe_string(position, 'margin')
         rawIsolated = self.safe_bool(position, 'isolated')
         isIsolated = (margin is not None) and (margin != '0')
@@ -3088,6 +3084,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         eventType = self.safe_string(transaction, 'event_type')
         amount = self.safe_string(transaction, 'amount')
+        currencyCode = self.safe_currency_code('USDC', currency)
         return {
             'info': transaction,
             'id': None,
@@ -3103,7 +3100,7 @@ class pacifica(Exchange, ImplicitAPI):
             'tagFrom': None,
             'type': self.safe_string(types, eventType),
             'amount': self.parse_number(Precise.string_abs(amount)),
-            'currency': self.safe_currency_code('USDC', currency),
+            'currency': currencyCode,
             'status': None,
             'updated': None,
             'comment': None,
@@ -3178,7 +3175,7 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(income, 'created_at')
         marketId = self.safe_string(income, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         amount = self.safe_string(income, 'payout')
         code = self.safe_currency_code('USDC')
         rate = self.safe_number(income, 'rate')
@@ -3290,7 +3287,8 @@ class pacifica(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountAddress"!')
         if subAccountPrivateKey is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountPrivateKey"!')
-        timestamp, paramsTimestamp = self.handle_param_integer(paramsSubAccountPrivateKey, 'timestamp', self.milliseconds())
+        timestamp = self.safe_integer(paramsSubAccountPrivateKey, 'timestamp', self.milliseconds())
+        paramsTimestamp = self.omit(paramsSubAccountPrivateKey, 'timestamp')
         expiryWindow, paramsExpiryWindow = self.handle_option_integer_and_params_2(paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
         subaccountSignatureHeader = {
             'timestamp': timestamp,
@@ -3440,7 +3438,7 @@ class pacifica(Exchange, ImplicitAPI):
             return [address1, paramsAccount]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3515,11 +3513,12 @@ class pacifica(Exchange, ImplicitAPI):
     def sort_json_keys(self, value: object) -> object:
         if self.is_dictionary(value):
             result = {}
-            keys = list(value.keys())
+            valueCopy = self.extend({}, value)
+            keys = list(valueCopy.keys())
             sortedKeys = self.sort(keys)
             for i in range(0, len(sortedKeys)):
                 key = self.safe_string(sortedKeys, i, '')
-                result[key] = self.sort_json_keys(value[key])
+                result[key] = self.sort_json_keys(valueCopy[key])
             return result
         elif isinstance(value, list):
             sortedList = []

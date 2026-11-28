@@ -171,7 +171,7 @@ func TestMarshalNilSidesEmitEmptyArrays(t *testing.T) {
 // snapshot that had been through json.Unmarshal, where every JSON number is
 // decoded as float64 — so every real ws feed crashed with
 // "interface conversion: interface {} is float64, not int64". Update() now
-// normalizes both through ParseInt. These cases feed genuinely json-decoded
+// normalizes both to int64. These cases feed genuinely json-decoded
 // snapshots so the regression cannot silently return.
 // ---------------------------------------------------------------------------
 
@@ -212,7 +212,7 @@ func TestWsOrderBookUpdateJSONDecodedSnapshot(t *testing.T) {
 	if ob.Datetime != "2024-08-10T14:26:40.000Z" {
 		t.Fatalf("expected datetime 2024-08-10T14:26:40.000Z, got %v", ob.Datetime)
 	}
-	if ParseInt(ob.Nonce) != 42 {
+	if ob.Nonce == nil || *ob.Nonce != 42 {
 		t.Fatalf("expected nonce 42, got %v (%T)", ob.Nonce, ob.Nonce)
 	}
 	if len(ob.Bids.GetDataCopy()) != 2 || len(ob.Asks.GetDataCopy()) != 2 {
@@ -231,7 +231,7 @@ func TestWsOrderBookUpdateJSONDecodedSnapshot(t *testing.T) {
 	if ob.Timestamp != nil || ob.Datetime != nil {
 		t.Fatalf("expected timestamp/datetime cleared, got ts=%v dt=%v", ob.Timestamp, ob.Datetime)
 	}
-	if ParseInt(ob.Nonce) != 99 {
+	if ob.Nonce == nil || *ob.Nonce != 99 {
 		t.Fatalf("expected nonce 99 after newer update, got %v", ob.Nonce)
 	}
 }

@@ -10,7 +10,7 @@ declare class OrderBook implements CustomOrderBookProp {
     datetime: Str;
     nonce: Int;
     symbol: Str;
-    outcome: Str;
+    outcome: string;
     outcomeId: Str;
     market: Str;
     constructor(snapshot?: Dict, depth?: Int);

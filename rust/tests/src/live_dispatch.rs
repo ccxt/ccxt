@@ -413,8 +413,8 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // those reads against the Core directly. Lightweight
                 // fields (`has`, `options`, `codes`, `ids`) still mirror
                 // here so helpers that scan them work synchronously.
-                m.insert("has".to_string(),                  core.has.clone());
-                m.insert("options".to_string(),              core.options.clone());
+                m.insert("has".to_string(),                  Value::Dict(core.has.clone()));
+                m.insert("options".to_string(),              Value::Dict(core.options.clone()));
                 // `symbols`, `codes`, `ids` resolve through LIVE_LOOKUP
                 // — even the string lists are heavy (~4k strings for
                 // binance) and get re-cloned per helper invocation.
@@ -426,25 +426,25 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
             fn read_field(ptr: *mut (), key: &str) -> Option<Value> {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
                 Some(match key {
-                    "markets"          => core.markets.clone(),
-                    "markets_by_id"    => core.markets_by_id.clone(),
-                    "currencies"       => core.currencies.clone(),
-                    "currencies_by_id" => core.currencies_by_id.clone(),
+                    "markets"          => Value::from(&core.markets),
+                    "markets_by_id"    => Value::from(&core.markets_by_id),
+                    "currencies"       => Value::from(&core.currencies),
+                    "currencies_by_id" => Value::from(&core.currencies_by_id),
                     // Lightweight ones still served here so a `__live_id`
                     // snapshot stays fully introspectable through the
                     // same code path.
                     "symbols"          => Value::Arr(core.symbols.clone()),
                     "codes"            => core.codes.clone(),
                     "ids"              => core.ids.clone(),
-                    "has"              => core.has.clone(),
-                    "options"          => core.options.clone(),
+                    "has"              => Value::Dict(core.has.clone()),
+                    "options"          => Value::Dict(core.options.clone()),
                     "last_request_url"     => core.last_request_url.clone(),
                     "last_request_body"    => core.last_request_body.clone(),
                     "last_request_headers" => core.last_request_headers.clone(),
                     "id"               => core.id.clone(),
                     "precisionMode"    => core.precisionMode.clone(),
-                    "fees"             => core.fees.clone(),
-                    "urls"             => core.urls.clone(),
+                    "fees"             => Value::Dict(core.fees.clone()),
+                    "urls"             => Value::Dict(core.urls.clone()),
                     // Describe-derived config blocks. These are large
                     // (binance's `api` alone is hundreds of nested
                     // endpoints) and immutable during a test run, so we
@@ -455,7 +455,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // market — from deep-copying the whole describe()
                     // output on every iteration.
                     "api"              => core.api.clone(),
-                    "timeframes"       => core.timeframes.clone(),
+                    "timeframes"       => Value::from(&core.timeframes),
                     "exceptions"       => core.exceptions.clone(),
                     "features"         => core.features.clone(),
                     "precision"        => core.precision.clone(),
@@ -472,8 +472,8 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // cases, so we replace outright — the snapshot already
                 // mirrors `describe().options` since `to_value()` seeded it.
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                if let Value::Dict(_) = &new_opts {
-                    core.options = new_opts;
+                if let Value::Dict(m) = new_opts {
+                    core.options = m;
                 }
             }
             fn write_mock(ptr: *mut (), response: Value) {
@@ -529,8 +529,8 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // Core keeps the synthesized-from-markets versions
                     // and downstream URL builders compute the wrong
                     // `currency.id` (e.g. bitmex `XBt` vs `XBT`).
-                    "markets"       => core.markets    = value,
-                    "currencies"    => core.currencies = value,
+                    "markets"       => core.markets    = if let Value::Dict(m) = value { Some(m) } else { None },
+                    "currencies"    => if let Value::Dict(m) = value { core.currencies = m },
                     _ => {},
                 }
             }
@@ -543,9 +543,8 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
             }
             fn has_market(ptr: *mut (), symbol: &str) -> bool {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                let key = Value::Str(symbol.to_string().into());
-                ccxt::runtime::in_op(&core.markets, &key)
-                    || ccxt::runtime::in_op(&core.markets_by_id, &key)
+                core.markets.as_ref().is_some_and(|m| m.contains_key(symbol))
+                    || core.markets_by_id.as_ref().is_some_and(|m| m.contains_key(symbol))
             }
             fn set_markets(ptr: *mut (), markets: Value) -> Value {
                 // Route through the core's dynamic dispatch so the MOST-DERIVED
@@ -559,7 +558,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // `block_on` resolves it in a single poll without the reactor.
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
                 futures::executor::block_on(
-                    ExchangeBase::call_dynamic(core, "set_markets", vec![markets])
+                    ExchangeBase::call_dynamic(core, "set_markets", &[markets])
                 )
             }
             // Type-erased trampoline: cast the raw Core pointer back and call
@@ -568,7 +567,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + '_>>
             {
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                Box::pin(ExchangeBase::call_dynamic(core, method, args))
+                Box::pin(async move { ExchangeBase::call_dynamic(core, method, &args).await })
             }
             return Some(CoreEntry {
                 call:          call_tramp as DynCallFn,

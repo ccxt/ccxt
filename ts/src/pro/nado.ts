@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError, InvalidNonce, NotSupported } from '..
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
-import type { Bool, Dict, Fee, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Dict, Fee, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -97,7 +97,7 @@ export default class nado extends nadoRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'trade:' + market['symbol'];
-        const trades = await this.watchPublic ('trade', market, messageHash, params);
+        const trades: ArrayCache = await this.watchPublic ('trade', market, messageHash, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
@@ -144,7 +144,7 @@ export default class nado extends nadoRest {
             markets.push (market);
             messageHashes.push ('trade:' + market['symbol']);
         }
-        const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
+        const trades: ArrayCache = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -590,7 +590,7 @@ export default class nado extends nadoRest {
             'subaccount': sender,
             'product_id': productId,
         };
-        const orders = await this.watchPrivate ('order_update', stream, messageHash, paramsSubaccount);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate ('order_update', stream, messageHash, paramsSubaccount);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -670,7 +670,7 @@ export default class nado extends nadoRest {
             'subaccount': sender,
             'product_id': productId,
         };
-        const trades = await this.watchPrivate ('fill', stream, messageHash, paramsSubaccount);
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate ('fill', stream, messageHash, paramsSubaccount);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1430,7 +1430,7 @@ export default class nado extends nadoRest {
             remaining = this.parseX18 (amountString);
         }
         const filled = this.parseX18 (this.safeString (order, 'filled_qty'));
-        const average = this.parseX18 (this.safeString (order, 'filled_price'));
+        const average: Num = this.parseX18 (this.safeString (order, 'filled_price'));
         const reason = this.safeString (order, 'reason');
         let status: Str = undefined;
         if (reason === 'placed') {
@@ -1642,7 +1642,7 @@ export default class nado extends nadoRest {
                     'bid': this.parseX18 (bid),
                     'info': bbo,
                 }, market);
-                const symbol = market['symbol'];
+                const symbol: string = this.safeString (market, 'symbol', '');
                 result[symbol] = ticker;
             }
         }
@@ -1887,7 +1887,7 @@ export default class nado extends nadoRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         const error = this.safeValue (message, 'error');
         const status = this.safeString (message, 'status');
         if ((error === undefined) && (status !== 'failure')) {

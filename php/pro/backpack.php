@@ -145,9 +145,7 @@ class backpack extends \ccxt\async\backpack {
             if (($symbols === null) && ($stock || ($explicitSource === 'External') || ($channel !== null)) && ($market['stock'] !== true)) {
                 continue;
             }
-            $marketSelection = $this->handleStockParams($methodName, $query, $market);
-            $marketStock = $this->safe_bool($marketSelection, 0, false);
-            $marketParams = $this->safe_dict($marketSelection, 1, array());
+            list($marketStock, $marketParams) = $this->handleStockParams($methodName, $query, $market);
             $isRfq = $this->safe_string($market['info'], 'marketType') === 'RFQ';
             $source = $explicitSource;
             if ($source === null) {
@@ -186,7 +184,7 @@ class backpack extends \ccxt\async\backpack {
             } elseif (($this->safe_string($market, 'executionModel') === 'rfq') && ($market['stock'] !== true)) {
                 throw new NotSupported($this->id . ' ' . $methodName . '() RFQ venue tickers are only mapped for stock data');
             }
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = $kind . ':' . $symbol . '@' . $topic;
             $subscriptionKey = 'marketData:' . $topic;
             $subscriptions = $this->safe_dict($client->subscriptions, $subscriptionKey, array());
@@ -463,7 +461,7 @@ class backpack extends \ccxt\async\backpack {
         //
         $ticker = $this->safe_dict($message, 'data', array());
         $stream = $this->safe_string($message, 'stream', '');
-        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $subscriptions = $this->extend(array(), $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array()));
         $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
         $hashesLength = count($hashes);
         for ($i = 0; $i < $hashesLength; $i++) {
@@ -548,7 +546,7 @@ class backpack extends \ccxt\async\backpack {
          */
         $data = $this->safe_dict($message, 'data', array());
         $stream = $this->safe_string($message, 'stream', '');
-        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $subscriptions = $this->extend(array(), $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array()));
         $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
         $hashesLength = count($hashes);
         for ($i = 0; $i < $hashesLength; $i++) {
@@ -636,7 +634,7 @@ class backpack extends \ccxt\async\backpack {
         //     }
         $data = $this->safe_dict($message, 'data', array());
         $stream = $this->safe_string($message, 'stream', '');
-        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $subscriptions = $this->extend(array(), $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array()));
         $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
         $hashesLength = count($hashes);
         for ($i = 0; $i < $hashesLength; $i++) {
@@ -719,7 +717,8 @@ class backpack extends \ccxt\async\backpack {
          */
         $query = Async\await($this->prepare_ws_stock_params('watchOHLCV', $params));
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $query));
-        return $result[$symbol][$timeframe];
+        $bySymbol = $result[$symbol];
+        return $bySymbol[$timeframe];
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -850,7 +849,7 @@ class backpack extends \ccxt\async\backpack {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stream = $this->safe_string($message, 'stream', '');
         $parts = explode('.', $stream);
         $timeframe = $this->safe_string($parts, 1, '');
@@ -1043,7 +1042,7 @@ class backpack extends \ccxt\async\backpack {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
@@ -1254,14 +1253,15 @@ class backpack extends \ccxt\async\backpack {
         $deltaNonce = $this->safe_integer($data, 'u');
         $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
+            $cacheSize = count($storedOrderBook->cache);
+            $cacheLength = $this->parse_to_int($cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             $storedOrderBook->cache[] = $data;
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             $market = $this->market($symbol);
             $isStockMarket = ($market['stock'] === true) || (($marketId !== null) && ((mb_strpos($marketId, '.US_') !== false) || (mb_strpos($marketId, '.HK_') !== false)));
             $defaultSnapshotDelay = $isStockMarket ? 0 : 10;
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', $defaultSnapshotDelay);
+            $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', $defaultSnapshotDelay));
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }
@@ -1445,7 +1445,7 @@ class backpack extends \ccxt\async\backpack {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($data, 'e', '');
         if ((mb_strpos($event, 'rfq') === 0) || (mb_strpos($event, 'quote') === 0)) {
             $parsed = $this->parse_ws_rfq_order($data, $market);
@@ -1623,7 +1623,7 @@ class backpack extends \ccxt\async\backpack {
         $status = $this->parse_ws_order_status($this->safe_string($order, 'X'), $market);
         $marketId = $this->safe_string($order, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $type = $this->safe_string_lower($order, 'o');
         $timeInForce = $this->safe_string($order, 'f');
         $side = $this->parse_ws_order_side($this->safe_string($order, 'S'));
@@ -1712,7 +1712,8 @@ class backpack extends \ccxt\async\backpack {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions' . ':' . $symbol;
-                $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
+                $marketId = $this->safe_string($this->market($symbol), 'id', '');
+                $topics[] = 'account.positionUpdate.' . $marketId;
             }
         } else {
             $messageHashes[] = 'positions';
@@ -1749,7 +1750,8 @@ class backpack extends \ccxt\async\backpack {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'unsubscribe:positions' . ':' . $symbol;
-                $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
+                $marketId = $this->safe_string($this->market($symbol), 'id', '');
+                $topics[] = 'account.positionUpdate.' . $marketId;
             }
         } else {
             $messageHashes[] = 'unsubscribe:positions';
@@ -1823,7 +1825,7 @@ class backpack extends \ccxt\async\backpack {
         $id = $this->safe_string($position, 'i');
         $marketId = $this->safe_string($position, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $notional = $this->safe_string($position, 'n');
         $liquidationPrice = $this->safe_string($position, 'l');
         $entryPrice = $this->safe_string($position, 'b');
@@ -1833,14 +1835,14 @@ class backpack extends \ccxt\async\backpack {
         $markPrice = $this->safe_string($position, 'M');
         $netQuantity = $this->safe_number($position, 'q');
         $hedged = false;
-        $side = 'long';
+        $side = null;
         if ($netQuantity !== null) {
+            $side = 'long';
             if (0 > $netQuantity) {
                 $side = 'short';
             }
         } else {
             $hedged = null;
-            $side = null;
         }
         $microseconds = $this->safe_integer($position, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
@@ -1903,7 +1905,7 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         id: null,

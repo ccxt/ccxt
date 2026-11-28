@@ -260,7 +260,8 @@ class sxbet extends sxbet$1["default"] {
             }
             paginationKey = this.safeString(result, 'nextKey');
             page = page + 1;
-            const collectedLength = this.parseToInt(rawMarkets.length);
+            const rawMarketsCount = rawMarkets.length;
+            const collectedLength = this.parseToInt(rawMarketsCount);
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
             }
@@ -319,11 +320,12 @@ class sxbet extends sxbet$1["default"] {
         //     }
         //
         const marketHash = this.safeString(raw, 'marketHash', '');
-        const teamOneName = this.safeString(raw, 'teamOneName');
-        const teamTwoName = this.safeString(raw, 'teamTwoName');
+        const teamOneName = this.safeString(raw, 'teamOneName', '');
+        const teamTwoName = this.safeString(raw, 'teamTwoName', '');
         const outcomeOneName = this.safeString(raw, 'outcomeOneName');
         const outcomeTwoName = this.safeString(raw, 'outcomeTwoName');
-        const eventSlug = this.shortenSlug(teamOneName + ' ' + teamTwoName);
+        const matchTitle = teamOneName + ' ' + teamTwoName;
+        const eventSlug = this.shortenSlug(matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -340,14 +342,17 @@ class sxbet extends sxbet$1["default"] {
             gameTime = this.safeTimestamp(raw, 'gameTime');
         }
         const outcomeLabels = [outcomeOneName, outcomeTwoName];
-        const outcomeIds = [marketHash, marketHash + '-2'];
         const outcomes = [];
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, label);
+            let outcomeSuffix = '';
+            if (oi > 0) {
+                outcomeSuffix = '-2';
+            }
             outcomes.push({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': marketHash + outcomeSuffix,
+                'outcomeId': marketHash + outcomeSuffix,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -437,10 +442,10 @@ class sxbet extends sxbet$1["default"] {
         const tags = this.safeList(params, 'tags', []);
         const tagsLength = tags.length;
         for (let i = 0; i < tagsLength; i++) {
-            queries.push(tags[i]);
+            queries.push(this.safeString(tags, i, ''));
         }
         const rest = this.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit']);
-        let rawMarkets;
+        let rawMarkets = [];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged(this.extend({ 'sportXeventId': eventId }, rest), undefined);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -496,7 +501,8 @@ class sxbet extends sxbet$1["default"] {
             const evMarketsLength = evMarkets.length;
             for (let j = 0; j < evMarketsLength; j++) {
                 const m = evMarkets[j];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString(m, 'market', '');
+                this.markets[marketKey] = m;
             }
             result.push(event);
         }
@@ -515,7 +521,8 @@ class sxbet extends sxbet$1["default"] {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent(id, params = {}) {
-        let rawMarkets = await this.fetchRawMarketsPaged(this.extend({ 'sportXeventId': id }, params), undefined);
+        let rawMarkets = [];
+        rawMarkets = await this.fetchRawMarketsPaged(this.extend({ 'sportXeventId': id }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture(rawMarkets, id);
         const rawMarketsLength = rawMarkets.length;
@@ -609,7 +616,8 @@ class sxbet extends sxbet$1["default"] {
         let eventSlug = undefined;
         if ((teamOneName !== undefined) && (teamTwoName !== undefined)) {
             title = teamOneName + ' vs ' + teamTwoName;
-            eventSlug = this.shortenSlug(teamOneName + ' ' + teamTwoName);
+            const matchTitle = teamOneName + ' ' + teamTwoName;
+            eventSlug = this.shortenSlug(matchTitle);
         }
         else {
             eventSlug = this.shortenSlug(fixtureId);
@@ -692,8 +700,8 @@ class sxbet extends sxbet$1["default"] {
         const signature = crypto.ecdsa(digest.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -750,7 +758,8 @@ class sxbet extends sxbet$1["default"] {
      */
     async fetchSxbetProxy() {
         const response = await this.sxbetPrivateGetUserProxy();
-        return this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
+        return data;
     }
     /**
      * @method
@@ -1699,7 +1708,7 @@ class sxbet extends sxbet$1["default"] {
         const result = [];
         const rawTradesLength = rawTrades.length;
         for (let i = 0; i < rawTradesLength; i++) {
-            const settlement = this.parseSettlement(rawTrades[i]);
+            const settlement = this.parseSettlement(this.safeDict(rawTrades, i, {}));
             if ((wantedOutcomeId === undefined) || (this.safeString(settlement, 'outcomeId') === wantedOutcomeId)) {
                 result.push(settlement);
             }
@@ -1795,7 +1804,8 @@ class sxbet extends sxbet$1["default"] {
     async fetchSxbetBookSnapshot(marketHash) {
         const request = { 'marketHash': marketHash };
         const response = await this.sxbetPublicGetOrderbookV3Snapshot(request);
-        return this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
+        return data;
     }
     /**
      * @method
@@ -1865,13 +1875,14 @@ class sxbet extends sxbet$1["default"] {
         if (outcomes === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        const outcomesList = outcomes;
+        const outcomesList = (outcomes === undefined) ? [] : outcomes;
         const outcomesLength = outcomesList.length;
         const hashesOrder = [];
         const seenHashes = {};
         for (let i = 0; i < outcomesLength; i++) {
-            await this.loadOutcome(outcomesList[i]);
-            const outcomeObj = this.outcome(outcomesList[i]);
+            const outcomeItem = this.safeString(outcomesList, i, '');
+            await this.loadOutcome(outcomeItem);
+            const outcomeObj = this.outcome(outcomeItem);
             const marketHash = this.safeString(outcomeObj['info'], 'marketHash', '');
             if (this.safeBool(seenHashes, marketHash) === undefined) {
                 seenHashes[marketHash] = true;
@@ -1886,7 +1897,7 @@ class sxbet extends sxbet$1["default"] {
         const hasApiKey = !this.isEmptyString(this.apiKey);
         if (!hasApiKey) {
             for (let i = 0; i < hashesLength; i++) {
-                const marketHash = hashesOrder[i];
+                const marketHash = this.safeString(hashesOrder, i, '');
                 const snapshot = await this.fetchSxbetBookSnapshot(marketHash);
                 rowsByHash[marketHash] = this.parseSxbetSnapshotBestOdds(snapshot);
             }
@@ -2109,11 +2120,12 @@ class sxbet extends sxbet$1["default"] {
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary();
         }
-        const options = this.options['requestId'];
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         if (url !== undefined) {
-            this.options['requestId'][url] = newValue;
+            options[url] = newValue;
+            this.options['requestId'] = options;
         }
         return newValue;
     }
@@ -2167,7 +2179,7 @@ class sxbet extends sxbet$1["default"] {
         // connect is in flight, sent by a concurrent subscribe - wait on the shared reply future
         return await client.future('centrifugoConnected');
     }
-    async pong(client, message = undefined) {
+    async pong(client) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send('{}');
     }
@@ -2200,7 +2212,7 @@ class sxbet extends sxbet$1["default"] {
         const keys = Object.keys(msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn(this.pong, client, msg);
+            this.spawn(this.pong, client);
             return;
         }
         const requestIdString = this.safeString(msg, 'id');
@@ -2343,7 +2355,7 @@ class sxbet extends sxbet$1["default"] {
         }
         const held = this.safeString(this.safeDict(this.options, 'wsBookVersions', {}), marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if ((held !== '') && (version <= held)) {
+        if ((held !== '') && ((version === '') || Precise["default"].stringLe(version, held))) {
             return refreshed;
         }
         this.setWsOption('wsBookVersions', marketHash, version);
@@ -2391,7 +2403,7 @@ class sxbet extends sxbet$1["default"] {
             const refreshed = this.applySxbetWsSnapshot(rows[i]);
             const refreshedLength = refreshed.length;
             for (let j = 0; j < refreshedLength; j++) {
-                const sym = refreshed[j];
+                const sym = this.safeString(refreshed, j, '');
                 client.resolve(this.safeValue(this.orderbooks, sym), 'orderbook::' + sym);
             }
         }
@@ -2417,7 +2429,9 @@ class sxbet extends sxbet$1["default"] {
         const client = this.client(url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym) === undefined) {
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
+        const cachedTicker = this.safeDict(cachedTickers, sym);
+        if (cachedTicker === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
@@ -2651,7 +2665,7 @@ class sxbet extends sxbet$1["default"] {
         for (let i = 0; i < rowsLength; i++) {
             const rawRow = rows[i];
             const row = this.safeDict(rawRow, 'order', rawRow);
-            const order = this.parsePredictionOrder(row);
+            const order = this.parsePredictionOrder(this.extend({}, row));
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger(this.options, 'ordersLimit', 1000);
                 this.orders = new Cache.ArrayCacheByOutcomeById(cacheLimit);
@@ -2673,17 +2687,14 @@ class sxbet extends sxbet$1["default"] {
         if (response === undefined) {
             return undefined;
         }
-        const message = this.safeValue(response, 'message');
-        if (message === undefined) {
-            return undefined;
-        }
         // validation failures arrive in string-array form, business errors in single-code-string form
-        let messageString = undefined;
-        if (Array.isArray(message)) {
-            messageString = message.join(', ');
+        const messageList = this.safeList(response, 'message', []);
+        let messageString = this.safeString(response, 'message');
+        if (this.safeString(messageList, 0) !== undefined) {
+            messageString = messageList.join(', ');
         }
-        else {
-            messageString = message;
+        if (messageString === undefined) {
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], messageString, feedback);
@@ -2712,10 +2723,13 @@ class sxbet extends sxbet$1["default"] {
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new errors.AuthenticationError(this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
-        const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['sxbet']);
+        let baseUrl = this.safeString(this.urls['api'], 'sxbet', '');
+        const groupUrl = this.safeString(this.urls['api'], apiGroup);
+        if (groupUrl !== undefined) {
+            baseUrl = groupUrl;
+        }
         let url = baseUrl + '/' + this.implodeParams(path, params);
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const existingHeaders = {};
         const headersExtended = this.extend({
             'Accept': 'application/json',
@@ -2728,7 +2742,12 @@ class sxbet extends sxbet$1["default"] {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            sendAsQuery = !('orders' in query);
+            if ('orders' in query) {
+                sendAsQuery = false;
+            }
+            else {
+                sendAsQuery = true;
+            }
         }
         let bodyValue = undefined;
         if (sendAsQuery) {

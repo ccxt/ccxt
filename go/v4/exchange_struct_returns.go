@@ -472,8 +472,9 @@ func withDictFee(m map[string]any) map[string]any {
 // OHLCVFromList builds an OHLCV from a parsed [ts, o, h, l, c, v] row (nil elements read as 0);
 // the row itself is kept so OHLCVToList returns it unchanged.
 func OHLCVFromList(data any) OHLCV {
-	o := OHLCV{row: data}
+	o := OHLCV{}
 	if row, ok := data.([]any); ok {
+		o.row = row
 		if ts := SafeInt64Typed(row, 0); ts != nil {
 			o.Timestamp = *ts
 		}
@@ -487,7 +488,7 @@ func OHLCVFromList(data any) OHLCV {
 }
 
 // OHLCVToList is the inverse of OHLCVFromList.
-func OHLCVToList(o OHLCV) any {
+func OHLCVToList(o OHLCV) []any {
 	if o.row != nil {
 		return o.row
 	}
@@ -681,7 +682,10 @@ func WatchResolved[T any](v any) T {
 		}
 	case map[string]any:
 	case bool:
-		return any(IsTrue(v)).(T)
+		if b, ok := v.(*bool); ok {
+			return any(b != nil && *b).(T)
+		}
+		return zero
 	case *string:
 		if s, ok := v.(string); ok {
 			return any(&s).(T)
@@ -1297,8 +1301,17 @@ func MarketInterfaceToMap(mi MarketInterface) map[string]any {
 	m["quote"] = m["quoteCurrency"]
 	delete(m, "baseCurrency")
 	delete(m, "quoteCurrency")
+	// an absent symbol / base / quote is "" on the struct and nil in the map form
+	for _, k := range []string{"symbol", "base", "quote"} {
+		if m[k] == "" {
+			m[k] = nil
+		}
+	}
 	if mi.Quanto == nil {
 		delete(m, "quanto")
+	}
+	if mi.MarketId == nil {
+		delete(m, "marketId")
 	}
 	return m
 }
@@ -1368,6 +1381,18 @@ func StringSliceToList(s []string) []any {
 	out := make([]any, len(s))
 	for i, v := range s {
 		out[i] = v
+	}
+	return out
+}
+
+// AnyMatrixToList boxes a [][]any as the []any of rows every list reader of a map member assumes.
+func AnyMatrixToList(rows [][]any) []any {
+	if rows == nil {
+		return nil
+	}
+	out := make([]any, len(rows))
+	for i, row := range rows {
+		out[i] = row
 	}
 	return out
 }

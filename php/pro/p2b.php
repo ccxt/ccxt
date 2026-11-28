@@ -153,7 +153,7 @@ class p2b extends \ccxt\async\p2b {
         list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchTicker', 'name', $name);
         $market = $this->market($symbol);
         $this->options['tickerSubs'][$market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        $tickerSubs = $this->options['tickerSubs'];
+        $tickerSubs = $this->safe_dict($this->options, 'tickerSubs', array());
         $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
         return Async\await($this->subscribe($nameOption . '.subscribe', $nameOption . '::' . $this->safe_string($market, 'symbol', ''), $request, $paramsName));
     }
@@ -324,7 +324,7 @@ class p2b extends \ccxt\async\p2b {
         $timeframe = $this->find_timeframe($channel, $timeframes);
         $symbol = $this->safe_string($market, 'symbol');
         $parsed = $this->parse_ohlcv($data, $market);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {
@@ -373,8 +373,7 @@ class p2b extends \ccxt\async\p2b {
             $this->trades[$symbol] = $tradesArray;
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $item = $trades[$i];
-            $trade = $this->parse_trade($item, $market);
+            $trade = $this->parse_trade($this->safe_dict($trades, $i, array()), $market);
             $tradesArray->append($trade);
         }
         $messageHash = 'deals::' . $symbol;
@@ -528,7 +527,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' error => ' . $this->json($error));

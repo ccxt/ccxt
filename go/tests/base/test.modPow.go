@@ -15,19 +15,19 @@ func TestModPow() {
 	// small values
 	var small any = exchange.ModPow(exchange.ConvertToBigInt("4"), exchange.ConvertToBigInt("13"), exchange.ConvertToBigInt("497"))
 	var smallHexRaw any = exchange.IntToBase16(small)
-	var smallHex string = ccxt.ToLower(smallHexRaw)
+	var smallHex string = ToLower(smallHexRaw)
 	assert((smallHex == "1bd"), "modPow small failed, expected: 1bd, got: "+smallHex)
 	// results above 2^64 must survive intToBase16 (the interactivebrokers diffie-hellman challenge is 2048-bit)
 	// 2 ^ 100 mod (2 ^ 127 - 1) = 2 ^ 100
 	var modulus any = exchange.ConvertToBigInt("0x7fffffffffffffffffffffffffffffff")
 	var big any = exchange.ModPow(exchange.ConvertToBigInt("2"), exchange.ConvertToBigInt("100"), modulus)
 	var bigHexRaw any = exchange.IntToBase16(big)
-	var bigHex string = ccxt.ToLower(bigHexRaw)
+	var bigHex string = ToLower(bigHexRaw)
 	assert((bigHex == "10000000000000000000000000"), "modPow big failed, expected: 10000000000000000000000000, got: "+bigHex)
 	// 0xffffffffffffffffffff ^ 3 mod (2 ^ 127 - 1)
 	var base any = exchange.ConvertToBigInt("0xffffffffffffffffffff")
 	var cubed any = exchange.ModPow(base, exchange.ConvertToBigInt("3"), modulus)
 	var cubedHexRaw any = exchange.IntToBase16(cubed)
-	var cubedHex string = ccxt.ToLower(cubedHexRaw)
+	var cubedHex string = ToLower(cubedHexRaw)
 	assert((cubedHex == "200000002fffffffffff9ffffffff"), "modPow cubed failed, expected: 200000002fffffffffff9ffffffff, got: "+cubedHex)
 }

@@ -409,7 +409,7 @@ export default class bithumb extends Exchange {
 
     override amountToPrecision (symbol: Str, amount: any): Str {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, this.safeValue (market['precision'], 'amount'), DECIMAL_PLACES);
+        return this.decimalToPrecision (amount, TRUNCATE, this.safeInteger (market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     getGen2MarketId (market: Market): string {
@@ -465,8 +465,8 @@ export default class bithumb extends Exchange {
                 if (marketId !== undefined) {
                     const parts = marketId.split ('-');
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = parts[1];
-                    quoteId = parts[0];
+                    baseId = this.safeString (parts, 1);
+                    quoteId = this.safeString (parts, 0);
                     base = this.safeCurrencyCode (baseId);
                     quote = this.safeCurrencyCode (quoteId);
                 }
@@ -768,12 +768,11 @@ export default class bithumb extends Exchange {
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'fetchOrderBook', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: any = undefined;
         let data: NullableDict = undefined;
         let timestamp: Int = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1Orderbook (this.extend (request, paramsGeneration));
+            const response = await this.publicGetV1Orderbook (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -818,7 +817,7 @@ export default class bithumb extends Exchange {
             if (limit !== undefined) {
                 request['count'] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, paramsGeneration));
+            const response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1007,18 +1006,25 @@ export default class bithumb extends Exchange {
             if (marketIdsLength === 0) {
                 return result;
             }
-            const marketIdsChunks: string[][] = [];
+            const singleMarketIds: string[] = [];
             const promises: Promise<any>[] = [];
             // the exchange rejects more than 200 market ids per request
             const maxMarketIdsOption = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
-            const maxMarketIdsPerRequest = this.parseToInt (((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let maxMarketIdsPerRequest: number = 200;
+            if ((maxMarketIdsOption !== undefined) && (maxMarketIdsOption >= 1)) {
+                maxMarketIdsPerRequest = this.parseToInt (maxMarketIdsOption);
+            }
             let marketIdsChunk: string[] = [];
             for (let i = 0; i < marketIdsLength; i++) {
                 marketIdsChunk.push (marketIds[i]);
                 const marketIdsChunkLength = marketIdsChunk.length;
                 const isLastMarketId = (i === (marketIdsLength - 1));
                 if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
-                    marketIdsChunks.push (marketIdsChunk);
+                    if (marketIdsChunkLength === 1) {
+                        singleMarketIds.push (marketIds[i]);
+                    } else {
+                        singleMarketIds.push ('');
+                    }
                     request['markets'] = marketIdsChunk.join (',');
                     promises.push (this.publicGetV1Ticker (this.extend (request, paramsGeneration)));
                     marketIdsChunk = [];
@@ -1063,20 +1069,16 @@ export default class bithumb extends Exchange {
                 if (this.isDictionary (response) && (this.safeValue (response, 'data') !== undefined)) {
                     response = this.safeValue (response, 'data');
                 }
-                let expectedMarketId: Str = undefined;
-                const requestedMarketIds = this.safeList (marketIdsChunks, i, []);
-                const firstMarketId = this.safeString (requestedMarketIds, 0);
-                if ((firstMarketId !== undefined) && (this.safeString (requestedMarketIds, 1) === undefined)) {
-                    expectedMarketId = firstMarketId;
-                }
+                const expectedMarketId = this.safeString (singleMarketIds, i);
                 let tickers: Dict[] = [];
                 if (Array.isArray (response)) {
                     tickers = response;
                 } else if (this.isDictionary (response)) {
-                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                    if ((this.safeString (response, 'market') !== undefined) || (this.safeString (response, 'trade_date') !== undefined) || (this.safeString (response, 'trade_timestamp') !== undefined)) {
                         tickers = [ response ];
                     } else {
-                        const ids = Object.keys (response);
+                        const responseDict: Dict = this.extend ({}, response);
+                        const ids = Object.keys (responseDict);
                         for (let j = 0; j < ids.length; j++) {
                             const id = ids[j];
                             const ticker = this.safeDict (response, id);
@@ -1098,7 +1100,7 @@ export default class bithumb extends Exchange {
                     if (symbol === undefined) {
                         continue;
                     }
-                    result[symbol] = this.parseTicker (entry, market);
+                    result[symbol] = this.parseTicker (this.safeDict (tickers, j, {}), market);
                 }
             }
         } else {
@@ -1156,15 +1158,14 @@ export default class bithumb extends Exchange {
                 const currencyIds = Object.keys (tickers);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const ticker = data[currencyId];
+                    const ticker: Dict = this.extend ({}, data[currencyId]);
                     const base = this.safeCurrencyCode (currencyId);
                     if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
                     const market = this.safeMarket (symbol);
-                    ticker['date'] = timestamp;
-                    result[symbol] = this.parseTicker (ticker, market);
+                    result[symbol] = this.parseTicker (this.extend (ticker, { 'date': timestamp }), market);
                 }
             }
         }
@@ -1189,11 +1190,10 @@ export default class bithumb extends Exchange {
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'fetchTicker', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: any = undefined;
         let data: Dict = {};
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1Ticker (this.extend (request, paramsGeneration));
+            const response = await this.publicGetV1Ticker (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -1230,7 +1230,7 @@ export default class bithumb extends Exchange {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, paramsGeneration));
+            const response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1252,7 +1252,7 @@ export default class bithumb extends Exchange {
             //
             data = this.safeDict (response, 'data', {});
         }
-        return this.parseTicker (data, market);
+        return this.parseTicker (this.extend ({}, data), market);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1329,7 +1329,7 @@ export default class bithumb extends Exchange {
         let response: any = undefined;
         let data: List = [];
         if (generation === 2) {
-            const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+            const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
             if (paginate) {
                 return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200) as OHLCV[];
             }
@@ -1523,7 +1523,6 @@ export default class bithumb extends Exchange {
                 }
             }
         }
-        const type = undefined;
         let side = this.safeStringLower2 (trade, 'ask_bid', 'type');
         if (side === 'bid') {
             side = 'buy';
@@ -1556,7 +1555,7 @@ export default class bithumb extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,
@@ -1589,11 +1588,10 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response: any = undefined;
         let data: List = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1TradesTicks (this.extend (request, paramsGeneration));
+            const response = await this.publicGetV1TradesTicks (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -1614,7 +1612,7 @@ export default class bithumb extends Exchange {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, paramsGeneration));
+            const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1676,8 +1674,8 @@ export default class bithumb extends Exchange {
             if (side === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires each order to have a side');
             }
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -1706,7 +1704,7 @@ export default class bithumb extends Exchange {
         return this.parseOrders (data, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         /**
          * @method
          * @ignore
@@ -2427,10 +2425,9 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: any = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap (this.extend (request, paramsRequest));
+            const response = await this.privateGetV1Twap (this.extend (request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2457,7 +2454,7 @@ export default class bithumb extends Exchange {
             //
             data = this.safeList (response, 'orders', []);
         } else {
-            response = await this.privateGetV1Orders (this.extend (request, paramsRequest));
+            const response = await this.privateGetV1Orders (this.extend (request, paramsRequest));
             //
             //     [
             //         {
@@ -3309,7 +3306,8 @@ export default class bithumb extends Exchange {
     }
 
     urlencodeWithArrayBrackets (query: Dict): string {
-        const keys = Object.keys (query);
+        const queryCopy: Dict = this.extend ({}, query);
+        const keys = Object.keys (queryCopy);
         let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -3415,7 +3413,7 @@ export default class bithumb extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

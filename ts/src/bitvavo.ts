@@ -6,7 +6,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance, MarketClosed } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, Endpoint, List } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, Endpoint, List, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -732,7 +732,7 @@ export default class bitvavo extends Exchange {
         //         "timestamp":1590381666900
         //     }
         //
-        return this.parseTicker (response, market);
+        return this.parseTicker (this.extend ({}, response), market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1686,7 +1686,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const operatorId = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId')[0];
+        const [ operatorId ] = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
@@ -2118,7 +2118,7 @@ export default class bitvavo extends Exchange {
         const timestamp = this.safeInteger (order, 'created');
         const marketId = this.safeString (order, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
@@ -2562,7 +2562,6 @@ export default class bitvavo extends Exchange {
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        const id: Str = undefined;
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -2579,7 +2578,7 @@ export default class bitvavo extends Exchange {
             };
         }
         let type: Str = undefined;
-        if (('success' in transaction) || ('address' in transaction)) {
+        if ((this.safeBool (transaction, 'success') !== undefined) || (this.safeString (transaction, 'address') !== undefined)) {
             type = 'withdrawal';
         } else {
             type = 'deposit';
@@ -2587,7 +2586,7 @@ export default class bitvavo extends Exchange {
         const tag = this.safeString (transaction, 'paymentId');
         return {
             'info': transaction,
-            'id': id,
+            'id': undefined,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2646,12 +2645,14 @@ export default class bitvavo extends Exchange {
             networkId = currencyCode;
         }
         const networkCode = this.networkIdToCode (networkId, currencyCode);
+        const networkFees: Dict = {};
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             };
         }
+        result['networks'] = networkFees;
         return result;
     }
 
@@ -2734,7 +2735,7 @@ export default class bitvavo extends Exchange {
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2754,8 +2755,9 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
-        if (('noMarket' in config) && !('market' in params)) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
+        const marketId = this.safeString (params, 'market');
+        if (('noMarket' in config) && (marketId === undefined)) {
             return config['noMarket'];
         }
         return this.safeInteger (config, 'cost', 1);

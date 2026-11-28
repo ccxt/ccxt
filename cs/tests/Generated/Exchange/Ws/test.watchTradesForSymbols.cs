@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
             now = exchange.milliseconds();
             if ((success) && ((response != null)))
             {
-                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ((object)(logText == null ? null : logText + "must return an array. " + (string)(object)(exchange.json(response)))));
+                assert(((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ((object)(logText == null ? null : logText + "must return an array. " + (string)(object)(exchange.json(response)))));
                 for (int i = 0; i < getArrayLength(response); i++)
                 {
                     object trade = getValue(response, i);

@@ -239,6 +239,10 @@ impl Value {
     pub fn as_map(&self)   -> Option<&HashMap<String, Value>> {
         if let Value::Dict(m) = self { Some(&**m) } else { None }
     }
+    /// The value under `key` of a dict, borrowed; `NULL` for a missing key or a non-dict.
+    pub fn at(&self, key: &str) -> &Value {
+        self.as_map().and_then(|m| m.get(key)).unwrap_or(&NULL)
+    }
     /// The map a dict-typed local holds, moved out of the box (an empty map for a non-dict).
     pub fn into_dict(self) -> Dict {
         if let Value::Dict(m) = self { m } else { Arc::new(HashMap::new()) }
@@ -254,11 +258,6 @@ impl Value {
     /// The list an optional list local holds, moved out of the box (`None` for anything but a list).
     pub fn into_opt_list(self) -> Option<List> {
         if let Value::Arr(a) = self { Some(a) } else { None }
-    }
-    /// The string an optional string local holds, moved out of the box: `Some` for a `Str` (an owned string moves,
-    /// a borrowed literal is copied once), `None` for anything else, exactly as `as_str()` reads it.
-    pub fn into_opt_string(self) -> Option<String> {
-        if let Value::Str(s) = self { Some(s.into_owned()) } else { None }
     }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
@@ -309,7 +308,7 @@ impl Value {
 
     pub fn describe(&self) -> Value { Value::Null }
     /// `client.url` on a ws client handle (`Value::Null` on any other Value).
-    pub fn url(&self) -> Value { get_value_k(self, "url") }
+    pub fn url(&self) -> Value { <Value as KeyRead>::key_read(self, "url") }
     /// `client.reject(error, messageHash)` — stores a rejection the `watch`
     /// drive loop delivers to the awaiting caller. Routes by the client
     /// handle's `url` to the WS registry (no-op on a non-client Value).
@@ -320,6 +319,10 @@ impl Value {
     /// `watch` drive loop returns. Routes by the client handle's `url`.
     pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
         crate::pro::ws_client::value_resolve(self, value.into(), hash.into())
+    }
+    /// `client.resolve_ohlcv(tick, messageHash)`: the typed OHLCV resolve, routed like `resolve`.
+    pub fn resolve_ohlcv<'k>(&self, tick: crate::pro::cache::OhlcvTick, hash: impl Into<Option<&'k str>>) {
+        crate::pro::ws_client::value_resolve_ohlcv(self, tick, hash.into())
     }
     /// `client.future(messageHash)` — TS's atomic check-and-insert: opens a
     /// single-flight for the hash (or joins the open one) and hands back a
@@ -397,36 +400,35 @@ impl Value {
     #[cfg(feature = "engine")]
     fn snapshot_as_exchange(&self) -> crate::exchange::Exchange {
         let mut ex = crate::exchange::Exchange::new(None);
-        ex.options = crate::runtime::get_value(self, &Value::Str("options".into()));
-        ex.currencies = crate::runtime::get_value(self, &Value::Str("currencies".into()));
+        if let Value::Dict(m) = crate::runtime::get_value(self, &Value::Str("options".into())) { ex.options = m; }
+        if let Value::Dict(m) = crate::runtime::get_value(self, &Value::Str("currencies".into())) { ex.currencies = m; }
         ex
     }
 
     /// `exchange.networkCodeToId(code, currency)` on a snapshot `Value` —
     /// delegates to the transpiled `Exchange::network_code_to_id`.
-    pub fn network_code_to_id(&self, code: Value, args: &[Value]) -> Value {
+    pub fn network_code_to_id(&self, code: Option<&str>, currency: Option<&str>) -> Value {
         #[cfg(feature = "engine")]
         {
-            let currency = args.first().cloned().unwrap_or(Value::Null);
-            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_code_to_id(code, &[currency]);
+            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_code_to_id(code, currency);
         }
         #[cfg(not(feature = "engine"))]
         {
-            let _ = args;
-            code
+            let _ = currency;
+            Value::from(code)
         }
     }
 
     /// `exchange.networkIdToCode(networkId, currency)` on a snapshot `Value`
     /// — delegates to the transpiled `Exchange::network_id_to_code`.
-    pub fn network_id_to_code(&self, args: &[Value]) -> Value {
+    pub fn network_id_to_code(&self, id: Option<&str>, currency: Option<&str>) -> Value {
         #[cfg(feature = "engine")]
         {
-            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args));
+            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(id, currency));
         }
         #[cfg(not(feature = "engine"))]
         {
-            let _ = args;
+            let _ = (id, currency);
             Value::Null
         }
     }
@@ -471,8 +473,8 @@ impl Value {
             }
             let mut ex = crate::exchange::BaseCore::new(self.snapshot_as_exchange());
             let result = ex.set_markets(markets, &[]);
-            crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), ex.markets.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), ex.markets_by_id.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), Value::from(&ex.markets));
+            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), Value::from(&ex.markets_by_id));
             crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), Value::Arr(ex.symbols.clone()));
             return result;
         }
@@ -606,6 +608,32 @@ impl std::ops::BitAnd for Value {
     }
 }
 
+/// A scalar argument of `number_to_string` / `parse_number` / a `safe_string_opt` key, lent as is: a `Value`
+/// or a typed local (`Option<String>`, `&str`, `f64`, ...). `None` reads as the `Value::Null` it would box to.
+pub enum ScalarRef<'a> { Null, Num(Value), Str(&'a str), Other(&'a Value) }
+pub trait ScalarArg { fn scalar(&self) -> ScalarRef<'_>; }
+impl ScalarRef<'_> {
+    /// The `Value` this scalar boxes to (a lent `Value` reads back as itself).
+    pub fn to_value(self) -> Value { match self { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::from(s), ScalarRef::Other(v) => v.clone() } }
+}
+impl ScalarArg for Value {
+    fn scalar(&self) -> ScalarRef<'_> {
+        match self { Value::Null => ScalarRef::Null, Value::Int(n) => ScalarRef::Num(Value::Int(*n)), Value::Float(f) => ScalarRef::Num(Value::Float(*f)), Value::Str(s) => ScalarRef::Str(&**s), v => ScalarRef::Other(v) }
+    }
+}
+impl ScalarArg for str { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Str(self) } }
+impl ScalarArg for String { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Str(self.as_str()) } }
+impl ScalarArg for f64 { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Num(Value::Float(*self)) } }
+impl ScalarArg for i64 { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Num(Value::Int(*self)) } }
+impl<T: ScalarArg + ?Sized> ScalarArg for Option<&T> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |v| v.scalar()) } }
+impl ScalarArg for Option<String> { fn scalar(&self) -> ScalarRef<'_> { self.as_deref().map_or(ScalarRef::Null, ScalarRef::Str) } }
+impl ScalarArg for Option<f64> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |f| ScalarRef::Num(Value::Float(f))) } }
+impl ScalarArg for Option<i64> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |n| ScalarRef::Num(Value::Int(n))) } }
+impl<T: ScalarArg + ?Sized> ScalarArg for &T { fn scalar(&self) -> ScalarRef<'_> { (**self).scalar() } }
+impl From<ScalarRef<'_>> for Value {
+    fn from(r: ScalarRef<'_>) -> Self { match r { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::from(s), ScalarRef::Other(v) => v.clone() } }
+}
+
 impl std::ops::BitOr for Value {
     type Output = Value;
     fn bitor(self, rhs: Value) -> Value {
@@ -707,18 +735,18 @@ fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
     LIVE_SET_MARKETS.get().copied()
 }
 
-/// Hot-path `get_value` variant that takes the key as a `&str` directly,
-/// skipping a `Value::Str` heap allocation. Used by the `safe_*_k`
-/// fast-path readers the transpiler routes literal-key calls through.
-#[inline]
-pub fn get_value_k(obj: &Value, key: &str) -> Value {
-    if let Value::Dict(m) = obj { get_map_value_k(m, key) } else { Value::Null }
-}
-
 /// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
 pub type Dict = Arc<HashMap<String, Value>>;
 /// The shared list a list-typed local holds; a non-list value reads like an empty list.
 pub type List = Arc<Vec<Value>>;
+/// A list read as rows of maps, converted once: a non-map element is the empty map in its slot (what `safe_dict_t` answers).
+pub fn dict_rows(list: List) -> Vec<Dict> {
+    list.iter().map(|v| if let Value::Dict(m) = v { Arc::clone(m) } else { Dict::default() }).collect()
+}
+/// Declared shape of an implicit-endpoint body (`Dict` or `List`).
+pub trait EndpointBody: Sized + Send { fn from_body(v: Value) -> Option<Self>; }
+impl EndpointBody for Dict { fn from_body(v: Value) -> Option<Self> { if let Value::Dict(m) = v { Some(m) } else { None } } }
+impl EndpointBody for List { fn from_body(v: Value) -> Option<Self> { if let Value::Arr(a) = v { Some(a) } else { None } } }
 
 /// A byte buffer (TS `Uint8Array`): the port's existing binary form, a list of `Value::Int` bytes,
 /// behind a typed handle. Boxing it (`Value::from`) moves or shares the same list; nothing is copied.
@@ -742,6 +770,14 @@ impl Rows for Value {
     fn rows(self) -> Value { self }
     fn absent(&self) -> bool { self.is_null() }
 }
+impl Rows for &Value {
+    fn rows(self) -> Value { self.clone() }
+    fn absent(&self) -> bool { self.is_null() }
+}
+impl Rows for List {
+    fn rows(self) -> Value { Value::Arr(self) }
+    fn absent(&self) -> bool { false }
+}
 impl Rows for &List {
     fn rows(self) -> Value { Value::from(self) }
     fn absent(&self) -> bool { false }
@@ -762,12 +798,13 @@ pub trait KeyRead: Clone {
     fn read(&self, key: &Value) -> Value;
 }
 impl KeyRead for Value {
-    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn key_read(&self, key: &str) -> Value { if let Value::Dict(m) = self { get_map_value_k(m, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { get_value(self, key) }
 }
-impl KeyRead for &Value {
-    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
-    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+/// A lent reader container reads what it borrows: `&obj` on an `impl KeyRead` parameter needs no copy.
+impl<T: KeyRead> KeyRead for &T {
+    fn key_read(&self, key: &str) -> Value { (**self).key_read(key) }
+    fn read(&self, key: &Value) -> Value { (**self).read(key) }
 }
 impl KeyRead for &Dict {
     fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
@@ -785,6 +822,10 @@ impl KeyRead for &List {
     fn key_read(&self, _key: &str) -> Value { Value::Null }
     fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
 }
+impl KeyRead for &[Value] {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
 impl KeyRead for &Option<Dict> {
     fn key_read(&self, key: &str) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value_k(m, key)) }
     fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value(m, key)) }
@@ -795,22 +836,22 @@ impl KeyRead for &Option<List> {
 }
 /// A market reads its own map, as the boxed record did.
 impl KeyRead for &crate::types::Market {
-    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn key_read(&self, key: &str) -> Value { <Value as KeyRead>::key_read(&self.raw, key) }
     fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
+}
+/// A borrowed optional row reads its map, as `Value::from(row)` did (Null when absent).
+impl KeyRead for Option<&Dict> {
+    fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |m| get_map_value_k(m, key)) }
+    fn read(&self, key: &Value) -> Value { self.map_or(Value::Null, |m| get_map_value(m, key)) }
 }
 /// An optional market argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Market> {
-    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
-    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
-}
-/// A lent optional market reads its own map (Null when absent).
-impl KeyRead for &Option<&crate::types::Market> {
-    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { <Value as KeyRead>::key_read(&m.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 /// An optional market reads its own map, as the boxed local did (Null when empty).
 impl KeyRead for &Option<crate::types::Market> {
-    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { <Value as KeyRead>::key_read(&m.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 
@@ -821,22 +862,17 @@ impl From<Option<&crate::types::Market>> for Value {
 
 /// A typed currency reads its own map, as the boxed record did.
 impl KeyRead for &crate::types::Currency {
-    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn key_read(&self, key: &str) -> Value { <Value as KeyRead>::key_read(&self.raw, key) }
     fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
 }
 /// An optional typed currency reads its own map (Null when empty).
 impl KeyRead for &Option<crate::types::Currency> {
-    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { <Value as KeyRead>::key_read(&c.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
 }
 /// An optional currency argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Currency> {
-    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
-    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
-}
-/// A lent optional currency reads its own map (Null when absent).
-impl KeyRead for &Option<&crate::types::Currency> {
-    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { <Value as KeyRead>::key_read(&c.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
 }
 
@@ -863,6 +899,15 @@ impl MergeOperands for &[&Dict; 1] {
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
 }
 /// An optional dict local lent to `extend`: `Some` merges its map, `None` merges nothing (as the boxed `Null` did).
+/// A boxed local lent as the sole extra operand: merges as the cloned box did.
+impl MergeOperands for &[&Value; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { if let Value::Dict(m) = self[0] { f(m) } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(self[0].clone()) }
+}
+impl MergeOperands for &[&HashMap<String, Value>; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Map(self[0].clone())) }
+}
 impl MergeOperands for &[&Option<Dict>; 1] {
     fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { if let Some(m) = self[0] { f(m) } }
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::from(self[0])) }
@@ -878,6 +923,9 @@ impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**se
 /// exactly as the boxed `Value::Null` head did.
 impl ExtendHead for Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.map(ExtendHead::into_head).unwrap_or_default() } }
 impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.as_ref().map(ExtendHead::into_head).unwrap_or_default() } }
+/// A map local lent as the head: copied here, exactly as the boxed `Value::Map(x.clone())` head was.
+impl ExtendHead for &HashMap<String, Value> { fn into_head(self) -> HashMap<String, Value> { self.clone() } }
+impl ExtendHead for &&mut HashMap<String, Value> { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
 
 /// ral-43c: the key of the runtime `get_value`: a boxed `&Value`, or a typed string local (`&str`, `Option<&str>`) that is
 /// boxed here to the same `Str` / `Null` key the boxed read used, so the lookup is unchanged.
@@ -887,10 +935,17 @@ impl ValueKey for &&Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) ->
 impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::from(self)) } }
 impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::from(s)), None => f(&Value::Null) } } }
 
+/// The object a URL / JSON encoder reads: anything boxed into a `Value` as before, or a boxed local lent by reference.
+pub trait EncodeOperand { fn with_operand<R>(self, f: impl FnOnce(&Value) -> R) -> R; }
+impl<T: Into<Value>> EncodeOperand for T { fn with_operand<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&self.into()) } }
+impl EncodeOperand for &Value { fn with_operand<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
+impl OmitSource for &Value { fn into_operand(self) -> Value { self.clone() } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+impl OmitSource for Dict { fn into_operand(self) -> Value { Value::Dict(self) } }
 /// ral-48d: an optional map local (`safeDict` with no default, a nil-declared map rewritten by its own omit): `None`
 /// answers `Value::Null` exactly as the boxed Null passed through `omit`; `Some(m)` drops keys from the shared map.
 impl OmitSource for Option<Dict> { fn into_operand(self) -> Value { self.map(Value::Dict).unwrap_or(Value::Null) } }
@@ -913,18 +968,25 @@ impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(
 impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }
 /// A dict local moved into a `Value` parameter: the map itself, no copy.
 impl From<Dict> for Value { fn from(m: Dict) -> Self { Value::Dict(m) } }
+/// A `(request, params)` map pair boxed as the two-element list its `Value` callers index.
+impl From<(Dict, Dict)> for Value { fn from(p: (Dict, Dict)) -> Self { Value::Arr(Arc::new(vec![Value::Dict(p.0), Value::Dict(p.1)])) } }
 impl From<&Option<List>> for Value { fn from(a: &Option<List>) -> Self { match a { Some(l) => Value::Arr(Arc::clone(l)), None => Value::Null } } }
 /// An optional dict local lent to an `impl Into<Value>` parameter: the shared map for `Some`, `Value::Null` for `None`.
 impl From<&Option<Dict>> for Value { fn from(m: &Option<Dict>) -> Self { match m { Some(d) => Value::Dict(Arc::clone(d)), None => Value::Null } } }
+/// An optional borrowed row slot: the shared map for `Some`, `Value::Null` for a missing row.
+impl From<Option<&Dict>> for Value { fn from(m: Option<&Dict>) -> Self { m.map_or(Value::Null, |d| Value::Dict(Arc::clone(d))) } }
 /// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
 impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
 
-/// `get_value_k` on the map itself.
+/// The shared `Null` a borrowed read answers for a missing key.
+pub static NULL: Value = Value::Null;
+
+/// The literal-key read on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
     {
         // A shared order book keeps its scalar meta (nonce/timestamp/…) in the
         // book store; route those through it so the safe_* helpers (which go via
-        // get_value_k) see the shared value, not the empty Dict slot.
+        // this read) see the shared value, not the empty Dict slot.
         if is_book_meta_key(key) {
             if let Some(id) = book_id_of(m) { return book_meta_get(id, key); }
         }
@@ -2538,7 +2600,7 @@ impl Value {
     /// `book['bids'|'asks'|'nonce'|...]` read on an order-book-typed local: the same
     /// shared-store lookup `get_value` does for these keys, without the boxed key.
     pub fn book_field(&self, k: &str) -> Value {
-        get_value_k(self, k)
+        <Value as KeyRead>::key_read(self, k)
     }
 
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone
@@ -2824,22 +2886,23 @@ mod self_write_read_parity_tests {
     }
 
     // ral-xf: `m[k].push(v)` on a literal map (`if let Some(__k) = k.as_str() { if let Value::Arr(__a) =
-    // m.entry(..).or_insert_with(empty) { push } }`) against append_to_object_array, and a `symbol` key read / write
-    // against get_value / add_element_to_object (no __book_id in a literal), for a present list, a missing key, a
-    // wrong-kind (Int) value and Null / Int keys.
+    // m.entry(..).or_insert_with(empty) { push } }`) and a `symbol` key read against get_value
+    // (no __book_id in a literal), for a present list, a missing key, a wrong-kind (Int) value and Null / Int keys.
     #[test]
     fn typed_entry_push_and_symbol_key_match_runtime() {
-        use crate::runtime::append_to_object_array as boxed_push;
         let keys = [Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("n".into()), Value::Str("symbol".into()), Value::Null, Value::Int(1)];
         for k in keys {
-            let mut typed = literal();
-            typed.insert("BTC".to_string(), Value::from(vec![Value::Int(1)]));
-            let mut boxed = Value::Dict(Arc::new(literal()));
-            boxed_write(&mut boxed, &Value::Str("BTC".into()), Value::from(vec![Value::Int(1)]));
+            let mut baseline = literal();
+            baseline.insert("BTC".to_string(), Value::from(vec![Value::Int(1)]));
+            let mut typed = baseline.clone();
             if let Some(__k) = k.as_str() { if let Value::Arr(__a) = typed.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { Arc::make_mut(__a).push(Value::Int(2)); } }
-            boxed_push(&mut boxed, &k, Value::Int(2));
+            let boxed = Value::Dict(Arc::new(typed.clone()));
             assert_eq!(typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), boxed_read(&boxed, &k));
-            assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+            match k.as_str() {
+                Some("BTC") => assert_eq!(typed.get("BTC"), Some(&Value::from(vec![Value::Int(1), Value::Int(2)]))),
+                Some("ETH") | Some("symbol") => assert_eq!(typed.get(k.as_str().unwrap()), Some(&Value::from(vec![Value::Int(2)]))),
+                _ => assert_eq!(typed, baseline),
+            }
         }
     }
 }
@@ -2912,39 +2975,6 @@ mod nested_slot_insert_tests {
         for n in 0..6 {
             assert_eq!(Value::Dict(typed(slot(inner(n)), Value::Str("v".into()))), boxed(slot(inner(n)), Value::Str("v".into())));
         }
-    }
-}
-
-#[cfg(test)]
-mod into_opt_string_tests {
-    use super::*;
-
-    // each case is built twice (one copy read by `as_str`, one moved into `into_opt_string`)
-    fn case(k: u8) -> Value {
-        match k {
-            0 => Value::Null, 1 => Value::Bool(true), 2 => Value::Bool(false), 3 => Value::Int(0), 4 => Value::Int(7), 5 => Value::Float(1.5),
-            6 => Value::Str("".into()), 7 => Value::Str("lit".into()), 8 => Value::Str(Cow::Owned("owned".to_string())),
-            9 => Value::Map(HashMap::new()), _ => Value::List(vec![Value::Str("x".into())]),
-        }
-    }
-
-    #[test]
-    fn into_opt_string_matches_the_borrowed_string_read() {
-        for k in 0..=10u8 {
-            let read = case(k);
-            let borrowed = read.as_str().map(str::to_owned);
-            assert_eq!(case(k).into_opt_string(), borrowed, "{:?}", read);
-            assert_eq!(Value::from(case(k).into_opt_string()), Value::from(read.as_str()), "{:?}", read);
-        }
-    }
-
-    #[test]
-    fn into_opt_string_moves_an_owned_string() {
-        let s = String::from("BTC/USDT");
-        let at = s.as_ptr();
-        let out = Value::Str(Cow::Owned(s)).into_opt_string().unwrap();
-        assert_eq!(out.as_ptr(), at);
-        assert_eq!(out, "BTC/USDT");
     }
 }
 

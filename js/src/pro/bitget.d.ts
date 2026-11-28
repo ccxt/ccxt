@@ -1,5 +1,5 @@
 import bitgetRest from '../bitget.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 /**
  * @class bitget
@@ -139,7 +139,7 @@ export default class bitget extends bitgetRest {
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
+    handleCheckSumError(client: Client, symbol: string, messageHash: string, checksumMessage: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     /**
@@ -266,16 +266,16 @@ export default class bitget extends bitgetRest {
     handleBalance(client: Client, message: Dict): void;
     watchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
     unWatchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
-    unWatchPrivate(uta: any, messageHash: any, args: any, params?: Dict): Promise<any>;
+    unWatchPrivate(uta: boolean, messageHash: any, args: any, params?: Dict): Promise<any>;
     watchPublicMultiple(uta: boolean, messageHashes: string[], argsArray: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<any>;
     watchPrivate(uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params?: Dict): Promise<any>;
     handleAuthenticate(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): any;
+    handlePong(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleOrderBookUnSubscription(client: Client, message: Dict): void;
     handleTradesUnSubscription(client: Client, message: Dict): void;

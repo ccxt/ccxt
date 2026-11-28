@@ -9,14 +9,20 @@ public partial class BaseExchange
 {
     public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {
+        return sortBy<object>((IList<object>)array, value1, desc2, defaultValue2);
+    }
+
+    // typed rows (List<Dictionary<string, object>>) keep their element type through the sort
+    public List<T> sortBy<T>(IList<T> array, object value1, object desc2 = null, object defaultValue2 = null)
+    {
         desc2 ??= false;
         var defaultValue = defaultValue2 ?? 0; // ts parity: generic.ts defaults the sort fallback to 0, not the empty string
         var desc = (bool)desc2;
-        var list = (IList<object>)array;
+        var list = array;
 
         if (value1.GetType() == typeof(string))
         {
-            var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1], sortKeyComparer).ToList();
+            var sortedList2 = list.OrderBy(x => ((dict)(object)x)[(string)value1], sortKeyComparer).ToList();
             if (desc)
                 sortedList2.Reverse();
             return sortedList2;
@@ -28,7 +34,7 @@ public partial class BaseExchange
             {
                 if (x.GetType() == typeof(list))
                 {
-                    return ((list)x)[value];
+                    return ((list)(object)x)[value];
                 }
                 return defaultValue;
             }, sortKeyComparer).ToList();
@@ -378,7 +384,7 @@ public partial class BaseExchange
 
     public virtual bool isDictionary(object value)
     {
-        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+        return value != null && (value is IDictionary<string, object>) && !(value is IList<object> || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
     }
 
     public virtual object sum(params object[] args)

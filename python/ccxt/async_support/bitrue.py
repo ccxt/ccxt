@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -854,7 +854,7 @@ class bitrue(Exchange, ImplicitAPI):
             # for backward-compatibility
             types = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
         for i in range(0, len(types)):
-            marketType = types[i]
+            marketType = self.safe_string(types, i, '')
             if marketType == 'spot':
                 promisesRaw.append(self.spotV1PublicGetExchangeInfo(params))
             elif marketType == 'linear':
@@ -864,11 +864,9 @@ class bitrue(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesRaw)
-        spotMarkets = self.safe_list(self.safe_dict(promises, 0), 'symbols', [])
         futureMarkets = self.safe_list(promises, 1, [])
         deliveryMarkets = self.safe_list(promises, 2, [])
-        markets = spotMarkets
-        markets = self.array_concat(markets, futureMarkets)
+        markets = self.array_concat(self.safe_list(self.safe_dict(promises, 0), 'symbols', []), futureMarkets)
         markets = self.array_concat(markets, deliveryMarkets)
         #
         # spot
@@ -1373,13 +1371,13 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV1PublicGetTicker(self.extend(request, params))
             elif self.safe_bool(market, 'inverse', False):
                 response = await self.dapiV1PublicGetTicker(self.extend(request, params))
-            data = response
+            data = self.extend(data, response)
         elif self.safe_bool(market, 'spot', False):
             request = {
                 'symbol': market['id'],
             }
             response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
-            data = self.safe_dict(response, 0, {})
+            data = self.extend(data, self.safe_dict(response, 0, {}))
         else:
             raise NotSupported(self.id + ' fetchTicker only support spot & swap markets')
         #
@@ -1453,10 +1451,9 @@ class bitrue(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if self.safe_bool(market, 'linear', False):
-                response = await self.fapiV1PublicGetKlines(self.extend(request, params))
+                data = await self.fapiV1PublicGetKlines(self.extend(request, params))
             elif self.safe_bool(market, 'inverse', False):
-                response = await self.dapiV1PublicGetKlines(self.extend(request, params))
-            data = response
+                data = await self.dapiV1PublicGetKlines(self.extend(request, params))
         elif self.safe_bool(market, 'spot', False):
             timeframesSpot = self.safe_dict(timeframes, 'spot', {})
             request = {
@@ -1603,7 +1600,8 @@ class bitrue(Exchange, ImplicitAPI):
         #     }
         #
         data = {}
-        data[(market['id'])] = response
+        tickerKey = self.safe_string(market, 'id', '')
+        data[tickerKey] = response
         return self.parse_tickers(data, symbolsNormalized)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -1690,7 +1688,8 @@ class bitrue(Exchange, ImplicitAPI):
             if marketId is None:
                 continue
             market = self.safe_market(marketId)
-            tickers[(market['id'])] = ticker
+            tickerKey = self.safe_string(market, 'id', '')
+            tickers[tickerKey] = ticker
         return self.parse_tickers(tickers, symbolsNormalized)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1899,16 +1898,19 @@ class bitrue(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'executedQty')
         timestamp = None
         lastTradeTimestamp = None
-        if 'time' in order:
-            timestamp = self.safe_integer(order, 'time')
-        elif 'transactTime' in order:
-            timestamp = self.safe_integer(order, 'transactTime')
-        elif 'updateTime' in order:
+        time = self.safe_integer(order, 'time')
+        transactTime = self.safe_integer(order, 'transactTime')
+        updateTime = self.safe_integer(order, 'updateTime')
+        if time is not None:
+            timestamp = time
+        elif transactTime is not None:
+            timestamp = transactTime
+        elif updateTime is not None:
             if status == 'open':
                 if Precise.string_gt(filled, '0'):
-                    lastTradeTimestamp = self.safe_integer(order, 'updateTime')
+                    lastTradeTimestamp = updateTime
                 else:
-                    timestamp = self.safe_integer(order, 'updateTime')
+                    timestamp = updateTime
         average = self.safe_string(order, 'avgPrice')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'origQty')
@@ -2017,7 +2019,7 @@ class bitrue(Exchange, ImplicitAPI):
         if self.safe_bool(market, 'swap', False):
             isMarket = uppercaseType == 'MARKET'
             timeInForce = self.safe_string_lower(params, 'timeInForce')
-            postOnly = self.is_post_only(isMarket, None, params)
+            postOnly = self.is_post_only(isMarket, False, params)
             if postOnly:
                 request['type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -2096,7 +2098,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2184,7 +2186,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2386,7 +2388,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3040,7 +3042,7 @@ class bitrue(Exchange, ImplicitAPI):
             response = await self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
-    def parse_margin_modification(self, data: object, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # setMargin
         #
@@ -3080,15 +3082,10 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' setMargin only support swap markets')
-        response = None
         request = {
             'contractName': market['id'],
             'amount': self.parse_to_numeric(amount),
         }
-        if self.safe_bool(market, 'linear', False):
-            response = await self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
-        elif self.safe_bool(market, 'inverse', False):
-            response = await self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -3096,7 +3093,13 @@ class bitrue(Exchange, ImplicitAPI):
         #         "data": null
         #     }
         #
-        return self.parse_margin_modification(response, market)
+        if self.safe_bool(market, 'linear', False):
+            response = await self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
+            return self.parse_margin_modification(response, market)
+        elif self.safe_bool(market, 'inverse', False):
+            response = await self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
+            return self.parse_margin_modification(response, market)
+        raise NotSupported(self.id + ' setMargin only support linear or inverse swap markets')
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None
@@ -3171,7 +3174,7 @@ class bitrue(Exchange, ImplicitAPI):
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + (' ' + body))
         # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -3219,10 +3222,12 @@ class bitrue(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
-        if ('noSymbol' in config) and not ('symbol' in params):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
+        paramsSymbol = self.safe_string(params, 'symbol')
+        paramsLimit = self.safe_string(params, 'limit')
+        if ('noSymbol' in config) and (paramsSymbol is None):
             return config['noSymbol']
-        elif ('byLimit' in config) and ('limit' in params):
+        elif ('byLimit' in config) and (paramsLimit is not None):
             limit = self.safe_integer(params, 'limit')
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):

@@ -861,10 +861,10 @@ export default class btcmarkets extends Exchange {
         const marketResolved = this.safeMarket(marketId, market, '-');
         let feeCurrencyCode = undefined;
         if (marketResolved['quote'] === 'AUD') {
-            feeCurrencyCode = marketResolved['quote'];
+            feeCurrencyCode = this.safeString(marketResolved, 'quote');
         }
         else {
-            feeCurrencyCode = marketResolved['base'];
+            feeCurrencyCode = this.safeString(marketResolved, 'base');
         }
         let side = this.safeString(trade, 'side');
         if (side === 'Bid') {
@@ -1014,7 +1014,7 @@ export default class btcmarkets extends Exchange {
         }
         let paramsTriggerPrice = params;
         if (triggerPriceIsRequired) {
-            paramsTriggerPrice = this.omit(params, 'triggerPrice');
+            paramsTriggerPrice = this.omit(paramsTriggerPrice, 'triggerPrice');
         }
         const paramsOmitted = this.omit(paramsTriggerPrice, 'clientOrderId');
         const response = await this.privatePostOrders(this.extend(request, paramsOmitted));

@@ -942,7 +942,6 @@ class upbit extends upbit$1["default"] {
         //         }
         //
         const id = this.safeString2(trade, 'sequential_id', 'uuid');
-        const orderId = undefined;
         let timestamp = this.safeInteger(trade, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601(this.safeString(trade, 'created_at'));
@@ -971,7 +970,7 @@ class upbit extends upbit$1["default"] {
         return this.safeTrade({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
@@ -1327,8 +1326,9 @@ class upbit extends upbit$1["default"] {
         else {
             throw new errors.InvalidOrder(this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const paramsOrdType = (customType === 'best') ? this.omit(params, ['ordType', 'ord_type']) : params;
+        let paramsOrdType = params;
         if (customType === 'best') {
+            paramsOrdType = this.omit(paramsOrdType, ['ordType', 'ord_type']);
             request['ord_type'] = 'best';
             if (side === 'buy') {
                 const orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);

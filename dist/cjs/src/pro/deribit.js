@@ -441,8 +441,7 @@ class deribit extends deribit$1["default"] {
         }
         const stored = this.trades[symbol];
         for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            const parsed = this.parseTrade(trade, market);
+            const parsed = this.parseTrade(this.safeDict(trades, i, {}), market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
@@ -675,8 +674,8 @@ class deribit extends deribit$1["default"] {
         return data;
     }
     handleDelta(bookside, delta) {
-        const price = this.safeValue(delta, 1);
-        const amount = this.safeValue(delta, 2);
+        const price = this.safeNumber(delta, 1);
+        const amount = this.safeNumber(delta, 2);
         const action = this.safeString(delta, 0);
         if (action === 'new' || action === 'change') {
             bookside.storeArray([price, amount, 1]);
@@ -770,12 +769,13 @@ class deribit extends deribit$1["default"] {
         }
         const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel', '');
-        const data = this.safeValue(params, 'data', {});
+        const dataList = this.safeList(params, 'data');
         let orders = [];
-        if (Array.isArray(data)) {
-            orders = this.parseOrders(data);
+        if (dataList !== undefined) {
+            orders = this.parseOrders(dataList);
         }
         else {
+            const data = this.safeDict(params, 'data', {});
             const order = this.parseOrder(data);
             orders = [order];
         }
@@ -803,7 +803,8 @@ class deribit extends deribit$1["default"] {
         }
         const symbolValue = this.symbol(symbol);
         const ohlcvs = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, params);
-        return ohlcvs[symbolValue][timeframe];
+        const bySymbol = ohlcvs[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -854,7 +855,7 @@ class deribit extends deribit$1["default"] {
         const marketId = this.safeString(parts, 2);
         const rawTimeframe = this.safeString(parts, 3);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const wsOptions = this.safeDict(this.options, 'ws', {});
         const timeframes = this.safeDict(wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);

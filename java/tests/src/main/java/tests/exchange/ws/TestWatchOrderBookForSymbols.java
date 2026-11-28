@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -25,9 +26,9 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
         // symbol to be seen would hang forever whenever one of them stays idle.
         Integer maxIdleTime = 5000;
         Object currentTime = exchange.milliseconds();
-        Object deadline = Helpers.add(currentTime, 15000);
+        Object deadline = TestHelpers.add(currentTime, 15000);
         Boolean idle = false;
-        while ((Helpers.isLessThan(currentTime, deadline)) && !Boolean.TRUE.equals(idle))
+        while ((TestHelpers.isLessThan(currentTime, deadline)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean succeeded = true;
@@ -37,8 +38,9 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 // interim workaround for InvalidNonce raised by the c# runtime
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !((eCause instanceof InvalidNonce)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -49,8 +51,8 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-                Object elapsed = Helpers.subtract(currentTime, startTime);
-                if (Helpers.isGreaterThan(elapsed, maxIdleTime))
+                Object elapsed = TestHelpers.subtract(currentTime, startTime);
+                if (TestHelpers.isGreaterThan(elapsed, maxIdleTime))
                 {
                     idle = true;
                 }

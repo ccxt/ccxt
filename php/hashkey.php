@@ -1086,12 +1086,11 @@ class hashkey extends Exchange {
             }
         }
         $tradingFees = $this->safe_dict($this->fees, 'trading');
-        $fees = null;
+        $feeKey = 'swap';
         if ($isSpot) {
-            $fees = $this->safe_dict($tradingFees, 'spot');
-        } else {
-            $fees = $this->safe_dict($tradingFees, 'swap');
+            $feeKey = 'spot';
         }
+        $fees = $this->safe_dict($tradingFees, $feeKey);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -1710,7 +1709,7 @@ class hashkey extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
         $contractSizeValue = $this->safe_string($marketResolved, 'contractSize');
@@ -1926,7 +1925,10 @@ class hashkey extends Exchange {
             'coin' => $currency['id'],
         );
         list($networkCodeInParams, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
-        $networkCode = ($networkCodeInParams === null) ? $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork')) : $networkCodeInParams;
+        $networkCode = $networkCodeInParams;
+        if ($networkCode === null) {
+            $networkCode = $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork'));
+        }
         $request['chainType'] = $this->network_code_to_id($networkCode, $code);
         $response = $this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsNetworkCode));
         //
@@ -2590,7 +2592,7 @@ class hashkey extends Exchange {
             throw new NotSupported($this->id . ' createOrder() supports cost parameter for spot market buy orders only');
         }
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = array();
+        $response = null;
         $test = $this->safe_bool($params, 'test', false);
         if ($test) {
             $response = $this->privatePostApiV1SpotOrderTest($request);
@@ -3062,7 +3064,7 @@ class hashkey extends Exchange {
         } else {
             throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
         }
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {
@@ -3255,7 +3257,7 @@ class hashkey extends Exchange {
         } else {
             throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
         }
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3736,16 +3738,15 @@ class hashkey extends Exchange {
                 $type = 'limit';
             }
         }
-        $timeInForce = $this->safe_string($order, 'timeInForce');
-        $postOnly = null;
-        list($type, $timeInForce, $postOnly) = $this->parse_order_type_time_in_force_and_post_only($type, $timeInForce);
+        $rawTimeInForce = $this->safe_string($order, 'timeInForce');
+        $timeInForce = $this->parse_order_time_in_force_value($type, $rawTimeInForce);
+        $typeParsed = $this->parse_order_type($type);
         $average = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         if ($price === null) {
             $price = $average;
         }
-        $side = $this->safe_string_lower($order, 'side');
-        $reduceOnly = null;
-        list($side, $reduceOnly) = $this->parse_order_side_and_reduce_only($side);
+        $rawSide = $this->safe_string_lower($order, 'side');
+        $side = $this->parse_order_side_value($rawSide);
         $feeCurrncyId = $this->safe_string($order, 'feeCoin');
         if ($feeCurrncyId === '') {
             $feeCurrncyId = null;
@@ -3759,7 +3760,7 @@ class hashkey extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'status' => $this->parse_order_status($status),
             'symbol' => $marketResolved['symbol'],
-            'type' => $type,
+            'type' => $typeParsed,
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
@@ -3776,23 +3777,31 @@ class hashkey extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrncyId),
                 'cost' => $this->omit_zero($this->safe_string($order, 'feeAmount')),
             ),
-            'reduceOnly' => $reduceOnly,
-            'postOnly' => $postOnly,
+            'reduceOnly' => $this->parse_order_reduce_only_value($rawSide),
+            'postOnly' => $this->parse_order_post_only_value($type, $rawTimeInForce),
             'info' => $order,
         ), $marketResolved);
     }
 
-    public function parse_order_side_and_reduce_only(mixed $unparsed) {
-        $parts = explode('_', $unparsed);
-        $side = $parts[0];
-        $secondPart = $this->safe_string($parts, 1);
+    public function parse_order_side_value(?string $unparsed): ?string {
+        if ($unparsed === null) {
+            return null;
+        }
+        return $this->safe_string(explode('_', $unparsed), 0);
+    }
+
+    public function parse_order_reduce_only_value(?string $unparsed): ?bool {
+        if ($unparsed === null) {
+            return null;
+        }
+        $secondPart = $this->safe_string(explode('_', $unparsed), 1);
         if ($secondPart === 'open') {
-            return array( $side, false );
+            return false;
         }
         if ($secondPart === 'close') {
-            return array( $side, true );
+            return true;
         }
-        return array( $side, null );
+        return null;
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -3810,17 +3819,20 @@ class hashkey extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type_time_in_force_and_post_only(?string $type, ?string $timeInForce): array {
+    public function parse_order_time_in_force_value(?string $type, ?string $timeInForce): ?string {
         $isMakerTimeInForce = ($timeInForce === 'LIMIT_MAKER') || ($timeInForce === 'MAKER');
-        $timeInForceParsed = $timeInForce;
         if (($type !== 'LIMIT_MAKER') && $isMakerTimeInForce) {
-            $timeInForceParsed = 'PO';
+            return 'PO';
         }
-        $typeValue = $this->parse_order_type($type);
+        return $timeInForce;
+    }
+
+    public function parse_order_post_only_value(?string $type, ?string $timeInForce): ?bool {
+        $isMakerTimeInForce = ($timeInForce === 'LIMIT_MAKER') || ($timeInForce === 'MAKER');
         if (($type === 'LIMIT_MAKER') || $isMakerTimeInForce) {
-            return array( $typeValue, $timeInForceParsed, true );
+            return true;
         }
-        return array( $typeValue, $timeInForceParsed, null );
+        return null;
     }
 
     public function parse_order_type(?string $type): ?string {
@@ -4002,7 +4014,8 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        return $this->fetch_positions_for_symbol($symbols[0], $this->extend(array( 'methodName' => 'fetchPositions' ), $params));
+        $firstSymbol = $this->safe_string($symbols, 0, '');
+        return $this->fetch_positions_for_symbol($firstSymbol, $this->extend(array( 'methodName' => 'fetchPositions' ), $params));
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array()): array {
@@ -4058,7 +4071,7 @@ class hashkey extends Exchange {
     public function parse_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_position(array(
             'symbol' => $symbol,
             'id' => null,
@@ -4432,8 +4445,8 @@ class hashkey extends Exchange {
             $fee = $this->safe_dict($response, $symbol);
             return $fee;
         } elseif ($this->safe_bool($market, 'swap', false)) {
-            $response = $this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params));
-            return $this->parse_trading_fee($response, $market);
+            $swapResponse = $this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params));
+            return $this->parse_trading_fee($swapResponse, $market);
             //
             //     {
             //         "openMakerFee": "0.00025",
@@ -4488,7 +4501,8 @@ class hashkey extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $fee = $this->safe_dict($data, $i, array());
             $parsedFee = $this->parse_trading_fee($fee);
-            $result[$parsedFee['symbol']] = $parsedFee;
+            $feeSymbol = $this->safe_string($parsedFee, 'symbol', '');
+            $result[$feeSymbol] = $parsedFee;
         }
         return $result;
     }
@@ -4587,7 +4601,7 @@ class hashkey extends Exchange {
         return $result;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

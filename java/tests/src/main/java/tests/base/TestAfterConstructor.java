@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 
 
@@ -17,7 +18,7 @@ public class TestAfterConstructor extends BaseTest
             }});
             // todo: Assert (exchange.MAX_VALUE !== undefined);
             Object tokenBucket = exchange.getProperty(exchange, "tokenBucket"); // trick for uncamelcase transpilation
-            if (Helpers.isTrue(Helpers.isEqual(tokenBucket, null)))
+            if (TestHelpers.isTrue(Helpers.isEqual(tokenBucket, null)))
             {
                 tokenBucket = exchange.getProperty(exchange, "TokenBucket");
             }
@@ -26,29 +27,29 @@ public class TestAfterConstructor extends BaseTest
             Object rateLimit = exchange.getProperty(exchange, "rateLimit");
             Assert(Helpers.isEqual(rateLimit, 10.8));
             Assert(Helpers.isEqual(Helpers.GetValue(tokenBucket, "delay"), 0.001));
-            Assert(Helpers.isEqual(Helpers.GetValue(tokenBucket, "refillRate"), Helpers.divide(1, rateLimit)));
+            Assert(Helpers.isEqual(Helpers.GetValue(tokenBucket, "refillRate"), TestHelpers.divide(1, rateLimit)));
             Assert("GO_SKIP_END");
             // fix decimal/integer issues across langs
             Assert(exchange.inArray(Helpers.GetValue(tokenBucket, "capacity"), new java.util.ArrayList<Object>(java.util.Arrays.asList(1, 1))));
             Object cost = exchange.parseToNumeric(exchange.safeString2(tokenBucket, "cost", "defaultCost")); // python sync, todo fix
             Assert(exchange.inArray(cost, new java.util.ArrayList<Object>(java.util.Arrays.asList(1, 1))));
-            Assert(!Helpers.isTrue((Helpers.inOp(tokenBucket, "maxCapacity"))) || Helpers.isTrue(exchange.inArray(Helpers.GetValue(tokenBucket, "maxCapacity"), new java.util.ArrayList<Object>(java.util.Arrays.asList(1000, 1000)))));
+            Assert(!TestHelpers.isTrue((TestHelpers.inOp(tokenBucket, "maxCapacity"))) || TestHelpers.isTrue(exchange.inArray(Helpers.GetValue(tokenBucket, "maxCapacity"), new java.util.ArrayList<Object>(java.util.Arrays.asList(1000, 1000)))));
         }
         public void helperTestSandboxState(Exchange exchange, Object... optionalArgs)
         {
-            Object shouldBeEnabled = Helpers.getArg(optionalArgs, 0, true);
+            Object shouldBeEnabled = TestHelpers.getArg(optionalArgs, 0, true);
             Assert(!Helpers.isEqual(exchange.urls, null));
-            Assert(Helpers.inOp(exchange.urls, "test"));
+            Assert(TestHelpers.inOp(exchange.urls, "test"));
             Assert("GO_SKIP_START");
             Object isSandboxModeEnabled = exchange.getProperty(exchange, "isSandboxModeEnabled");
-            if (Helpers.isTrue(shouldBeEnabled))
+            if (TestHelpers.isTrue(shouldBeEnabled))
             {
                 Assert(isSandboxModeEnabled);
                 Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(exchange.urls, "api"), "public"), "https://example.org"));
                 Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(exchange.urls, "apiBackup"), "public"), "https://example.com"));
             } else
             {
-                Assert(!Helpers.isTrue(isSandboxModeEnabled));
+                Assert(!TestHelpers.isTrue(isSandboxModeEnabled));
                 Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(exchange.urls, "api"), "public"), "https://example.com"));
                 Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(exchange.urls, "test"), "public"), "https://example.org"));
             }

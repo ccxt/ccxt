@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, Leverage, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -922,7 +922,7 @@ class woo(Exchange, ImplicitAPI):
         #         "isMaker": 0
         #     }
         #
-        isFromFetchOrder = ('id' in trade)
+        isFromFetchOrder = (self.safe_string(trade, 'id') is not None)
         timestampString = self.safe_string_2(trade, 'executed_timestamp', 'executedTimestamp')
         timestamp = None
         if timestampString is not None:
@@ -936,7 +936,7 @@ class woo(Exchange, ImplicitAPI):
         price = self.safe_string_2(trade, 'executed_price', 'executedPrice')
         amount = self.safe_string_2(trade, 'executed_quantity', 'executedQuantity')
         order_id = self.safe_string_2(trade, 'order_id', 'orderId')
-        fee = self.parse_token_and_fee_temp(trade, ['fee_asset', 'feeAsset'], ['fee'])
+        fee = self.parse_token_and_fee_temp(self.extend({}, trade), ['fee_asset', 'feeAsset'], ['fee'])
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
@@ -960,7 +960,7 @@ class woo(Exchange, ImplicitAPI):
             'info': trade,
         }, marketResolved)
 
-    def parse_token_and_fee_temp(self, item: dict, feeTokenKeys: list[str], feeAmountKeys: list[str]):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKeys: list[str], feeAmountKeys: list[str]) -> dict:
         feeCost = self.safe_string_n(item, feeAmountKeys)
         fee = None
         if feeCost is not None:
@@ -1186,8 +1186,8 @@ class woo(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, '_coin_id')
         code = self.safe_currency_code(currencyId)
-        tokensByNetworkId = self.index_by(rawCurrency['_tokens_by_id'], 'network')
-        chainsByNetworkId = self.index_by(rawCurrency['_networks_by_id'], 'network')
+        tokensByNetworkId = self.index_by(self.safe_list(rawCurrency, '_tokens_by_id', []), 'network')
+        chainsByNetworkId = self.index_by(self.safe_list(rawCurrency, '_networks_by_id', []), 'network')
         keys = list(chainsByNetworkId.keys())
         resultingNetworks = {}
         for j in range(0, len(keys)):
@@ -1382,7 +1382,7 @@ class woo(Exchange, ImplicitAPI):
         isConditional = isTrailing or triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_list(paramsMarginMode, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(paramsMarginMode, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, paramsMarginMode)
+        postOnly = self.is_post_only(isMarket, False, paramsMarginMode)
         clientOrderIdKey = 'clientOrderId'
         if isConditional:
             clientOrderIdKey = 'clientAlgoOrderId'
@@ -2912,7 +2912,7 @@ class woo(Exchange, ImplicitAPI):
             firstPart = self.safe_string(parts, 0)
             currencyId = self.safe_string(parts, 1, firstPart)
             if partsLength > 2:
-                currencyId += '_' + self.safe_string(parts, 2, '')
+                currencyId = self.safe_string(parts, 1, '') + '_' + self.safe_string(parts, 2, '')
             return self.safe_currency(currencyId)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -3266,7 +3266,7 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbolResolved = self.market(symbol)['symbol'] if (symbol is not None) else None
+        symbolResolved = self.safe_string(self.market(symbol), 'symbol') if (symbol is not None) else None
         currency = self.currency(code)
         request = {
             'token': currency['id'],  # interest token that you want to repay
@@ -3371,7 +3371,7 @@ class woo(Exchange, ImplicitAPI):
             requestHeaders = signedHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3696,7 +3696,7 @@ class woo(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolValue, since, limit)
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

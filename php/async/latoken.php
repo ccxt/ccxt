@@ -872,10 +872,11 @@ class latoken extends Exchange {
         $symbol = null;
         $marketResolved = $market;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $marketResolved = $this->market($symbol);
+            $knownSymbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($knownSymbol);
             }
+            $symbol = $knownSymbol;
         }
         $last = $this->safe_string($ticker, 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1035,7 +1036,6 @@ class latoken extends Exchange {
         //         "makerBuyer":false
         //     }
         //
-        $type = null;
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
@@ -1061,10 +1061,11 @@ class latoken extends Exchange {
         $symbol = null;
         $marketResolved = $market;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $marketResolved = $this->market($symbol);
+            $knownSymbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($knownSymbol);
             }
+            $symbol = $knownSymbol;
         }
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order');
@@ -1083,7 +1084,7 @@ class latoken extends Exchange {
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
-            'type' => $type,
+            'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $priceString,
@@ -1362,13 +1363,13 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
-        if (($base !== null) && ($quote !== null)) {
-            $symbol = $base . '/' . $quote;
-        }
-        $symbolKnown = ($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets));
         $marketResolved = $market;
-        if ($symbolKnown) {
-            $marketResolved = $this->market($symbol);
+        if (($base !== null) && ($quote !== null)) {
+            $knownSymbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($knownSymbol);
+            }
+            $symbol = $knownSymbol;
         }
         $orderSide = $this->safe_string($order, 'side');
         $side = null;
@@ -2118,7 +2119,7 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }

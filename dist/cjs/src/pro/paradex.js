@@ -151,7 +151,7 @@ class paradex extends paradex$1["default"] {
      * @returns {object} the reply
      */
     async sendRequest(url, request, subscribeHash = undefined) {
-        const requestHash = 'request:' + this.safeString(request, 'id');
+        const requestHash = 'request:' + this.safeString(request, 'id', '');
         const subscription = {
             'id': request['id'],
             'messageHashes': [requestHash],
@@ -479,7 +479,7 @@ class paradex extends paradex$1["default"] {
     cleanUnsubscribed(client, unsubHash, subscription) {
         const subscribeHashes = this.safeList(subscription, 'subscribeHashes', []);
         for (let j = 0; j < subscribeHashes.length; j++) {
-            const subscribeHash = subscribeHashes[j];
+            const subscribeHash = this.safeString(subscribeHashes, j, '');
             if (subscribeHash in client.subscriptions) {
                 delete client.subscriptions[subscribeHash];
             }
@@ -492,7 +492,7 @@ class paradex extends paradex$1["default"] {
         const prefix = this.safeBool(subscription, 'prefix', false);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
         for (let j = 0; j < subMessageHashes.length; j++) {
-            this.cleanUnsubscription(client, subMessageHashes[j], unsubHash, prefix);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), unsubHash, prefix);
         }
         this.cleanCache(subscription);
         client.resolve(true, unsubHash);
@@ -515,7 +515,8 @@ class paradex extends paradex$1["default"] {
         let messageHash = 'trades.ALL';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash = 'trades.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            messageHash = 'trades.' + marketId;
         }
         const url = this.getWsUrl();
         await this.waitForPendingUnsubscribe(url, [messageHash]);
@@ -552,13 +553,16 @@ class paradex extends paradex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const channels = [];
+        const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market(symbolsNormalized[i]);
-            channels.push('trades.' + market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            channels.push('trades.' + marketId);
+            messageHashes.push('trades.' + marketId);
         }
         const url = this.getWsUrl();
         // handleTrade resolves the channel of each market
-        const trades = await this.subscribeChannels(url, channels, channels, params);
+        const trades = await this.subscribeChannels(url, messageHashes, channels, params);
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -598,12 +602,15 @@ class paradex extends paradex$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const channels = [];
+        const subMessageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
-            channels.push('trades.' + market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            channels.push('trades.' + marketId);
+            subMessageHashes.push('trades.' + marketId);
         }
         // the watchers of a market wait on its channel
-        return await this.unsubscribeChannels(this.getWsUrl(), 'trades', channels, channels, symbolsNormalized, params);
+        return await this.unsubscribeChannels(this.getWsUrl(), 'trades', channels, subMessageHashes, symbolsNormalized, params);
     }
     /**
      * @method
@@ -621,7 +628,8 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const channel = 'trades.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'trades.' + marketId;
         const messageHash = 'liquidations:' + market['symbol'];
         const url = this.getWsUrl();
         const liquidations = await this.subscribeChannels(url, [messageHash], [channel], params);
@@ -684,7 +692,7 @@ class paradex extends paradex$1["default"] {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
         const parsedTrade = this.parseTrade(data);
-        const symbol = parsedTrade['symbol'];
+        const symbol = this.safeString(parsedTrade, 'symbol');
         const messageHash = this.safeString(params, 'channel');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
@@ -705,7 +713,9 @@ class paradex extends paradex$1["default"] {
                 this.options['liquidationsBySymbol'] = caches;
             }
             liquidations.append(liquidation);
-            client.resolve(liquidations, 'liquidations:' + symbol);
+            if (symbol !== undefined) {
+                client.resolve(liquidations, 'liquidations:' + symbol);
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -749,15 +759,15 @@ class paradex extends paradex$1["default"] {
         if (symbolsLength === 0) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const deltas = (deltasOption === true) || ((limit !== undefined) && (limit > 15));
         const url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
         const feeds = [];
         for (let i = 0; i < symbolsLength; i++) {
             const feedMarket = this.market(symbolsNormalized[i]);
-            feeds.push(this.getOrderBookChannel(feedMarket['id'], true));
-            feeds.push(this.getOrderBookChannel(feedMarket['id'], false));
+            feeds.push(this.getOrderBookChannel(this.safeString(feedMarket, 'id', ''), true));
+            feeds.push(this.getOrderBookChannel(this.safeString(feedMarket, 'id', ''), false));
         }
         await this.waitForPendingUnsubscribe(url, feeds);
         const client = this.client(url);
@@ -765,8 +775,8 @@ class paradex extends paradex$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market(symbolsNormalized[i]);
-            const deltasChannel = this.getOrderBookChannel(market['id'], true);
-            const snapshotChannel = this.getOrderBookChannel(market['id'], false);
+            const deltasChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), true);
+            const snapshotChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -818,7 +828,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const url = this.getWsUrl();
         const client = this.client(url);
         const channels = [];
@@ -826,8 +836,8 @@ class paradex extends paradex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             // the feed the market is on, a market is on one of them at a time
-            const deltasChannel = this.getOrderBookChannel(market['id'], true);
-            const snapshotChannel = this.getOrderBookChannel(market['id'], false);
+            const deltasChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), true);
+            const snapshotChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), false);
             let channel = (deltasOption === true) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             const requestedHash = deltasChannel + ':requested';
@@ -923,18 +933,18 @@ class paradex extends paradex$1["default"] {
             }
         }
         if (this.safeString(data, 'update_type') === 'd') {
-            const deltasChannel = this.getOrderBookChannel(marketId, true);
+            const deltasChannel = this.getOrderBookChannel(this.safeString(data, 'market', ''), true);
             const stored = this.safeValue(this.orderbooks, symbol);
             // a delta applies only to the book of the deltas feed
             if ((stored === undefined) || !(deltasChannel in client.subscriptions)) {
                 return;
             }
-            const storedNonce = stored['nonce'];
+            const storedNonce = this.safeInteger(stored, 'nonce');
             // no book to apply it to: before the first snapshot, and between a resync and its snapshot
             if ((storedNonce === undefined) || (nonce === undefined) || (nonce <= storedNonce)) {
                 return;
             }
-            if (nonce !== this.sum(storedNonce, 1)) {
+            if (nonce !== storedNonce + 1) {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored['nonce'] = undefined;
                 this.spawn(this.resubscribeOrderBook, client, deltasChannel, messageHash);
@@ -987,7 +997,7 @@ class paradex extends paradex$1["default"] {
         // the whole connection
         const unsubscribe = this.unsubscribeRequest(channel);
         const subscribe = this.subscribeRequest(channel);
-        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id');
+        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id', '');
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': [],
@@ -1054,8 +1064,9 @@ class paradex extends paradex$1["default"] {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 const subscribeHashes = Object.keys(client.subscriptions);
                 for (let i = 0; i < subscribeHashes.length; i++) {
-                    if ((subscribeHashes[i] === scopedHash) || (subscribeHashes[i].indexOf(channel + '.') === 0)) {
-                        delete client.subscriptions[subscribeHashes[i]];
+                    const subscribeHash = this.safeString(subscribeHashes, i, '');
+                    if ((subscribeHash === scopedHash) || (subscribeHash.indexOf(channel + '.') === 0)) {
+                        delete client.subscriptions[subscribeHash];
                     }
                 }
                 const unsubscribe = this.unsubscribeRequest(channel);
@@ -1117,7 +1128,8 @@ class paradex extends paradex$1["default"] {
         const subMessageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.market(symbol)['id'];
+            const market = this.market(symbol);
+            const marketId = this.safeString(market, 'id', '');
             marketIds.push(marketId);
             subscribeHashes.push(channel + '.' + marketId);
             subMessageHashes.push(channel + '.' + symbol);
@@ -1126,20 +1138,22 @@ class paradex extends paradex$1["default"] {
         if ((symbolsLength > 0) && (channel in client.subscriptions)) {
             // the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for (let i = 0; i < subMessageHashes.length; i++) {
-                this.cleanUnsubscription(client, subMessageHashes[i], 'unsubscribe:' + subMessageHashes[i]);
+                const subHash = this.safeString(subMessageHashes, i, '');
+                this.cleanUnsubscription(client, subHash, 'unsubscribe:' + subHash);
             }
             this.cleanCache({ 'topic': 'ticker', 'symbols': tickerSymbols });
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        let remaining = 0;
+        let othersRemain = false;
         const keys = Object.keys(client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
-            if ((keys[i].indexOf(channel + '.') === 0) && !this.inArray(keys[i], subscribeHashes)) {
-                remaining = remaining + 1;
+            const key = this.safeString(keys, i, '');
+            if ((key.indexOf(channel + '.') === 0) && !this.inArray(key, subscribeHashes)) {
+                othersRemain = true;
             }
         }
-        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && (remaining === 0))) {
+        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && !othersRemain)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             const channelSubscription = {
                 'topic': 'ticker',
@@ -1185,7 +1199,9 @@ class paradex extends paradex$1["default"] {
         const channel = 'markets_summary';
         const pendingHashes = [channel, channel + ':scoped'];
         for (let i = 0; i < symbols.length; i++) {
-            pendingHashes.push(channel + '.' + this.market(symbols[i])['id']);
+            const market = this.market(symbols[i]);
+            const pendingId = this.safeString(market, 'id', '');
+            pendingHashes.push(channel + '.' + pendingId);
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         const client = this.client(url);
@@ -1201,12 +1217,13 @@ class paradex extends paradex$1["default"] {
         const missingHashes = [];
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.market(symbols[i])['id'];
+            const market = this.market(symbols[i]);
+            const marketId = this.safeString(market, 'id', '');
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push(subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
                 missing.push(marketId);
-                missingHashes.push(messageHashes[i]);
+                missingHashes.push(this.safeString(messageHashes, i, ''));
             }
         }
         const missingLength = missing.length;
@@ -1226,14 +1243,14 @@ class paradex extends paradex$1["default"] {
             };
         }
         else {
-            request = this.subscribeRequest(channel);
-            request['params']['markets'] = missing;
+            const subscribeParams = { 'channel': channel, 'markets': missing };
+            request = this.extend(this.subscribeRequest(channel), { 'params': subscribeParams });
             subscribeHashes.push(scopedHash);
         }
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
         // it rejects the watchers of those markets only
         const subscription = {
-            'id': request['id'],
+            'id': this.safeInteger(request, 'id'),
             'messageHashes': missingHashes,
         };
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subscribeHashes, subscription);
@@ -1283,10 +1300,11 @@ class paradex extends paradex$1["default"] {
         const url = this.getWsUrl();
         const channels = [];
         const messageHashes = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
-                channels.push('bbo.' + market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                channels.push('bbo.' + marketId);
                 messageHashes.push('bidask:' + market['symbol']);
             }
         }
@@ -1297,7 +1315,8 @@ class paradex extends paradex$1["default"] {
         const newBidAsk = await this.subscribeChannels(url, messageHashes, channels, params);
         if (this.newUpdates) {
             const result = {};
-            result[newBidAsk['symbol']] = newBidAsk;
+            const bidAskSymbol = this.safeString(newBidAsk, 'symbol', '');
+            result[bidAskSymbol] = newBidAsk;
             return result;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
@@ -1323,10 +1342,11 @@ class paradex extends paradex$1["default"] {
         const channels = [];
         const subMessageHashes = [];
         const bidAskSymbols = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
-                channels.push('bbo.' + market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                channels.push('bbo.' + marketId);
                 subMessageHashes.push('bidask:' + market['symbol']);
                 bidAskSymbols.push(market['symbol']);
             }
@@ -1359,9 +1379,11 @@ class paradex extends paradex$1["default"] {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
         const bidAsk = this.parseWsBidAsk(data);
-        const symbol = bidAsk['symbol'];
+        const symbol = this.safeString(bidAsk, 'symbol');
         this.bidsasks[symbol] = bidAsk;
-        client.resolve(bidAsk, 'bidask:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve(bidAsk, 'bidask:' + symbol);
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(bidAsk, 'bidask');
     }
@@ -1401,7 +1423,8 @@ class paradex extends paradex$1["default"] {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            channel = 'orders.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            channel = 'orders.' + marketId;
             messageHash = 'orders:' + symbolResolved;
         }
         const url = this.getWsUrl();
@@ -1482,7 +1505,8 @@ class paradex extends paradex$1["default"] {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            channel = 'fills.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            channel = 'fills.' + marketId;
             messageHash = 'myTrades:' + symbolResolved;
         }
         const url = this.getWsUrl();
@@ -1568,8 +1592,10 @@ class paradex extends paradex$1["default"] {
             messageHashes.push(channel);
         }
         else {
-            for (let i = 0; i < symbolsLength; i++) {
-                messageHashes.push(channel + ':' + symbolsNormalized[i]);
+            if (symbolsNormalized !== undefined) {
+                for (let i = 0; i < symbolsLength; i++) {
+                    messageHashes.push(channel + ':' + symbolsNormalized[i]);
+                }
             }
         }
         const request = this.subscribeRequest(channel);
@@ -1614,7 +1640,7 @@ class paradex extends paradex$1["default"] {
         }
         const cache = this.positions;
         const position = this.parsePosition(data);
-        const symbol = position['symbol'];
+        const symbol = this.safeString(position, 'symbol');
         const newPositions = [];
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -1637,7 +1663,9 @@ class paradex extends paradex$1["default"] {
         cache.append(position);
         newPositions.push(position);
         client.resolve(newPositions, 'positions');
-        client.resolve(newPositions, 'positions:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve(newPositions, 'positions:' + symbol);
+        }
     }
     /**
      * @method
@@ -1760,7 +1788,7 @@ class paradex extends paradex$1["default"] {
         const data = this.safeDict(params, 'data', {});
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const channel = this.safeString(params, 'channel');
         const ticker = this.parseTicker(data, market);
         this.tickers[symbol] = ticker;
@@ -1785,7 +1813,8 @@ class paradex extends paradex$1["default"] {
         }
         const market = this.market(symbol);
         // the per-market channel, the all-markets one sends every perpetual's funding
-        const channel = 'funding_data.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'funding_data.' + marketId;
         const url = this.getWsUrl();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         const messageHash = 'fundingRate:' + market['symbol'];
@@ -1805,7 +1834,8 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const channel = 'funding_data.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'funding_data.' + marketId;
         const messageHash = 'fundingRate:' + market['symbol'];
         return await this.unsubscribeChannels(this.getWsUrl(), 'fundingRate', [channel], [messageHash], [market['symbol']], params);
     }
@@ -1935,19 +1965,19 @@ class paradex extends paradex$1["default"] {
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
         // Requests, subscribe acks and errors stay JSON text frames.
         //
-        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        // Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        // template ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         const frameHex = this.binaryToBase16(message);
         const frameLength = this.parseToInt(frameHex.length / 2);
         if (frameLength < 8) {
-            return undefined;
+            return {};
         }
         const blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         const templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         const schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
         if ((schemaId !== 1) || (frameLength < this.sum(blockLength, 8))) {
-            return undefined;
+            return {};
         }
         let channel = undefined;
         let data = undefined;
@@ -1999,7 +2029,7 @@ class paradex extends paradex$1["default"] {
             channel = 'account';
         }
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         return {
             'sbe': true,
@@ -2023,7 +2053,7 @@ class paradex extends paradex$1["default"] {
             const next = position + 2;
             const high = digits.indexOf(frameHex.slice(position, middle));
             const low = digits.indexOf(frameHex.slice(middle, next));
-            result = this.parseToInt(this.sum(result, high * 16 * factor, low * factor));
+            result = this.parseToInt(this.sum(result, high * factor * 16, low * factor));
             factor = this.parseToInt(factor * 256);
             position = this.parseToInt(next);
         }
@@ -2195,7 +2225,8 @@ class paradex extends paradex$1["default"] {
             const entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             const numInGroup = this.parseToInt(this.sbeReadUint(frameHex, position + 2, 2));
             position = position + 4;
-            if ((entryLength < 16) || (this.parseToInt(this.sum(position, numInGroup * entryLength)) > frameEnd)) {
+            const groupEnd = this.parseToInt(this.sum(position, numInGroup * entryLength));
+            if ((entryLength < 16) || (groupEnd > frameEnd)) {
                 return undefined;
             }
             for (let j = 0; j < numInGroup; j++) {
@@ -2213,16 +2244,23 @@ class paradex extends paradex$1["default"] {
             return undefined;
         }
         const isSnapshot = (pkgType === 0);
-        return {
+        const result = {
             'seq_no': this.sbeReadInt64(frameHex, 16),
             'market': this.safeString(strings, 0),
             'last_updated_at': this.sbeReadTimestamp(frameHex, 8),
             'update_type': (isSnapshot) ? 's' : 'd',
-            'inserts': (isSnapshot) ? levels : [],
+            'inserts': [],
             // a delta does not tell an insert from an update, a removal is a size of 0 among them
-            'updates': (isSnapshot) ? [] : levels,
+            'updates': [],
             'deletes': [],
         };
+        if (isSnapshot) {
+            result['inserts'] = levels;
+        }
+        else {
+            result['updates'] = levels;
+        }
+        return result;
     }
     parseSbeMarketSummary(client, frameHex, blockLength, frameLength) {
         const blockSize = this.parseToInt(blockLength);
@@ -2356,8 +2394,9 @@ class paradex extends paradex$1["default"] {
         let bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         for (let i = 0; i < names.length; i++) {
             const bit = this.parseToInt(bits % 2);
-            if ((bit === 1) && (names[i] !== '')) {
-                flags.push(names[i]);
+            const name = this.safeString(names, i, '');
+            if ((bit === 1) && (name !== '')) {
+                flags.push(name);
             }
             bits = this.parseToInt(bits / 2);
         }
@@ -2562,18 +2601,18 @@ class paradex extends paradex$1["default"] {
     }
     handleBinaryMessage(client, message) {
         const parsedMessage = this.parseSbeMessage(client, message);
-        if (parsedMessage === undefined) {
-            return;
+        if ('params' in parsedMessage) {
+            this.handleStreamMessage(client, parsedMessage);
         }
-        this.handleStreamMessage(client, parsedMessage);
     }
     handleMessage(client, message) {
-        this.handleStreamMessage(client, message);
-    }
-    handleStreamMessage(client, message) {
+        // error replies are JSON text frames only, the binary frames never carry one
         if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
         //
         // auth response
         //

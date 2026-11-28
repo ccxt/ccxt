@@ -1829,7 +1829,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('premiumIndexKlines', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] });
     }
 
-    dapiPublicGetTicker24hr (params = {}): Promise<Dict | List> {
+    dapiPublicGetTicker24hr (params = {}): Promise<List> {
         return this.request ('ticker/24hr', [ 'dapiPublic' ], 'GET', params, { 'cost': 1, 'noSymbol': 40 });
     }
 
@@ -2549,7 +2549,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('exerciseHistory', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
     }
 
-    eapiPublicGetOpenInterest (params = {}): Promise<Dict> {
+    eapiPublicGetOpenInterest (params = {}): Promise<List> {
         return this.request ('openInterest', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
     }
 

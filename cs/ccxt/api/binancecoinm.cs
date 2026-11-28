@@ -3197,10 +3197,10 @@ public partial class binancecoinm : binance
     }
 
     /// <summary>Calls the dapiPublicGetTicker24hr endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> dapiPublicGetTicker24hr (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetTicker24hr (object parameters = null)
     {
-        return await this.callAsync<object> ("dapiPublicGetTicker24hr",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetTicker24hr",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetTickerPrice endpoint.</summary>
@@ -4457,10 +4457,10 @@ public partial class binancecoinm : binance
     }
 
     /// <summary>Calls the eapiPublicGetOpenInterest endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> eapiPublicGetOpenInterest (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetOpenInterest (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetOpenInterest",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetOpenInterest",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetAccount endpoint.</summary>

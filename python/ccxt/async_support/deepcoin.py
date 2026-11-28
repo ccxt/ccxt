@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deepcoin import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Bool, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -523,7 +523,10 @@ class deepcoin(Exchange, ImplicitAPI):
         isLinear = None
         if swap:
             isLinear = (quoteId != 'USD')
-            settleId = quoteId if isLinear else baseId
+            if isLinear:
+                settleId = quoteId
+            else:
+                settleId = baseId
             settle = self.safe_currency_code(settleId)
             if settle is None:
                 return None
@@ -589,7 +592,8 @@ class deepcoin(Exchange, ImplicitAPI):
 
     def set_markets(self, markets: object, currencies: object = None):
         result = super(deepcoin, self).set_markets(markets, currencies)
-        symbols = list(result.keys())
+        resultCopy = self.extend({}, result)
+        symbols = list(resultCopy.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.safe_dict(result, symbol, {})
@@ -690,10 +694,12 @@ class deepcoin(Exchange, ImplicitAPI):
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = self.parse_to_int(since + (duration * numberOfCandles) * 1000)
-                if until is not None:
-                    endTime = min(endTime, until)
+                if (until is not None) and (until < endTime):
+                    endTime = until
                 now = self.milliseconds()
-                request['after'] = min(endTime, now)
+                if now < endTime:
+                    endTime = now
+                request['after'] = endTime
         response = None
         if price == 'mark':
             response = await self.publicGetDeepcoinMarketMarkPriceCandles(self.extend(request, paramsOmitted))
@@ -776,7 +782,7 @@ class deepcoin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_omit_zero(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         quoteVolume = self.safe_string(ticker, 'volCcy24h')
@@ -1467,7 +1473,7 @@ class deepcoin(Exchange, ImplicitAPI):
             #
             response = await self.privatePostDeepcoinTradeOrder(request)
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
@@ -1780,7 +1786,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         entry = self.safe_dict(data, 0, {})
-        return self.parse_order(entry, market)
+        return self.parse_order(self.extend({}, entry), market)
 
     async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1808,7 +1814,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if length == 0:
             raise OrderNotFound(self.id + ' fetchOpenOrder() could not find order id ' + id)
         entry = self.safe_dict(data, 0, {})
-        return self.parse_order(entry, market)
+        return self.parse_order(self.extend({}, entry), market)
 
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1999,7 +2005,7 @@ class deepcoin(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'trigger')
         response = None
         if trigger:
-            request['instType'] = self.convert_to_instrument_type(market['type'])
+            request['instType'] = self.convert_to_instrument_type(self.safe_string(market, 'type'))
             #
             #     {
             #         "code": "0",
@@ -2113,7 +2119,7 @@ class deepcoin(Exchange, ImplicitAPI):
         else:
             response = await self.privatePostDeepcoinTradeCancelOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -2173,13 +2179,10 @@ class deepcoin(Exchange, ImplicitAPI):
         request = {
             'OrderSysID': id,
         }
-        market = None
-        symbolResolved = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if self.safe_bool(market, 'spot', False):
-                raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
-            symbolResolved = market['symbol']
+        market = self.market(symbol)
+        if self.safe_bool(market, 'spot', False):
+            raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
+        symbolResolved = self.safe_string(market, 'symbol')
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
         isTPSL = (stopLossPrice is not None) or (takeProfitPrice is not None)
@@ -2188,9 +2191,9 @@ class deepcoin(Exchange, ImplicitAPI):
             if (price is not None) or (amount is not None):
                 raise BadRequest(self.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.')
             if stopLossPrice is not None:
-                request['slTriggerPx'] = self.price_to_precision(symbolResolved, stopLossPrice) if (symbolResolved != '') else self.number_to_string(stopLossPrice)
+                request['slTriggerPx'] = self.price_to_precision(symbolResolved, stopLossPrice) if (symbolResolved is not None) else self.number_to_string(stopLossPrice)
             if takeProfitPrice is not None:
-                request['tpTriggerPx'] = self.price_to_precision(symbolResolved, takeProfitPrice) if (symbolResolved != '') else self.number_to_string(takeProfitPrice)
+                request['tpTriggerPx'] = self.price_to_precision(symbolResolved, takeProfitPrice) if (symbolResolved is not None) else self.number_to_string(takeProfitPrice)
             paramsOmitted = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
             response = await self.privatePostDeepcoinTradeReplaceOrderSltp(self.extend(request, paramsOmitted))
         else:
@@ -2206,7 +2209,7 @@ class deepcoin(Exchange, ImplicitAPI):
                     request['volume'] = self.number_to_string(amount)
             response = await self.privatePostDeepcoinTradeReplaceOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data)
+        return self.parse_order(self.extend({}, data))
 
     async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -2386,14 +2389,15 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        instrumentType = self.convert_to_instrument_type(market['type'])
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        instrumentType = self.convert_to_instrument_type(self.safe_string(market, 'type'))
         request = {
             'instType': instrumentType,
             'instId': market['id'],
         }
         response = await self.privateGetDeepcoinAccountPositions(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
-        return self.parse_positions(data, [market['symbol']])
+        return self.parse_positions(data, [marketSymbol])
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -2729,7 +2733,7 @@ class deepcoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rate_histories(rows, market, since, limit)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, info: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "instrumentID": "ETHUSD",
@@ -2870,7 +2874,7 @@ class deepcoin(Exchange, ImplicitAPI):
             paramsOmitted = self.omit(params, 'positionId') if (positionId is not None) else params
             response = await self.privatePostDeepcoinTradeClosePositionByIds(self.extend(request, paramsOmitted))
         data = self.safe_list(response, 'data', [])
-        return self.parse_order(data, market)
+        return self.parse_order(self.safe_dict(data, 0, {}), market)
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
@@ -2896,15 +2900,16 @@ class deepcoin(Exchange, ImplicitAPI):
             }
             requestBody = None
             if method != 'GET':
-                requestBody = self.json(params)
+                body = self.json(params)
                 privateHeaders['Content-Type'] = 'application/json'
-                payload += requestBody
+                payload += body
+                requestBody = body
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['DC-ACCESS-SIGN'] = signature
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         data = self.safe_dict(response, 'data', {})
         msg = self.safe_string(response, 'msg')
         messageCode = self.safe_string(response, 'code')
@@ -2913,11 +2918,10 @@ class deepcoin(Exchange, ImplicitAPI):
         errorCode = self.safe_string(data, 'errorCode')
         if (msg is not None) and (msg == '') and (sMsg is not None):
             msg = sMsg
-        errorList = self.safe_list(data, 'errorList')
-        if errorList is not None:
-            for i in range(0, len(errorList)):
-                entry = self.safe_dict(errorList, i, {})
-                errorCode = self.safe_string(entry, 'errorCode')
+        errorList = self.safe_list(data, 'errorList', [])
+        for i in range(0, len(errorList)):
+            entry = self.safe_dict(errorList, i, {})
+            errorCode = self.safe_string(entry, 'errorCode')
         feedback = self.id + ' ' + body
         if (sCode is None) and (errorCode is not None):
             sCode = errorCode

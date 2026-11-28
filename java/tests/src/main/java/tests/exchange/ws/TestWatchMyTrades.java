@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -24,8 +25,8 @@ public class TestWatchMyTrades extends BaseTest {
 
         String method = "watchMyTrades";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object ends = TestHelpers.add(now, 15000);
+        while (TestHelpers.isLessThan(now, ends))
         {
             Boolean success = true;
             Object response = new ArrayList<Object>(Arrays.asList());
@@ -34,7 +35,7 @@ public class TestWatchMyTrades extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchMyTrades", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -48,9 +49,9 @@ public class TestWatchMyTrades extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (String) (symbol), now, false);
+                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, false);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
             }
         }
         return true;

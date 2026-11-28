@@ -2282,9 +2282,9 @@ func (this *Binance) DapiPublicGetPremiumIndexKlines(args ...any) <-chan Endpoin
 	return EndpointTyped[[]any](this.RequestAsync("premiumIndexKlines", []string{"dapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)}))
 }
 
-// DapiPublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Binance) DapiPublicGetTicker24hr(args ...any) <-chan AsyncResult[any] {
-	return this.RequestAsync("ticker/24hr", []string{"dapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+// DapiPublicGetTicker24hr returns a channel that yields a JSON array.
+func (this *Binance) DapiPublicGetTicker24hr(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.RequestAsync("ticker/24hr", []string{"dapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)}))
 }
 
 // DapiPublicGetTickerPrice returns a channel that yields a JSON array.
@@ -3182,9 +3182,9 @@ func (this *Binance) EapiPublicGetExerciseHistory(args ...any) <-chan EndpointRe
 	return EndpointTyped[[]any](this.RequestAsync("exerciseHistory", []string{"eapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(3)}))
 }
 
-// EapiPublicGetOpenInterest returns a channel that yields a JSON object.
-func (this *Binance) EapiPublicGetOpenInterest(args ...any) <-chan EndpointResult[map[string]any] {
-	return EndpointTyped[map[string]any](this.RequestAsync("openInterest", []string{"eapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(3)}))
+// EapiPublicGetOpenInterest returns a channel that yields a JSON array.
+func (this *Binance) EapiPublicGetOpenInterest(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.RequestAsync("openInterest", []string{"eapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(3)}))
 }
 
 // EapiPrivateGetAccount returns a channel that yields a JSON object.

@@ -114,21 +114,21 @@ func (this *Coinbaseinternational) RequestId() int64 {
 	this.Options["requestId"] = requestId
 	return requestId
 }
-func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) any {
+func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) string {
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isPrivate
 	if this.IsNativeDeribitCredentials() == true {
 		return "wss://www.deribit.com/ws/api/v2"
 	}
 	if isPrivate == true {
-		return this.SafeString(this.Urls["api"], "wsPrivate", "")
+		return *this.SafeString(this.Urls["api"], "wsPrivate", "")
 	} else {
-		return this.SafeString(this.Urls["api"], "ws", "")
+		return *this.SafeString(this.Urls["api"], "ws", "")
 	}
 }
-func (this *Coinbaseinternational) Ping(client any) any {
+func (this *Coinbaseinternational) Ping(client ccxt.ClientInterface) any {
 	var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
-	var isPrivateClient bool = (client.(ccxt.ClientInterface).GetUrl() == this.GetWsUrl(true))
+	var isPrivateClient bool = (client.GetUrl() == this.GetWsUrl(true))
 	if isPrivateClient && (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) {
 		// re-authenticate in-band before the session expires, also while no watch call is pending
 		// retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
@@ -176,12 +176,12 @@ func (this *Coinbaseinternational) Ping(client any) any {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the subscription result
  */
-func (this *Coinbaseinternational) SubscribeAsync(channels any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbaseinternational) SubscribeAsync(channels []string, messageHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, channels, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], channels any, messageHashes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], channels []string, messageHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -189,7 +189,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("subscribe", params)
-	var url any = this.GetWsUrl(false)
+	var url string = this.GetWsUrl(false)
 	var method string = "public/subscribe"
 	if isPrivate == true {
 		url = this.GetWsUrl(true)
@@ -200,19 +200,19 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
 			panic(r.Err)
 		}
 	}
-	if url == nil {
+	if false {
 		panic(ccxt.NotSupported(this.Id + " websocket is not supported"))
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  method,
 		"params": map[string]any{
-			"channels": channels,
+			"channels": ccxt.StringSliceToList(channels),
 		},
 		"id": this.RequestId(),
 	}
 	var extendedRequest map[string]any = this.DeepExtend(request, paramsResolved)
-	var channelsLength int = ccxt.GetArrayLength(channels)
+	var channelsLength int = len(channels)
 	if channelsLength == 1 {
 
 		r1 := <-this.Watch(url, this.SafeString(messageHashes, 0, ""), extendedRequest, this.SafeString(channels, 0, ""), extendedRequest)
@@ -244,12 +244,12 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {boolean} true when unsubscription has been requested
  */
-func (this *Coinbaseinternational) UnSubscribeAsync(channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Coinbaseinternational) UnSubscribeAsync(channels []string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, channels, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channels any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channels []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -257,7 +257,7 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("unSubscribe", params)
-	var url any = this.GetWsUrl(false)
+	var url string = this.GetWsUrl(false)
 	var method string = "public/unsubscribe"
 	if isPrivate == true {
 		url = this.GetWsUrl(true)
@@ -268,23 +268,24 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 			panic(r.Err)
 		}
 	}
-	var unWatchMessageHashes []any = []any{}
-	var channelsLength int = ccxt.GetArrayLength(channels)
+	var unWatchMessageHashes []string = []string{}
+	var channelsLength int = len(channels)
 	for i := 0; i < channelsLength; i++ {
-		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+*this.SafeString(channels, i, ""))
+		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+channels[i])
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  method,
 		"params": map[string]any{
-			"channels": channels,
+			"channels": ccxt.StringSliceToList(channels),
 		},
 		"id": this.RequestId(),
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, unWatchMessageHashes, this.DeepExtend(request, paramsResolved), unWatchMessageHashes)
 	for i := 0; i < channelsLength; i++ {
-		this.CleanUnsubscription(ccxt.AsClient(client), this.SafeString(channels, i, ""), this.SafeString(unWatchMessageHashes, i, ""))
+		var channel string = channels[i]
+		this.CleanUnsubscription(ccxt.AsClient(client), &channel, this.SafeString(unWatchMessageHashes, i, ""))
 	}
 
 	ch <- ccxt.AsyncResult[bool]{Value: true}
@@ -316,19 +317,23 @@ func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[ccx
 	currency, paramsCurrency := this.HandleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any")
 	var channel string = "user.portfolio." + *currency
 
-	r := <-this.SubscribeAsync([]any{channel}, []any{"balance"}, true, paramsCurrency)
+	r := <-this.SubscribeAsync([]string{channel}, []string{"balance"}, true, paramsCurrency)
 	if r.Err != nil {
 		panic(r.Err)
 	}
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r.Value)}
 	return nil
 }
-func (this *Coinbaseinternational) HandleBalance(client any, message map[string]any) {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var parsed map[string]any = this.ParseBalanceList(data)
+func (this *Coinbaseinternational) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
+	var parsed map[string]any = this.ParseBalanceList(data, []any{data})
 	this.Balance = this.DeepExtend(this.Balance, parsed)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+	client.Resolve(this.Balance, "balance")
 }
 
 /**
@@ -371,14 +376,14 @@ func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]
 	}
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw")
 	var channel string = "user.trades.any.any." + *interval
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 		channel = "user.trades." + *this.SafeString(market, "id", "") + "." + *interval
 	}
 
-	r1 := <-this.SubscribeAsync([]any{channel}, []any{channel}, true, paramsInterval)
+	r1 := <-this.SubscribeAsync([]string{channel}, []string{channel}, true, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -425,17 +430,21 @@ func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[
 		channel = "user.trades." + *this.SafeString(this.Market(symbol), "id", "") + "." + *interval
 	}
 
-	r1 := <-this.UnSubscribeAsync([]any{channel}, true, paramsInterval)
+	r1 := <-this.UnSubscribeAsync([]string{channel}, true, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string]any) {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+func (this *Coinbaseinternational) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
-	var data []any = ccxt.SafeListTypedDefault(params, "data", []any{})
+	var data []any
+	data, _ = params["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -445,7 +454,7 @@ func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string
 	for i := 0; i < tradesLength; i++ {
 		this.MyTrades.Append(trades[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
+	client.Resolve(this.MyTrades, channel)
 }
 
 /**
@@ -488,14 +497,14 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]cc
 	}
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw")
 	var channel string = "user.orders.any.any." + *interval
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 		channel = "user.orders." + *this.SafeString(market, "id", "") + "." + *interval
 	}
 
-	r1 := <-this.SubscribeAsync([]any{channel}, []any{channel}, true, paramsInterval)
+	r1 := <-this.SubscribeAsync([]string{channel}, []string{channel}, true, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -522,12 +531,12 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]cc
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) WatchOrdersForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Coinbaseinternational) WatchOrdersForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -546,10 +555,10 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "user.orders."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+		channels = append(channels, "user.orders."+*this.SafeString(this.Market(&symbolsResolved[i]), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.SubscribeAsync(channels, channels, true, paramsInterval)
@@ -604,32 +613,37 @@ func (this *Coinbaseinternational) unWatchOrdersBody(ch chan ccxt.AsyncResult[bo
 		channel = "user.orders." + *this.SafeString(this.Market(symbol), "id", "") + "." + *interval
 	}
 
-	r1 := <-this.UnSubscribeAsync([]any{channel}, true, paramsInterval)
+	r1 := <-this.UnSubscribeAsync([]string{channel}, true, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleOrders(client any, message map[string]any) {
+func (this *Coinbaseinternational) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
-	var data any = this.SafeValue(params, "data", map[string]any{})
+	var dataList, _ = params["data"].([]any)
 	var orders []any = []any{}
-	if ccxt.IsArray(data) {
-		orders = this.ParseOrders(data)
+	if dataList != nil {
+		orders = this.ParseOrders(dataList)
 	} else {
+		var data map[string]any
+		data, _ = params["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		orders = []any{ccxt.OrderToMap(this.ParseOrder(data))}
 	}
 	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
 		this.Orders.Append(orders[i])
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
+	client.Resolve(this.Orders, channel)
 }
 
 /**
@@ -672,14 +686,14 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = 0
 	if symbolsResolved != nil {
 		symbolsLength = len(symbolsResolved)
 	}
 	if (symbolsResolved != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			channels = append(channels, "user.changes."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+			channels = append(channels, "user.changes."+*this.SafeString(this.Market(&symbolsResolved[i]), "id", "")+"."+*interval)
 		}
 	} else {
 		channels = append(channels, "user.changes.any.any."+*interval)
@@ -743,14 +757,14 @@ func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = 0
 	if symbolsResolved != nil {
 		symbolsLength = len(symbolsResolved)
 	}
 	if (symbolsResolved != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			channels = append(channels, "user.changes."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+			channels = append(channels, "user.changes."+*this.SafeString(this.Market(&symbolsResolved[i]), "id", "")+"."+*interval)
 		}
 	} else {
 		channels = append(channels, "user.changes.any.any."+*interval)
@@ -763,28 +777,37 @@ func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandlePositions(client any, message map[string]any) {
+func (this *Coinbaseinternational) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
-	var data map[string]any = ccxt.SafeMapTyped(params, "data")
-	var rawPositions []any = ccxt.SafeListTypedDefault(data, "positions", []any{})
+	var data, _ = params["data"].(map[string]any)
+	var rawPositions []any
+	rawPositions, _ = data["positions"].([]any)
+	if rawPositions == nil {
+		rawPositions = []any{}
+	}
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
 		var position any = positions[i]
-		if ccxt.IsEqual(ccxt.GetValue(position, "side"), nil) {
+		if this.SafeString(position, "side") == nil {
 			// flat (direction: zero) position, the cache is keyed by side so reset both sides
-			ccxt.AddElementToObject(position, "side", "long")
-			var shortPosition any = this.Clone(position)
-			ccxt.AddElementToObject(shortPosition, "side", "short")
+			var shortPosition map[string]any = this.Extend(position, map[string]any{
+				"side": "short",
+			})
 			this.Positions.Append(shortPosition)
+			var longPosition map[string]any = this.Extend(position, map[string]any{
+				"side": "long",
+			})
+			this.Positions.Append(longPosition)
+			continue
 		}
 		this.Positions.Append(position)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
+	client.Resolve(this.Positions, channel)
 }
 
 /**
@@ -816,7 +839,7 @@ func (this *Coinbaseinternational) watchFundingRateBody(ch chan ccxt.AsyncResult
 	}
 	var ticker map[string]any = ccxt.StructResultMap(r.Value, ccxt.TickerToMap)
 
-	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: this.ParseFundingRate(ticker["info"], this.Market(symbol))}
+	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: this.ParseFundingRate(this.Extend(map[string]any{}, ticker["info"]), this.Market(&symbol))}
 	return nil
 }
 
@@ -859,17 +882,20 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers any = nil
-	if !ccxt.StructAbsent(r1.Value) {
-		tickers = ccxt.StructBox(r1.Value, ccxt.TickerMapToMap)
-	}
+	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
 	var result map[string]any = map[string]any{}
-	var tickerSymbols []string = ccxt.ObjectKeys(tickers)
+	var tickerSymbols []string = nil
+	if tickers != nil {
+		tickerSymbols = make([]string, 0, len(tickers))
+		for objectKey := range tickers {
+			tickerSymbols = append(tickerSymbols, objectKey)
+		}
+	}
 	var tickerSymbolsLength int = len(tickerSymbols)
 	for i := 0; i < tickerSymbolsLength; i++ {
 		var symbol string = tickerSymbols[i]
-		var ticker map[string]any = ccxt.MapTyped(ccxt.GetValue(tickers, symbol))
-		result[symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(ticker["info"], this.Market(symbol)))
+		var ticker map[string]any = ccxt.MapTyped(tickers[symbol])
+		result[symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(this.Extend(map[string]any{}, ticker["info"]), this.Market(&symbol)))
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}
@@ -970,12 +996,12 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[ccxt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTicker", "interval", "100ms")
 	var isPrivate bool = (interval != nil && *interval == "raw")
 	var channel string = "ticker." + *this.SafeString(market, "id", "") + "." + *interval
 
-	r1 := <-this.SubscribeAsync([]any{channel}, []any{channel}, isPrivate, paramsInterval)
+	r1 := <-this.SubscribeAsync([]string{channel}, []string{channel}, isPrivate, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1049,10 +1075,10 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms")
 	var isPrivate bool = (interval != nil && *interval == "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
+		var market map[string]any = this.Market(&symbolsResolved[i])
 		channels = append(channels, "ticker."+*this.SafeString(market, "id", "")+"."+*interval)
 	}
 
@@ -1065,7 +1091,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1109,10 +1135,10 @@ func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[b
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "ticker."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+		channels = append(channels, "ticker."+*this.SafeString(this.Market(&symbolsResolved[i]), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsInterval)
@@ -1285,10 +1311,10 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 		}
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
+		var market map[string]any = this.Market(&symbolsResolved[i])
 		channels = append(channels, "quote."+*this.SafeString(market, "id", ""))
 	}
 
@@ -1296,10 +1322,13 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var ticker map[string]any = ccxt.MapTyped(r1.Value)
+	ticker := r1.Value
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ticker["symbol"], ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			result[*tickerSymbol] = ticker
+		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -1341,10 +1370,10 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 		}
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "quote."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", ""))
+		channels = append(channels, "quote."+*this.SafeString(this.Market(&symbolsResolved[i]), "id", ""))
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, false, paramsResolved)
@@ -1354,27 +1383,35 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleTicker(client any, message map[string]any) {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+func (this *Coinbaseinternational) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
 	var channel *string = this.SafeString(params, "channel")
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	client.(ccxt.ClientInterface).Resolve(ticker, channel)
+	client.Resolve(ticker, channel)
 }
-func (this *Coinbaseinternational) HandleBidAsk(client any, message map[string]any) {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+func (this *Coinbaseinternational) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsBidAsk(data)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 	}
 	var channel *string = this.SafeString(params, "channel")
-	client.(ccxt.ClientInterface).Resolve(ticker, channel)
+	client.Resolve(ticker, channel)
 }
 func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1432,16 +1469,16 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = this.Symbol(symbol)
+	var symbolResolved string = this.Symbol(&symbol)
 
-	r1 := <-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbolResolved, timeframe}}, since, limit, paramsResolved)
+	r1 := <-this.WatchOHLCVForSymbolsAsync([][]any{[]any{symbolResolved, timeframe}}, since, limit, paramsResolved)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var ohlcvs map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(ohlcvs, symbolResolved), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(ohlcvs[symbolResolved], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -1467,12 +1504,12 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a dictionary of ccxt.OHLCV arrays indexed by symbol and timeframe
  */
-func (this *Coinbaseinternational) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+func (this *Coinbaseinternational) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
 	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes [][]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1482,8 +1519,8 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("watchOHLCVForSymbols", params)
-	var symbolsAndTimeframesLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
-	if (symbolsAndTimeframesLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
+	var symbolsAndTimeframesLength int = len(symbolsAndTimeframes)
+	if (symbolsAndTimeframesLength == 0) || !(len(symbolsAndTimeframes) > 0 && symbolsAndTimeframes[0] != nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]"))
 	}
 	if this.Markets == nil {
@@ -1493,13 +1530,13 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var channels []any = []any{}
+	var channels []string = []string{}
 	for i := 0; i < symbolsAndTimeframesLength; i++ {
-		var current any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var currentTimeframe *string = this.SafeString(current, 1)
+		var current any = symbolsAndTimeframes[i]
+		var currentTimeframe *string = this.SafeString(current, 1, "")
 		var resolution *string = this.SafeString(this.Timeframes, currentTimeframe, currentTimeframe)
 		var market map[string]any = this.Market(this.SafeString(current, 0))
-		channels = append(channels, ccxt.Add("chart.trades."+*this.SafeString(market, "id", "")+".", resolution))
+		channels = append(channels, "chart.trades."+*this.SafeString(market, "id", "")+"."+*resolution)
 	}
 
 	r1 := <-this.SubscribeAsync(channels, channels, false, paramsResolved)
@@ -1546,7 +1583,7 @@ func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[boo
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("unWatchOHLCV", params)
 
-	r := <-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, paramsResolved)
+	r := <-this.UnWatchOHLCVForSymbolsAsync([][]any{[]any{symbol, timeframe}}, paramsResolved)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1565,12 +1602,12 @@ func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[boo
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Coinbaseinternational) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes [][]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1583,14 +1620,14 @@ func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.Async
 			panic(r.Err)
 		}
 	}
-	var channels []any = []any{}
-	var symbolsAndTimeframesLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var channels []string = []string{}
+	var symbolsAndTimeframesLength int = len(symbolsAndTimeframes)
 	for i := 0; i < symbolsAndTimeframesLength; i++ {
-		var current any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var timeframe *string = this.SafeString(current, 1)
+		var current any = symbolsAndTimeframes[i]
+		var timeframe *string = this.SafeString(current, 1, "")
 		var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var market map[string]any = this.Market(this.SafeString(current, 0))
-		channels = append(channels, ccxt.Add("chart.trades."+*this.SafeString(market, "id", "")+".", resolution))
+		channels = append(channels, "chart.trades."+*this.SafeString(market, "id", "")+"."+*resolution)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, false, paramsResolved)
@@ -1600,16 +1637,20 @@ func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.Async
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]any) {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+func (this *Coinbaseinternational) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
 	var messageHash *string = this.SafeString(params, "channel", "")
 	var parts []string = strings.Split(*messageHash, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var resolution *string = this.SafeString(parts, 3)
-	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
-	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
+	var wsOptions, _ = this.Options["ws"].(map[string]any)
+	var timeframes map[string]any
+	timeframes, _ = wsOptions["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var timeframe *string = this.FindTimeframe(resolution, timeframes)
 	if this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -1624,16 +1665,20 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 	if timeframe != nil {
 		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var parsed any = this.ParseWsOHLCV(data, market)
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
-	client.(ccxt.ClientInterface).Resolve(resolved, messageHash)
+	client.Resolve(resolved, messageHash)
 }
-func (this *Coinbaseinternational) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return ccxt.OHLCVFromList([]any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
 
 /**
@@ -1649,12 +1694,12 @@ func (this *Coinbaseinternational) ParseWsOHLCV(ohlcv any, optionalArgs ...any) 
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Coinbaseinternational) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinbaseinternational) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1686,12 +1731,12 @@ func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]cc
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Coinbaseinternational) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinbaseinternational) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1711,10 +1756,10 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms")
 	var isPrivate bool = (interval != nil && *interval == "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
+		var market map[string]any = this.Market(&symbolsResolved[i])
 		channels = append(channels, "trades."+*this.SafeString(market, "id", "")+"."+*interval)
 	}
 
@@ -1725,7 +1770,13 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+		var first map[string]any
+		if trades != nil {
+			var firstRows []any = trades.ToArray()
+			if len(firstRows) > 0 {
+				first, _ = firstRows[0].(map[string]any)
+			}
+		}
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1796,10 +1847,10 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "trades."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+		channels = append(channels, "trades."+*this.SafeString(this.Market(&symbolsResolved[i]), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsInterval)
@@ -1809,10 +1860,10 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleTrades(client any, message map[string]any) any {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+func (this *Coinbaseinternational) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel", "")
-	var data []any = ccxt.SafeListTyped(params, "data")
+	var data, _ = params["data"].([]any)
 	var parts []string = strings.Split(*channel, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
@@ -1827,12 +1878,11 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{}), market))
 		tradesArray.Append(trade)
 	}
 	this.Trades[*symbol] = tradesArray
-	client.(ccxt.ClientInterface).Resolve(tradesArray, channel)
-	return message
+	client.Resolve(tradesArray, channel)
 }
 
 /**
@@ -1883,12 +1933,12 @@ func (this *Coinbaseinternational) watchOrderBookBody(ch chan ccxt.AsyncResult[c
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinbaseinternational) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Coinbaseinternational) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1914,8 +1964,8 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
 		paramsChannel = paramsGroup
 		descriptor = "." + *groupKey + "." + *depth + "." + *interval
 	}
-	var channels []any = []any{}
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var channels []string = []string{}
+	var symbolsLength int = len(symbols)
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(this.SafeString(symbols, i, ""))
 		channels = append(channels, "book."+*this.SafeString(market, "id", "")+descriptor)
@@ -2001,10 +2051,10 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 		paramsChannel = paramsGroup
 		descriptor = "." + *groupKey + "." + *depth + "." + *interval
 	}
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbols)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "book."+*this.SafeString(this.Market(this.SafeString(symbols, i, "")), "id", "")+descriptor)
+		channels = append(channels, "book."+*this.SafeString(this.Market(&symbols[i]), "id", "")+descriptor)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsChannel)
@@ -2014,26 +2064,34 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleOrderBook(client any, message map[string]any) {
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
+	var params, _ = message["params"].(map[string]any)
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var typeVar string = *this.SafeString(data, "type", "snapshot")
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var channel *string = this.SafeString(params, "channel")
+	if channel == nil {
+		panic(ccxt.ExchangeError(this.Id + " order book update has no channel"))
+	}
 	var channelParts []string = strings.Split(*channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isGrouped bool = (channelPartsLength == 5)
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = func() any {
-				if isGrouped {
-					return this.OrderBook(map[string]any{}, limit)
-				}
-				return this.CountedOrderBook(map[string]any{}, limit)
-			}().(ccxt.OrderBookInterface)
+		if isGrouped {
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			}
+		} else {
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
+			}
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
@@ -2050,15 +2108,25 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			if symbol != nil {
 				delete(this.Orderbooks, *symbol)
 			}
-			if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
-				client.(ccxt.ClientInterface).SubscriptionDel(channel)
+			if client.SubscriptionHas(channel) {
+				client.SubscriptionDel(channel)
 			}
-			client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id+" order book update has a nonce mismatch"), channel)
-			this.Spawn(this.ResubscribeOrderBookAsync, channel)
+			client.Reject(ccxt.ExchangeError(this.Id+" order book update has a nonce mismatch"), channel)
+			this.Spawn(this.ResubscribeOrderBookAsync, *channel)
 			return
 		}
-		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
-		this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+		var deltas131112 []any
+		deltas131112, _ = data["asks"].([]any)
+		if deltas131112 == nil {
+			deltas131112 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetAsks(), deltas131112)
+		var deltas131212 []any
+		deltas131212, _ = data["bids"].([]any)
+		if deltas131212 == nil {
+			deltas131212 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetBids(), deltas131212)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2068,21 +2136,21 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 		this.Orderbooks[*symbol] = orderbook
 	}
 	if channel != nil {
-		client.(ccxt.ClientInterface).Resolve(orderbook, channel)
+		client.Resolve(orderbook, channel)
 	}
 }
-func (this *Coinbaseinternational) ResubscribeOrderBookAsync(channel any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbaseinternational) ResubscribeOrderBookAsync(channel string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.resubscribeOrderBookBody(ch, channel)
 	return ch
 }
-func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], channel any) any {
+func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], channel string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var channelParts []string = ccxt.Split(channel, ".")
+	var channelParts []string = strings.Split(channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isPrivate bool = (this.SafeString(channelParts, channelPartsLength-1) != nil && *this.SafeString(channelParts, channelPartsLength-1) == "raw")
-	var url any = this.GetWsUrl(isPrivate)
+	var url string = this.GetWsUrl(isPrivate)
 	if isPrivate {
 
 		r := <-this.AuthenticateAsync()
@@ -2090,14 +2158,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
+	var ternaryStr133422 string = "public/unsubscribe"
+	if isPrivate {
+		ternaryStr133422 = "private/unsubscribe"
+	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method": func() string {
-			if isPrivate {
-				return "private/unsubscribe"
-			}
-			return "public/unsubscribe"
-		}(),
+		"method":  ternaryStr133422,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},
@@ -2105,38 +2172,38 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 
-	r1 := <-client.(ccxt.ClientInterface).SendAsync(request)
+	r1 := <-client.SendAsync(request)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
-		client.(ccxt.ClientInterface).SubscriptionDel(channel)
+	if client.SubscriptionHas(channel) {
+		client.SubscriptionDel(channel)
 	}
 
-	r2 := <-this.SubscribeAsync([]any{channel}, []any{channel}, isPrivate, map[string]any{})
+	r2 := <-this.SubscribeAsync([]string{channel}, []string{channel}, isPrivate, map[string]any{})
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
 	return nil
 }
-func (this *Coinbaseinternational) HandleDelta(bookside any, delta any) {
+func (this *Coinbaseinternational) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var action *string = this.SafeString(delta, 0)
 	var price *float64 = this.SafeNumber(delta, 1)
 	var amount *float64 = this.SafeNumber(delta, 2)
 	if (action != nil && *action == "new") || (action != nil && *action == "change") {
-		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 1})
+		bookside.StoreArray([]any{price, amount, 1})
 	} else if action != nil && *action == "delete" {
-		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 0})
+		bookside.StoreArray([]any{price, amount, 0})
 	}
 }
-func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas any) {
-	var deltasLength int = ccxt.GetArrayLength(deltas)
+func (this *Coinbaseinternational) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
+	var deltasLength int = len(deltas)
 	for i := 0; i < deltasLength; i++ {
 		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
-func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+func (this *Coinbaseinternational) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
+	var error, _ = message["error"].(map[string]any)
 	if error == nil {
 		return false
 	}
@@ -2155,17 +2222,17 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) b
 						// catch block:
 						var requestId *string = this.SafeString(message, "id")
 						var authRequestId *string = this.SafeString(this.Options, "wsAuthRequestId")
-						var messageHash any = func() any {
-							if requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId) {
-								return "authenticated"
-							}
-							return requestId
-						}()
-						if (ccxt.IsEqual(messageHash, "authenticated")) && (client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
-							// allow the next authenticate () call to retry
-							client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
+						var messageHash any
+						if requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId) {
+							messageHash = "authenticated"
+						} else if derefPtr := requestId; derefPtr != nil {
+							messageHash = *derefPtr
 						}
-						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						if (messageHash == "authenticated") && (client.SubscriptionHas(messageHash)) {
+							// allow the next authenticate () call to retry
+							client.SubscriptionDel(messageHash)
+						}
+						client.Reject(e, messageHash)
 						return nil
 					}(this)
 				}
@@ -2180,19 +2247,19 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) b
 	}
 	return true
 }
-func (this *Coinbaseinternational) HandleHeartbeatAsync(client any, message any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbaseinternational) HandleHeartbeatAsync(client ccxt.ClientInterface, message any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.handleHeartbeatBody(ch, client, message)
 	return ch
 }
-func (this *Coinbaseinternational) handleHeartbeatBody(ch chan ccxt.AsyncResult[any], client any, message any) any {
+func (this *Coinbaseinternational) handleHeartbeatBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data *string = this.SafeString(params, "data")
 	if data != nil && *data == "test_request" {
 
-		r := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+		r := <-client.SendAsync(map[string]any{
 			"jsonrpc": "2.0",
 			"id":      this.RequestId(),
 			"method":  "public/test",
@@ -2204,7 +2271,7 @@ func (this *Coinbaseinternational) handleHeartbeatBody(ch chan ccxt.AsyncResult[
 	}
 	return nil
 }
-func (this *Coinbaseinternational) HandleMessage(client any, message map[string]any) {
+func (this *Coinbaseinternational) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -2213,7 +2280,7 @@ func (this *Coinbaseinternational) HandleMessage(client any, message map[string]
 		this.Spawn(this.HandleHeartbeatAsync, client, message)
 		return
 	}
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
 	if channel != nil {
 		var parts []string = strings.Split(*channel, ".")
@@ -2243,19 +2310,23 @@ func (this *Coinbaseinternational) HandleMessage(client any, message map[string]
 	}
 	var requestId *string = this.SafeString(message, "id")
 	if requestId != nil {
-		var result map[string]any = ccxt.SafeMapTyped(message, "result")
+		var result, _ = message["result"].(map[string]any)
 		if this.SafeString(result, "version") != nil {
-			client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+			client.SetLastPong(this.Milliseconds())
 		}
 		var authRequestId *string = this.SafeString(this.Options, "wsAuthRequestId")
 		if requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId) {
 			this.HandleAuthenticationMessage(client, message)
 			return
 		}
-		client.(ccxt.ClientInterface).Resolve(this.SafeValue(message, "result", message), requestId)
+		if _, ok := message["result"]; ok {
+			client.Resolve(this.SafeValue(message, "result"), requestId)
+		} else {
+			client.Resolve(message, requestId)
+		}
 	}
 }
-func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, message map[string]any) {
+func (this *Coinbaseinternational) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2268,7 +2339,11 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
+	var result map[string]any
+	result, _ = message["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var expiresIn int64 = *this.SafeInteger(result, "expires_in", 900)
 	var ratio *float64 = this.SafeNumber(this.Options, "wsAuthRefreshRatio")
 	var refreshRatio float64
@@ -2279,8 +2354,8 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
 	}
 	var now int64 = this.Milliseconds()
 	this.Options["wsAuthRefreshAt"] = now + this.ParseToInt(float64((expiresIn*1000))*refreshRatio)
-	client.(ccxt.ClientInterface).SetLastPong(now)
-	client.(ccxt.ClientInterface).Resolve(result, "authenticated")
+	client.SetLastPong(now)
+	client.Resolve(result, "authenticated")
 }
 
 /**
@@ -2305,18 +2380,19 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("authenticate", params)
-	var url any = this.GetWsUrl(true)
+	var url string = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if !ccxt.IsEqual(future, nil) {
+	var future any = client.SubscriptionSafe(messageHash)
+	var subscribed bool = (future != nil)
+	if subscribed {
 		var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {
-			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
-			future = nil
+		if _, ok := client.GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {
+			client.SubscriptionDel(messageHash)
+			subscribed = false
 		}
 	}
-	if ccxt.IsEqual(future, nil) {
+	if !subscribed {
 		this.CheckRequiredCredentials()
 		var requestId int64 = this.RequestId()
 		this.Options["wsAuthRequestId"] = requestId
@@ -2337,9 +2413,9 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 			"method":  "public/auth",
 			"params":  paramsAuth,
 		}
-		future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		future = client.ReusableFuture(messageHash)
 		this.Watch(url, messageHash, this.Extend(request, paramsResolved), messageHash)
-		client.(ccxt.ClientInterface).SubscriptionSet(messageHash, future)
+		client.SubscriptionSet(messageHash, future)
 	}
 
 	r := <-future.(*ccxt.Future).Await()
@@ -2383,7 +2459,7 @@ func (this *Coinbaseinternational) requestWsBody(ch chan ccxt.AsyncResult[any], 
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = isPrivate
 	var paramsResolved map[string]any = this.HandleRouteAndParams("requestWs", params)
-	var url any = this.GetWsUrl(true)
+	var url string = this.GetWsUrl(true)
 	if isPrivate == true {
 
 		r := <-this.AuthenticateAsync()
@@ -2445,7 +2521,7 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"amount":          this.ParseNumber(this.GetOrderAmount(market, amount)),
@@ -2453,19 +2529,18 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 	}
 	var triggerPrice *float64 = this.SafeNumberN(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
 	if triggerPrice != nil {
-		request["type"] = func() string {
-			if typeVar == "limit" {
-				return "stop_limit"
-			}
-			return "stop_market"
-		}()
+		if typeVar == "limit" {
+			request["type"] = "stop_limit"
+		} else {
+			request["type"] = "stop_market"
+		}
 		request["trigger_price"] = triggerPrice
 	}
 	if typeVar == "limit" {
 		if price == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() requires a price argument for limit orders"))
 		}
-		request["price"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
+		request["price"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
 	}
 	var postOnly *bool = this.SafeBool2(paramsResolved, "postOnly", "post_only")
 	if this.IsNativeDeribitCredentials() == true {
@@ -2508,7 +2583,7 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 	}
 	result := r1.Value
 	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
+	order["trades"] = this.SafeList(result, "trades", []any{})
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -2552,7 +2627,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
@@ -2560,7 +2635,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 		request["amount"] = this.ParseNumber(this.GetOrderAmount(market, amount))
 	}
 	if price != nil {
-		request["price"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
+		request["price"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
 	}
 	var triggerPrice *float64 = this.SafeNumberN(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
 	if triggerPrice != nil {
@@ -2574,7 +2649,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	result := r1.Value
 	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
+	order["trades"] = this.SafeList(result, "trades", []any{})
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -2625,7 +2700,7 @@ func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[cc
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(result, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -2729,7 +2804,7 @@ func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccx
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(result, market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -2778,7 +2853,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResul
 		"instrument_name": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.RequestWsAsync("private/get_open_orders_by_instrument", this.Extend(request, paramsResolved), true)
@@ -2836,7 +2911,7 @@ func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]
 		"instrument_name": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.RequestWsAsync("private/get_order_history_by_instrument", this.Extend(request, paramsResolved), true)
@@ -2879,12 +2954,12 @@ func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[c
 	}
 	result := r.Value
 	var summaries []any = ccxt.SafeListTyped(result, "summaries")
-	var balance any = map[string]any{
+	var balance map[string]any = map[string]any{
 		"info": result,
 	}
 	var summariesLength int = len(summaries)
 	for i := 0; i < summariesLength; i++ {
-		balance = this.DeepExtend(balance, this.ParseBalanceList(ccxt.DerefScalar(summaries[i])))
+		balance = this.DeepExtend(balance, this.ParseBalanceList(ccxt.DerefScalar(summaries[i]), []any{this.SafeDict(summaries, i, map[string]any{})}))
 	}
 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(this.SafeBalance(balance))}
@@ -2938,7 +3013,7 @@ func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[
 		"include_old":     true,
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.RequestWsAsync("private/get_user_trades_by_instrument", this.Extend(request, paramsResolved), true)
@@ -2990,7 +3065,7 @@ func (this *Coinbaseinternational) fetchPositionsWsBody(ch chan ccxt.AsyncResult
 		panic(r1.Err)
 	}
 	result := r1.Value
-	var positions []any = this.ParsePositions(result)
+	var positions []any = this.ParsePositions(this.ToArray(result))
 
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterByArrayPositions(positions, "symbol", symbolsResolved))}
 	return nil
@@ -3207,7 +3282,7 @@ func (this *Coinbaseinternational) logoutWsBody(ch chan ccxt.AsyncResult[any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url any = this.GetWsUrl(true)
+	var url string = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -3216,11 +3291,10 @@ func (this *Coinbaseinternational) logoutWsBody(ch chan ccxt.AsyncResult[any], o
 		"params":  paramsResolved,
 	}
 
-	r1 := <-client.(ccxt.ClientInterface).SendAsync(request)
+	r1 := <-client.SendAsync(request)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-
 	return nil
 }
 
@@ -3858,7 +3932,7 @@ func (this *Coinbaseinternational) WatchOHLCVForSymbols(symbolsAndTimeframes [][
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
@@ -3910,7 +3984,7 @@ func (this *Coinbaseinternational) UnWatchOHLCVForSymbols(symbolsAndTimeframes [
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -3965,7 +4039,7 @@ func (this *Coinbaseinternational) WatchTradesForSymbols(symbols []string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -4071,7 +4145,7 @@ func (this *Coinbaseinternational) WatchOrderBookForSymbols(symbols []string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}
