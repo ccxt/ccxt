@@ -1585,20 +1585,15 @@ public class Latoken extends LatokenApi
         String base = this.safeCurrencyCode(baseId, null);
         String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
-        Boolean symbolKnown = false;
+        Map<String, Object> marketResolved = market;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             String knownSymbol = ((base + "/") + quote);
             if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(knownSymbol)))
             {
-                symbolKnown = true;
+                marketResolved = this.market(knownSymbol);
             }
             symbol = knownSymbol;
-        }
-        Map<String, Object> marketResolved = market;
-        if (Boolean.TRUE.equals(symbolKnown))
-        {
-            marketResolved = this.market(symbol);
         }
         String orderSide = this.safeString(order, "side");
         String side = null;

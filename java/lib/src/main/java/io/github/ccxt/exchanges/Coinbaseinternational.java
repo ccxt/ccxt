@@ -2603,7 +2603,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
-        return this.amountToPrecision(market.get("symbol"), exchangeAmount);
+        return this.amountToPrecision(this.safeString(market, "symbol"), exchangeAmount);
     }
 
     /**

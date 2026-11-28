@@ -1386,7 +1386,7 @@ public class Zebpay extends ZebpayApi
             String marginAsset = this.safeString(query, "marginAsset", "INR");
             String formType = this.safeStringUpper(query, "formType", "ORDER_FORM");
             request.put("formType", formType);
-            request.put("amount", this.parseToNumeric(this.amountToPrecision(market.get("id"), amount)));
+            request.put("amount", this.parseToNumeric(this.amountToPrecision(this.safeString(market, "id"), amount)));
             request.put("marginAsset", marginAsset);
             Boolean hasTP = !java.util.Objects.equals(takeProfitPrice, null);
             Boolean hasSL = !java.util.Objects.equals(stopLossPrice, null);

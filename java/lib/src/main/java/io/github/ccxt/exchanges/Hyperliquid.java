@@ -5281,12 +5281,13 @@ public class Hyperliquid extends HyperliquidApi
         {
             Map<String, Object> asset = this.safeDict(universe, i, new HashMap<String, Object>() {{}});
             // the coin name resolves to the unified symbol, delisted assets have no market
-            String symbol = this.coinToMarketId(this.safeString(asset, "name"));
-            Map<String, Object> market = this.safeDict(this.markets, symbol, null);
+            String marketId = this.coinToMarketId(this.safeString(asset, "name"));
+            Map<String, Object> market = this.safeDict(this.markets, marketId, null);
             if (java.util.Objects.equals(market, null))
             {
                 continue;
             }
+            String symbol = this.safeString(market, "symbol", "");
             if (((symbolsLength != null && symbolsLength > 0)) && !this.inArray(symbol, symbolsNormalized))
             {
                 continue;
@@ -7735,7 +7736,11 @@ public class Hyperliquid extends HyperliquidApi
         {
             String quote = this.safeString(hip3Dict, "quote", "USDC");
             String code = this.safeString(hip3Dict, "code", coin);
-            return ((((code + "/") + quote) + ":") + quote);
+            if (!java.util.Objects.equals(code, null))
+            {
+                return ((((code + "/") + quote) + ":") + quote);
+            }
+            return null;
         }
         if (coin.indexOf("/") > -1 || coin.indexOf("@") > -1)
         {
@@ -7747,7 +7752,12 @@ public class Hyperliquid extends HyperliquidApi
         {
             coinId = ((String)coin).replaceFirst(":", "-");
         }
-        return (this.safeCurrencyCode(coinId, null) + "/USDC:USDC");
+        String currencyCode = this.safeCurrencyCode(coinId, null);
+        if (!java.util.Objects.equals(currencyCode, null))
+        {
+            return (currencyCode + "/USDC:USDC");
+        }
+        return null;
     }
 
     public Boolean handleErrors(Long code, String reason, String url, String method, Map<String, Object> headers, String body, Object response, Map<String, Object> requestHeaders, String requestBody)

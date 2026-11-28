@@ -4102,16 +4102,12 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
-            Object symbol = null;
             Integer symbolsLength = symbolsNormalized.size();
             if ((symbolsLength != null && symbolsLength > 1))
             {
                 throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
             }
-            if (java.util.Objects.equals(symbolsLength, 1))
-            {
-                symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
-            }
+            String symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request.put("instrument_name", market.get("id"));
         }

@@ -280,9 +280,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
         }
         List<String> channels = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+        for (var i = 0; i < symbolsNormalized.size(); i++)
         {
-            Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+            Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
         }
         Map<String, Object> message = new HashMap<String, Object>() {{
@@ -374,9 +374,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         List<String> channels = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+        for (var i = 0; i < symbolsNormalized.size(); i++)
         {
-            Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+            Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             channels.add(("quote." + this.safeString(market, "id", "")));
         }
         Map<String, Object> message = new HashMap<String, Object>() {{

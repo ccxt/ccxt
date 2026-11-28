@@ -2136,7 +2136,7 @@ public class Kraken extends KrakenApi
             Double amount = this.safeNumber(rawOrder, "amount", null);
             Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-            String parsedAmount = this.amountToPrecision(market.get("symbol"), amount);
+            String parsedAmount = this.amountToPrecision(this.safeString(market, "symbol"), amount);
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "type", side );
                 put( "ordertype", type );

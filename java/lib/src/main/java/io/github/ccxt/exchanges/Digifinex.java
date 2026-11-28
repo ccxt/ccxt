@@ -4631,22 +4631,12 @@ public class Digifinex extends DigifinexApi
         String marketType = null;
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
-            Object symbol = null;
-            if ((symbolsNormalized instanceof List))
+            Integer symbolsLength = symbolsNormalized.size();
+            if ((symbolsLength != null && symbolsLength > 1))
             {
-                Integer symbolsLength = symbolsNormalized.size();
-                if ((symbolsLength != null && symbolsLength > 1))
-                {
-                    throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                if (java.util.Objects.equals(symbolsLength, 1))
-                {
-                    symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
-                }
-            } else
-            {
-                symbol = symbolsNormalized;
+                throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
             }
+            String symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
         }
         Map<String, Object> paramsMarketType = null;

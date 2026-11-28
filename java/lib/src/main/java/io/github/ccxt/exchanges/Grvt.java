@@ -2780,7 +2780,8 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < orderLegs.size(); i++)
         {
             Map<String, Object> leg = (Map<String, Object>) (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
-            Map<String, Object> market = this.market(leg.get("instrument"));
+            String instrument = this.safeString(leg, "instrument");
+            Map<String, Object> market = this.market(instrument);
             Integer precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
             Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(precisionValue)));
             String size = this.safeString(leg, "size");

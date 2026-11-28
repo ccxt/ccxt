@@ -2138,7 +2138,7 @@ public class Gate extends GateApi
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
         Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((marketId.indexOf("-C") > -1) || (marketId.indexOf("-P") > -1));
-        if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
+        if ((!java.util.Objects.equals(marketId, null)) && Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
             return (Map<String, Object>) (this.createExpiredOptionMarket(marketId));
@@ -7667,12 +7667,14 @@ public class Gate extends GateApi
         if (Boolean.TRUE.equals(isSpot))
         {
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+            String marketSymbol = this.safeString(market, "symbol", "");
             for (var i = 0; i < ids.size(); i++)
             {
                 String id = this.safeString(ids, i, "");
-                Map<String, Object> orderItem = new HashMap<String, Object>();
-                orderItem.put("id", id);
-                orderItem.put("symbol", ((String)symbol));
+                Map<String, Object> orderItem = new HashMap<String, Object>() {{
+                    put( "id", id );
+                    put( "symbol", marketSymbol );
+                }};
                 ordersRequests.add(orderItem);
             }
             return (this.cancelOrdersForSymbols(ordersRequests, paramsMarketType)).join();

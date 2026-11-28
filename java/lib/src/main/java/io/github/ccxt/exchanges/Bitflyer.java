@@ -1026,11 +1026,8 @@ public class Bitflyer extends BitflyerApi
             put( "count", java.util.Objects.requireNonNullElse(limit, 100L) );
         }};
         List<Object> response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
-        if (!java.util.Objects.equals(symbol, null))
-        {
-            return this.filterBy(this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}}), "symbol", symbol);
-        }
-        return this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
+        String marketSymbol = this.safeString(market, "symbol");
+        return this.filterBy(this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}}), "symbol", marketSymbol);
 
     }
 

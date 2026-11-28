@@ -1689,11 +1689,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String url = this.getWsUrl();
         List<String> channels = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        if ((symbolsLength != null && symbolsLength > 0))
+        if ((!java.util.Objects.equals(symbolsNormalized, null)) && ((symbolsLength != null && symbolsLength > 0)))
         {
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+                Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 String marketId = this.safeString(market, "id", "");
                 channels.add(("bbo." + marketId));
                 messageHashes.add(("bidask:" + market.get("symbol")));
@@ -1745,11 +1745,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<String> channels = new ArrayList<String>(Arrays.asList());
         List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
         List<Object> bidAskSymbols = new ArrayList<Object>(Arrays.asList());
-        if ((symbolsLength != null && symbolsLength > 0))
+        if ((!java.util.Objects.equals(symbolsNormalized, null)) && ((symbolsLength != null && symbolsLength > 0)))
         {
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+                Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 String marketId = this.safeString(market, "id", "");
                 channels.add(("bbo." + marketId));
                 subMessageHashes.add(("bidask:" + market.get("symbol")));

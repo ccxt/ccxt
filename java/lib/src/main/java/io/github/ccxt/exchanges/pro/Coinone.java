@@ -144,7 +144,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         {
             return;
         }
-        String symbol = this.symbol(((base + "/") + quote));
+        String marketSymbol = ((base + "/") + quote);
+        String symbol = this.symbol(marketSymbol);
         Long timestamp = this.safeInteger(data, "timestamp");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -288,7 +289,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = this.symbol(((base + "/") + quote));
+            String marketSymbol = ((base + "/") + quote);
+            symbol = this.symbol(marketSymbol);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", symbol);

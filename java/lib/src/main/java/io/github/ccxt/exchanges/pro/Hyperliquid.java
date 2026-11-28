@@ -463,7 +463,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> market = this.market(this.singleBidAskSymbol("watchBidsAsks", symbols));
+        String bidAskSymbol = this.singleBidAskSymbol("watchBidsAsks", symbols);
+        Map<String, Object> market = this.market(bidAskSymbol);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("bidask:" + symbol);
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
@@ -508,7 +509,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> market = this.market(this.singleBidAskSymbol("unWatchBidsAsks", symbols));
+        String bidAskSymbol = this.singleBidAskSymbol("unWatchBidsAsks", symbols);
+        Map<String, Object> market = this.market(bidAskSymbol);
         String symbol = this.safeString(market, "symbol", "");
         String subMessageHash = ("bidask:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);

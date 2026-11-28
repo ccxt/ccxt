@@ -1441,11 +1441,12 @@ public class Backpack extends BackpackApi
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.rfqConversionMarket(fromCode, toCode);
+        String marketSymbol = this.safeString(market, "symbol");
         Boolean fromIsBase = java.util.Objects.equals(fromCode, this.safeString(market, "base"));
         String side = ((Boolean.TRUE.equals(fromIsBase))) ? "sell" : "buy";
         if (!Boolean.TRUE.equals(fromIsBase))
         {
-            Map<String, Object> initialQuote = (this.fetchStockIndicativeQuote((String) (market.get("symbol")), side, 1, new HashMap<String, Object>() {{
+            Map<String, Object> initialQuote = (this.fetchStockIndicativeQuote(marketSymbol, side, 1, new HashMap<String, Object>() {{
                 put( "stock", true );
             }})).join();
             String initialPrice = this.safeString(initialQuote, "price");
@@ -1463,7 +1464,7 @@ public class Backpack extends BackpackApi
                 throw new InvalidOrder((this.id + " fetchConvertQuote() price must be positive")) ;
             }
             String rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
-            String preciseQuantity = this.amountToPrecision(market.get("symbol"), this.parseNumber(rawQuantity));
+            String preciseQuantity = this.amountToPrecision(marketSymbol, this.parseNumber(rawQuantity));
             if (java.util.Objects.equals(preciseQuantity, null))
             {
                 throw new InvalidOrder((this.id + " fetchConvertQuote() could not determine a stock quantity")) ;
@@ -1474,7 +1475,7 @@ public class Backpack extends BackpackApi
                 throw new InvalidOrder((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
             }
         }
-        Map<String, Object> quote = (this.fetchStockIndicativeQuote((String) (market.get("symbol")), side, this.parseNumber(amountString), new HashMap<String, Object>() {{
+        Map<String, Object> quote = (this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), new HashMap<String, Object>() {{
             put( "stock", true );
         }})).join();
         if (!Boolean.TRUE.equals(this.safeBool(quote, "available", false)) || (java.util.Objects.equals(this.safeString(quote, "price"), null)))
@@ -1494,7 +1495,7 @@ public class Backpack extends BackpackApi
                     throw new InvalidOrder((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
                 }
                 amountString = reducedQuantity;
-                quote = (this.fetchStockIndicativeQuote((String) (market.get("symbol")), side, this.parseNumber(amountString), new HashMap<String, Object>() {{
+                quote = (this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), new HashMap<String, Object>() {{
                     put( "stock", true );
                 }})).join();
                 if (!Boolean.TRUE.equals(this.safeBool(quote, "available", false)) || (java.util.Objects.equals(this.safeString(quote, "price"), null)))

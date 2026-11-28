@@ -338,7 +338,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         {
             return;
         }
-        String symbol = this.symbol(((base + "/") + quote));
+        String marketSymbol = ((base + "/") + quote);
+        String symbol = this.symbol(marketSymbol);
         String messageHash = this.safeString(message, "event");
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -385,7 +386,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            symbol = this.symbol(((base + "/") + quote));
+            String marketSymbol = ((base + "/") + quote);
+            symbol = this.symbol(marketSymbol);
         }
         Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
         String price = this.safeString(trade, "price");

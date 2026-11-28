@@ -8595,23 +8595,16 @@ public class Bybit extends BybitApi
         {
             return (this.fetchPaginatedCallCursor("fetchPositions", symbols, null, null, paramsPaginate, "nextPageCursor", "cursor", null, 200L)).join();
         }
-        Object symbol = null;
-        Object symbolsNormalized = null;
-        if ((!java.util.Objects.equals(symbols, null)) && (symbols instanceof List))
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        String symbol = null;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
         {
-            Integer symbolsLength = symbols.size();
+            Integer symbolsLength = symbolsNormalized.size();
             if ((symbolsLength != null && symbolsLength > 1))
             {
                 throw new ArgumentsRequired((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
-            } else if (java.util.Objects.equals(symbolsLength, 1))
-            {
-                symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
             }
-            symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
-        } else if (!java.util.Objects.equals(symbols, null))
-        {
-            symbol = symbols;
-            symbolsNormalized = new ArrayList<Object>(Arrays.asList(this.symbol(symbol)));
+            symbol = this.safeString(symbolsNormalized, 0);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
@@ -8619,7 +8612,7 @@ public class Bybit extends BybitApi
         {
             Map<String, Object> symbolMarket = this.market(symbol);
             market = symbolMarket;
-            symbol = symbolMarket.get("symbol");
+            symbol = this.safeString(symbolMarket, "symbol");
             request.put("symbol", symbolMarket.get("id"));
         }
         Pair<String, Map<String, Object>> typeparamsValueVariable = this.getBybitType("fetchPositions", market, paramsPaginate);

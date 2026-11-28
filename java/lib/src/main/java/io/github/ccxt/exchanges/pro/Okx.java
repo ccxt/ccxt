@@ -2579,14 +2579,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         mapLiteral7.put("access", accessType);
         (this.authenticate(mapLiteral7)).join();
         Map<String, Object> market = null;
-        String symbolResolved = null;
         String type = typeOption;
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
-            symbolResolved = this.safeString(market, "symbol");
             type = this.safeString(market, "type");
         }
+        String symbolResolved = this.safeString(market, "symbol");
         if (java.util.Objects.equals(type, "future"))
         {
             type = "futures";

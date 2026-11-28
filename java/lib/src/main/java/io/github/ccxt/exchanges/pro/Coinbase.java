@@ -156,12 +156,14 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String watchMessageHash = name;
         String unWatchMessageHash = ("unsubscribe:" + name);
         List<String> productIds = new ArrayList<String>(Arrays.asList());
+        List<Object> subscriptionSymbols = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
             watchMessageHash = ((name + "::") + symbol);
             unWatchMessageHash = ((("unsubscribe:" + name) + "::") + symbol);
             productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
+            subscriptionSymbols.add(market.get("symbol"));
         }
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -174,7 +176,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(watchMessageHash)));
         subscription.put("topic", topic);
         subscription.put("unsubscribe", true);
-        subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbol)));
+        subscription.put("symbols", subscriptionSymbols);
         if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
         {
             message = this.extend(message, this.createWSAuth(name, productIds));

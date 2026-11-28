@@ -2978,10 +2978,11 @@ public class Hitbtc extends HitbtcApi
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
         Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
         String resolvedMarketType = this.safeString(market, "type");
+        String marketSymbol = this.safeString(market, "symbol");
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("type", type);
         request.put("side", side);
-        request.put("quantity", this.amountToPrecision(market.get("symbol"), amount));
+        request.put("quantity", this.amountToPrecision(marketSymbol, amount));
         request.put("symbol", this.safeString(market, "id"));
         if (!java.util.Objects.equals(reduceOnly, null))
         {
@@ -3009,7 +3010,7 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new ExchangeError((this.id + " createOrder() requires a price argument for limit orders")) ;
             }
-            request.put("price", this.priceToPrecision(market.get("symbol"), price));
+            request.put("price", this.priceToPrecision(marketSymbol, price));
         }
         if ((java.util.Objects.equals(timeInForce, "GTD")))
         {
@@ -3021,7 +3022,7 @@ public class Hitbtc extends HitbtcApi
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            request.put("stop_price", this.priceToPrecision(market.get("symbol"), triggerPrice));
+            request.put("stop_price", this.priceToPrecision(marketSymbol, triggerPrice));
             if (Boolean.TRUE.equals(isLimit))
             {
                 request.put("type", "stopLimit");

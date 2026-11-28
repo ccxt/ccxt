@@ -2904,17 +2904,12 @@ public class Deepcoin extends DeepcoinApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "OrderSysID", id );
         }};
-        Map<String, Object> market = null;
-        String symbolResolved = null;
-        if (!java.util.Objects.equals(symbol, null))
+        Map<String, Object> market = this.market(symbol);
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            market = this.market(symbol);
-            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
-            {
-                throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
-            }
-            symbolResolved = this.safeString(market, "symbol");
+            throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
         }
+        String symbolResolved = this.safeString(market, "symbol");
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", null);
         Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", null);
         Boolean isTPSL = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
@@ -2927,11 +2922,11 @@ public class Deepcoin extends DeepcoinApi
             }
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
-                request.put("slTriggerPx", (((!java.util.Objects.equals(symbolResolved, "")))) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice));
+                request.put("slTriggerPx", (((!java.util.Objects.equals(symbolResolved, null)))) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice));
             }
             if (!java.util.Objects.equals(takeProfitPrice, null))
             {
-                request.put("tpTriggerPx", (((!java.util.Objects.equals(symbolResolved, "")))) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice));
+                request.put("tpTriggerPx", (((!java.util.Objects.equals(symbolResolved, null)))) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice));
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
             response = (this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, paramsOmitted))).join();
