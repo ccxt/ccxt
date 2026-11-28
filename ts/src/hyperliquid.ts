@@ -4461,11 +4461,12 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < universe.length; i++) {
             const asset = this.safeDict (universe, i, {});
             // the coin name resolves to the unified symbol, delisted assets have no market
-            const symbol = this.coinToMarketId (this.safeString (asset, 'name')) as string;
-            const market = this.safeDict (this.markets, symbol);
+            const marketId = this.coinToMarketId (this.safeString (asset, 'name'));
+            const market = this.safeDict (this.markets, marketId);
             if (market === undefined) {
                 continue;
             }
+            const symbol = this.safeString (market, 'symbol', '');
             if ((symbolsLength > 0) && !this.inArray (symbol, symbolsNormalized as string[])) {
                 continue;
             }
@@ -6441,7 +6442,10 @@ export default class hyperliquid extends Exchange {
         if (hip3Dict !== undefined) {
             const quote = this.safeString (hip3Dict, 'quote', 'USDC');
             const code = this.safeString (hip3Dict, 'code', coin);
-            return code + '/' + quote + ':' + quote;
+            if (code !== undefined) {
+                return code + '/' + quote + ':' + quote;
+            }
+            return undefined;
         }
         if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
@@ -6451,7 +6455,11 @@ export default class hyperliquid extends Exchange {
         if (coin.indexOf (':') > -1) {
             coinId = coin.replace (':', '-');
         }
-        return this.safeCurrencyCode (coinId) + '/USDC:USDC';
+        const currencyCode = this.safeCurrencyCode (coinId);
+        if (currencyCode !== undefined) {
+            return currencyCode + '/USDC:USDC';
+        }
+        return undefined;
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {

@@ -2211,8 +2211,8 @@ func (this *OrderRouter) addPosition(positions []map[string]any, exchangeId stri
 // or a price onto a market's grid. It is not declared on IExchange, but every
 // concrete ccxt exchange embeds Exchange and therefore carries both methods.
 type orderRouterPrecision interface {
-	AmountToPrecision(symbol any, amount any) *string
-	PriceToPrecision(symbol any, price any) *string
+	AmountToPrecision(symbol *string, amount any) *string
+	PriceToPrecision(symbol *string, price any) *string
 }
 
 // orderRouterSink collects everything one step wants to write into the shared
@@ -3030,10 +3030,10 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 	}
 	// an absent snapped value parses as not-a-number, as "<nil>" did
 	amountText, priceText := "", ""
-	if snapped := snapper.AmountToPrecision(symbol, routerNumberAt(step, "amount", 0)); snapped != nil {
+	if snapped := snapper.AmountToPrecision(&symbol, routerNumberAt(step, "amount", 0)); snapped != nil {
 		amountText = *snapped
 	}
-	if snapped := snapper.PriceToPrecision(symbol, routerStepLimitPrice(step)); snapped != nil {
+	if snapped := snapper.PriceToPrecision(&symbol, routerStepLimitPrice(step)); snapped != nil {
 		priceText = *snapped
 	}
 	amount, amountOk := routerParseFloat(amountText)

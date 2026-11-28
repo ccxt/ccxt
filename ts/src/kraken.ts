@@ -1803,7 +1803,7 @@ export default class kraken extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const parsedAmount = this.amountToPrecision (market['symbol'], amount);
+            const parsedAmount = this.amountToPrecision (this.safeString (market, 'symbol'), amount);
             const req: Dict = {
                 'type': side,
                 'ordertype': type,

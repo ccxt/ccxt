@@ -152,7 +152,7 @@ type IWatchPositions interface { // W3
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position]
 }
 type IWatchTrades interface { // W3
-	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade]
+	WatchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type IBaseExchange interface {
 	SetEnableRateLimit(rateLimit bool)
@@ -201,7 +201,7 @@ type IBaseExchange interface {
 	SetProxyUrl(proxyUrl any)
 	SetSocksProxy(proxyUrl any)
 	SignInAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	Market(symbol any) map[string]any
+	Market(symbol *string) map[string]any
 	Currency(code any) map[string]any
 	GetMarket(symbol string) MarketInterface
 	GetMarketsList() []MarketInterface
@@ -280,8 +280,8 @@ type ICoreExchange interface {
 	SafeString(obj any, key any, defaultValue ...any) *string
 	Describe() map[string]any
 	SetSandboxMode(enable bool)
-	FeatureValue(symbol any, optionalArgs ...any) any
-	Market(symbol any) map[string]any
+	FeatureValue(symbol string, optionalArgs ...any) any
+	Market(symbol *string) map[string]any
 	Nonce() int64
 	IncrementingNonce() int64
 	Unique(obj any) []any
@@ -478,7 +478,7 @@ type IDerivedExchange interface {
 	Sign(path string, optionalArgs ...any) map[string]any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]DepositWithdrawFee]
-	CreateExpiredOptionMarket(symbol any) map[string]any
+	CreateExpiredOptionMarket(symbol string) map[string]any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent]
 	FetchOutcomeAsync(outcomeSymbol string) <-chan AsyncResult[PredictionOutcome]
@@ -499,7 +499,7 @@ type IDerivedExchange interface {
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account]
 	SetSandboxMode(enabled bool)
-	Market(symbol any) map[string]any
+	Market(symbol *string) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
 	HandleErrors(statusCode int64, statusText string, url string, method string, responseHeaders map[string]any, responseBody string, response any, requestHeaders map[string]any, requestBody *string) *bool

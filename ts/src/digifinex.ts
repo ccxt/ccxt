@@ -3792,18 +3792,11 @@ export default class digifinex extends Exchange {
         let market: Market = undefined;
         let marketType: Str = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol: Str = undefined;
-            if (Array.isArray (symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if (symbolsLength === 1) {
-                    symbol = symbolsNormalized[0];
-                }
-            } else {
-                symbol = symbolsNormalized;
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            const symbol = this.safeString (symbolsNormalized, 0);
             market = this.market (symbol);
         }
         let paramsMarketType = undefined;

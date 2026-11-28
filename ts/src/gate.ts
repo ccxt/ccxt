@@ -1356,7 +1356,7 @@ export default class gate extends Exchange {
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if ((marketId !== undefined) && isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -6042,11 +6042,12 @@ export default class gate extends Exchange {
         }
         if (isSpot) {
             const ordersRequests: CancellationRequest[] = [];
+            const marketSymbol = this.safeString (market, 'symbol', '');
             for (let i = 0; i < ids.length; i++) {
                 const id = this.safeString (ids, i, '');
                 const orderItem: CancellationRequest = {
                     'id': id,
-                    'symbol': symbol as string,
+                    'symbol': marketSymbol,
                 };
                 ordersRequests.push (orderItem);
             }

@@ -766,7 +766,7 @@ export default class lighter extends Exchange {
         this.options['chainId'] = enable ? 300 : 304;
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict[] {
+    createOrderRequest (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict[] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -950,7 +950,7 @@ export default class lighter extends Exchange {
         return this.parseToInt (this.safeInteger (response, 'nonce'));
     }
 
-    async signAndCreateOrder (method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {
+    async signAndCreateOrder (method: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

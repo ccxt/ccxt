@@ -174,8 +174,6 @@ func binaryShims() []binaryShim {
 	return []binaryShim{
 		// exchange_helpers.go
 		{"Add", func(a, b any) any { return Add(a, b) }},
-		{"StartsWith", func(a, b any) any { return StartsWith(a, b) }},
-		{"EndsWith", func(a, b any) any { return EndsWith(a, b) }},
 		{"Split", func(a, b any) any { return Split(a, b) }},
 		{"Join", func(a, b any) any { return Join(a, b) }},
 		{"mathMin", func(a, b any) any { return mathMin(a, b) }},

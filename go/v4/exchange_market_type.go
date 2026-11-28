@@ -202,7 +202,8 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 	var marketType *string = nil
 	var isLinearSubType *bool = nil
 	for _, symbolIn := range symbols {
-		market := this.DerivedExchange.Market(symbolIn)
+		s := symbolIn
+		market := this.DerivedExchange.Market(&s)
 		PanicOnError(market)
 		if sameTypeOnly && (marketType != nil) {
 			if derefScalar(market["type"]) != any(*marketType) {
@@ -314,7 +315,7 @@ func (this *BaseExchange) HandleTriggerPricesAndParams(symbol string, params map
 		}
 		// a non-numeric price parsed to nil and PriceToPrecision answered nil
 		if parsed, err := strconv.ParseFloat(*price, 64); err == nil {
-			prices[i] = this.PriceToPrecision(symbol, parsed)
+			prices[i] = this.PriceToPrecision(&symbol, parsed)
 		}
 	}
 	if len(keysToOmit) > 0 {

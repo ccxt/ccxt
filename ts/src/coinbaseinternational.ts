@@ -2147,7 +2147,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.isNativeDeribitCredentials () && (this.safeBool (market, 'contract', false))) {
             exchangeAmount = Precise.stringMul (exchangeAmount, this.safeString (market, 'contractSize'));
         }
-        return this.amountToPrecision (market['symbol'], exchangeAmount);
+        return this.amountToPrecision (this.safeString (market, 'symbol'), exchangeAmount);
     }
 
     /**

@@ -388,11 +388,31 @@ func IsInt(v interface{}) bool {
 }
 
 func StartsWith(v interface{}, prefix interface{}) bool {
-	return ccxt.StartsWith(v, prefix)
+	s, ok := v.(string)
+	if !ok {
+		if p, pok := v.(*string); pok && p != nil {
+			s = *p
+			ok = true
+		}
+	}
+	if !ok {
+		return false
+	}
+	return strings.HasPrefix(s, ccxt.ToString(prefix))
 }
 
 func EndsWith(v interface{}, suffix interface{}) bool {
-	return ccxt.EndsWith(v, suffix)
+	s, ok := v.(string)
+	if !ok {
+		if p, pok := v.(*string); pok && p != nil {
+			s = *p
+			ok = true
+		}
+	}
+	if !ok {
+		return false
+	}
+	return strings.HasSuffix(s, ccxt.ToString(suffix))
 }
 
 func Contains(v interface{}, substr interface{}) bool {

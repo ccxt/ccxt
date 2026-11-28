@@ -921,28 +921,6 @@ func IsNumber(v any) bool {
 // 	}
 // }
 
-// StartsWith checks if the string starts with the specified prefix
-func StartsWith(v any, prefix any) bool {
-	v = derefScalar(v)
-	prefix = derefScalar(prefix)
-	if str, ok := v.(string); ok {
-		prefixStr := ToString(prefix)
-		return strings.HasPrefix(str, prefixStr)
-	}
-	return false
-}
-
-// EndsWith checks if the string ends with the specified suffix
-func EndsWith(v any, suffix any) bool {
-	v = derefScalar(v)
-	suffix = derefScalar(suffix)
-	if str, ok := v.(string); ok {
-		suffixStr := ToString(suffix)
-		return strings.HasSuffix(str, suffixStr)
-	}
-	return false
-}
-
 // StringArg converts a dynamically passed required string argument; nil or any
 // other type panics (ArgumentsRequired) instead of coercing
 func StringArg(v any) string {

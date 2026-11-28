@@ -5682,7 +5682,7 @@ const GO_STRING_POINTER_TUPLE_CALLS: string[] = [ 'handleMarketTypeAndParams' ];
 const GO_GUARDED_STRING_TUPLE_CALLS: string[] = [ 'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'getInstType' ];
 const GO_SIBLING_STRING_PASSTHROUGH_PATTERN = '^(create|edit)\\w*OrderRequest$';
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable ([
-    [ [0], 'sign watchOHLCV unWatchOrderBook unWatchTrades unWatchOHLCV unWatchTicker unWatchMarkPrice unWatchFundingRate fetchOpenInterest'
+    [ [0], 'sign createExpiredOptionMarket featureValue watchTrades watchOHLCV unWatchOrderBook unWatchTrades unWatchOHLCV unWatchTicker unWatchMarkPrice unWatchFundingRate fetchOpenInterest'
         + ' fetchOpenInterestHistory createMarketBuyOrderWithCost createMarketSellOrderWithCost addMargin reduceMargin closePosition'
         + ' watchFundingRate fetchFundingInterval fetchMarketLeverageTiers fetchGreeks fetchMarkPrice fetchOption fetchPositionsForSymbol'
         + ' fetchPositionsForSymbolWs watchMarkPrice fetchPositionHistory fetchLiquidations watchLiquidations watchMyLiquidations fetchOHLCVWs'
@@ -10243,8 +10243,8 @@ class NewTranspiler {
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
-                // PredictionExchange Str params and BaseExchange.cleanUnsubscription subHash: callers pass *string or addressable string
-                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ] },
+                // PredictionExchange Str params and BaseExchange.cleanUnsubscription/market/symbol/*ToPrecision: callers pass *string or addressable string
+                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ], "market": [ 0 ], "symbol": [ 0 ], "costToPrecision": [ 0 ], "priceToPrecision": [ 0 ], "amountToPrecision": [ 0 ], "feeToPrecision": [ 0 ], "okx.subscribe": [ 3 ] },
                 // Prediction-tier only required string/float64 params (separate from BaseExchange)
                 "predictionUnifiedStringParams": { "watchTrades": [ 0 ] },
                 "predictionUnifiedFloat64Params": { "createOrder": [ 3 ] },
@@ -11747,13 +11747,13 @@ ${caseStatements.join('\n')}
             [ 'BaseExchange', 'ParseOrderBookL3', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
             // every return path is a map: the argument is defaulted and the option-market producer is wrapped
             [ 'BaseExchange', 'Market',
-              (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr === 'marketsList[0]') || (expr === 'nil') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
+              (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'markets[*symbol]') || (expr === 'market') || (expr === 'marketsList[0]') || (expr === 'nil') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
               true ],
             // TS returns a dictionary on every path (currency panics, the safe forms build a structure)
             [ 'BaseExchange', 'Currency', (expr: string) => expr.length > 0, true ],
             [ 'BaseExchange', 'SafeCurrency', (expr: string) => expr.length > 0, true ],
             [ 'BaseExchange', 'SafeMarket', (expr: string) => expr.length > 0, true ],
-            [ 'BaseExchange', 'MarketOrNull', (expr: string) => (expr === 'nil') || /^this\.DerivedExchange\.Market\(symbol\)$/.test (expr), true ],
+            [ 'BaseExchange', 'MarketOrNull', (expr: string) => (expr === 'nil') || /^this\.DerivedExchange\.Market\(&?symbol\)$/.test (expr), true ],
         ];
         for (let i = 0; i < rows.length; i++) { content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]); }
         return content;
@@ -12186,6 +12186,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [/var (mockedExchange|exchange) any =/g, 'var $1 ccxt.ICoreExchange ='],
+            [/exchange\.Market\((?!SafeStringPtr\()([^)]+)\)/g, 'exchange.Market(SafeStringPtr($1))'],
             ...this.goTestExchangeRegexes (),
             // the (?!=) guard keeps the assignment rewrite off == comparisons
             [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],

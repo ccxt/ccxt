@@ -607,7 +607,7 @@ export default class deribit extends Exchange {
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')));
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if ((marketId !== undefined) && isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
