@@ -409,7 +409,11 @@ func loadCcxtApiKeys(exchangeId string) map[string]string {
 		return result
 	}
 	var parsed map[string]interface{}
-	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+	// UseNumber keeps numeric values as json.Number so they print verbatim
+	// (plain Unmarshal yields float64, turning 1234567 into 1.234567e+06)
+	dec := json.NewDecoder(strings.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(&parsed); err != nil {
 		fmt.Println("CCXT_APIKEYS env var is not valid JSON, ignoring it")
 		return result
 	}
