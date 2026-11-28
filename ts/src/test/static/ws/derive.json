@@ -91,6 +91,169 @@
                     }
                 }
             }
+        ],
+        "watchTrades": [
+            {
+                "description": "array of trades in one frame",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://api.derive.xyz/v3/ws",
+                "messages": [
+                    {
+                        "method": "subscription",
+                        "params": {
+                            "channel": "trades.BTC-PERP",
+                            "data": [
+                                {
+                                    "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+                                    "instrument_name": "BTC-PERP",
+                                    "timestamp": 1790792657383,
+                                    "trade_price": "83863",
+                                    "trade_amount": "0.0357",
+                                    "direction": "buy",
+                                    "liquidity_role": "taker",
+                                    "trade_fee": "0.44910870418"
+                                },
+                                {
+                                    "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+                                    "instrument_name": "BTC-PERP",
+                                    "timestamp": 1790874586675,
+                                    "trade_price": "84365.4",
+                                    "trade_amount": "0.01",
+                                    "direction": "sell",
+                                    "liquidity_role": "maker",
+                                    "trade_fee": "0.263075486855"
+                                },
+                                {
+                                    "trade_id": "0f5b9e9c-3b0d-4a2e-9f6f-6f8e1f0f2f11",
+                                    "instrument_name": "BTC-PERP",
+                                    "timestamp": 1790874590000,
+                                    "trade_price": "84370.1",
+                                    "trade_amount": "0.005",
+                                    "direction": "buy",
+                                    "liquidity_role": "taker",
+                                    "trade_fee": "0.12655515"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "params": {
+                            "channels": [
+                                "trades.BTC-PERP"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1790792657383,
+                                "trade_price": "83863",
+                                "trade_amount": "0.0357",
+                                "direction": "buy",
+                                "liquidity_role": "taker",
+                                "trade_fee": "0.44910870418"
+                            },
+                            "id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+                            "order": null,
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "buy",
+                            "type": null,
+                            "takerOrMaker": "taker",
+                            "price": 83863,
+                            "amount": 0.0357,
+                            "cost": 2993.9091,
+                            "timestamp": 1790792657383,
+                            "datetime": "2026-09-30T18:24:17.383Z",
+                            "fee": {
+                                "currency": "USDC",
+                                "cost": 0.44910870418
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDC",
+                                    "cost": 0.44910870418
+                                }
+                            ]
+                        },
+                        {
+                            "info": {
+                                "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1790874586675,
+                                "trade_price": "84365.4",
+                                "trade_amount": "0.01",
+                                "direction": "sell",
+                                "liquidity_role": "maker",
+                                "trade_fee": "0.263075486855"
+                            },
+                            "id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+                            "order": null,
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "sell",
+                            "type": null,
+                            "takerOrMaker": "maker",
+                            "price": 84365.4,
+                            "amount": 0.01,
+                            "cost": 843.654,
+                            "timestamp": 1790874586675,
+                            "datetime": "2026-10-01T17:09:46.675Z",
+                            "fee": {
+                                "currency": "USDC",
+                                "cost": 0.263075486855
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDC",
+                                    "cost": 0.263075486855
+                                }
+                            ]
+                        },
+                        {
+                            "info": {
+                                "trade_id": "0f5b9e9c-3b0d-4a2e-9f6f-6f8e1f0f2f11",
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1790874590000,
+                                "trade_price": "84370.1",
+                                "trade_amount": "0.005",
+                                "direction": "buy",
+                                "liquidity_role": "taker",
+                                "trade_fee": "0.12655515"
+                            },
+                            "id": "0f5b9e9c-3b0d-4a2e-9f6f-6f8e1f0f2f11",
+                            "order": null,
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "buy",
+                            "type": null,
+                            "takerOrMaker": "taker",
+                            "price": 84370.1,
+                            "amount": 0.005,
+                            "cost": 421.8505,
+                            "timestamp": 1790874590000,
+                            "datetime": "2026-10-01T17:09:50.000Z",
+                            "fee": {
+                                "currency": "USDC",
+                                "cost": 0.12655515
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDC",
+                                    "cost": 0.12655515
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
         ]
     }
 }
