@@ -15522,7 +15522,7 @@ function goTypedMiscSetDefaults (content: string): string {
     const struct = /\ntype \w+ struct \{([^}]*)\n\}/.exec (content);
     if ((struct === null) || struct[1].includes ('`') || ((content.match (/^type \w+ struct \{/gm) || []).length !== 1)) { return content; }
     let out = content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?[Ss]etDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
-    if (content.includes ('ccxt.SetDefaults(p)') && !/(?<![\w.])ccxt\./.test (out)) {
+    if (/(?:ccxt\.)?[Ss]etDefaults\(p\)/.test (content) && !/(?<![\w.])ccxt\./.test (out)) {
         out = out.replace (/\nimport ccxt "github\.com\/ccxt\/ccxt\/go\/v4"\n+/, '\n')
             .replace (/\nimport \(\n\tccxt "github\.com\/ccxt\/ccxt\/go\/v4"\n\)\n+/, '\n')
             .replace (/\n\tccxt "github\.com\/ccxt\/ccxt\/go\/v4"/, '');
@@ -15551,7 +15551,7 @@ function goTypedMiscSelfTest (ok: SelfTestOk): void {
     const onlyUse = 'package p\n\nimport (\n\tccxt "github.com/ccxt/ccxt/go/v4"\n)\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
     const onlyUseOut = goTypedMiscNative (onlyUse);
     ok (!onlyUseOut.includes ('SetDefaults') && !onlyUseOut.includes ('import'), 'sole ccxt use drops SetDefaults and unused import');
-    const singleImp = 'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n// header\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
+    const singleImp = 'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n// header\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tsetDefaults(p)\n\treturn p\n}\n';
     ok (goTypedMiscNative (singleImp).startsWith ('package ccxtpro\n\n// header\n'), 'sole single-line ccxt import drops cleanly');
     ok (goTypedMiscNative (ctor ('\tA bool `default:"true"`\n')).includes ('ccxt.SetDefaults(p)'), 'tagged struct keeps SetDefaults');
     const f = (sig: string, body: string) => goTypedMiscNative ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
