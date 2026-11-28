@@ -264,7 +264,7 @@ pub struct OrderRouter<V: RouterVenue = std::convert::Infallible> {
 // ---------------------------------------------------------------------------
 
 /// Plain container read: the field if the container is a dict and the field is
-/// present and not null, `None` otherwise. Deliberately NOT `get_value_k`, which
+/// present and not null, `None` otherwise. Deliberately NOT `key_read`, which
 /// also routes shared-order-book meta keys and live-client lookups — this class
 /// reads inert JSON structures, and picking up those side effects would make the
 /// accessors mean something the other five ports' accessors do not.

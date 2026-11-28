@@ -14990,7 +14990,7 @@ export default class binance extends Exchange {
             }
             if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
                 if (symbol !== undefined) {
-                    tradingLimits[symbol] = market['limits']['amount'];
+                    tradingLimits[symbol] = this.safeDict (this.safeDict (market, 'limits'), 'amount');
                 }
             }
         }

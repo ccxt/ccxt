@@ -2682,7 +2682,7 @@ export default class tokocrypto extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        const restUrls = this.extend ({}, this.urls['api']['rest']);
+        const restUrls = this.extend ({}, this.safeDict (this.urls['api'], 'rest', {}));
         if (!(apiName in restUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }

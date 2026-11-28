@@ -308,7 +308,7 @@ impl Value {
 
     pub fn describe(&self) -> Value { Value::Null }
     /// `client.url` on a ws client handle (`Value::Null` on any other Value).
-    pub fn url(&self) -> Value { get_value_k(self, "url") }
+    pub fn url(&self) -> Value { <Value as KeyRead>::key_read(self, "url") }
     /// `client.reject(error, messageHash)` — stores a rejection the `watch`
     /// drive loop delivers to the awaiting caller. Routes by the client
     /// handle's `url` to the WS registry (no-op on a non-client Value).
@@ -735,14 +735,6 @@ fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
     LIVE_SET_MARKETS.get().copied()
 }
 
-/// Hot-path `get_value` variant that takes the key as a `&str` directly,
-/// skipping a `Value::Str` heap allocation. Used by the `safe_*_k`
-/// fast-path readers the transpiler routes literal-key calls through.
-#[inline]
-pub fn get_value_k(obj: &Value, key: &str) -> Value {
-    if let Value::Dict(m) = obj { get_map_value_k(m, key) } else { Value::Null }
-}
-
 /// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
 pub type Dict = Arc<HashMap<String, Value>>;
 /// The shared list a list-typed local holds; a non-list value reads like an empty list.
@@ -806,7 +798,7 @@ pub trait KeyRead: Clone {
     fn read(&self, key: &Value) -> Value;
 }
 impl KeyRead for Value {
-    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn key_read(&self, key: &str) -> Value { if let Value::Dict(m) = self { get_map_value_k(m, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { get_value(self, key) }
 }
 /// A lent reader container reads what it borrows: `&obj` on an `impl KeyRead` parameter needs no copy.
@@ -844,7 +836,7 @@ impl KeyRead for &Option<List> {
 }
 /// A market reads its own map, as the boxed record did.
 impl KeyRead for &crate::types::Market {
-    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn key_read(&self, key: &str) -> Value { <Value as KeyRead>::key_read(&self.raw, key) }
     fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
 }
 /// A borrowed optional row reads its map, as `Value::from(row)` did (Null when absent).
@@ -854,12 +846,12 @@ impl KeyRead for Option<&Dict> {
 }
 /// An optional market argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Market> {
-    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { <Value as KeyRead>::key_read(&m.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 /// An optional market reads its own map, as the boxed local did (Null when empty).
 impl KeyRead for &Option<crate::types::Market> {
-    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { <Value as KeyRead>::key_read(&m.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 
@@ -870,17 +862,17 @@ impl From<Option<&crate::types::Market>> for Value {
 
 /// A typed currency reads its own map, as the boxed record did.
 impl KeyRead for &crate::types::Currency {
-    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn key_read(&self, key: &str) -> Value { <Value as KeyRead>::key_read(&self.raw, key) }
     fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
 }
 /// An optional typed currency reads its own map (Null when empty).
 impl KeyRead for &Option<crate::types::Currency> {
-    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { <Value as KeyRead>::key_read(&c.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
 }
 /// An optional currency argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Currency> {
-    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { <Value as KeyRead>::key_read(&c.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
 }
 
@@ -989,12 +981,12 @@ impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v
 /// The shared `Null` a borrowed read answers for a missing key.
 pub static NULL: Value = Value::Null;
 
-/// `get_value_k` on the map itself.
+/// The literal-key read on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
     {
         // A shared order book keeps its scalar meta (nonce/timestamp/…) in the
         // book store; route those through it so the safe_* helpers (which go via
-        // get_value_k) see the shared value, not the empty Dict slot.
+        // this read) see the shared value, not the empty Dict slot.
         if is_book_meta_key(key) {
             if let Some(id) = book_id_of(m) { return book_meta_get(id, key); }
         }
@@ -2608,7 +2600,7 @@ impl Value {
     /// `book['bids'|'asks'|'nonce'|...]` read on an order-book-typed local: the same
     /// shared-store lookup `get_value` does for these keys, without the boxed key.
     pub fn book_field(&self, k: &str) -> Value {
-        get_value_k(self, k)
+        <Value as KeyRead>::key_read(self, k)
     }
 
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone

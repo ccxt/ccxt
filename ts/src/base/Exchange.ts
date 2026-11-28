@@ -5534,7 +5534,8 @@ export class BaseExchange {
                 }
                 const rateKey: string = (rate === undefined) ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
-                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                    const previousCost = this.safeString (reduced[feeCurrencyCode][rateKey], 'cost');
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (previousCost, cost);
                 } else {
                     const newRateFee: Dict = {
                         'currency': code,

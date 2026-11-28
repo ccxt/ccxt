@@ -2083,7 +2083,7 @@ raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL
 macro_rules! record_elem {
     ($($t:ident),*) => { $(
         impl crate::value::KeyRead for &Option<&$t> {
-            fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |r| crate::value::get_value_k(&r.raw, key)) }
+            fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |r| crate::value::KeyRead::key_read(&r.raw, key)) }
             fn read(&self, key: &Value) -> Value { self.map_or(Value::Null, |r| crate::value::get_value(&r.raw, key)) }
         }
         impl From<Option<&$t>> for Value { fn from(r: Option<&$t>) -> Value { r.map(Value::from).unwrap_or_default() } }
@@ -2158,7 +2158,7 @@ mod ohlcvs_by_symbol_key_read_tests {
 #[cfg(test)]
 mod prediction_outcome_record_tests {
     use super::{FromRaw, IntoRaw, Market};
-    use crate::value::{get_value_k, KeyRead};
+    use crate::value::KeyRead;
     use crate::Value;
 
     fn outcome_token() -> Value {
@@ -2188,7 +2188,7 @@ mod prediction_outcome_record_tests {
         let miss: Option<Market> = FromRaw::from_raw(Value::Null);
         assert!(miss.is_none());
         assert_eq!((&miss).key_read("outcome"), Value::Null);
-        assert_eq!(get_value_k(&miss.into_raw(), "outcome"), Value::Null);
+        assert_eq!(KeyRead::key_read(&miss.into_raw(), "outcome"), Value::Null);
     }
 }
 

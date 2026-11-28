@@ -1138,7 +1138,7 @@ impl Exchange {
     }
 
     /// `safe_string_lower` with a `&str` key — the `safe_*_k` twin of the
-    /// lookup above (same `get_value_k` path as the rest of the family).
+    /// lookup above (same `key_read` path as the rest of the family).
     #[inline]
     pub fn safe_string_lower_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_string_k(obj, key, &[]);
