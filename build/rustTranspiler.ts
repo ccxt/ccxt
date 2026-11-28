@@ -1652,8 +1652,6 @@ function classify(shape: Shape, ctx: Ctx, masked: string, content: string, where
         const cmp: Array<[string, string]> = [ ['is_less_than(&', '<'], ['is_greater_than(&', '>'], ['is_less_than_or_equal(&', '<='], ['is_greater_than_or_equal(&', '>='], ];
         for (const [prefix, op] of cmp) { if (!before.endsWith(prefix)) continue; const m = new RegExp(`^,\\s*${boxNum}\\)`).exec(after); if (m !== null) return eqOp(op, m[1], m[0].length, prefix); }
     }
-    // `to_string_val(&X)` is the identity on a `String` local.
-    if (shape === 'String' && before.endsWith('to_string_val(&') && after.startsWith(')')) { return [{ start: s - 'to_string_val(&'.length, end: nameEnd + 1, text: `${name}.clone()` }]; }
     // `ends_with` / `starts_with` on a literal are `str` methods.
     if (shape === 'String') {
         for (const [prefix, method] of [['ends_with(&', 'ends_with'], ['starts_with(&', 'starts_with']] as Array<[string, string]>) {
@@ -1802,8 +1800,6 @@ function classify(shape: Shape, ctx: Ctx, masked: string, content: string, where
             }
         }
     }
-    // `to_string_val(&X)` on a proven scalar is its own `to_string`.
-    if ((shape === 'Int' || shape === 'Float' || shape === 'Bool') && before.endsWith('to_string_val(&') && after.startsWith(')')) return [{ start: s - 'to_string_val(&'.length, end: nameEnd + 1, text: `Value::str(${name}.to_string())` }];
     // Re-boxing into a `Value` slot: the constructor takes the native payload.
     if (before.endsWith('Value::Str(') && shape === 'String') { if (after.startsWith(')') || after.startsWith('.clone())')) { return [{ start: s - 'Value::Str'.length, end: s - 1, text: 'Value::str' }]; } }
     // Already-native reads/writes and payload constructors.
@@ -2053,7 +2049,6 @@ function rustTypedLocalsSelfTest(): string[] {
                 "fn f() {\n    let mut n: Value = Value::Int(2);\n    if is_less_than(&Value::Int(3), &n) {\n        n = Value::Int(4);\n    }\n}\n",
                 "fn f() {\n    let mut n: i64 = 2;\n    if (3 < n) {\n        n = 4;\n    }\n}\n",
             ],
-            [ "tostr-int", "fn f() {\n    let mut n: Value = Value::Int(5);\n    let s: Value = to_string_val(&n);\n}\n", "fn f() {\n    let mut n: i64 = 5;\n    let s: Value = Value::str(n.to_string());\n}\n", ],
             [
                 "bool-matches",
                 "fn f() {\n    let mut b: Value = Value::Bool(true);\n    if matches!(&b, Value::Bool(true)) {\n        b = Value::Bool(false);\n    }\n}\n",

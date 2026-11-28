@@ -53,8 +53,8 @@ fn stringify_simple(v: &Value) -> String {
         Value::Bool(b)  => b.to_string(),
         Value::Null     => "null".to_string(),
         // Precise sentinel — { integer, decimals, __precise: true }.
-        // Reconstruct the decimal representation so `to_string_val` in
-        // transpiled code returns the expected number string (phemex
+        // Reconstruct the decimal representation so the text is the
+        // expected number string (phemex
         // `toEn` shifts decimals by `valueScale`, then reduce/stringify).
         Value::Dict(m) if m.contains_key("__precise") => precise_to_string(m),
         _ => format!("{v}"),
@@ -577,11 +577,6 @@ pub mod Math {
 // if the rust transpiler picks up FullPropertyAccessReplacements). Post-
 // processing in build/rustTranspiler.ts converts `Math.X(...)` to
 // `crate::runtime::Math::X(...)`.
-
-/// Generic `.toString()` for Value.
-pub fn to_string_val(v: &Value) -> Value {
-    Value::Str(stringify_simple(v).into())
-}
 
 // ── Numeric / precision constants (mirrors decimal_to_precision.ts) ─────────
 
