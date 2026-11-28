@@ -10994,7 +10994,7 @@ ${constStatements.join('\n')}
             // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
             // Handle*AndParams pairs, MarketSymbols and MarketCodes, exchange_misc.go ImplodeHostname): drop the copies
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
-                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'HandleTriggerPricesAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname', 'MarketIds' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'HandleTriggerPricesAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname', 'MarketIds', 'CurrencyIds' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
             // safeStringList is hand-written in exchange_safe.go with its []string answer: drop the copy
             [/func\s+\(this \*BaseExchange\)\s+SafeStringList\([^{]*\{[\s\S]*?\n\}\n/g, ''],
             // safeIntegerOmitZero is hand-written in exchange_safe.go with its *int64 answer: drop the copy

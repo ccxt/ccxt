@@ -244,6 +244,22 @@ func (this *BaseExchange) MarketIds(optionalArgs ...any) []string {
 	return result
 }
 
+// CurrencyIds is ts/src/base/Exchange.ts currencyIds with its string[] result typed:
+// absent input answers a nil slice, every element is the resolved currency id (absent ids skipped).
+func (this *BaseExchange) CurrencyIds(optionalArgs ...any) []string {
+	codes := GetArgStringSlice(optionalArgs, 0, nil)
+	if codes == nil {
+		return nil
+	}
+	result := make([]string, 0, len(codes))
+	for _, code := range codes {
+		if id, isStr := derefScalar(this.CurrencyId(code)).(string); isStr {
+			result = append(result, id)
+		}
+	}
+	return result
+}
+
 // HandleMaxEntriesPerRequestAndParams: the option wins, then the argument, then 1000; slot 0 is
 // the integer (nil only when CheckOptionInteger answers nil), slot 1 the params left over.
 func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optionalArgs ...any) (any, map[string]any) {

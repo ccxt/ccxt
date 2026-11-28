@@ -7400,7 +7400,10 @@ export default class okx extends Exchange {
         if (length > 1) {
             const accountId = this.safeString (params, 'accountId');
             if (accountId === undefined) {
-                const accountIds = this.getListFromObjectValues (accounts, 'id');
+                const accountIds: string[] = [];
+                for (let i = 0; i < length; i++) {
+                    accountIds.push (this.safeString (this.safeDict (accounts, i), 'id', ''));
+                }
                 throw new ExchangeError (this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join (', '));
             } else {
                 const accountsById = this.indexBy (accounts, 'id');
