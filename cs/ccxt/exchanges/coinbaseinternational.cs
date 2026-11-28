@@ -2484,7 +2484,7 @@ public partial class coinbaseinternational : Exchange
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
-        return this.amountToPrecision(((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null)), exchangeAmount);
+        return this.amountToPrecision(this.safeString(market, "symbol"), exchangeAmount);
     }
 
     /**

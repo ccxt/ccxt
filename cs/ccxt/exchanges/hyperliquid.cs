@@ -4951,12 +4951,13 @@ public partial class hyperliquid : Exchange
         {
             IDictionary<string, object> asset = this.safeDict(universe, i, new Dictionary<string, object>() {});
             // the coin name resolves to the unified symbol, delisted assets have no market
-            string symbol = this.coinToMarketId(this.safeString(asset, "name"));
-            IDictionary<string, object> market = this.safeDict(this.markets, symbol);
+            string? marketId = this.coinToMarketId(this.safeString(asset, "name"));
+            IDictionary<string, object> market = this.safeDict(this.markets, marketId);
             if ((market == null))
             {
                 continue;
             }
+            string? symbol = this.safeString(market, "symbol", "");
             if ((symbolsLength > 0) && !this.inArray(symbol, symbolsNormalized))
             {
                 continue;
@@ -7184,8 +7185,12 @@ public partial class hyperliquid : Exchange
         if ((hip3Dict != null))
         {
             string? quote = this.safeString(hip3Dict, "quote", "USDC");
-            string code = this.safeString(hip3Dict, "code", coin);
-            return ((((code + "/") + quote) + ":") + quote);
+            string? code = this.safeString(hip3Dict, "code", coin);
+            if ((code != null))
+            {
+                return ((((code + "/") + quote) + ":") + quote);
+            }
+            return null;
         }
         if (coin.IndexOf("/", StringComparison.Ordinal) > -1 || coin.IndexOf("@", StringComparison.Ordinal) > -1)
         {
@@ -7197,7 +7202,12 @@ public partial class hyperliquid : Exchange
         {
             coinId = coin.Replace(":", (string)"-");
         }
-        return (this.safeCurrencyCode(coinId) + "/USDC:USDC");
+        string? currencyCode = this.safeCurrencyCode(coinId);
+        if ((currencyCode != null))
+        {
+            return (currencyCode + "/USDC:USDC");
+        }
+        return null;
     }
 
     public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)

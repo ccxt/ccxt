@@ -1256,7 +1256,7 @@ public partial class zebpay : Exchange
             string? marginAsset = this.safeString(query, "marginAsset", "INR");
             string? formType = this.safeStringUpper(query, "formType", "ORDER_FORM");
             request["formType"] = formType;
-            request["amount"] = this.parseToNumeric(this.amountToPrecision(((string)(market.ContainsKey("id") ? market["id"] : null)), amount));
+            request["amount"] = this.parseToNumeric(this.amountToPrecision(this.safeString(market, "id"), amount));
             request["marginAsset"] = marginAsset;
             bool hasTP = (takeProfitPrice != null);
             bool hasSL = (stopLossPrice != null);

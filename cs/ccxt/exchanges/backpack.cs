@@ -1373,11 +1373,12 @@ public partial class backpack : Exchange
         }
         await this.loadMarkets();
         IDictionary<string, object> market = this.rfqConversionMarket(fromCode, toCode);
+        string? marketSymbol = this.safeString(market, "symbol");
         bool fromIsBase = (fromCode == this.safeString(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         if (!fromIsBase)
         {
-            Dictionary<string, object> initialQuote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, 1, new Dictionary<string, object>() {
+            Dictionary<string, object> initialQuote = await this.fetchStockIndicativeQuote(marketSymbol, side, 1, new Dictionary<string, object>() {
                 { "stock", true },
             });
             string? initialPrice = this.safeString(initialQuote, "price");
@@ -1395,7 +1396,7 @@ public partial class backpack : Exchange
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() price must be positive")) ;
             }
             string? rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
-            string? preciseQuantity = this.amountToPrecision(((string)(market.ContainsKey("symbol") ? market["symbol"] : null)), this.parseNumber(rawQuantity));
+            string? preciseQuantity = this.amountToPrecision(marketSymbol, this.parseNumber(rawQuantity));
             if ((preciseQuantity == null))
             {
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() could not determine a stock quantity")) ;
@@ -1406,7 +1407,7 @@ public partial class backpack : Exchange
                 throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
             }
         }
-        Dictionary<string, object> quote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+        Dictionary<string, object> quote = await this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), new Dictionary<string, object>() {
             { "stock", true },
         });
         if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))
@@ -1426,7 +1427,7 @@ public partial class backpack : Exchange
                     throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
                 }
                 amountString = reducedQuantity;
-                quote = await this.fetchStockIndicativeQuote((market.ContainsKey("symbol") ? market["symbol"] : null), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+                quote = await this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), new Dictionary<string, object>() {
                     { "stock", true },
                 });
                 if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))

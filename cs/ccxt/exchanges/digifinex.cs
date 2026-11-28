@@ -4348,22 +4348,12 @@ public partial class digifinex : Exchange
         string? marketType = null;
         if ((symbolsNormalized != null))
         {
-            object symbol = null;
-            if (((symbolsNormalized is IList<object>) || (symbolsNormalized is not null && symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
+            if (symbolsLength > 1)
             {
-                int symbolsLength = (symbolsNormalized?.Count ?? 0);
-                if (symbolsLength > 1)
-                {
-                    throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                if ((symbolsLength == 1))
-                {
-                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
-                }
-            } else
-            {
-                symbol = symbolsNormalized;
+                throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
             }
+            string? symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
         }
         IDictionary<string, object> paramsMarketType = null;

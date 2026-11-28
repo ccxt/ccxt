@@ -8242,23 +8242,16 @@ public partial class bybit : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositions", symbols, null, null, paramsPaginate, "nextPageCursor", "cursor", null, 200));
         }
-        object symbol = null;
-        IList<object> symbolsNormalized = null;
-        if (((symbols != null)) && ((symbols is IList<object>) || (symbols is not null && symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        string? symbol = null;
+        if ((symbolsNormalized != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if (symbolsLength > 1)
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
-            } else if ((symbolsLength == 1))
-            {
-                symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             }
-            symbolsNormalized = this.marketSymbols(symbols);
-        } else if ((symbols != null))
-        {
-            symbol = symbols;
-            symbolsNormalized = new List<object> {this.symbol(symbol)};
+            symbol = this.safeString(symbolsNormalized, 0);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
@@ -8266,7 +8259,7 @@ public partial class bybit : Exchange
         {
             Dictionary<string, object> symbolMarket = this.market(symbol);
             market = symbolMarket;
-            symbol = (symbolMarket != null && symbolMarket.ContainsKey("symbol") ? symbolMarket["symbol"] : null);
+            symbol = this.safeString(symbolMarket, "symbol");
             request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         (string?, IDictionary<string, object>) typeparamsValueVariable = this.getBybitType("fetchPositions", market, paramsPaginate);

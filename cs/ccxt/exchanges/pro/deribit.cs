@@ -239,7 +239,7 @@ public partial class deribit : ccxt.deribit
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
+            Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             channels.Add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -327,7 +327,7 @@ public partial class deribit : ccxt.deribit
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
+            Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             channels.Add(("quote." + this.safeString(market, "id", "")));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -926,7 +926,7 @@ public partial class deribit : ccxt.deribit
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39739 && ((hxArr39739 is IList<object>) || (hxArr39739 is not null && hxArr39739.GetType().IsGenericType && hxArr39739.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39685 && ((hxArr39685 is IList<object>) || (hxArr39685 is not null && hxArr39685.GetType().IsGenericType && hxArr39685.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

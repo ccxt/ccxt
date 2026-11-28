@@ -3874,16 +3874,12 @@ public partial class cryptocom : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            string? symbol = null;
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if (symbolsLength > 1)
             {
                 throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
             }
-            if ((symbolsLength == 1))
-            {
-                symbol = ((string)(symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-            }
+            string? symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }

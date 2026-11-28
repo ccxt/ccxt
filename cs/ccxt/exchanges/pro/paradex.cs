@@ -1499,7 +1499,7 @@ public partial class paradex : ccxt.paradex
         string? url = this.getWsUrl();
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        if (symbolsLength > 0)
+        if (((symbolsNormalized != null)) && (symbolsLength > 0))
         {
             for (int i = 0; i < symbolsLength; i++)
             {
@@ -1549,7 +1549,7 @@ public partial class paradex : ccxt.paradex
         List<object> channels = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> bidAskSymbols = new List<object>() {};
-        if (symbolsLength > 0)
+        if (((symbolsNormalized != null)) && (symbolsLength > 0))
         {
             for (int i = 0; i < symbolsLength; i++)
             {

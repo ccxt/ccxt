@@ -290,7 +290,8 @@ public partial class bitopro : ccxt.bitopro
         {
             return;
         }
-        string? symbol = this.symbol(((bs + "/") + quote));
+        string marketSymbol = ((bs + "/") + quote);
+        string? symbol = this.symbol(marketSymbol);
         string? messageHash = this.safeString(message, "event");
         if ((this.myTrades == null))
         {
@@ -337,7 +338,8 @@ public partial class bitopro : ccxt.bitopro
         string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = this.symbol(((bs + "/") + quote));
+            string marketSymbol = ((bs + "/") + quote);
+            symbol = this.symbol(marketSymbol);
         }
         Dictionary<string, object> marketResolved = this.safeMarket(symbol, market);
         string? price = this.safeString(trade, "price");

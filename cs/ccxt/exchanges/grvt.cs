@@ -2623,7 +2623,8 @@ public partial class grvt : Exchange
         for (int i = 0; i < orderLegs.Count; i++)
         {
             IDictionary<string, object> leg = ((IDictionary<string, object>)orderLegs[i]);
-            Dictionary<string, object> market = this.market((leg != null && leg.ContainsKey("instrument") ? leg["instrument"] : null));
+            string? instrument = this.safeString(leg, "instrument");
+            Dictionary<string, object> market = this.market(instrument);
             int precisionValue = this.precisionFromString(this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "base"));
             double sizeMultiplier = Math.Pow(Convert.ToDouble(10), Convert.ToDouble(precisionValue));
             string? size = this.safeString(leg, "size");

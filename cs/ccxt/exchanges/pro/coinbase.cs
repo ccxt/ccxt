@@ -122,12 +122,14 @@ public partial class coinbase : ccxt.coinbase
         string watchMessageHash = name;
         string unWatchMessageHash = ("unsubscribe:" + (name));
         List<object> productIds = new List<object>() {};
+        List<object> subscriptionSymbols = new List<object>() {};
         if ((symbol != null))
         {
             market = this.market(symbol);
             watchMessageHash = ((name + "::") + symbol);
             unWatchMessageHash = ((("unsubscribe:" + (name)) + "::") + (symbol));
             productIds = new List<object> {this.safeString(market, "id")};
+            subscriptionSymbols.Add((market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -141,7 +143,7 @@ public partial class coinbase : ccxt.coinbase
             { "subMessageHashes", new List<object>() {watchMessageHash} },
             { "topic", topic },
             { "unsubscribe", true },
-            { "symbols", new List<object>() {symbol} },
+            { "symbols", subscriptionSymbols },
         };
         if (isPrivate == true)
         {

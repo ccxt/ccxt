@@ -1482,20 +1482,15 @@ public partial class latoken : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = null;
-        bool symbolKnown = false;
+        IDictionary<string, object> marketResolved = market;
         if (((bs != null)) && ((quote != null)))
         {
             string knownSymbol = ((bs + "/") + quote);
             if (((this.markets != null)) && ((this.markets != null && knownSymbol != null && this.markets.ContainsKey(knownSymbol))))
             {
-                symbolKnown = true;
+                marketResolved = this.market(knownSymbol);
             }
             symbol = knownSymbol;
-        }
-        IDictionary<string, object> marketResolved = market;
-        if (symbolKnown)
-        {
-            marketResolved = this.market(symbol);
         }
         string? orderSide = this.safeString(order, "side");
         string? side = null;

@@ -495,7 +495,7 @@ public partial class delta : Exchange
     public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         bool isOption = ((marketId != null)) && ((marketId.EndsWith("-C")) || (marketId.EndsWith("-P")) || (marketId.StartsWith("C-")) || (marketId.StartsWith("P-")));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
+        if (((marketId != null)) && isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);

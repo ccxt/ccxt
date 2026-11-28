@@ -2067,7 +2067,7 @@ public partial class gate : Exchange
     public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)
     {
         bool isOption = ((marketId != null)) && ((marketId.IndexOf("-C", StringComparison.Ordinal) > -1) || (marketId.IndexOf("-P", StringComparison.Ordinal) > -1));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
+        if (((marketId != null)) && isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -7361,12 +7361,13 @@ public partial class gate : Exchange
         if (isSpot)
         {
             List<object> ordersRequests = new List<object>() {};
+            string? marketSymbol = this.safeString(market, "symbol", "");
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 string? id = this.safeString(ids, i, "");
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", symbol },
+                    { "symbol", marketSymbol },
                 };
                 ordersRequests.Add(orderItem);
             }

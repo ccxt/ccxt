@@ -389,7 +389,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(this.singleBidAskSymbol("watchBidsAsks", symbols));
+        string? bidAskSymbol = this.singleBidAskSymbol("watchBidsAsks", symbols);
+        Dictionary<string, object> market = this.market(bidAskSymbol);
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("bidask:" + symbol);
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
@@ -428,7 +429,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(this.singleBidAskSymbol("unWatchBidsAsks", symbols));
+        string? bidAskSymbol = this.singleBidAskSymbol("unWatchBidsAsks", symbols);
+        Dictionary<string, object> market = this.market(bidAskSymbol);
         string? symbol = this.safeString(market, "symbol", "");
         string subMessageHash = ("bidask:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);

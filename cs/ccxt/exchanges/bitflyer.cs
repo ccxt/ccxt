@@ -933,11 +933,8 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        if ((symbol != null))
-        {
-            return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", symbol));
-        }
-        return this.parseOrders(response, market, since, limitVar);
+        string? marketSymbol = this.safeString(market, "symbol");
+        return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", marketSymbol));
     }
 
     /**

@@ -1995,7 +1995,7 @@ public partial class kraken : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            string? parsedAmount = this.amountToPrecision(((string)(market.ContainsKey("symbol") ? market["symbol"] : null)), amount);
+            string? parsedAmount = this.amountToPrecision(this.safeString(market, "symbol"), amount);
             Dictionary<string, object> req = new Dictionary<string, object>() {
                 { "type", side },
                 { "ordertype", type },

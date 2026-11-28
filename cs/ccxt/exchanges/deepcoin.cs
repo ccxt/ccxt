@@ -2717,17 +2717,12 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OrderSysID", id },
         };
-        IDictionary<string, object> market = null;
-        string? symbolResolved = null;
-        if ((symbol != null))
+        Dictionary<string, object> market = this.market(symbol);
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            market = this.market(symbol);
-            if ((this.safeBool(market, "spot", false) == true))
-            {
-                throw new NotSupported ((this.id + " editOrder() is not supported for spot markets")) ;
-            }
-            symbolResolved = this.safeString(market, "symbol");
+            throw new NotSupported ((this.id + " editOrder() is not supported for spot markets")) ;
         }
+        string? symbolResolved = this.safeString(market, "symbol");
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         bool isTPSL = ((stopLossPrice != null)) || ((takeProfitPrice != null));
@@ -2740,11 +2735,11 @@ public partial class deepcoin : Exchange
             }
             if ((stopLossPrice != null))
             {
-                request["slTriggerPx"] = (symbolResolved != "") ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
+                request["slTriggerPx"] = ((symbolResolved != null)) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
             }
             if ((takeProfitPrice != null))
             {
-                request["tpTriggerPx"] = (symbolResolved != "") ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
+                request["tpTriggerPx"] = ((symbolResolved != null)) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
             Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, paramsOmitted));

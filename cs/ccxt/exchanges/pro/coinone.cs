@@ -116,7 +116,8 @@ public partial class coinone : ccxt.coinone
         {
             return;
         }
-        string? symbol = this.symbol(((bs + "/") + quote));
+        string marketSymbol = ((bs + "/") + quote);
+        string? symbol = this.symbol(marketSymbol);
         Int64? timestamp = this.safeInteger(data, "timestamp");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -254,7 +255,8 @@ public partial class coinone : ccxt.coinone
         string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = this.symbol(((bs + "/") + quote));
+            string marketSymbol = ((bs + "/") + quote);
+            symbol = this.symbol(marketSymbol);
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },

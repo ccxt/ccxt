@@ -2762,10 +2762,11 @@ public partial class hitbtc : Exchange
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         bool isPostOnly = this.isPostOnly((type == "market"), false, parameters);
         string? resolvedMarketType = this.safeString(market, "type");
+        string? marketSymbol = this.safeString(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "side", side },
-            { "quantity", this.amountToPrecision(((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null)), amount) },
+            { "quantity", this.amountToPrecision(marketSymbol, amount) },
             { "symbol", this.safeString(market, "id") },
         };
         if ((reduceOnly != null))
@@ -2794,7 +2795,7 @@ public partial class hitbtc : Exchange
             {
                 throw new ExchangeError ((this.id + " createOrder() requires a price argument for limit orders")) ;
             }
-            request["price"] = this.priceToPrecision(((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null)), price);
+            request["price"] = this.priceToPrecision(marketSymbol, price);
         }
         if ((timeInForce == "GTD"))
         {
@@ -2806,7 +2807,7 @@ public partial class hitbtc : Exchange
         }
         if ((triggerPrice != null))
         {
-            request["stop_price"] = this.priceToPrecision(((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null)), triggerPrice);
+            request["stop_price"] = this.priceToPrecision(marketSymbol, triggerPrice);
             if (isLimit)
             {
                 request["type"] = "stopLimit";

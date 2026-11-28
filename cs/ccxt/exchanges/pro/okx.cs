@@ -2366,14 +2366,13 @@ public partial class okx : ccxt.okx
             { "access", accessType },
         });
         IDictionary<string, object> market = null;
-        string? symbolResolved = null;
         string? type = typeOption;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = this.safeString(market, "symbol");
             type = this.safeString(market, "type");
         }
+        string? symbolResolved = this.safeString(market, "symbol");
         if (type == "future")
         {
             type = "futures";
