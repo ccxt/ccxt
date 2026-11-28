@@ -1899,16 +1899,14 @@ class kraken extends \ccxt\async\kraken {
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
         if ($errorMessage !== null) {
             $requestId = $this->safe_string_2($message, 'reqid', 'req_id');
-            $broad = $this->exceptions['ws']['broad'];
-            $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
-            $exception = null;
-            if ($broadKey === null) {
-                $exception = new ExchangeError($errorMessage); // c# requirement to convert the errorMessage to string
-            } else {
-                $exception = new $broad[$broadKey]($errorMessage);
-            }
             if ($requestId !== null) {
-                $client->reject($exception, $requestId);
+                $broad = $this->exceptions['ws']['broad'];
+                try {
+                    $this->throw_broadly_matched_exception($broad, $errorMessage, $errorMessage);
+                    throw new ExchangeError($errorMessage);
+                } catch (Exception $e) {
+                    $client->reject($e, $requestId);
+                }
             }
             return false;
         }

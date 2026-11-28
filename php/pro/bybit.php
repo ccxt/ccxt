@@ -1421,15 +1421,14 @@ class bybit extends \ccxt\async\bybit {
         $timestamp = $this->safe_integer_2($trade, 't', 'T');
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
-        $m = $this->safe_value($trade, 'm');
         if ($side === null) {
             $side = 'sell';
-            if ($m === true) {
+            if ($this->safe_bool($trade, 'm', false)) {
                 $side = 'buy';
             }
         } else {
             // spot private
-            $takerOrMaker = $m;
+            $takerOrMaker = $this->safe_value($trade, 'm');
         }
         $price = $this->safe_string($trade, 'p');
         $amount = $this->safe_string_2($trade, 'q', 'v');

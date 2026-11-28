@@ -794,12 +794,11 @@ class whitebit extends \ccxt\async\whitebit {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $messageHash = 'wallet:';
-        $method = null;
+        $method = 'balanceMargin_subscribe';
         if ($type === 'spot') {
             $method = 'balanceSpot_subscribe';
             $messageHash .= 'spot';
         } else {
-            $method = 'balanceMargin_subscribe';
             $messageHash .= 'margin';
         }
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -925,11 +924,11 @@ class whitebit extends \ccxt\async\whitebit {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    public function watch_public(string $messageHash, string $method, array $reqParams, $params = array()) {
         return Async\async(self::do_watch_public(...))($messageHash, $method, $reqParams, $params);
     }
 
-    private function do_watch_public(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    private function do_watch_public(string $messageHash, string $method, array $reqParams, $params = array()) {
         $url = $this->safe_string($this->urls['api'], 'ws');
         $id = $this->incrementing_nonce();
         $request = array(
@@ -1007,11 +1006,11 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function watch_private(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    public function watch_private(string $messageHash, string $method, array $reqParams, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $method, $reqParams, $params);
     }
 
-    private function do_watch_private(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
+    private function do_watch_private(string $messageHash, string $method, array $reqParams, $params = array()) {
         $this->check_required_credentials();
         Async\await($this->authenticate());
         $url = $this->safe_string($this->urls['api'], 'ws');
