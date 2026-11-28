@@ -2056,8 +2056,17 @@ public partial class interactivebrokers : Exchange
         List<object> cmeSymbols = new List<object>(cryptoCmeFutureSymbols.Keys);
         List<object> cfeSymbols = new List<object>(cryptoCboeFutureSymbols.Keys);
         List<object> targetSymbols = this.arraysConcat(new List<object>() {coinbaseDerivSymbols, cmeSymbols, cfeSymbols});
-        List<object> symbols = this.unique(targetSymbols);
-        string joined = String.Join(",", symbols.ToArray()); // c# fix, todo investigate
+        List<object> symbols = new List<object>() {};
+        int targetSymbolsLength = (targetSymbols?.Count ?? 0);
+        for (int i = 0; i < targetSymbolsLength; i++)
+        {
+            string? targetSymbol = this.safeString(targetSymbols, i, "");
+            if (!this.inArray(targetSymbol, symbols))
+            {
+                symbols.Add(targetSymbol);
+            }
+        }
+        string joined = String.Join(",", symbols.ToArray());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", joined },
         };

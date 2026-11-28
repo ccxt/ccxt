@@ -2253,8 +2253,10 @@ public partial class phemex : Exchange
             int amountIndex = (tradeLength - 1);
             priceString = this.safeString(trade, priceIndex);
             amountString = this.safeString(trade, amountIndex);
-            object priceAmount = getValue(trade, priceIndex);
-            if ((priceAmount is Int64 || priceAmount is int || priceAmount is float || priceAmount is double))
+            // v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            string? tradeSettle = this.safeString(marketResolved, "settle");
+            bool isStableSettled = (tradeSettle == "USDT") || (tradeSettle == "USDC");
+            if (!isStableSettled)
             {
                 priceString = this.fromEp(this.safeString(trade, priceIndex), marketResolved);
                 amountString = this.fromEv(this.safeString(trade, amountIndex), marketResolved);
@@ -3669,9 +3671,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList171192))
+        if ((data is IList<object> hxList171405))
         {
-            int numOrders = hxList171192.Count;
+            int numOrders = hxList171405.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))

@@ -1129,7 +1129,7 @@ public partial class bithumb : Exchange
             {
                 return ccxt.BaseExchange.ToTickers(result);
             }
-            List<object> marketIdsChunks = new List<object>() {};
+            List<object> singleMarketIds = new List<object>() {};
             List<Task<List<object>>> promises = new List<Task<List<object>>>() {};
             // the exchange rejects more than 200 market ids per request
             Int64? maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
@@ -1146,7 +1146,13 @@ public partial class bithumb : Exchange
                 bool isLastMarketId = ((i == ((marketIdsLength - 1))));
                 if ((marketIdsChunkLength >= maxMarketIdsPerRequest.GetValueOrDefault()) || isLastMarketId)
                 {
-                    marketIdsChunks.Add(marketIdsChunk);
+                    if ((marketIdsChunkLength == 1))
+                    {
+                        singleMarketIds.Add((marketIds != null && i < marketIds.Count ? marketIds[i] : null));
+                    } else
+                    {
+                        singleMarketIds.Add("");
+                    }
                     request["markets"] = String.Join(",", marketIdsChunk.ToArray());
                     promises.Add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = new List<object>() {};
@@ -1193,13 +1199,7 @@ public partial class bithumb : Exchange
                 {
                     response = this.safeValue(response, "data");
                 }
-                string? expectedMarketId = null;
-                List<object> requestedMarketIds = this.safeList(marketIdsChunks, i, new List<object>() {});
-                string? firstMarketId = this.safeString(requestedMarketIds, 0);
-                if (((firstMarketId != null)) && ((this.safeString(requestedMarketIds, 1) == null)))
-                {
-                    expectedMarketId = firstMarketId;
-                }
+                string? expectedMarketId = this.safeString(singleMarketIds, i);
                 List<object> tickers = new List<object>() {};
                 if (((response is IList<object>) || (response is not null && response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {

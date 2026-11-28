@@ -2191,33 +2191,32 @@ public partial class krakenfutures : Exchange
     public virtual void verifyOrderActionSuccess(string? status, string? method, IList<object>? omit = null)
     {
         omit ??= new List<object>();
-        Dictionary<string, object> errors = new Dictionary<string, object>() {
-            { "invalidOrderType", typeof(InvalidOrder) },
-            { "invalidSide", typeof(InvalidOrder) },
-            { "invalidSize", typeof(InvalidOrder) },
-            { "invalidPrice", typeof(InvalidOrder) },
-            { "insufficientAvailableFunds", typeof(InsufficientFunds) },
-            { "selfFill", typeof(ExchangeError) },
-            { "tooManySmallOrders", typeof(ExchangeError) },
-            { "maxPositionViolation", typeof(BadRequest) },
-            { "marketSuspended", typeof(ExchangeNotAvailable) },
-            { "marketInactive", typeof(ExchangeNotAvailable) },
-            { "clientOrderIdAlreadyExist", typeof(DuplicateOrderId) },
-            { "clientOrderIdTooLong", typeof(BadRequest) },
-            { "outsidePriceCollar", typeof(InvalidOrder) },
-            { "postWouldExecute", typeof(OrderImmediatelyFillable) },
-            { "iocWouldNotExecute", typeof(OrderNotFillable) },
-            { "wouldNotReducePosition", typeof(ExchangeError) },
-            { "orderForEditNotFound", typeof(OrderNotFound) },
-            { "orderForEditNotAStop", typeof(InvalidOrder) },
-            { "filled", typeof(OrderNotFound) },
-            { "notFound", typeof(OrderNotFound) },
-        };
         if ((status != null))
         {
-            if (((errors != null && status != null && errors.ContainsKey(status))) && !this.inArray(status, omit))
+            if (!this.inArray(status, omit))
             {
-                throwDynamicException((errors != null && status != null && errors.ContainsKey(status) ? errors[status] : null), ((((this.id + ": ") + method) + " failed due to ") + status));
+                this.throwExactlyMatchedException(new Dictionary<string, object>() {
+                    { "invalidOrderType", typeof(InvalidOrder) },
+                    { "invalidSide", typeof(InvalidOrder) },
+                    { "invalidSize", typeof(InvalidOrder) },
+                    { "invalidPrice", typeof(InvalidOrder) },
+                    { "insufficientAvailableFunds", typeof(InsufficientFunds) },
+                    { "selfFill", typeof(ExchangeError) },
+                    { "tooManySmallOrders", typeof(ExchangeError) },
+                    { "maxPositionViolation", typeof(BadRequest) },
+                    { "marketSuspended", typeof(ExchangeNotAvailable) },
+                    { "marketInactive", typeof(ExchangeNotAvailable) },
+                    { "clientOrderIdAlreadyExist", typeof(DuplicateOrderId) },
+                    { "clientOrderIdTooLong", typeof(BadRequest) },
+                    { "outsidePriceCollar", typeof(InvalidOrder) },
+                    { "postWouldExecute", typeof(OrderImmediatelyFillable) },
+                    { "iocWouldNotExecute", typeof(OrderNotFillable) },
+                    { "wouldNotReducePosition", typeof(ExchangeError) },
+                    { "orderForEditNotFound", typeof(OrderNotFound) },
+                    { "orderForEditNotAStop", typeof(InvalidOrder) },
+                    { "filled", typeof(OrderNotFound) },
+                    { "notFound", typeof(OrderNotFound) },
+                }, status, ((((this.id + ": ") + method) + " failed due to ") + status));
             }
         }
     }

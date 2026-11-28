@@ -996,7 +996,7 @@ public partial class hibachi : Exchange
             sideInternal = "BID";
         }
         string? priceInternal = "";
-        if (((price != null)) && (!isEqual(price, 0)))
+        if (((price != null)) && (!(price == 0)))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }

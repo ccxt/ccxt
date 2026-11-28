@@ -1557,7 +1557,7 @@ public partial class paradex : Exchange
                 } else
                 {
                     Dictionary<string, object> market = this.safeMarket(marketId);
-                    if (isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
+                    if ((this.safeString(market, "type") == marketType))
                     {
                         result.Add(summary);
                     }

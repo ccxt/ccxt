@@ -289,7 +289,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string} marketId the conid
      * @returns {undefined}
      */
-    public async virtual Task<object> ibkrUnsubscribeMarketData(WebSocketClient client, object marketId)
+    public async virtual Task<object> ibkrUnsubscribeMarketData(WebSocketClient client, string? marketId)
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -298,7 +298,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             if (((request != null)) && request.StartsWith("smd+"))
             {
                 string? conid = this.safeString((client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null), "conid");
-                if (isEqual(conid, marketId))
+                if ((conid == marketId))
                 {
                     return null;  // still in use
                 }
@@ -306,7 +306,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         }
         // the connection is open, the callers get the client from ibkrConnect ()
         string emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
-        await client.send(((("umd+" + (marketId)) + "+") + emptyArgs));
+        await client.send(((("umd+" + marketId) + "+") + emptyArgs));
         return null;
     }
 
@@ -485,7 +485,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         for (int i = 0; i < (marketSymbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(marketSymbols[i]);
-            await this.ibkrUnsubscribeMarketData(client, (market.ContainsKey("id") ? market["id"] : null));
+            await this.ibkrUnsubscribeMarketData(client, this.safeString(market, "id"));
         }
         return true;
     }
@@ -658,7 +658,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             { "symbolsAndTimeframes", new List<object>() {new List<object>() {unifiedSymbol, timeframeVar}} },
         };
         await this.ibkrUnsubscribe(client, subHashes, null, subscription);
-        await this.ibkrUnsubscribeMarketData(client, (market.ContainsKey("id") ? market["id"] : null));
+        await this.ibkrUnsubscribeMarketData(client, historyMarketId);
         return true;
     }
 

@@ -698,13 +698,7 @@ public partial class BaseExchange
         if ((this.proxy != null))
         {
             usedProxies.Add("proxy");
-            if ((this.proxy is Delegate))
-            {
-                proxyUrl = callDynamically(this, "proxy", new object[] { url, method, headers, body });
-            } else
-            {
-                proxyUrl = this.proxy;
-            }
+            proxyUrl = this.proxy;
         }
         int length = (usedProxies?.Count ?? 0);
         if (length > 1)
@@ -961,9 +955,9 @@ public partial class BaseExchange
             for (int i = 0; i < (parsedArray?.Count ?? 0); i++)
             {
                 T entry = parsedArray[i];
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                bool entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
+                bool entryFiledEqualValue = isEqual(this.safeString(entry, field), value);
                 bool firstCondition = !valueIsDefined || entryFiledEqualValue;
                 Int64? entryKeyValue = this.safeInteger(entry, key);
                 bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != 0)) && ((since != null)) && (entryKeyValue.Value >= since.Value);
@@ -1553,8 +1547,8 @@ public partial class BaseExchange
     {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        object res = this.parseToNumeric(((value % 1)));
-        return isEqual(res, 0);
+        string? remainder = this.numberToString((value % 1));
+        return (remainder == "0") || (remainder == "-0");
     }
 
     public virtual bool isEmptyString(object value)
@@ -2339,9 +2333,9 @@ public partial class BaseExchange
         for (int i = 0; i < (sourceExchangeHelpers?.Count ?? 0); i++)
         {
             object helper = sourceExchangeHelpers[i];
-            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2334_18) ? sourceExchangeOption2334_18 : null) == null))
+            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2328_18) ? sourceExchangeOption2328_18 : null) == null))
             {
-                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2336_47) ? sourceExchangeOption2336_47 : null);
+                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2330_47) ? sourceExchangeOption2330_47 : null);
             }
         }
         return this;
@@ -3118,9 +3112,10 @@ public partial class BaseExchange
         //     ]
         //
         Dictionary<string, object> reduced = new Dictionary<string, object>() {};
-        for (int i = 0; i < (fees?.Count ?? 0); i++)
+        IList<object> feesList = fees;
+        for (int i = 0; i < (feesList?.Count ?? 0); i++)
         {
-            object fee = (fees != null && i < fees.Count ? fees[i] : null);
+            object fee = feesList[i];
             string? code = this.safeString(fee, "currency");
             string? feeCurrencyCode = ((code != null)) ? code : ((object)i).ToString();
             if ((feeCurrencyCode != null))
@@ -3138,7 +3133,8 @@ public partial class BaseExchange
                 string? rateKey = ((rate == null)) ? "" : rate;
                 if (inOp((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))
                 {
-                    ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["cost"] = Precise.stringAdd(getValue(getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey), "cost"), cost);
+                    string? previousCost = this.safeString(getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey), "cost");
+                    ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["cost"] = Precise.stringAdd(previousCost, cost);
                 } else
                 {
                     Dictionary<string, object> newRateFee = new Dictionary<string, object>() {
@@ -3580,7 +3576,7 @@ public partial class BaseExchange
     }
 
     // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    public virtual IList<object> marketSymbols(IList<object> symbols = null, object type = null, bool? allowEmpty = null, bool? sameTypeOnly = null, bool? sameSubTypeOnly = null)
+    public virtual IList<object> marketSymbols(IList<object> symbols = null, string? type = null, bool? allowEmpty = null, bool? sameTypeOnly = null, bool? sameSubTypeOnly = null)
     {
         /**
         * @param {string[]|undefined} symbols list of unified symbols
@@ -3615,21 +3611,21 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.market(symbols[i]);
             if (sameTypeOnly == true && ((marketType != null)))
             {
-                if (!isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
+                if ((this.safeString(market, "type") != marketType))
                 {
                     throw new BadRequest ((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + ((market.ContainsKey("type") ? market["type"] : null))) + ".")) ;
                 }
             }
             if (sameSubTypeOnly == true && ((isLinearSubType != null)))
             {
-                if (!isEqual((market.ContainsKey("linear") ? market["linear"] : null), isLinearSubType))
+                if ((this.safeBool(market, "linear") != isLinearSubType))
                 {
                     throw new BadRequest ((this.id + " symbols must be of the same subType, either linear or inverse.")) ;
                 }
             }
-            if ((type != null) && !isEqual((market.ContainsKey("type") ? market["type"] : null), type))
+            if ((type != null) && (this.safeString(market, "type") != type))
             {
-                throw new BadRequest ((((this.id + " symbols must be of the same type ") + (type)) + ". If the type is incorrect you can change it in options or the params of the request")) ;
+                throw new BadRequest ((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
             if (!(this.safeBool(market, "spot", false) == true))
@@ -3684,7 +3680,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> filterByKey(IList<object> objects, object key, object value = null)
+    public virtual IList<object> filterByKey(IList<object> objects, object key, string? value = null)
     {
         if ((value == null))
         {
@@ -3694,7 +3690,7 @@ public partial class BaseExchange
         for (int i = 0; i < (objects?.Count ?? 0); i++)
         {
             string? objectValue = this.safeString((objects != null && i < objects.Count ? objects[i] : null), key);
-            if (isEqual(objectValue, value))
+            if ((objectValue == value))
             {
                 result.Add((objects != null && i < objects.Count ? objects[i] : null));
             }
@@ -3702,7 +3698,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> filterBySymbol(IList<object> objects, object symbol = null)
+    public virtual IList<object> filterBySymbol(IList<object> objects, string? symbol = null)
     {
         return this.filterByKey(objects, "symbol", symbol);
     }
@@ -3779,7 +3775,7 @@ public partial class BaseExchange
         for (int i = 0; i < aliasKeys.Count; i++)
         {
             string? alias = ((string)aliasKeys[i]);
-            if ((isEqual((aliases != null && alias != null && aliases.ContainsKey(alias) ? aliases[alias] : null), unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
+            if (((this.safeString(aliases, alias) == unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
             {
                 return ((string?)((object)((alias != null && networkIdsByCodes.ContainsKey(alias) ? networkIdsByCodes[alias] : null))));
             }
@@ -4743,7 +4739,7 @@ public partial class BaseExchange
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (((values == null)) || ((values == null)) || ((values is false)) || (isEqual(values, 0)) || ((values is "")))
+        if (((values == null)) || ((values == null)) || ((values is false)) || ((values is "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed == true)
@@ -4775,7 +4771,7 @@ public partial class BaseExchange
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (((values == null)) || ((values == null)) || ((values is false)) || (isEqual(values, 0)) || ((values is "")))
+        if (((values == null)) || ((values == null)) || ((values is false)) || ((values is "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed == true)
@@ -7583,7 +7579,7 @@ public partial class BaseExchange
                 object response = null;
                 if ((method == "fetchAccounts"))
                 {
-                    response = await ((Task<object>)callDynamically(this, method, new object[] { paramsOmitted }));
+                    response = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts(paramsOmitted));
                 } else if ((method == "getLeverageTiersPaginated") || (method == "fetchPositions"))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, paramsOmitted }));

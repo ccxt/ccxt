@@ -1237,7 +1237,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? id = this.safeInteger(message, "id");
         if ((id != null))
         {
-            this.handleSubscriptionStatus(client, (Dictionary<string, object>)message, id);
+            this.handleSubscriptionStatus(client, (Dictionary<string, object>)message);
             return;
         }
         Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -1259,8 +1259,9 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message, Int64? id)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
     {
+        Int64? id = this.safeInteger(message, "id");
         // not every method stores its subscription
         // as an object so we can't do indeById here
         IDictionary<string, object> subs = client.subscriptions;

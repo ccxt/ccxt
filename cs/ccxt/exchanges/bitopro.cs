@@ -1032,10 +1032,9 @@ public partial class bitopro : Exchange
         Int64 resultLength = 0;
         while ((resultLength < limit) && (i < candleLength))
         {
-            List<object> candle = this.safeList(candles, i, new List<object>() {});
-            if (isEqual((candle != null && 0 < candle.Count ? candle[0] : null), timestamp))
+            if (isEqual(this.safeInteger(this.safeList(candles, i, new List<object>() {}), 0), timestamp))
             {
-                result.Add(candle);
+                result.Add(this.safeList(candles, i, new List<object>() {}));
                 i = (i + 1);
             } else
             {

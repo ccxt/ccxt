@@ -3540,7 +3540,7 @@ public partial class lbank : Exchange
                 { "10701", "invalid asset code" },
                 { "10702", "not allowed deposit" },
             }, errorCode, this.json(response));
-            object ErrorClass = this.safeValue(new Dictionary<string, object>() {
+            this.throwExactlyMatchedException(new Dictionary<string, object>() {
                 { "10001", typeof(BadRequest) },
                 { "10002", typeof(AuthenticationError) },
                 { "10003", typeof(BadRequest) },
@@ -3590,8 +3590,8 @@ public partial class lbank : Exchange
                 { "10601", typeof(ExchangeError) },
                 { "10701", typeof(BadSymbol) },
                 { "10702", typeof(PermissionDenied) },
-            }, errorCode, typeof(ExchangeError));
-            throwDynamicException(ErrorClass, message);return null;
+            }, errorCode, message);
+            throw new ExchangeError (message) ;
         }
         return ((bool?)((object)(null)));
     }

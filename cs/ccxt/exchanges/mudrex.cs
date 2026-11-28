@@ -1571,9 +1571,10 @@ public partial class mudrex : Exchange
         for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
             string? rebate = null;
+            string? transactionKey = this.safeString(transactionKeys, i);
             for (int j = 0; j < (rebateKeys?.Count ?? 0); j++)
             {
-                if (isEqual(rebateKeys[j], (transactionKeys != null && i < transactionKeys.Count ? transactionKeys[i] : null)))
+                if ((this.safeString(rebateKeys, j) == transactionKey))
                 {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

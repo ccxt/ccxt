@@ -8767,7 +8767,11 @@ public partial class okx : Exchange
             string? accountId = this.safeString(parameters, "accountId");
             if ((accountId == null))
             {
-                List<object> accountIds = this.getListFromObjectValues(accounts, "id");
+                List<object> accountIds = new List<object>() {};
+                for (int i = 0; i < length; i++)
+                {
+                    accountIds.Add(this.safeString(this.safeDict(accounts, i), "id", ""));
+                }
                 throw new ExchangeError (((this.id + " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ") + String.Join(", ", accountIds.ToArray()))) ;
             } else
             {

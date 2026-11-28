@@ -4985,11 +4985,12 @@ public partial class binance : Exchange
             rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
         bool loadAllOptions = ((bool)this.handleOption("fetchMarkets", "loadAllOptions", false));
+        bool appendOption = false;
         if ((loadAllOptions == true))
         {
             if (!this.inArray("option", rawFetchMarkets))
             {
-                rawFetchMarkets.Add("option");
+                appendOption = true;
             }
         }
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -5004,6 +5005,10 @@ public partial class binance : Exchange
                 continue;
             }
             fetchMarkets.Add(type);
+        }
+        if (appendOption && (!isDemoEnv))
+        {
+            fetchMarkets.Add("option");
         }
         bool? fetchMargins = this.safeBool(this.options, "fetchMargins", false);
         for (int i = 0; i < (fetchMarkets?.Count ?? 0); i++)
@@ -17761,7 +17766,7 @@ public partial class binance : Exchange
             {
                 if ((symbol != null))
                 {
-                    tradingLimits[(string)symbol] = getValue(getValue(market, "limits"), "amount");
+                    tradingLimits[(string)symbol] = this.safeDict(this.safeDict(market, "limits"), "amount");
                 }
             }
         }

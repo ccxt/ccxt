@@ -2911,7 +2911,7 @@ public partial class tokocrypto : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        Dictionary<string, object> restUrls = this.extend(new Dictionary<string, object>() {}, (this.urlsApi != null && this.urlsApi.ContainsKey("rest") ? this.urlsApi["rest"] : null));
+        Dictionary<string, object> restUrls = this.extend(new Dictionary<string, object>() {}, this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest", new Dictionary<string, object>() {}));
         if (!(((apiName != null) && (restUrls?.ContainsKey(apiName) == true))))
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;

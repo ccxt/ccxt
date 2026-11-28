@@ -642,7 +642,7 @@ public partial class Exchange
                 return ccxt.BaseExchange.ToOrderBook(orderBook);
             } catch(Exception e)
             {
-                if (isEqual(((i + 1L)), fetchSnapshotMaxRetries))
+                if ((((i + 1L)) == fetchSnapshotMaxRetries))
                 {
                     throw e;
                 }

@@ -960,7 +960,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(ticker, "symbol")] = ticker;
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
+            {
+                result[(string)tickerSymbol] = ticker;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsResolved));
@@ -1082,7 +1086,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr50007 && ((hxArr50007 is IList<object>) || (hxArr50007 is not null && hxArr50007.GetType().IsGenericType && hxArr50007.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr50136 && ((hxArr50136 is IList<object>) || (hxArr50136 is not null && hxArr50136.GetType().IsGenericType && hxArr50136.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }

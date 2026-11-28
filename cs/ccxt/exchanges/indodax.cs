@@ -1615,7 +1615,7 @@ public partial class indodax : Exchange
                     }
                     if (networkId.IndexOf(",", StringComparison.Ordinal) >= 0)
                     {
-                        network = new List<object>() {};
+                        List<object> networkCodes = new List<object>() {};
                         if ((networkId == null))
                         {
                             throw new ExchangeError ((this.id + " fetchDepositAddresses() missing networkId")) ;
@@ -1626,9 +1626,10 @@ public partial class indodax : Exchange
                             string? _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if ((_netIdTmp != null))
                             {
-                                ((IList<object>)network).Add(_netIdTmp.ToUpper());
+                                networkCodes.Add(_netIdTmp.ToUpper());
                             }
                         }
+                        network = networkCodes;
                     } else
                     {
                         string? _netIdTmp = this.networkIdToCode(networkId, code);

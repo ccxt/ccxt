@@ -4420,17 +4420,17 @@ public partial class gate : Exchange
         };
         bool isolated = (marginMode == "margin") && (type == "spot");
         object data = response;
-        if (inOp(data, "balances"))
+        IDictionary<string, object> balances = this.safeDict(data, "balances");
+        if ((balances != null))
         {
             List<object> flatBalances = new List<object>() {};
-            IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             List<object> keys = new List<object>(balances.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currencyId = ((string)keys[i]);
-                Dictionary<string, object> content = this.extend(new Dictionary<string, object>() {}, (currencyId != null && balances.ContainsKey(currencyId) ? balances[currencyId] : null));
+                Dictionary<string, object> content = this.extend(new Dictionary<string, object>() {}, this.safeDict(balances, currencyId, new Dictionary<string, object>() {}));
                 content["currency"] = currencyId;
                 flatBalances.Add(content);
             }

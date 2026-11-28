@@ -2953,14 +2953,8 @@ public partial class mexc : Exchange
         {
             throw new InvalidOrder ((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
         }
-        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), isEqual(type, 2), parameters);
-        bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
-        IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         Int64? orderType = 0; // typed seed, every branch below assigns it
-        if (postOnly)
-        {
-            orderType = 2;
-        } else if ((type == "limit"))
+        if ((type == "limit"))
         {
             orderType = 1;
         } else if ((type == "market"))
@@ -2969,6 +2963,13 @@ public partial class mexc : Exchange
         } else
         {
             orderType = this.parseToInt(type);
+        }
+        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (orderType == 2), parameters);
+        bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
+        IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
+        if (postOnly)
+        {
+            orderType = 2;
         }
         string? volString = this.amountToPrecision(symbol, amount);
         if ((volString == null))

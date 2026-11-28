@@ -547,11 +547,15 @@ public partial class bitvavo : ccxt.bitvavo
             Dictionary<string, object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
             string? timeframeString = this.safeString(symbolAndTimeframe, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if ((interval == null))
+            {
+                continue;
+            }
             if (!(((interval != null) && marketIdsByInterval.ContainsKey(interval))))
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            IList<object> intervalIds = ((IList<object>)(interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null));
+            IList<object> intervalIds = ((IList<object>)(marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null));
             intervalIds.Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));
         }
@@ -628,11 +632,15 @@ public partial class bitvavo : ccxt.bitvavo
             Dictionary<string, object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
             string? timeframeString = this.safeString(symbolAndTimeframe, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if ((interval == null))
+            {
+                continue;
+            }
             if (!(((interval != null) && marketIdsByInterval.ContainsKey(interval))))
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            IList<object> intervalIds = ((IList<object>)(interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null));
+            IList<object> intervalIds = ((IList<object>)(marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null));
             intervalIds.Add((market.ContainsKey("id") ? market["id"] : null));
             // both the single-symbol and the multi-symbol watch hashes must be released
             subMessageHashes.Add(((((name + "@") + this.safeString(market, "id", "")) + "_") + interval));

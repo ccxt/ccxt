@@ -568,7 +568,7 @@ public partial class hyperliquid : PredictionExchange
         int szDecimals = 4; // outcomes use 4 decimal places
         bool active = true;
         Dictionary<string, object> outcomePrecision = new Dictionary<string, object>() {
-            { "amount", this.parseNumber(this.parsePrecision(((string)((object)szDecimals).ToString()))) },
+            { "amount", this.parseNumber(this.parsePrecision(this.numberToString(szDecimals))) },
             { "price", 0.0001 },
         };
         List<object> outcomes = new List<object>() {new Dictionary<string, object>() {

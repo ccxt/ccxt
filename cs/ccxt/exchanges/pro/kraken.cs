@@ -1245,7 +1245,7 @@ public partial class kraken : ccxt.kraken
                     string formattedAsk = "";
                     if (currentAskLength > 1)
                     {
-                        formattedAsk = (this.formatNumber((currentAsk != null && 0 < currentAsk.Count ? currentAsk[0] : null)) + this.formatNumber((currentAsk != null && 1 < currentAsk.Count ? currentAsk[1] : null)));
+                        formattedAsk = (this.formatNumber(this.safeString(currentAsk, 0, "")) + this.formatNumber(this.safeString(currentAsk, 1, "")));
                     }
                     payloadArray.Add(formattedAsk);
                 }
@@ -1256,7 +1256,7 @@ public partial class kraken : ccxt.kraken
                     string formattedBid = "";
                     if (currentBidLength > 1)
                     {
-                        formattedBid = (this.formatNumber((currentBid != null && 0 < currentBid.Count ? currentBid[0] : null)) + this.formatNumber((currentBid != null && 1 < currentBid.Count ? currentBid[1] : null)));
+                        formattedBid = (this.formatNumber(this.safeString(currentBid, 0, "")) + this.formatNumber(this.safeString(currentBid, 1, "")));
                     }
                     payloadArray.Add(formattedBid);
                 }

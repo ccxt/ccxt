@@ -7343,6 +7343,7 @@ public partial class htx : Exchange
             }
             object clientOrderIds = this.safeValue2(query, "client_order_id", "clientOrderId");
             clientOrderIds = this.safeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds);
+            string? clientOrderIdsString = this.safeStringN(query, new List<object>() {"client_order_ids", "clientOrderIds", "client_order_id", "clientOrderId"});
             query = this.omit(query, new List<object>() {"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"});
             if (!(this.safeBool(market, "linear", false) == true))
             {
@@ -7368,9 +7369,9 @@ public partial class htx : Exchange
                     request["order_id"] = ids;
                 } else
                 {
-                    if ((clientOrderIds is string))
+                    if ((clientOrderIdsString != null))
                     {
-                        request["client_order_id"] = ((string)clientOrderIds).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
+                        request["client_order_id"] = clientOrderIdsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
                     } else
                     {
                         request["client_order_id"] = clientOrderIds;
