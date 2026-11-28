@@ -281,14 +281,22 @@ export default class apex extends apexRest {
         const topics: string[] = [];
         const messageHashes: string[] = [];
         const limitValue = (limit === undefined) ? 25 : limit;
+        const limitString = this.numberToString (limitValue);
+        const client = this.client (url);
+        // the depth is part of the topic, so it is remembered per symbol for unWatchOrderBook
+        const subscribedLimits = this.safeDict (this.options, 'orderBookLimits', {});
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId: Str = this.safeString (market, 'id2', '');
-            topics.push ('orderBook' + this.numberToString (limitValue) + '.H.' + marketId);
+            topics.push ('orderBook' + limitString + '.H.' + marketId);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
+            if (!(messageHash in client.subscriptions)) {
+                subscribedLimits[symbol] = limitString;
+            }
         }
+        this.options['orderBookLimits'] = subscribedLimits;
         const orderbook: WsOrderBook = await this.watchTopics (url, messageHashes, topics, params);
         return orderbook.limit ();
     }
@@ -300,7 +308,7 @@ export default class apex extends apexRest {
      * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
      * @param {string} symbol unified symbol of the market to unsubscribe from
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.limit] the limit the subscription was opened with, default is 25
+     * @param {int} [params.limit] the limit the subscription was opened with, defaults to the limit used in watchOrderBook
      * @returns {any} status of the unwatch request
      */
     override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
@@ -314,7 +322,7 @@ export default class apex extends apexRest {
      * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
      * @param {string[]} symbols unified symbols of the markets to unsubscribe from
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.limit] the limit the subscription was opened with, default is 25
+     * @param {int} [params.limit] the limit the subscription was opened with, defaults to the limit used in watchOrderBook
      * @returns {any} status of the unwatch request
      */
     override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
@@ -323,8 +331,9 @@ export default class apex extends apexRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const url = this.getWsPublicUrl ();
-        const limitString = this.safeString (params, 'limit', '25');
+        const limitParam = this.safeString (params, 'limit');
         const paramsOmitted = this.omit (params, 'limit');
+        const subscribedLimits = this.safeDict (this.options, 'orderBookLimits', {});
         const topics: string[] = [];
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
@@ -332,6 +341,10 @@ export default class apex extends apexRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = this.safeString (market, 'id2', '');
+            let limitString = limitParam;
+            if (limitString === undefined) {
+                limitString = this.safeString (subscribedLimits, symbol, '25');
+            }
             topics.push ('orderBook' + limitString + '.H.' + marketId);
             subMessageHashes.push ('orderbook:' + symbol);
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
@@ -1435,6 +1448,18 @@ export default class apex extends apexRest {
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
+        const topic = this.safeString (subscription, 'topic');
+        if (topic === 'orderbook') {
+            const subscribedLimits = this.safeDict (this.options, 'orderBookLimits', {});
+            const symbols = this.safeList (subscription, 'symbols', []);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = this.safeString (symbols, i, '');
+                if (symbol in subscribedLimits) {
+                    delete subscribedLimits[symbol];
+                }
+            }
+            this.options['orderBookLimits'] = subscribedLimits;
+        }
         if (subscribeHash in client.subscriptions) {
             delete client.subscriptions[subscribeHash];
         }

@@ -147,6 +147,42 @@
                     }
                 ],
                 "parsedResponse": true
+            },
+            {
+                "description": "swap orderbook unsubscribe without params.limit uses the depth 200 remembered from watchOrderBook",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "options": {
+                    "wsPublicUrl": "wss://quote.omni.apex.exchange/realtime_public?v=2&timestamp=1795858163835",
+                    "orderBookLimits": {
+                        "BTC/USDT:USDT": "200"
+                    }
+                },
+                "url": "wss://quote.omni.apex.exchange/realtime_public?v=2&timestamp=1795858163835",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "",
+                        "conn_id": "da6c37d0-bb88-4865-ac5d-c331849b9ddb",
+                        "request": {
+                            "op": "unsubscribe",
+                            "args": [
+                                "orderBook200.H.BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            "orderBook200.H.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
             }
         ],
         "unWatchOrderBookForSymbols": [
@@ -182,6 +218,48 @@
                         "op": "unsubscribe",
                         "args": [
                             "orderBook25.H.BTCUSDT",
+                            "orderBook25.H.ETHUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "swap orderbook unsubscribe for two symbols opened with different depths, each topic uses its remembered depth",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "options": {
+                    "wsPublicUrl": "wss://quote.omni.apex.exchange/realtime_public?v=2&timestamp=1795858172127",
+                    "orderBookLimits": {
+                        "BTC/USDT:USDT": "200",
+                        "ETH/USDT:USDT": "25"
+                    }
+                },
+                "url": "wss://quote.omni.apex.exchange/realtime_public?v=2&timestamp=1795858172127",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "",
+                        "conn_id": "1ca44cdb-6f56-4441-a358-e5d8d45e0577",
+                        "request": {
+                            "op": "unsubscribe",
+                            "args": [
+                                "orderBook200.H.BTCUSDT",
+                                "orderBook25.H.ETHUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            "orderBook200.H.BTCUSDT",
                             "orderBook25.H.ETHUSDT"
                         ]
                     }
@@ -304,6 +382,7 @@
             {
                 "description": "swap ohlcv unsubscribe for two symbol and timeframe pairs in one request, acknowledged in one message",
                 "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "disabledPHP": "the php __call camelCase to snake_case fallback splits only on [a-z0-9][A-Z], so unWatchOHLCVForSymbols is looked up as un_watch_ohlcvfor_symbols instead of the transpiled un_watch_ohlcv_for_symbols - pre-existing harness limitation, see blofin.json",
                 "input": [
                     [
                         [
