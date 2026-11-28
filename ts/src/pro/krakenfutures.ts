@@ -1200,26 +1200,26 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeString (ticker, 'product_id');
         const marketResolved = this.safeMarket (marketId, market);
         const symbol = marketResolved['symbol'];
-        const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
+        const timestamp = this.safeInteger (ticker, 'time'); // server time in milliseconds
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'info': ticker,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'bid'),
             'bidVolume': this.safeString (ticker, 'bid_size'),
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': this.safeString (ticker, 'ask_size'),
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'change'), // the frame's 'change' is the venue's 24h percent, not an absolute change
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'volumeQuote'),

@@ -188,6 +188,329 @@
                     }
                 }
             }
+        ],
+        "watchTicker": [
+            {
+                "description": "Watch ticker full frame: ms server-time timestamp, open/high/low mapped, venue percent preserved in percentage slot, absolute change derived",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "time": 1795293906651,
+                        "product_id": "PF_XBTUSD",
+                        "funding_rate": 1.439267778689,
+                        "funding_rate_prediction": 0.4419173524175,
+                        "relative_funding_rate": 2.3897575e-05,
+                        "relative_funding_rate_prediction": 7.32785e-06,
+                        "next_funding_rate_time": 1795294800000,
+                        "leverage": "100x",
+                        "premium": 0.0,
+                        "feed": "ticker",
+                        "bid": 60300.0,
+                        "ask": 60301.0,
+                        "bid_size": 0.1086,
+                        "ask_size": 0.6798,
+                        "volume": 12637.1557,
+                        "dtm": 0,
+                        "index": 60294.49,
+                        "last": 60302.0,
+                        "change": 3.18,
+                        "suspended": false,
+                        "tag": "perpetual",
+                        "pair": "XBT:USD",
+                        "openInterest": 2160.6237,
+                        "markPrice": 60298.50741483886,
+                        "maturityTime": 0,
+                        "post_only": false,
+                        "volumeQuote": 734657542.1031,
+                        "open": 58442.0,
+                        "high": 60897.0,
+                        "low": 55076.0
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "time": 1795293906651,
+                            "product_id": "PF_XBTUSD",
+                            "funding_rate": 1.439267778689,
+                            "funding_rate_prediction": 0.4419173524175,
+                            "relative_funding_rate": 2.3897575e-05,
+                            "relative_funding_rate_prediction": 7.32785e-06,
+                            "next_funding_rate_time": 1795294800000,
+                            "leverage": "100x",
+                            "premium": 0,
+                            "feed": "ticker",
+                            "bid": 60300,
+                            "ask": 60301,
+                            "bid_size": 0.1086,
+                            "ask_size": 0.6798,
+                            "volume": 12637.1557,
+                            "dtm": 0,
+                            "index": 60294.49,
+                            "last": 60302,
+                            "change": 3.18,
+                            "suspended": false,
+                            "tag": "perpetual",
+                            "pair": "XBT:USD",
+                            "openInterest": 2160.6237,
+                            "markPrice": 60298.50741483886,
+                            "maturityTime": 0,
+                            "post_only": false,
+                            "volumeQuote": 734657542.1031,
+                            "open": 58442,
+                            "high": 60897,
+                            "low": 55076
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "timestamp": 1795293906651,
+                        "datetime": "2026-11-21T20:45:06.651Z",
+                        "high": 60897,
+                        "low": 55076,
+                        "bid": 60300,
+                        "bidVolume": 0.1086,
+                        "ask": 60301,
+                        "askVolume": 0.6798,
+                        "vwap": 58134.72268155246,
+                        "open": 58442,
+                        "close": 60302,
+                        "last": 60302,
+                        "previousClose": null,
+                        "change": 1860,
+                        "percentage": 3.18,
+                        "average": 59372,
+                        "baseVolume": 12637.1557,
+                        "quoteVolume": 734657542.1031,
+                        "markPrice": 60298.50741483886,
+                        "indexPrice": 60294.49
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "Watch tickers dict-wrapped result for the same full ticker frame",
+                "input": [
+                    [
+                        "BTC/USD:USD"
+                    ]
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "time": 1795293906651,
+                        "product_id": "PF_XBTUSD",
+                        "funding_rate": 1.439267778689,
+                        "funding_rate_prediction": 0.4419173524175,
+                        "relative_funding_rate": 2.3897575e-05,
+                        "relative_funding_rate_prediction": 7.32785e-06,
+                        "next_funding_rate_time": 1795294800000,
+                        "leverage": "100x",
+                        "premium": 0.0,
+                        "feed": "ticker",
+                        "bid": 60300.0,
+                        "ask": 60301.0,
+                        "bid_size": 0.1086,
+                        "ask_size": 0.6798,
+                        "volume": 12637.1557,
+                        "dtm": 0,
+                        "index": 60294.49,
+                        "last": 60302.0,
+                        "change": 3.18,
+                        "suspended": false,
+                        "tag": "perpetual",
+                        "pair": "XBT:USD",
+                        "openInterest": 2160.6237,
+                        "markPrice": 60298.50741483886,
+                        "maturityTime": 0,
+                        "post_only": false,
+                        "volumeQuote": 734657542.1031,
+                        "open": 58442.0,
+                        "high": 60897.0,
+                        "low": 55076.0
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponses": [
+                    {
+                        "BTC/USD:USD": {
+                            "info": {
+                                "time": 1795293906651,
+                                "product_id": "PF_XBTUSD",
+                                "funding_rate": 1.439267778689,
+                                "funding_rate_prediction": 0.4419173524175,
+                                "relative_funding_rate": 2.3897575e-05,
+                                "relative_funding_rate_prediction": 7.32785e-06,
+                                "next_funding_rate_time": 1795294800000,
+                                "leverage": "100x",
+                                "premium": 0,
+                                "feed": "ticker",
+                                "bid": 60300,
+                                "ask": 60301,
+                                "bid_size": 0.1086,
+                                "ask_size": 0.6798,
+                                "volume": 12637.1557,
+                                "dtm": 0,
+                                "index": 60294.49,
+                                "last": 60302,
+                                "change": 3.18,
+                                "suspended": false,
+                                "tag": "perpetual",
+                                "pair": "XBT:USD",
+                                "openInterest": 2160.6237,
+                                "markPrice": 60298.50741483886,
+                                "maturityTime": 0,
+                                "post_only": false,
+                                "volumeQuote": 734657542.1031,
+                                "open": 58442,
+                                "high": 60897,
+                                "low": 55076
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "timestamp": 1795293906651,
+                            "datetime": "2026-11-21T20:45:06.651Z",
+                            "high": 60897,
+                            "low": 55076,
+                            "bid": 60300,
+                            "bidVolume": 0.1086,
+                            "ask": 60301,
+                            "askVolume": 0.6798,
+                            "vwap": 58134.72268155246,
+                            "open": 58442,
+                            "close": 60302,
+                            "last": 60302,
+                            "previousClose": null,
+                            "change": 1860,
+                            "percentage": 3.18,
+                            "average": 59372,
+                            "baseVolume": 12637.1557,
+                            "quoteVolume": 734657542.1031,
+                            "markPrice": 60298.50741483886,
+                            "indexPrice": 60294.49
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "Watch bids/asks ticker_lite frame: venue percent preserved (only 24h datum on the lite feed), change stays undefined",
+                "input": [
+                    [
+                        "BTC/USD:USD"
+                    ]
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "feed": "ticker_lite",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "premium": 0.0,
+                        "product_id": "PF_XBTUSD",
+                        "feed": "ticker_lite",
+                        "bid": 60300.0,
+                        "ask": 60301.0,
+                        "change": 3.18,
+                        "volume": 12637.1557,
+                        "tag": "perpetual",
+                        "pair": "XBT:USD",
+                        "dtm": 0,
+                        "maturityTime": 0,
+                        "volumeQuote": 734657542.1031
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "feed": "ticker_lite",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [],
+                "parsedResponses": [
+                    {
+                        "BTC/USD:USD": {
+                            "info": {
+                                "premium": 0,
+                                "product_id": "PF_XBTUSD",
+                                "feed": "ticker_lite",
+                                "bid": 60300,
+                                "ask": 60301,
+                                "change": 3.18,
+                                "volume": 12637.1557,
+                                "tag": "perpetual",
+                                "pair": "XBT:USD",
+                                "dtm": 0,
+                                "maturityTime": 0,
+                                "volumeQuote": 734657542.1031
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "timestamp": null,
+                            "datetime": null,
+                            "high": null,
+                            "low": null,
+                            "bid": 60300,
+                            "bidVolume": null,
+                            "ask": 60301,
+                            "askVolume": null,
+                            "vwap": 58134.72268155246,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "previousClose": null,
+                            "change": null,
+                            "percentage": 3.18,
+                            "average": null,
+                            "baseVolume": 12637.1557,
+                            "quoteVolume": 734657542.1031,
+                            "markPrice": null,
+                            "indexPrice": null
+                        }
+                    }
+                ]
+            }
         ]
     }
 }
