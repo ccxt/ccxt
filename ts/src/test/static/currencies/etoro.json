@@ -1,0 +1,79 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USD": {
+        "id": "USD",
+        "code": "USD",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "AAPL": {
+        "id": "AAPL",
+        "code": "AAPL",
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "SAP.DE": {
+        "id": "SAP.DE",
+        "code": "SAP.DE",
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "SIE.DE": {
+        "id": "SIE.DE",
+        "code": "SIE.DE",
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

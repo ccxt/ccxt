@@ -1,0 +1,840 @@
+{
+    "BTC/USD": {
+        "id": "100000",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.01,
+        "maker": 0.01,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 100000,
+            "instrumentDisplayName": "Bitcoin",
+            "instrumentTypeID": 10,
+            "exchangeID": 8,
+            "images": [
+                {
+                    "instrumentID": 100000,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/50x50.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/150x150.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/35x35.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/90x90.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/80x80.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 70,
+                    "height": 70,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/70x70.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/100000/100000_F0AF32_F7F7F7.svg",
+                    "backgroundColor": "#F0AF32",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "BTC",
+            "instrumentTypeSubCategoryID": 1001,
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100000,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 60473.23,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "BTC/USD:USD": {
+        "id": "100000",
+        "symbol": "BTC/USD:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.01,
+        "maker": 0.01,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 100000,
+            "instrumentDisplayName": "Bitcoin",
+            "instrumentTypeID": 10,
+            "exchangeID": 8,
+            "images": [
+                {
+                    "instrumentID": 100000,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/50x50.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/150x150.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/35x35.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/90x90.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/80x80.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "width": 70,
+                    "height": 70,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/btc/70x70.png"
+                },
+                {
+                    "instrumentID": 100000,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/100000/100000_F0AF32_F7F7F7.svg",
+                    "backgroundColor": "#F0AF32",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "BTC",
+            "instrumentTypeSubCategoryID": 1001,
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100000,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 60473.23,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USD": {
+        "id": "100001",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.01,
+        "maker": 0.01,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 100001,
+            "instrumentDisplayName": "Ethereum",
+            "instrumentTypeID": 10,
+            "exchangeID": 8,
+            "images": [
+                {
+                    "instrumentID": 100001,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/35x35.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/50x50.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/80x80.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/90x90.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/150x150.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/100001/100001_2C2C2C_F7F7F7.svg",
+                    "backgroundColor": "#2C2C2C",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "ETH",
+            "instrumentTypeSubCategoryID": 1001,
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100001,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 1691.44,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USD:USD": {
+        "id": "100001",
+        "symbol": "ETH/USD:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.01,
+        "maker": 0.01,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 100001,
+            "instrumentDisplayName": "Ethereum",
+            "instrumentTypeID": 10,
+            "exchangeID": 8,
+            "images": [
+                {
+                    "instrumentID": 100001,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/35x35.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/50x50.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/80x80.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/90x90.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eth-usd/150x150.png"
+                },
+                {
+                    "instrumentID": 100001,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/100001/100001_2C2C2C_F7F7F7.svg",
+                    "backgroundColor": "#2C2C2C",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "ETH",
+            "instrumentTypeSubCategoryID": 1001,
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100001,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 1691.44,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "AAPL/USD": {
+        "id": "1001",
+        "symbol": "AAPL/USD",
+        "base": "AAPL",
+        "quote": "USD",
+        "baseId": "AAPL",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 1001,
+            "instrumentDisplayName": "Apple",
+            "instrumentTypeID": 5,
+            "exchangeID": 4,
+            "images": [
+                {
+                    "instrumentID": 1001,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/35x35.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "/medium/Apple.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/50x50.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/150x150.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/90x90.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/1001/1001_494D5A_F7F7F7.svg",
+                    "backgroundColor": "#494D5A",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "AAPL",
+            "stocksIndustryID": 3,
+            "priceSource": "NASDAQ",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 1001,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 355.1,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "AAPL/USD:USD": {
+        "id": "1001",
+        "symbol": "AAPL/USD:USD",
+        "base": "AAPL",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "AAPL",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 1001,
+            "instrumentDisplayName": "Apple",
+            "instrumentTypeID": 5,
+            "exchangeID": 4,
+            "images": [
+                {
+                    "instrumentID": 1001,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/35x35.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "/medium/Apple.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/50x50.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/150x150.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/aapl/90x90.png"
+                },
+                {
+                    "instrumentID": 1001,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/1001/1001_494D5A_F7F7F7.svg",
+                    "backgroundColor": "#494D5A",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "AAPL",
+            "stocksIndustryID": 3,
+            "priceSource": "NASDAQ",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 1001,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 355.1,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "SAP.DE/EUR": {
+        "id": "1202",
+        "symbol": "SAP.DE/EUR",
+        "base": "SAP.DE",
+        "quote": "EUR",
+        "baseId": "SAP.DE",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 1202,
+            "instrumentDisplayName": "SAP SE",
+            "instrumentTypeID": 5,
+            "exchangeID": 6,
+            "images": [
+                {
+                    "instrumentID": 1202,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sap.de/35x35.png"
+                },
+                {
+                    "instrumentID": 1202,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sap.de/50x50.png"
+                },
+                {
+                    "instrumentID": 1202,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sap.de/80x80.png"
+                },
+                {
+                    "instrumentID": 1202,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sap.de/90x90.png"
+                },
+                {
+                    "instrumentID": 1202,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sap.de/150x150.png"
+                },
+                {
+                    "instrumentID": 1202,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/1202/1202_F7F7F7_2C2C2C.svg",
+                    "backgroundColor": "#F7F7F7",
+                    "textColor": "#2C2C2C"
+                }
+            ],
+            "symbolFull": "SAP.DE",
+            "stocksIndustryID": 8,
+            "priceSource": "Xetra",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 1202,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 193.5,
+                "cvtBid": 1.0969
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "SIE.DE/EUR": {
+        "id": "1200",
+        "symbol": "SIE.DE/EUR",
+        "base": "SIE.DE",
+        "quote": "EUR",
+        "baseId": "SIE.DE",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 1200,
+            "instrumentDisplayName": "Siemens Aktiengesellschaft",
+            "instrumentTypeID": 5,
+            "exchangeID": 6,
+            "images": [
+                {
+                    "instrumentID": 1200,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sie.de/35x35.png"
+                },
+                {
+                    "instrumentID": 1200,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sie.de/50x50.png"
+                },
+                {
+                    "instrumentID": 1200,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sie.de/80x80.png"
+                },
+                {
+                    "instrumentID": 1200,
+                    "width": 90,
+                    "height": 90,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sie.de/90x90.png"
+                },
+                {
+                    "instrumentID": 1200,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/sie.de/150x150.png"
+                },
+                {
+                    "instrumentID": 1200,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/1200/1200_009999_F7F7F7.svg",
+                    "backgroundColor": "#009999",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "SIE.DE",
+            "stocksIndustryID": 6,
+            "priceSource": "Xetra",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 1200,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 250.3,
+                "cvtBid": 1.0969
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "EUR/USD:USD": {
+        "id": "1",
+        "symbol": "EUR/USD:USD",
+        "base": "EUR",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "EUR",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "instrumentID": 1,
+            "instrumentDisplayName": "EUR/USD",
+            "instrumentTypeID": 1,
+            "exchangeID": 1,
+            "images": [
+                {
+                    "instrumentID": 1,
+                    "width": 35,
+                    "height": 35,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eur-usd/35x35.png"
+                },
+                {
+                    "instrumentID": 1,
+                    "width": 80,
+                    "height": 80,
+                    "uri": "/medium/EUR_USD.png"
+                },
+                {
+                    "instrumentID": 1,
+                    "width": 50,
+                    "height": 50,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eur-usd/50x50.png"
+                },
+                {
+                    "instrumentID": 1,
+                    "width": 150,
+                    "height": 150,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eur-usd/150x150.png"
+                },
+                {
+                    "instrumentID": 1,
+                    "width": 70,
+                    "height": 70,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/eur-usd/70x70.png"
+                },
+                {
+                    "instrumentID": 1,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/1/1_F7F7F7_2C2C2C.svg",
+                    "backgroundColor": "#F7F7F7",
+                    "textColor": "#2C2C2C"
+                },
+                {
+                    "instrumentID": 1,
+                    "uri": "https://etoro-cdn.etorostatic.com/market-avatars/1/1_2C2C2C_F7F7F7.svg",
+                    "backgroundColor": "#2C2C2C",
+                    "textColor": "#F7F7F7"
+                }
+            ],
+            "symbolFull": "EURUSD",
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 1,
+                "isDelisted": false,
+                "isCurrentlyTradable": true,
+                "currentRate": 1.09694,
+                "cvtBid": 1
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    }
+}

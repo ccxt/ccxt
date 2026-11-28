@@ -1,0 +1,4181 @@
+{
+    "exchange": "etoro",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "demo open order waiting for market",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "accountCurrency": "USD",
+                    "timestamp": "2026-11-26T18:26:16.1116363Z",
+                    "instruments": [
+                        {
+                            "instrumentId": 1001,
+                            "symbol": "AAPL",
+                            "orders": [
+                                {
+                                    "orderId": 396863262,
+                                    "requestTime": "2026-11-26T18:26:10.907",
+                                    "transaction": "buy",
+                                    "action": "open",
+                                    "status": "waitingForMarket",
+                                    "type": "mkt",
+                                    "eToroOrderTypeId": 17,
+                                    "requestType": "byAmount",
+                                    "openActionType": "customer",
+                                    "closeActionType": "",
+                                    "orderCurrency": "USD",
+                                    "requestedUnits": 0.039381,
+                                    "requestedContracts": 0.039381,
+                                    "requestedAmountAcctCcy": 14,
+                                    "additionalMarginAcctCcy": 0,
+                                    "estimatedExternalCosts": 1,
+                                    "openStopLossPercent": 100,
+                                    "openTakeProfitPercent": 0,
+                                    "asset": {
+                                        "instrumentId": 1001,
+                                        "symbol": "AAPL",
+                                        "direction": "long",
+                                        "settlementType": "real",
+                                        "leverage": 1,
+                                        "currency": "USD"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "396863262",
+                        "clientOrderId": null,
+                        "datetime": "2026-11-26T18:26:10.907Z",
+                        "timestamp": 1795717570907,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "symbol": "AAPL/USD",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.039381,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "average": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "orderId": 396863262,
+                            "requestTime": "2026-11-26T18:26:10.907",
+                            "transaction": "buy",
+                            "action": "open",
+                            "status": "waitingForMarket",
+                            "type": "mkt",
+                            "eToroOrderTypeId": 17,
+                            "requestType": "byAmount",
+                            "openActionType": "customer",
+                            "closeActionType": "",
+                            "orderCurrency": "USD",
+                            "requestedUnits": 0.039381,
+                            "requestedContracts": 0.039381,
+                            "requestedAmountAcctCcy": 14,
+                            "additionalMarginAcctCcy": 0,
+                            "estimatedExternalCosts": 1,
+                            "openStopLossPercent": 100,
+                            "openTakeProfitPercent": 0,
+                            "asset": {
+                                "instrumentId": 1001,
+                                "symbol": "AAPL",
+                                "direction": "long",
+                                "settlementType": "real",
+                                "leverage": 1,
+                                "currency": "USD"
+                            }
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "resting market if touched order reported with status 0 by the instrument breakdown",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "accountCurrency": "USD",
+                    "timestamp": "2026-11-27T15:53:12.6150174Z",
+                    "instruments": [
+                        {
+                            "instrumentId": 1001,
+                            "symbol": "AAPL",
+                            "orders": [
+                                {
+                                    "orderId": 397023374,
+                                    "requestTime": "2026-11-27T15:53:07.343",
+                                    "transaction": "buy",
+                                    "action": "open",
+                                    "status": "0",
+                                    "type": "mit",
+                                    "eToroOrderTypeId": 0,
+                                    "requestType": "byAmount",
+                                    "openActionType": "customer",
+                                    "closeActionType": "",
+                                    "orderCurrency": "USD",
+                                    "requestedTriggerRate": 300,
+                                    "requestedUnits": 0.033333,
+                                    "requestedContracts": 0.033333,
+                                    "requestedAmountAcctCcy": 10,
+                                    "openStopLossAmount": 0,
+                                    "openTakeProfitAmount": 0,
+                                    "asset": {
+                                        "instrumentId": 1001,
+                                        "symbol": "AAPL",
+                                        "direction": "long",
+                                        "settlementType": "real",
+                                        "leverage": 1,
+                                        "currency": "USD"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "397023374",
+                        "clientOrderId": null,
+                        "datetime": "2026-11-27T15:53:07.343Z",
+                        "timestamp": 1795794787343,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "symbol": "AAPL/USD",
+                        "type": "market",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": 300,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.033333,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "average": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "orderId": 397023374,
+                            "requestTime": "2026-11-27T15:53:07.343",
+                            "transaction": "buy",
+                            "action": "open",
+                            "status": "0",
+                            "type": "mit",
+                            "eToroOrderTypeId": 0,
+                            "requestType": "byAmount",
+                            "openActionType": "customer",
+                            "closeActionType": "",
+                            "orderCurrency": "USD",
+                            "requestedTriggerRate": 300,
+                            "requestedUnits": 0.033333,
+                            "requestedContracts": 0.033333,
+                            "requestedAmountAcctCcy": 10,
+                            "openStopLossAmount": 0,
+                            "openTakeProfitAmount": 0,
+                            "asset": {
+                                "instrumentId": 1001,
+                                "symbol": "AAPL",
+                                "direction": "long",
+                                "settlementType": "real",
+                                "leverage": 1,
+                                "currency": "USD"
+                            }
+                        },
+                        "fees": [],
+                        "stopPrice": 300
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "demo closed positions",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    null,
+                    1793491200000
+                ],
+                "httpResponse": [
+                    {
+                        "netProfit": 0,
+                        "closeRate": 193.47,
+                        "closeTimestamp": "2026-11-26T14:37:36.467Z",
+                        "positionId": 3650748456,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 193.45,
+                        "openTimestamp": "2026-11-26T14:37:31.05Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858534,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070583
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 193.45,
+                        "closeTimestamp": "2026-11-26T14:27:06.607Z",
+                        "positionId": 3650747955,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 193.42,
+                        "openTimestamp": "2026-11-26T14:26:56.597Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858488,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.07058
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 193.21,
+                        "closeTimestamp": "2026-11-26T14:22:53.82Z",
+                        "positionId": 3650747644,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 193.19,
+                        "openTimestamp": "2026-11-26T14:22:43.763Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858469,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070656
+                    },
+                    {
+                        "netProfit": 0.01,
+                        "closeRate": 193.06,
+                        "closeTimestamp": "2026-11-26T14:21:33.29Z",
+                        "positionId": 3650747611,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 192.9,
+                        "openTimestamp": "2026-11-26T14:21:24.857Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858465,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 14.98,
+                        "initialInvestment": 14.98,
+                        "fees": 0,
+                        "units": 0.070703
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 192.96,
+                        "closeTimestamp": "2026-11-26T14:17:11.937Z",
+                        "positionId": 3650747475,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 192.94,
+                        "openTimestamp": "2026-11-26T14:17:01.587Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858438,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070756
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 192.98,
+                        "closeTimestamp": "2026-11-26T14:12:03.107Z",
+                        "positionId": 3650747298,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 192.95,
+                        "openTimestamp": "2026-11-26T14:11:54.123Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858401,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070757
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 250.66,
+                        "closeTimestamp": "2026-11-26T13:49:21.92Z",
+                        "positionId": 3650745937,
+                        "instrumentId": 1200,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 250.71,
+                        "openTimestamp": "2026-11-26T13:49:01.707Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858318,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.054469
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 250.66,
+                            "closeTimestamp": "2026-11-26T13:49:21.92Z",
+                            "positionId": 3650745937,
+                            "instrumentId": 1200,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 250.71,
+                            "openTimestamp": "2026-11-26T13:49:01.707Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858318,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.054469
+                        },
+                        "id": "3650745937",
+                        "symbol": "SIE.DE/EUR",
+                        "timestamp": 1795700941707,
+                        "datetime": "2026-11-26T13:49:01.707Z",
+                        "lastUpdateTimestamp": 1795700961920,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 250.71,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 0.054469,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 250.66,
+                        "collateral": 15,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 15
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 192.98,
+                            "closeTimestamp": "2026-11-26T14:12:03.107Z",
+                            "positionId": 3650747298,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.95,
+                            "openTimestamp": "2026-11-26T14:11:54.123Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858401,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070757
+                        },
+                        "id": "3650747298",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795702314123,
+                        "datetime": "2026-11-26T14:11:54.123Z",
+                        "lastUpdateTimestamp": 1795702323107,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 192.95,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 0.070757,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 192.98,
+                        "collateral": 15,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 15
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 192.96,
+                            "closeTimestamp": "2026-11-26T14:17:11.937Z",
+                            "positionId": 3650747475,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.94,
+                            "openTimestamp": "2026-11-26T14:17:01.587Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858438,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070756
+                        },
+                        "id": "3650747475",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795702621587,
+                        "datetime": "2026-11-26T14:17:01.587Z",
+                        "lastUpdateTimestamp": 1795702631937,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 192.94,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 0.070756,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 192.96,
+                        "collateral": 15,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 15
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0.01,
+                            "closeRate": 193.06,
+                            "closeTimestamp": "2026-11-26T14:21:33.29Z",
+                            "positionId": 3650747611,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.9,
+                            "openTimestamp": "2026-11-26T14:21:24.857Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858465,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 14.98,
+                            "initialInvestment": 14.98,
+                            "fees": 0,
+                            "units": 0.070703
+                        },
+                        "id": "3650747611",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795702884857,
+                        "datetime": "2026-11-26T14:21:24.857Z",
+                        "lastUpdateTimestamp": 1795702893290,
+                        "initialMargin": 14.98,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 192.9,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.01,
+                        "contracts": 0.070703,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 193.06,
+                        "collateral": 14.98,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 14.98
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.21,
+                            "closeTimestamp": "2026-11-26T14:22:53.82Z",
+                            "positionId": 3650747644,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.19,
+                            "openTimestamp": "2026-11-26T14:22:43.763Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858469,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070656
+                        },
+                        "id": "3650747644",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795702963763,
+                        "datetime": "2026-11-26T14:22:43.763Z",
+                        "lastUpdateTimestamp": 1795702973820,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 193.19,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 0.070656,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 193.21,
+                        "collateral": 15,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 15
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.45,
+                            "closeTimestamp": "2026-11-26T14:27:06.607Z",
+                            "positionId": 3650747955,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.42,
+                            "openTimestamp": "2026-11-26T14:26:56.597Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858488,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.07058
+                        },
+                        "id": "3650747955",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795703216597,
+                        "datetime": "2026-11-26T14:26:56.597Z",
+                        "lastUpdateTimestamp": 1795703226607,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 193.42,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 0.07058,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 193.45,
+                        "collateral": 15,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 15
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.47,
+                            "closeTimestamp": "2026-11-26T14:37:36.467Z",
+                            "positionId": 3650748456,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.45,
+                            "openTimestamp": "2026-11-26T14:37:31.05Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858534,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070583
+                        },
+                        "id": "3650748456",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795703851050,
+                        "datetime": "2026-11-26T14:37:31.050Z",
+                        "lastUpdateTimestamp": 1795703856467,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 193.45,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0,
+                        "contracts": 0.070583,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 193.47,
+                        "collateral": 15,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": null,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 15
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "demo trade history",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    1793491200000,
+                    50
+                ],
+                "httpResponse": [
+                    {
+                        "netProfit": 0,
+                        "closeRate": 193.47,
+                        "closeTimestamp": "2026-11-26T14:37:36.467Z",
+                        "positionId": 3650748456,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 193.45,
+                        "openTimestamp": "2026-11-26T14:37:31.05Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858534,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070583
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 193.45,
+                        "closeTimestamp": "2026-11-26T14:27:06.607Z",
+                        "positionId": 3650747955,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 193.42,
+                        "openTimestamp": "2026-11-26T14:26:56.597Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858488,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.07058
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 193.21,
+                        "closeTimestamp": "2026-11-26T14:22:53.82Z",
+                        "positionId": 3650747644,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 193.19,
+                        "openTimestamp": "2026-11-26T14:22:43.763Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858469,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070656
+                    },
+                    {
+                        "netProfit": 0.01,
+                        "closeRate": 193.06,
+                        "closeTimestamp": "2026-11-26T14:21:33.29Z",
+                        "positionId": 3650747611,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 192.9,
+                        "openTimestamp": "2026-11-26T14:21:24.857Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858465,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 14.98,
+                        "initialInvestment": 14.98,
+                        "fees": 0,
+                        "units": 0.070703
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 192.96,
+                        "closeTimestamp": "2026-11-26T14:17:11.937Z",
+                        "positionId": 3650747475,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 192.94,
+                        "openTimestamp": "2026-11-26T14:17:01.587Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858438,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070756
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 192.98,
+                        "closeTimestamp": "2026-11-26T14:12:03.107Z",
+                        "positionId": 3650747298,
+                        "instrumentId": 1202,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 192.95,
+                        "openTimestamp": "2026-11-26T14:11:54.123Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858401,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.070757
+                    },
+                    {
+                        "netProfit": 0,
+                        "closeRate": 250.66,
+                        "closeTimestamp": "2026-11-26T13:49:21.92Z",
+                        "positionId": 3650745937,
+                        "instrumentId": 1200,
+                        "isBuy": true,
+                        "leverage": 1,
+                        "openRate": 250.71,
+                        "openTimestamp": "2026-11-26T13:49:01.707Z",
+                        "stopLossRate": 0.01,
+                        "takeProfitRate": 0,
+                        "trailingStopLoss": false,
+                        "orderId": 396858318,
+                        "socialTradeId": 0,
+                        "parentPositionId": 0,
+                        "investment": 15,
+                        "initialInvestment": 15,
+                        "fees": 0,
+                        "units": 0.054469
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 250.66,
+                            "closeTimestamp": "2026-11-26T13:49:21.92Z",
+                            "positionId": 3650745937,
+                            "instrumentId": 1200,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 250.71,
+                            "openTimestamp": "2026-11-26T13:49:01.707Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858318,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.054469,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650745937-open",
+                        "order": "396858318",
+                        "timestamp": 1795700941707,
+                        "datetime": "2026-11-26T13:49:01.707Z",
+                        "symbol": "SIE.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 250.71,
+                        "amount": 0.054469,
+                        "cost": 13.65592299,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 250.66,
+                            "closeTimestamp": "2026-11-26T13:49:21.92Z",
+                            "positionId": 3650745937,
+                            "instrumentId": 1200,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 250.71,
+                            "openTimestamp": "2026-11-26T13:49:01.707Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858318,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.054469,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650745937-close",
+                        "order": null,
+                        "timestamp": 1795700961920,
+                        "datetime": "2026-11-26T13:49:21.920Z",
+                        "symbol": "SIE.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 250.66,
+                        "amount": 0.054469,
+                        "cost": 13.65319954,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 192.98,
+                            "closeTimestamp": "2026-11-26T14:12:03.107Z",
+                            "positionId": 3650747298,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.95,
+                            "openTimestamp": "2026-11-26T14:11:54.123Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858401,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070757,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650747298-open",
+                        "order": "396858401",
+                        "timestamp": 1795702314123,
+                        "datetime": "2026-11-26T14:11:54.123Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 192.95,
+                        "amount": 0.070757,
+                        "cost": 13.65256315,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 192.98,
+                            "closeTimestamp": "2026-11-26T14:12:03.107Z",
+                            "positionId": 3650747298,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.95,
+                            "openTimestamp": "2026-11-26T14:11:54.123Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858401,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070757,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650747298-close",
+                        "order": null,
+                        "timestamp": 1795702323107,
+                        "datetime": "2026-11-26T14:12:03.107Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 192.98,
+                        "amount": 0.070757,
+                        "cost": 13.65468586,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 192.96,
+                            "closeTimestamp": "2026-11-26T14:17:11.937Z",
+                            "positionId": 3650747475,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.94,
+                            "openTimestamp": "2026-11-26T14:17:01.587Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858438,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070756,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650747475-open",
+                        "order": "396858438",
+                        "timestamp": 1795702621587,
+                        "datetime": "2026-11-26T14:17:01.587Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 192.94,
+                        "amount": 0.070756,
+                        "cost": 13.65166264,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 192.96,
+                            "closeTimestamp": "2026-11-26T14:17:11.937Z",
+                            "positionId": 3650747475,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.94,
+                            "openTimestamp": "2026-11-26T14:17:01.587Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858438,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070756,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650747475-close",
+                        "order": null,
+                        "timestamp": 1795702631937,
+                        "datetime": "2026-11-26T14:17:11.937Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 192.96,
+                        "amount": 0.070756,
+                        "cost": 13.65307776,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0.01,
+                            "closeRate": 193.06,
+                            "closeTimestamp": "2026-11-26T14:21:33.29Z",
+                            "positionId": 3650747611,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.9,
+                            "openTimestamp": "2026-11-26T14:21:24.857Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858465,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 14.98,
+                            "initialInvestment": 14.98,
+                            "fees": 0,
+                            "units": 0.070703,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650747611-open",
+                        "order": "396858465",
+                        "timestamp": 1795702884857,
+                        "datetime": "2026-11-26T14:21:24.857Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 192.9,
+                        "amount": 0.070703,
+                        "cost": 13.6386087,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0.01,
+                            "closeRate": 193.06,
+                            "closeTimestamp": "2026-11-26T14:21:33.29Z",
+                            "positionId": 3650747611,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 192.9,
+                            "openTimestamp": "2026-11-26T14:21:24.857Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858465,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 14.98,
+                            "initialInvestment": 14.98,
+                            "fees": 0,
+                            "units": 0.070703,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650747611-close",
+                        "order": null,
+                        "timestamp": 1795702893290,
+                        "datetime": "2026-11-26T14:21:33.290Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 193.06,
+                        "amount": 0.070703,
+                        "cost": 13.64992118,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.21,
+                            "closeTimestamp": "2026-11-26T14:22:53.82Z",
+                            "positionId": 3650747644,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.19,
+                            "openTimestamp": "2026-11-26T14:22:43.763Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858469,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070656,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650747644-open",
+                        "order": "396858469",
+                        "timestamp": 1795702963763,
+                        "datetime": "2026-11-26T14:22:43.763Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 193.19,
+                        "amount": 0.070656,
+                        "cost": 13.65003264,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.21,
+                            "closeTimestamp": "2026-11-26T14:22:53.82Z",
+                            "positionId": 3650747644,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.19,
+                            "openTimestamp": "2026-11-26T14:22:43.763Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858469,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070656,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650747644-close",
+                        "order": null,
+                        "timestamp": 1795702973820,
+                        "datetime": "2026-11-26T14:22:53.820Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 193.21,
+                        "amount": 0.070656,
+                        "cost": 13.65144576,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.45,
+                            "closeTimestamp": "2026-11-26T14:27:06.607Z",
+                            "positionId": 3650747955,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.42,
+                            "openTimestamp": "2026-11-26T14:26:56.597Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858488,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.07058,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650747955-open",
+                        "order": "396858488",
+                        "timestamp": 1795703216597,
+                        "datetime": "2026-11-26T14:26:56.597Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 193.42,
+                        "amount": 0.07058,
+                        "cost": 13.6515836,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.45,
+                            "closeTimestamp": "2026-11-26T14:27:06.607Z",
+                            "positionId": 3650747955,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.42,
+                            "openTimestamp": "2026-11-26T14:26:56.597Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858488,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.07058,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650747955-close",
+                        "order": null,
+                        "timestamp": 1795703226607,
+                        "datetime": "2026-11-26T14:27:06.607Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 193.45,
+                        "amount": 0.07058,
+                        "cost": 13.653701,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.47,
+                            "closeTimestamp": "2026-11-26T14:37:36.467Z",
+                            "positionId": 3650748456,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.45,
+                            "openTimestamp": "2026-11-26T14:37:31.05Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858534,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070583,
+                            "tradeSide": "open"
+                        },
+                        "id": "3650748456-open",
+                        "order": "396858534",
+                        "timestamp": 1795703851050,
+                        "datetime": "2026-11-26T14:37:31.050Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 193.45,
+                        "amount": 0.070583,
+                        "cost": 13.65428135,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0,
+                            "closeRate": 193.47,
+                            "closeTimestamp": "2026-11-26T14:37:36.467Z",
+                            "positionId": 3650748456,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.45,
+                            "openTimestamp": "2026-11-26T14:37:31.05Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858534,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 0,
+                            "units": 0.070583,
+                            "tradeSide": "close"
+                        },
+                        "id": "3650748456-close",
+                        "order": null,
+                        "timestamp": 1795703856467,
+                        "datetime": "2026-11-26T14:37:36.467Z",
+                        "symbol": "SAP.DE/EUR",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 193.47,
+                        "amount": 0.070583,
+                        "cost": 13.65569301,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "demo canceled order",
+                "method": "fetchOrder",
+                "input": [
+                    "396863262",
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "accountId": 11111111,
+                    "gcid": 33333333,
+                    "portfolioId": 0,
+                    "orderId": 396863262,
+                    "action": "open",
+                    "transaction": "buy",
+                    "type": "mkt",
+                    "etoroOrderTypeId": 17,
+                    "status": {
+                        "id": 7,
+                        "name": "Canceled",
+                        "errorCode": 0
+                    },
+                    "asset": {
+                        "symbol": "AAPL",
+                        "instrumentId": 1001,
+                        "currency": "USD",
+                        "settlementType": "REAL",
+                        "leverage": 1,
+                        "side": "long"
+                    },
+                    "orderCurrency": "usd",
+                    "requestedAmount": 14,
+                    "requestedUnits": 0.039381,
+                    "requestedContracts": 0.039381,
+                    "frozenAmount": 15,
+                    "openStopLossRate": 0,
+                    "openTakeProfitRate": 0,
+                    "stopLossType": "fixed",
+                    "totalCosts": 0,
+                    "positionsToClose": [],
+                    "positionExecutions": [],
+                    "requestTime": "2026-11-26T18:26:11.107Z",
+                    "lastUpdate": "2026-11-26T18:26:17.76Z",
+                    "openActionType": "customer",
+                    "requestType": "byAmount"
+                },
+                "parsedResponse": {
+                    "id": "396863262",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-26T18:26:11.107Z",
+                    "timestamp": 1795717571107,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795717577760,
+                    "status": "canceled",
+                    "symbol": "AAPL/USD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.039381,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 396863262,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 7,
+                            "name": "Canceled",
+                            "errorCode": 0
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 14,
+                        "requestedUnits": 0.039381,
+                        "requestedContracts": 0.039381,
+                        "frozenAmount": 15,
+                        "openStopLossRate": 0,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-26T18:26:11.107Z",
+                        "lastUpdate": "2026-11-26T18:26:17.76Z",
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "demo order waiting for market",
+                "method": "fetchOrder",
+                "input": [
+                    "396863262",
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "accountId": 11111111,
+                    "gcid": 33333333,
+                    "portfolioId": 0,
+                    "orderId": 396863262,
+                    "action": "open",
+                    "transaction": "buy",
+                    "type": "mkt",
+                    "etoroOrderTypeId": 17,
+                    "status": {
+                        "id": 11,
+                        "name": "WaitingForMarket",
+                        "errorCode": 0
+                    },
+                    "asset": {
+                        "symbol": "AAPL",
+                        "instrumentId": 1001,
+                        "currency": "USD",
+                        "settlementType": "REAL",
+                        "leverage": 1,
+                        "side": "long"
+                    },
+                    "orderCurrency": "usd",
+                    "requestedAmount": 14,
+                    "requestedUnits": 0.039381,
+                    "requestedContracts": 0.039381,
+                    "frozenAmount": 15,
+                    "openStopLossRate": 0,
+                    "openTakeProfitRate": 0,
+                    "stopLossType": "fixed",
+                    "totalCosts": 0,
+                    "positionsToClose": [],
+                    "positionExecutions": [],
+                    "requestTime": "2026-11-26T18:26:11.107Z",
+                    "lastUpdate": "2026-11-26T18:26:11.107Z",
+                    "openActionType": "customer",
+                    "requestType": "byAmount"
+                },
+                "parsedResponse": {
+                    "id": "396863262",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-26T18:26:11.107Z",
+                    "timestamp": 1795717571107,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795717571107,
+                    "status": "open",
+                    "symbol": "AAPL/USD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.039381,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 396863262,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 11,
+                            "name": "WaitingForMarket",
+                            "errorCode": 0
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 14,
+                        "requestedUnits": 0.039381,
+                        "requestedContracts": 0.039381,
+                        "frozenAmount": 15,
+                        "openStopLossRate": 0,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-26T18:26:11.107Z",
+                        "lastUpdate": "2026-11-26T18:26:11.107Z",
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit order lookup",
+                "method": "fetchOrder",
+                "input": [
+                    "1656135289",
+                    "AAPL/USD:USD"
+                ],
+                "httpResponse": {
+                    "accountId": 22222222,
+                    "gcid": 33333333,
+                    "portfolioId": 0,
+                    "orderId": 1656135289,
+                    "action": "open",
+                    "transaction": "sell",
+                    "type": "limitIOC",
+                    "etoroOrderTypeId": 18,
+                    "status": {
+                        "id": 4,
+                        "name": "Rejected",
+                        "errorCode": 604,
+                        "errorMessage": "insufficient funds for the order. UserCredit: 0"
+                    },
+                    "asset": {
+                        "symbol": "AAPL",
+                        "instrumentId": 1001,
+                        "currency": "USD",
+                        "settlementType": "CFD",
+                        "leverage": 1,
+                        "side": "short"
+                    },
+                    "orderCurrency": "usd",
+                    "requestedAmount": 0,
+                    "requestedUnits": 0.04,
+                    "requestedContracts": 0,
+                    "requestedLimitRate": 362.202,
+                    "openStopLossRate": 383.508,
+                    "openTakeProfitRate": 0,
+                    "stopLossType": "fixed",
+                    "totalCosts": 0,
+                    "positionsToClose": [],
+                    "positionExecutions": [],
+                    "requestTime": "2026-11-26T18:25:39.61Z",
+                    "lastUpdate": "2026-11-26T18:25:39.63Z",
+                    "externalOperation": {
+                        "type": "publicApi",
+                        "data": "60848964-8947-4466-acc9-900ca56b3978-22222222",
+                        "referenceId": "60848964-8947-4466-acc9-900ca56b3978"
+                    },
+                    "openActionType": "customer",
+                    "requestType": "byUnits"
+                },
+                "parsedResponse": {
+                    "id": "1656135289",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-26T18:25:39.610Z",
+                    "timestamp": 1795717539610,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795717539630,
+                    "status": "rejected",
+                    "symbol": "AAPL/USD:USD",
+                    "type": "limit",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": 383.508,
+                    "takeProfitPrice": null,
+                    "amount": 0.04,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountId": 22222222,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 1656135289,
+                        "action": "open",
+                        "transaction": "sell",
+                        "type": "limitIOC",
+                        "etoroOrderTypeId": 18,
+                        "status": {
+                            "id": 4,
+                            "name": "Rejected",
+                            "errorCode": 604,
+                            "errorMessage": "insufficient funds for the order. UserCredit: 0"
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "CFD",
+                            "leverage": 1,
+                            "side": "short"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 0,
+                        "requestedUnits": 0.04,
+                        "requestedContracts": 0,
+                        "requestedLimitRate": 362.202,
+                        "openStopLossRate": 383.508,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-26T18:25:39.61Z",
+                        "lastUpdate": "2026-11-26T18:25:39.63Z",
+                        "externalOperation": {
+                            "type": "publicApi",
+                            "data": "60848964-8947-4466-acc9-900ca56b3978-22222222",
+                            "referenceId": "60848964-8947-4466-acc9-900ca56b3978"
+                        },
+                        "openActionType": "customer",
+                        "requestType": "byUnits"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "canceled spot order",
+                "method": "fetchOrder",
+                "input": [
+                    "1656133143",
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "accountId": 22222222,
+                    "gcid": 33333333,
+                    "portfolioId": 0,
+                    "orderId": 1656133143,
+                    "action": "open",
+                    "transaction": "buy",
+                    "type": "mkt",
+                    "etoroOrderTypeId": 17,
+                    "status": {
+                        "id": 4,
+                        "name": "Rejected",
+                        "errorCode": 604,
+                        "errorMessage": "insufficient funds for the order. UserCredit: 0"
+                    },
+                    "asset": {
+                        "symbol": "AAPL",
+                        "instrumentId": 1001,
+                        "currency": "USD",
+                        "settlementType": "CFD",
+                        "leverage": 1,
+                        "side": "long"
+                    },
+                    "orderCurrency": "usd",
+                    "requestedAmount": 14,
+                    "requestedUnits": 0,
+                    "requestedContracts": 0,
+                    "openStopLossRate": 0.0001,
+                    "openTakeProfitRate": 0,
+                    "stopLossType": "fixed",
+                    "totalCosts": 0,
+                    "positionsToClose": [],
+                    "positionExecutions": [],
+                    "requestTime": "2026-11-26T18:25:31.93Z",
+                    "lastUpdate": "2026-11-26T18:25:31.93Z",
+                    "externalOperation": {
+                        "type": "publicApi",
+                        "data": "a4bd1582-0dcd-4511-a326-97992813b84b-22222222",
+                        "referenceId": "a4bd1582-0dcd-4511-a326-97992813b84b"
+                    },
+                    "openActionType": "customer",
+                    "requestType": "byAmount"
+                },
+                "parsedResponse": {
+                    "id": "1656133143",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-26T18:25:31.930Z",
+                    "timestamp": 1795717531930,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795717531930,
+                    "status": "rejected",
+                    "symbol": "AAPL/USD:USD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountId": 22222222,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 1656133143,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 4,
+                            "name": "Rejected",
+                            "errorCode": 604,
+                            "errorMessage": "insufficient funds for the order. UserCredit: 0"
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "CFD",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 14,
+                        "requestedUnits": 0,
+                        "requestedContracts": 0,
+                        "openStopLossRate": 0.0001,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-26T18:25:31.93Z",
+                        "lastUpdate": "2026-11-26T18:25:31.93Z",
+                        "externalOperation": {
+                            "type": "publicApi",
+                            "data": "a4bd1582-0dcd-4511-a326-97992813b84b-22222222",
+                            "referenceId": "a4bd1582-0dcd-4511-a326-97992813b84b"
+                        },
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "filled close order",
+                "method": "fetchOrder",
+                "input": [
+                    "396974883",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ],
+                "httpResponse": {
+                    "token": "47e9ab8e-9b6f-4793-a8e1-dd8d529dddcb",
+                    "orderID": 396974883,
+                    "CID": 11111111,
+                    "statusID": 3,
+                    "orderType": 19,
+                    "closeActionType": 0,
+                    "operationType": 2,
+                    "errorCode": 0,
+                    "assetCurrencyID": 2,
+                    "accountCurrencyID": 1,
+                    "instrumentID": 1202,
+                    "requestOccurred": "2026-11-27T10:58:34.923Z",
+                    "proceeds": 13.99,
+                    "externalOperationType": 0,
+                    "positions": [
+                        {
+                            "positionID": 3650867027,
+                            "occurred": "2026-11-27T10:58:35.043Z",
+                            "rate": 194.29,
+                            "units": 0.070408,
+                            "conversionRate": 1.09646,
+                            "amount": 14.98
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "396974883",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-27T10:58:34.923Z",
+                    "timestamp": 1795777114923,
+                    "lastTradeTimestamp": 1795777115043,
+                    "lastUpdateTimestamp": null,
+                    "status": "closed",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": null,
+                    "price": 194.29,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.070408,
+                    "filled": 0.070408,
+                    "remaining": 0,
+                    "cost": 13.67957032,
+                    "average": 194.29,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "47e9ab8e-9b6f-4793-a8e1-dd8d529dddcb",
+                        "orderID": 396974883,
+                        "CID": 11111111,
+                        "statusID": 3,
+                        "orderType": 19,
+                        "closeActionType": 0,
+                        "operationType": 2,
+                        "errorCode": 0,
+                        "assetCurrencyID": 2,
+                        "accountCurrencyID": 1,
+                        "instrumentID": 1202,
+                        "requestOccurred": "2026-11-27T10:58:34.923Z",
+                        "proceeds": 13.99,
+                        "externalOperationType": 0,
+                        "positions": [
+                            {
+                                "positionID": 3650867027,
+                                "occurred": "2026-11-27T10:58:35.043Z",
+                                "rate": 194.29,
+                                "units": 0.070408,
+                                "conversionRate": 1.09646,
+                                "amount": 14.98
+                            }
+                        ]
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "demo cancel an order",
+                "method": "cancelOrder",
+                "input": [
+                    "396863262",
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "orderId": 396863262,
+                    "referenceId": ""
+                },
+                "parsedResponse": {
+                    "id": "396863262",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "AAPL/USD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "orderId": 396863262,
+                        "referenceId": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "cancel an order",
+                "method": "cancelOrder",
+                "input": [
+                    "1656133143",
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "orderId": 1656133143,
+                    "referenceId": ""
+                },
+                "parsedResponse": {
+                    "id": "1656133143",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "AAPL/USD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "orderId": 1656133143,
+                        "referenceId": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "cancel a close order",
+                "method": "cancelOrder",
+                "input": [
+                    "396974883",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ],
+                "httpResponse": {
+                    "token": "bd906f61-7f26-4d26-b90e-f7b109805eb8"
+                },
+                "parsedResponse": {
+                    "id": "396974883",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "SAP.DE/EUR",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "bd906f61-7f26-4d26-b90e-f7b109805eb8"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "cancel a resting order, the canceled status is polled from the order lookup",
+                "method": "cancelOrder",
+                "input": [
+                    "397023374",
+                    "AAPL/USD"
+                ],
+                "httpResponseByUrl": {
+                    "execution/orders": {
+                        "orderId": 397023374,
+                        "referenceId": ""
+                    },
+                    "orders:lookup": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023374,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mit",
+                        "etoroOrderTypeId": 0,
+                        "status": {
+                            "id": 7,
+                            "name": "Canceled",
+                            "errorCode": 0,
+                            "errorMessage": ""
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 10,
+                        "requestedUnits": 0.033333,
+                        "requestedTriggerRate": 300,
+                        "openStopLossRate": 0.0001,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-27T15:53:07.343Z",
+                        "lastUpdate": "2026-11-27T15:53:14.303Z",
+                        "openActionType": "hierarchicalOpen"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "397023374",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-27T15:53:07.343Z",
+                    "timestamp": 1795794787343,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795794794303,
+                    "status": "canceled",
+                    "symbol": "AAPL/USD",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": 300,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.033333,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023374,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mit",
+                        "etoroOrderTypeId": 0,
+                        "status": {
+                            "id": 7,
+                            "name": "Canceled",
+                            "errorCode": 0,
+                            "errorMessage": ""
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 10,
+                        "requestedUnits": 0.033333,
+                        "requestedTriggerRate": 300,
+                        "openStopLossRate": 0.0001,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-27T15:53:07.343Z",
+                        "lastUpdate": "2026-11-27T15:53:14.303Z",
+                        "openActionType": "hierarchicalOpen"
+                    },
+                    "fees": [],
+                    "stopPrice": 300
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "demo spot market buy waiting for market",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USD",
+                    "market",
+                    "buy",
+                    0.04,
+                    null,
+                    {
+                        "cost": 14
+                    }
+                ],
+                "httpResponse": {
+                    "token": "6850cfcd-fbd4-495b-8fef-4763cb852bf1",
+                    "orderId": 396863262,
+                    "referenceId": "f266d6a6-bea1-4807-939d-257cac7b7e17"
+                },
+                "parsedResponse": {
+                    "id": "396863262",
+                    "clientOrderId": "f266d6a6-bea1-4807-939d-257cac7b7e17",
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "AAPL/USD",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.04,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "6850cfcd-fbd4-495b-8fef-4763cb852bf1",
+                        "orderId": 396863262,
+                        "referenceId": "f266d6a6-bea1-4807-939d-257cac7b7e17"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit short with stop loss",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USD:USD",
+                    "limit",
+                    "sell",
+                    0.04,
+                    362.202,
+                    {
+                        "stopLossPrice": 383.508
+                    }
+                ],
+                "httpResponse": {
+                    "token": "2a350a44-4272-46b1-ae4e-f5e7394fd91e",
+                    "orderId": 1656135289,
+                    "referenceId": "60848964-8947-4466-acc9-900ca56b3978"
+                },
+                "parsedResponse": {
+                    "id": "1656135289",
+                    "clientOrderId": "60848964-8947-4466-acc9-900ca56b3978",
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "AAPL/USD:USD",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 362.202,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.04,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "2a350a44-4272-46b1-ae4e-f5e7394fd91e",
+                        "orderId": 1656135289,
+                        "referenceId": "60848964-8947-4466-acc9-900ca56b3978"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "spot market buy by cost",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USD",
+                    "market",
+                    "buy",
+                    0.04,
+                    null,
+                    {
+                        "cost": 14
+                    }
+                ],
+                "httpResponse": {
+                    "token": "d2c6d3a6-ab54-4945-8869-28cabf79765b",
+                    "orderId": 1656133143,
+                    "referenceId": "a4bd1582-0dcd-4511-a326-97992813b84b"
+                },
+                "parsedResponse": {
+                    "id": "1656133143",
+                    "clientOrderId": "a4bd1582-0dcd-4511-a326-97992813b84b",
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "AAPL/USD",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.04,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "d2c6d3a6-ab54-4945-8869-28cabf79765b",
+                        "orderId": 1656133143,
+                        "referenceId": "a4bd1582-0dcd-4511-a326-97992813b84b"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "market buy by cost polled from the order lookup",
+                "method": "createOrder",
+                "input": [
+                    "SAP.DE/EUR",
+                    "market",
+                    "buy",
+                    0.07,
+                    null,
+                    {
+                        "cost": 15
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "execution/orders": {
+                        "token": "6332403b-9b33-4270-bb80-542b3320f2bf",
+                        "orderId": 397023351,
+                        "referenceId": "ea385c9a-37ea-4060-80de-67d59af332ea"
+                    },
+                    "orders:lookup": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023351,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 3,
+                            "name": "Filled",
+                            "errorCode": 0
+                        },
+                        "asset": {
+                            "symbol": "SAP.DE",
+                            "instrumentId": 1202,
+                            "currency": "EUR",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 15,
+                        "requestedUnits": 0.070177,
+                        "requestedContracts": 0.070177,
+                        "frozenAmount": 16,
+                        "openStopLossRate": 0.01,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 1,
+                        "positionsToClose": [],
+                        "positionExecutions": [
+                            {
+                                "positionId": 3651292146,
+                                "state": "open",
+                                "investedAmountCurrency": 1,
+                                "initialExposureAccountCurrency": 14.998304441691,
+                                "initialExposureAssetCurrency": 13.71398934,
+                                "addedFunds": 0,
+                                "marginAccountCurrency": 15,
+                                "marginAssetCurrency": 13.71553970648745,
+                                "remainingUnits": 0.070177,
+                                "remainingContracts": 0.070177,
+                                "stopLossRate": 0.01,
+                                "takeProfitRate": 0,
+                                "openingData": {
+                                    "openTime": "2026-11-27T15:51:12.81Z",
+                                    "orderId": 397023351,
+                                    "executionTime": "2026-11-27T15:51:12.91Z",
+                                    "units": 0.070177,
+                                    "contracts": 0.070177,
+                                    "avgPrice": 195.42,
+                                    "avgConversionRate": 1.09365,
+                                    "marketSpread": 0,
+                                    "markup": 0,
+                                    "priceId": 0,
+                                    "fees": 1,
+                                    "taxes": 0
+                                }
+                            }
+                        ],
+                        "requestTime": "2026-11-27T15:51:12.87Z",
+                        "lastUpdate": "2026-11-27T15:51:12.963Z",
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "397023351",
+                    "clientOrderId": "ea385c9a-37ea-4060-80de-67d59af332ea",
+                    "datetime": "2026-11-27T15:51:12.870Z",
+                    "timestamp": 1795794672870,
+                    "lastTradeTimestamp": 1795794672910,
+                    "lastUpdateTimestamp": 1795794672963,
+                    "status": "closed",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 195.42,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.070177,
+                    "filled": 0.070177,
+                    "remaining": 0,
+                    "cost": 13.71398934,
+                    "average": 195.42,
+                    "trades": [],
+                    "fee": {
+                        "cost": "1",
+                        "currency": "USD"
+                    },
+                    "info": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023351,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 3,
+                            "name": "Filled",
+                            "errorCode": 0
+                        },
+                        "asset": {
+                            "symbol": "SAP.DE",
+                            "instrumentId": 1202,
+                            "currency": "EUR",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 15,
+                        "requestedUnits": 0.070177,
+                        "requestedContracts": 0.070177,
+                        "frozenAmount": 16,
+                        "openStopLossRate": 0.01,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 1,
+                        "positionsToClose": [],
+                        "positionExecutions": [
+                            {
+                                "positionId": 3651292146,
+                                "state": "open",
+                                "investedAmountCurrency": 1,
+                                "initialExposureAccountCurrency": 14.998304441691,
+                                "initialExposureAssetCurrency": 13.71398934,
+                                "addedFunds": 0,
+                                "marginAccountCurrency": 15,
+                                "marginAssetCurrency": 13.71553970648745,
+                                "remainingUnits": 0.070177,
+                                "remainingContracts": 0.070177,
+                                "stopLossRate": 0.01,
+                                "takeProfitRate": 0,
+                                "openingData": {
+                                    "openTime": "2026-11-27T15:51:12.81Z",
+                                    "orderId": 397023351,
+                                    "executionTime": "2026-11-27T15:51:12.91Z",
+                                    "units": 0.070177,
+                                    "contracts": 0.070177,
+                                    "avgPrice": 195.42,
+                                    "avgConversionRate": 1.09365,
+                                    "marketSpread": 0,
+                                    "markup": 0,
+                                    "priceId": 0,
+                                    "fees": 1,
+                                    "taxes": 0
+                                }
+                            }
+                        ],
+                        "requestTime": "2026-11-27T15:51:12.87Z",
+                        "lastUpdate": "2026-11-27T15:51:12.963Z",
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    },
+                    "fees": [
+                        {
+                            "cost": 1,
+                            "currency": "USD"
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "market if touched buy by cost polled as pending triggered rate",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USD",
+                    "market",
+                    "buy",
+                    0.033333,
+                    null,
+                    {
+                        "cost": 10,
+                        "triggerPrice": 300
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "execution/orders": {
+                        "token": "b89b02e9-0fc1-413a-a726-d59f0d95f270",
+                        "orderId": 397023374,
+                        "referenceId": "7c61be59-f3cd-4fcf-9e2f-4dfa83279619"
+                    },
+                    "orders:lookup": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023374,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mit",
+                        "etoroOrderTypeId": 0,
+                        "status": {
+                            "id": 12,
+                            "name": "PendingTriggeredRate",
+                            "errorCode": 0,
+                            "errorMessage": ""
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 10,
+                        "requestedUnits": 0.033333,
+                        "requestedTriggerRate": 300,
+                        "openStopLossRate": 0.0001,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-27T15:53:07.343Z",
+                        "lastUpdate": "2026-11-27T15:53:07.343Z",
+                        "openActionType": "customer"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "397023374",
+                    "clientOrderId": "7c61be59-f3cd-4fcf-9e2f-4dfa83279619",
+                    "datetime": "2026-11-27T15:53:07.343Z",
+                    "timestamp": 1795794787343,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795794787343,
+                    "status": "open",
+                    "symbol": "AAPL/USD",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": 300,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.033333,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023374,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mit",
+                        "etoroOrderTypeId": 0,
+                        "status": {
+                            "id": 12,
+                            "name": "PendingTriggeredRate",
+                            "errorCode": 0,
+                            "errorMessage": ""
+                        },
+                        "asset": {
+                            "symbol": "AAPL",
+                            "instrumentId": 1001,
+                            "currency": "USD",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 10,
+                        "requestedUnits": 0.033333,
+                        "requestedTriggerRate": 300,
+                        "openStopLossRate": 0.0001,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 0,
+                        "positionsToClose": [],
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-27T15:53:07.343Z",
+                        "lastUpdate": "2026-11-27T15:53:07.343Z",
+                        "openActionType": "customer"
+                    },
+                    "fees": [],
+                    "stopPrice": 300
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "real account balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "cid": 22222222,
+                    "timestamp": "2026-11-27T11:00:09.0039643Z",
+                    "accountCurrency": "USD",
+                    "tradingFundingType": "cash",
+                    "accountTotals": {
+                        "accountAvailableCash": 0,
+                        "accountAvailableMargin": 0,
+                        "cryptoAvailableMargin": 0,
+                        "accountFrozenCash": 0,
+                        "accountCurrentPnl": 0,
+                        "accountTotalValue": 0,
+                        "accountTotalUsedMargin": 0,
+                        "accountBalance": 0
+                    },
+                    "instrumentAggregates": [],
+                    "mirrors": []
+                },
+                "parsedResponse": {
+                    "info": {
+                        "cid": 22222222,
+                        "timestamp": "2026-11-27T11:00:09.0039643Z",
+                        "accountCurrency": "USD",
+                        "tradingFundingType": "cash",
+                        "accountTotals": {
+                            "accountAvailableCash": 0,
+                            "accountAvailableMargin": 0,
+                            "cryptoAvailableMargin": 0,
+                            "accountFrozenCash": 0,
+                            "accountCurrentPnl": 0,
+                            "accountTotalValue": 0,
+                            "accountTotalUsedMargin": 0,
+                            "accountBalance": 0
+                        },
+                        "instrumentAggregates": [],
+                        "mirrors": []
+                    },
+                    "timestamp": 1795777209003,
+                    "datetime": "2026-11-27T11:00:09.003Z",
+                    "USD": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "USD": 0
+                    },
+                    "used": {
+                        "USD": 0
+                    },
+                    "total": {
+                        "USD": 0
+                    }
+                }
+            },
+            {
+                "description": "demo account balance with a pending order",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "cid": 11111111,
+                    "timestamp": "2026-11-27T09:41:20.517",
+                    "accountCurrency": "USD",
+                    "accountTotals": {
+                        "accountAvailableCash": 99969.01,
+                        "accountAvailableMargin": 99969.01,
+                        "cryptoAvailableMargin": 99969.01,
+                        "accountFrozenCash": 15,
+                        "accountCurrentPnl": 0,
+                        "accountTotalValue": 99984.01,
+                        "accountTotalUsedMargin": 0,
+                        "accountBalance": 99984.01
+                    },
+                    "instrumentAggregates": [],
+                    "mirrors": []
+                },
+                "parsedResponse": {
+                    "info": {
+                        "cid": 11111111,
+                        "timestamp": "2026-11-27T09:41:20.517",
+                        "accountCurrency": "USD",
+                        "accountTotals": {
+                            "accountAvailableCash": 99969.01,
+                            "accountAvailableMargin": 99969.01,
+                            "cryptoAvailableMargin": 99969.01,
+                            "accountFrozenCash": 15,
+                            "accountCurrentPnl": 0,
+                            "accountTotalValue": 99984.01,
+                            "accountTotalUsedMargin": 0,
+                            "accountBalance": 99984.01
+                        },
+                        "instrumentAggregates": [],
+                        "mirrors": []
+                    },
+                    "timestamp": 1795772480517,
+                    "datetime": "2026-11-27T09:41:20.517Z",
+                    "USD": {
+                        "free": 99969.01,
+                        "used": 15,
+                        "total": 99984.01
+                    },
+                    "free": {
+                        "USD": 99969.01
+                    },
+                    "used": {
+                        "USD": 15
+                    },
+                    "total": {
+                        "USD": 99984.01
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "params.historical forces the data endpoint",
+                "method": "fetchOHLCV",
+                "input": [
+                    "AAPL/USD",
+                    "1h",
+                    1795478400000,
+                    5,
+                    {
+                        "historical": true
+                    }
+                ],
+                "httpResponse": {
+                    "instrumentId": 1001,
+                    "symbol": "AAPL/USD",
+                    "interval": "1h",
+                    "side": "bid",
+                    "window": {
+                        "from": "2026-11-24T00:00:00Z",
+                        "to": "2026-11-24T05:00:00Z"
+                    },
+                    "pagination": {
+                        "limit": 5,
+                        "hasNext": false,
+                        "nextCursor": null
+                    },
+                    "results": [
+                        {
+                            "time": "2026-11-24T04:00:00Z",
+                            "open": "350.29",
+                            "high": "350.82",
+                            "low": "350.02",
+                            "close": "350.27",
+                            "volume": "1720"
+                        },
+                        {
+                            "time": "2026-11-24T03:00:00Z",
+                            "open": "349.2",
+                            "high": "350.5",
+                            "low": "349.08",
+                            "close": "350.38",
+                            "volume": "2945"
+                        },
+                        {
+                            "time": "2026-11-24T02:00:00Z",
+                            "open": "349.21",
+                            "high": "349.76",
+                            "low": "349",
+                            "close": "349.2",
+                            "volume": "1882"
+                        },
+                        {
+                            "time": "2026-11-24T01:00:00Z",
+                            "open": "349.36",
+                            "high": "349.95",
+                            "low": "349.14",
+                            "close": "349.21",
+                            "volume": "3460"
+                        },
+                        {
+                            "time": "2026-11-24T00:00:00Z",
+                            "open": "348.9",
+                            "high": "349.44",
+                            "low": "348.74",
+                            "close": "349.16",
+                            "volume": "11559"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1795478400000,
+                        348.9,
+                        349.44,
+                        348.74,
+                        349.16,
+                        11559
+                    ],
+                    [
+                        1795482000000,
+                        349.36,
+                        349.95,
+                        349.14,
+                        349.21,
+                        3460
+                    ],
+                    [
+                        1795485600000,
+                        349.21,
+                        349.76,
+                        349,
+                        349.2,
+                        1882
+                    ],
+                    [
+                        1795489200000,
+                        349.2,
+                        350.5,
+                        349.08,
+                        350.38,
+                        2945
+                    ],
+                    [
+                        1795492800000,
+                        350.29,
+                        350.82,
+                        350.02,
+                        350.27,
+                        1720
+                    ]
+                ]
+            },
+            {
+                "description": "latest candles without since",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5
+                ],
+                "httpResponse": {
+                    "interval": "OneHour",
+                    "candles": [
+                        {
+                            "instrumentId": 100000,
+                            "candles": [
+                                {
+                                    "instrumentID": 100000,
+                                    "fromDate": "2026-11-26T18:00:00Z",
+                                    "open": 60455.41,
+                                    "high": 60559.03,
+                                    "low": 60405.76,
+                                    "close": 60541.77,
+                                    "volume": null
+                                },
+                                {
+                                    "instrumentID": 100000,
+                                    "fromDate": "2026-11-26T17:00:00Z",
+                                    "open": 60444.39,
+                                    "high": 60575.08,
+                                    "low": 60333.44,
+                                    "close": 60455.41,
+                                    "volume": null
+                                },
+                                {
+                                    "instrumentID": 100000,
+                                    "fromDate": "2026-11-26T16:00:00Z",
+                                    "open": 60544.84,
+                                    "high": 60778.99,
+                                    "low": 60266.76,
+                                    "close": 60444.39,
+                                    "volume": null
+                                },
+                                {
+                                    "instrumentID": 100000,
+                                    "fromDate": "2026-11-26T15:00:00Z",
+                                    "open": 60651.85,
+                                    "high": 60651.85,
+                                    "low": 59844.34,
+                                    "close": 60544.84,
+                                    "volume": null
+                                },
+                                {
+                                    "instrumentID": 100000,
+                                    "fromDate": "2026-11-26T14:00:00Z",
+                                    "open": 60797.4,
+                                    "high": 60886.03,
+                                    "low": 60623.72,
+                                    "close": 60651.85,
+                                    "volume": null
+                                }
+                            ],
+                            "rangeOpen": 60455.41,
+                            "rangeClose": 60651.85,
+                            "rangeHigh": 60886.03,
+                            "rangeLow": 59844.34,
+                            "volume": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1795701600000,
+                        60797.4,
+                        60886.03,
+                        60623.72,
+                        60651.85,
+                        null
+                    ],
+                    [
+                        1795705200000,
+                        60651.85,
+                        60651.85,
+                        59844.34,
+                        60544.84,
+                        null
+                    ],
+                    [
+                        1795708800000,
+                        60544.84,
+                        60778.99,
+                        60266.76,
+                        60444.39,
+                        null
+                    ],
+                    [
+                        1795712400000,
+                        60444.39,
+                        60575.08,
+                        60333.44,
+                        60455.41,
+                        null
+                    ],
+                    [
+                        1795716000000,
+                        60455.41,
+                        60559.03,
+                        60405.76,
+                        60541.77,
+                        null
+                    ]
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "tickers for spot and swap markets",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD:USD",
+                        "EUR/USD:USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "rates": [
+                        {
+                            "instrumentID": 100000,
+                            "ask": 60541.78,
+                            "bid": 60541.77,
+                            "lastExecution": 60541.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.9140889Z",
+                            "unitMargin": 60541.77,
+                            "unitMarginAsk": 60541.78,
+                            "unitMarginBid": 60541.77,
+                            "priceRateID": 166306143478,
+                            "bidDiscounted": 60541.77,
+                            "askDiscounted": 60541.78,
+                            "unitMarginBidDiscounted": 60541.77,
+                            "unitMarginAskDiscounted": 60541.78
+                        },
+                        {
+                            "instrumentID": 100001,
+                            "ask": 1694.73,
+                            "bid": 1694.6,
+                            "lastExecution": 1694.6,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.9470063Z",
+                            "unitMargin": 1694.6,
+                            "unitMarginAsk": 1694.73,
+                            "unitMarginBid": 1694.6,
+                            "priceRateID": 166306143479,
+                            "bidDiscounted": 1694.6,
+                            "askDiscounted": 1694.73,
+                            "unitMarginBidDiscounted": 1694.6,
+                            "unitMarginAskDiscounted": 1694.73
+                        },
+                        {
+                            "instrumentID": 1,
+                            "ask": 1.09704,
+                            "bid": 1.09703,
+                            "lastExecution": 1.09703,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.9766493Z",
+                            "unitMargin": 1.09703,
+                            "unitMarginAsk": 1.09704,
+                            "unitMarginBid": 1.09703,
+                            "priceRateID": 166306100010,
+                            "bidDiscounted": 1.09703,
+                            "askDiscounted": 1.09704,
+                            "unitMarginBidDiscounted": 1.09703,
+                            "unitMarginAskDiscounted": 1.09704
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD": {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795717520914,
+                        "datetime": "2026-11-26T18:25:20.914Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 60541.77,
+                        "bidVolume": null,
+                        "ask": 60541.78,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 60541.77,
+                        "last": 60541.77,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 100000,
+                            "ask": 60541.78,
+                            "bid": 60541.77,
+                            "lastExecution": 60541.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.9140889Z",
+                            "unitMargin": 60541.77,
+                            "unitMarginAsk": 60541.78,
+                            "unitMarginBid": 60541.77,
+                            "priceRateID": 166306143478,
+                            "bidDiscounted": 60541.77,
+                            "askDiscounted": 60541.78,
+                            "unitMarginBidDiscounted": 60541.77,
+                            "unitMarginAskDiscounted": 60541.78
+                        }
+                    },
+                    "ETH/USD:USD": {
+                        "symbol": "ETH/USD:USD",
+                        "timestamp": 1795717520947,
+                        "datetime": "2026-11-26T18:25:20.947Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 1694.6,
+                        "bidVolume": null,
+                        "ask": 1694.73,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 1694.6,
+                        "last": 1694.6,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 100001,
+                            "ask": 1694.73,
+                            "bid": 1694.6,
+                            "lastExecution": 1694.6,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.9470063Z",
+                            "unitMargin": 1694.6,
+                            "unitMarginAsk": 1694.73,
+                            "unitMarginBid": 1694.6,
+                            "priceRateID": 166306143479,
+                            "bidDiscounted": 1694.6,
+                            "askDiscounted": 1694.73,
+                            "unitMarginBidDiscounted": 1694.6,
+                            "unitMarginAskDiscounted": 1694.73
+                        }
+                    },
+                    "EUR/USD:USD": {
+                        "symbol": "EUR/USD:USD",
+                        "timestamp": 1795717520976,
+                        "datetime": "2026-11-26T18:25:20.976Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 1.09703,
+                        "bidVolume": null,
+                        "ask": 1.09704,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 1.09703,
+                        "last": 1.09703,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 1,
+                            "ask": 1.09704,
+                            "bid": 1.09703,
+                            "lastExecution": 1.09703,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.9766493Z",
+                            "unitMargin": 1.09703,
+                            "unitMarginAsk": 1.09704,
+                            "unitMarginBid": 1.09703,
+                            "priceRateID": 166306100010,
+                            "bidDiscounted": 1.09703,
+                            "askDiscounted": 1.09704,
+                            "unitMarginBidDiscounted": 1.09703,
+                            "unitMarginAskDiscounted": 1.09704
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "swap crypto ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "rates": [
+                        {
+                            "instrumentID": 100000,
+                            "ask": 60541.78,
+                            "bid": 60541.77,
+                            "lastExecution": 60541.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T18:25:20.1005063Z",
+                            "unitMargin": 60541.77,
+                            "unitMarginAsk": 60541.78,
+                            "unitMarginBid": 60541.77,
+                            "priceRateID": 166306143280,
+                            "bidDiscounted": 60541.77,
+                            "askDiscounted": 60541.78,
+                            "unitMarginBidDiscounted": 60541.77,
+                            "unitMarginAskDiscounted": 60541.78
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": 1795717520100,
+                    "datetime": "2026-11-26T18:25:20.100Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 60541.77,
+                    "bidVolume": null,
+                    "ask": 60541.78,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 60541.77,
+                    "last": 60541.77,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "instrumentID": 100000,
+                        "ask": 60541.78,
+                        "bid": 60541.77,
+                        "lastExecution": 60541.77,
+                        "conversionRateAsk": 1,
+                        "conversionRateBid": 1,
+                        "date": "2026-11-26T18:25:20.1005063Z",
+                        "unitMargin": 60541.77,
+                        "unitMarginAsk": 60541.78,
+                        "unitMarginBid": 60541.77,
+                        "priceRateID": 166306143280,
+                        "bidDiscounted": 60541.77,
+                        "askDiscounted": 60541.78,
+                        "unitMarginBidDiscounted": 60541.77,
+                        "unitMarginAskDiscounted": 60541.78
+                    }
+                }
+            },
+            {
+                "description": "spot stock ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "rates": [
+                        {
+                            "instrumentID": 1001,
+                            "ask": 355.5,
+                            "bid": 355.1,
+                            "lastExecution": 355.1,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T00:49:03.7279276Z",
+                            "unitMargin": 355.1,
+                            "unitMarginAsk": 355.5,
+                            "unitMarginBid": 355.1,
+                            "priceRateID": 166217747680,
+                            "bidDiscounted": 355.1,
+                            "askDiscounted": 355.5,
+                            "unitMarginBidDiscounted": 355.1,
+                            "unitMarginAskDiscounted": 355.5
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "AAPL/USD",
+                    "timestamp": 1795654143727,
+                    "datetime": "2026-11-26T00:49:03.727Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 355.1,
+                    "bidVolume": null,
+                    "ask": 355.5,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 355.1,
+                    "last": 355.1,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "instrumentID": 1001,
+                        "ask": 355.5,
+                        "bid": 355.1,
+                        "lastExecution": 355.1,
+                        "conversionRateAsk": 1,
+                        "conversionRateBid": 1,
+                        "date": "2026-11-26T00:49:03.7279276Z",
+                        "unitMargin": 355.1,
+                        "unitMarginAsk": 355.5,
+                        "unitMarginBid": 355.1,
+                        "priceRateID": 166217747680,
+                        "bidDiscounted": 355.1,
+                        "askDiscounted": 355.5,
+                        "unitMarginBidDiscounted": 355.1,
+                        "unitMarginAskDiscounted": 355.5
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "real and demo accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "gcid": 33333333,
+                    "realCid": 22222222,
+                    "demoCid": 11111111,
+                    "username": "username",
+                    "playerLevel": 1,
+                    "language": 1,
+                    "scopes": [
+                        "etoro-public:trade.demo:read",
+                        "etoro-public:trade.real:read"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "22222222",
+                        "type": "trading",
+                        "code": "USD",
+                        "info": {
+                            "gcid": 33333333,
+                            "realCid": 22222222,
+                            "demoCid": 11111111,
+                            "username": "username",
+                            "playerLevel": 1,
+                            "language": 1,
+                            "scopes": [
+                                "etoro-public:trade.demo:read",
+                                "etoro-public:trade.real:read"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "11111111",
+                        "type": "demo",
+                        "code": "USD",
+                        "info": {
+                            "gcid": 33333333,
+                            "realCid": 22222222,
+                            "demoCid": 11111111,
+                            "username": "username",
+                            "playerLevel": 1,
+                            "language": 1,
+                            "scopes": [
+                                "etoro-public:trade.demo:read",
+                                "etoro-public:trade.real:read"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "bids and asks of a stock and a crypto",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "SAP.DE/EUR",
+                        "BTC/USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "rates": [
+                        {
+                            "instrumentID": 1202,
+                            "ask": 194.3,
+                            "bid": 194.24,
+                            "lastExecution": 194.24,
+                            "conversionRateAsk": 1.09647,
+                            "conversionRateBid": 1.09646,
+                            "date": "2026-11-27T10:58:16.4300786Z",
+                            "unitMargin": 212.9763904,
+                            "unitMarginAsk": 213.044121,
+                            "unitMarginBid": 212.9763904,
+                            "priceRateID": 166376547704,
+                            "bidDiscounted": 194.24,
+                            "askDiscounted": 194.3,
+                            "unitMarginBidDiscounted": 212.9763904,
+                            "unitMarginAskDiscounted": 213.044121
+                        },
+                        {
+                            "instrumentID": 100000,
+                            "ask": 61564.78,
+                            "bid": 61564.77,
+                            "lastExecution": 61564.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-27T10:58:16.1547083Z",
+                            "unitMargin": 61564.77,
+                            "unitMarginAsk": 61564.78,
+                            "unitMarginBid": 61564.77,
+                            "priceRateID": 166376564377,
+                            "bidDiscounted": 61564.77,
+                            "askDiscounted": 61564.78,
+                            "unitMarginBidDiscounted": 61564.77,
+                            "unitMarginAskDiscounted": 61564.78
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "SAP.DE/EUR": {
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795777096430,
+                        "datetime": "2026-11-27T10:58:16.430Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 194.24,
+                        "bidVolume": null,
+                        "ask": 194.3,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 194.24,
+                        "last": 194.24,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 1202,
+                            "ask": 194.3,
+                            "bid": 194.24,
+                            "lastExecution": 194.24,
+                            "conversionRateAsk": 1.09647,
+                            "conversionRateBid": 1.09646,
+                            "date": "2026-11-27T10:58:16.4300786Z",
+                            "unitMargin": 212.9763904,
+                            "unitMarginAsk": 213.044121,
+                            "unitMarginBid": 212.9763904,
+                            "priceRateID": 166376547704,
+                            "bidDiscounted": 194.24,
+                            "askDiscounted": 194.3,
+                            "unitMarginBidDiscounted": 212.9763904,
+                            "unitMarginAskDiscounted": 213.044121
+                        }
+                    },
+                    "BTC/USD": {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795777096154,
+                        "datetime": "2026-11-27T10:58:16.154Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 61564.77,
+                        "bidVolume": null,
+                        "ask": 61564.78,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 61564.77,
+                        "last": 61564.77,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 100000,
+                            "ask": 61564.78,
+                            "bid": 61564.77,
+                            "lastExecution": 61564.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-27T10:58:16.1547083Z",
+                            "unitMargin": 61564.77,
+                            "unitMarginAsk": 61564.78,
+                            "unitMarginBid": 61564.77,
+                            "priceRateID": 166376564377,
+                            "bidDiscounted": 61564.77,
+                            "askDiscounted": 61564.78,
+                            "unitMarginBidDiscounted": 61564.77,
+                            "unitMarginAskDiscounted": 61564.78
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "open stock position",
+                "method": "fetchPosition",
+                "input": [
+                    "SAP.DE/EUR"
+                ],
+                "httpResponse": {
+                    "accountCurrency": "USD",
+                    "timestamp": "2026-11-27T10:58:30.3849243Z",
+                    "instruments": [
+                        {
+                            "instrumentId": 1202,
+                            "symbol": "SAP.DE",
+                            "positions": [
+                                {
+                                    "redeemEligibility": "",
+                                    "positionId": 3650867027,
+                                    "symbol": "SAP.DE",
+                                    "instrumentId": 1202,
+                                    "assetCurrency": "EUR",
+                                    "settlementType": "real",
+                                    "direction": "long",
+                                    "leverage": 1,
+                                    "isSettled": true,
+                                    "openTime": "2026-11-27T10:58:21.307",
+                                    "openRate": 194.1,
+                                    "openConversionRate": 1.09646,
+                                    "totalFeesAcctCcy": 1,
+                                    "totalTaxesAcctCcy": 0,
+                                    "units": 0.070408,
+                                    "contracts": 0.070408,
+                                    "marginAcctCcy": 14.98,
+                                    "margin": 13.67,
+                                    "addedFundsAcctCcy": 0,
+                                    "addedFunds": 0,
+                                    "overnightFeesAndDividends": 0,
+                                    "repayLoanEligibility": false,
+                                    "currentRate": 194.26,
+                                    "currentConversionRate": 1.09645,
+                                    "rateTimestamp": "2026-11-27T10:58:31.3749225",
+                                    "currentExposure": 13.68,
+                                    "currentExposureAcctCcy": 15,
+                                    "acctCcyReturn": 0.01,
+                                    "acctCcyRoePercent": 0.07,
+                                    "liquidationValueAcctCcy": 14.99,
+                                    "liquidationValue": 13.68,
+                                    "pnl": 0.02,
+                                    "pnlPercent": 0.09,
+                                    "fxValueImpact": 0.01,
+                                    "roePercent": 0.12
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "redeemEligibility": "",
+                        "positionId": 3650867027,
+                        "symbol": "SAP.DE",
+                        "instrumentId": 1202,
+                        "assetCurrency": "EUR",
+                        "settlementType": "real",
+                        "direction": "long",
+                        "leverage": 1,
+                        "isSettled": true,
+                        "openTime": "2026-11-27T10:58:21.307",
+                        "openRate": 194.1,
+                        "openConversionRate": 1.09646,
+                        "totalFeesAcctCcy": 1,
+                        "totalTaxesAcctCcy": 0,
+                        "units": 0.070408,
+                        "contracts": 0.070408,
+                        "marginAcctCcy": 14.98,
+                        "margin": 13.67,
+                        "addedFundsAcctCcy": 0,
+                        "addedFunds": 0,
+                        "overnightFeesAndDividends": 0,
+                        "repayLoanEligibility": false,
+                        "currentRate": 194.26,
+                        "currentConversionRate": 1.09645,
+                        "rateTimestamp": "2026-11-27T10:58:31.3749225",
+                        "currentExposure": 13.68,
+                        "currentExposureAcctCcy": 15,
+                        "acctCcyReturn": 0.01,
+                        "acctCcyRoePercent": 0.07,
+                        "liquidationValueAcctCcy": 14.99,
+                        "liquidationValue": 13.68,
+                        "pnl": 0.02,
+                        "pnlPercent": 0.09,
+                        "fxValueImpact": 0.01,
+                        "roePercent": 0.12
+                    },
+                    "id": "3650867027",
+                    "symbol": "SAP.DE/EUR",
+                    "timestamp": 1795777101307,
+                    "datetime": "2026-11-27T10:58:21.307Z",
+                    "lastUpdateTimestamp": 1795777111374,
+                    "initialMargin": 13.67,
+                    "initialMarginPercentage": 1,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "entryPrice": 194.1,
+                    "notional": 13.68,
+                    "leverage": 1,
+                    "unrealizedPnl": 0.02,
+                    "realizedPnl": null,
+                    "contracts": 0.070408,
+                    "contractSize": 1,
+                    "marginRatio": null,
+                    "liquidationPrice": null,
+                    "markPrice": 194.26,
+                    "lastPrice": null,
+                    "collateral": 13.67,
+                    "marginMode": "isolated",
+                    "side": "long",
+                    "percentage": 0.09,
+                    "hedged": true,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "positionMargin": 13.67
+                }
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close a long position by id",
+                "method": "closePosition",
+                "input": [
+                    "SAP.DE/EUR",
+                    "sell",
+                    {
+                        "positionId": "3650867027"
+                    }
+                ],
+                "httpResponse": {
+                    "orderForClose": {
+                        "positionID": 3650867027,
+                        "instrumentID": 1202,
+                        "orderID": 396974883,
+                        "orderType": 19,
+                        "statusID": 1,
+                        "CID": 11111111,
+                        "openDateTime": "2026-11-27T10:58:34.9243113Z",
+                        "lastUpdate": "2026-11-27T10:58:34.9243113Z"
+                    },
+                    "token": "47e9ab8e-9b6f-4793-a8e1-dd8d529dddcb"
+                },
+                "parsedResponse": {
+                    "id": "396974883",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-27T10:58:34.924Z",
+                    "timestamp": 1795777114924,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795777114924,
+                    "status": "open",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "positionID": 3650867027,
+                        "instrumentID": 1202,
+                        "orderID": 396974883,
+                        "orderType": 19,
+                        "statusID": 1,
+                        "CID": 11111111,
+                        "openDateTime": "2026-11-27T10:58:34.9243113Z",
+                        "lastUpdate": "2026-11-27T10:58:34.9243113Z"
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "close a position, the filled close order is polled",
+                "method": "closePosition",
+                "input": [
+                    "SAP.DE/EUR",
+                    "sell",
+                    {
+                        "positionId": "3651292146"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "market-close-orders": {
+                        "orderForClose": {
+                            "positionID": 3651292146,
+                            "instrumentID": 1202,
+                            "orderID": 397025522,
+                            "orderType": 19,
+                            "statusID": 1,
+                            "CID": 11111111,
+                            "openDateTime": "2026-11-27T15:51:28.1716512Z",
+                            "lastUpdate": "2026-11-27T15:51:28.1716512Z"
+                        },
+                        "token": "e2e49183-2098-49e4-b595-2031d1994321"
+                    },
+                    "info/": {
+                        "token": "bd4f15c1-3c55-42a5-a105-fde8ac0a05f3",
+                        "orderID": 397025522,
+                        "CID": 11111111,
+                        "statusID": 3,
+                        "orderType": 19,
+                        "closeActionType": 0,
+                        "operationType": 2,
+                        "errorCode": 0,
+                        "assetCurrencyID": 2,
+                        "accountCurrencyID": 1,
+                        "instrumentID": 1202,
+                        "requestOccurred": "2026-11-27T15:51:28.17Z",
+                        "proceeds": 14,
+                        "externalOperationType": 0,
+                        "positions": [
+                            {
+                                "positionID": 3651292146,
+                                "occurred": "2026-11-27T15:51:28.26Z",
+                                "rate": 195.44,
+                                "units": 0.070177,
+                                "conversionRate": 1.09365,
+                                "amount": 15
+                            },
+                            {
+                                "positionID": 3651292146
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "id": "397025522",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-27T15:51:28.170Z",
+                    "timestamp": 1795794688170,
+                    "lastTradeTimestamp": 1795794688260,
+                    "lastUpdateTimestamp": null,
+                    "status": "closed",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": 195.44,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.070177,
+                    "filled": 0.070177,
+                    "remaining": 0,
+                    "cost": 13.71539288,
+                    "average": 195.44,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "bd4f15c1-3c55-42a5-a105-fde8ac0a05f3",
+                        "orderID": 397025522,
+                        "CID": 11111111,
+                        "statusID": 3,
+                        "orderType": 19,
+                        "closeActionType": 0,
+                        "operationType": 2,
+                        "errorCode": 0,
+                        "assetCurrencyID": 2,
+                        "accountCurrencyID": 1,
+                        "instrumentID": 1202,
+                        "requestOccurred": "2026-11-27T15:51:28.17Z",
+                        "proceeds": 14,
+                        "externalOperationType": 0,
+                        "positions": [
+                            {
+                                "positionID": 3651292146,
+                                "occurred": "2026-11-27T15:51:28.26Z",
+                                "rate": 195.44,
+                                "units": 0.070177,
+                                "conversionRate": 1.09365,
+                                "amount": 15
+                            },
+                            {
+                                "positionID": 3651292146
+                            }
+                        ]
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "createMarketOrderWithCost": [
+            {
+                "description": "market buy with cost, the filled order is polled from the order lookup",
+                "method": "createMarketOrderWithCost",
+                "input": [
+                    "SAP.DE/EUR",
+                    "buy",
+                    15
+                ],
+                "httpResponseByUrl": {
+                    "execution/orders": {
+                        "token": "6332403b-9b33-4270-bb80-542b3320f2bf",
+                        "orderId": 397023351,
+                        "referenceId": "ea385c9a-37ea-4060-80de-67d59af332ea"
+                    },
+                    "orders:lookup": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023351,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 3,
+                            "name": "Filled",
+                            "errorCode": 0
+                        },
+                        "asset": {
+                            "symbol": "SAP.DE",
+                            "instrumentId": 1202,
+                            "currency": "EUR",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 15,
+                        "requestedUnits": 0.070177,
+                        "requestedContracts": 0.070177,
+                        "frozenAmount": 16,
+                        "openStopLossRate": 0.01,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 1,
+                        "positionsToClose": [],
+                        "positionExecutions": [
+                            {
+                                "positionId": 3651292146,
+                                "state": "open",
+                                "investedAmountCurrency": 1,
+                                "initialExposureAccountCurrency": 14.998304441691,
+                                "initialExposureAssetCurrency": 13.71398934,
+                                "addedFunds": 0,
+                                "marginAccountCurrency": 15,
+                                "marginAssetCurrency": 13.71553970648745,
+                                "remainingUnits": 0.070177,
+                                "remainingContracts": 0.070177,
+                                "stopLossRate": 0.01,
+                                "takeProfitRate": 0,
+                                "openingData": {
+                                    "openTime": "2026-11-27T15:51:12.81Z",
+                                    "orderId": 397023351,
+                                    "executionTime": "2026-11-27T15:51:12.91Z",
+                                    "units": 0.070177,
+                                    "contracts": 0.070177,
+                                    "avgPrice": 195.42,
+                                    "avgConversionRate": 1.09365,
+                                    "marketSpread": 0,
+                                    "markup": 0,
+                                    "priceId": 0,
+                                    "fees": 1,
+                                    "taxes": 0
+                                }
+                            }
+                        ],
+                        "requestTime": "2026-11-27T15:51:12.87Z",
+                        "lastUpdate": "2026-11-27T15:51:12.963Z",
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "397023351",
+                    "clientOrderId": "ea385c9a-37ea-4060-80de-67d59af332ea",
+                    "datetime": "2026-11-27T15:51:12.870Z",
+                    "timestamp": 1795794672870,
+                    "lastTradeTimestamp": 1795794672910,
+                    "lastUpdateTimestamp": 1795794672963,
+                    "status": "closed",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 195.42,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.070177,
+                    "filled": 0.070177,
+                    "remaining": 0,
+                    "cost": 13.71398934,
+                    "average": 195.42,
+                    "trades": [],
+                    "fee": {
+                        "cost": "1",
+                        "currency": "USD"
+                    },
+                    "info": {
+                        "accountId": 11111111,
+                        "gcid": 33333333,
+                        "portfolioId": 0,
+                        "orderId": 397023351,
+                        "action": "open",
+                        "transaction": "buy",
+                        "type": "mkt",
+                        "etoroOrderTypeId": 17,
+                        "status": {
+                            "id": 3,
+                            "name": "Filled",
+                            "errorCode": 0
+                        },
+                        "asset": {
+                            "symbol": "SAP.DE",
+                            "instrumentId": 1202,
+                            "currency": "EUR",
+                            "settlementType": "REAL",
+                            "leverage": 1,
+                            "side": "long"
+                        },
+                        "orderCurrency": "usd",
+                        "requestedAmount": 15,
+                        "requestedUnits": 0.070177,
+                        "requestedContracts": 0.070177,
+                        "frozenAmount": 16,
+                        "openStopLossRate": 0.01,
+                        "openTakeProfitRate": 0,
+                        "stopLossType": "fixed",
+                        "totalCosts": 1,
+                        "positionsToClose": [],
+                        "positionExecutions": [
+                            {
+                                "positionId": 3651292146,
+                                "state": "open",
+                                "investedAmountCurrency": 1,
+                                "initialExposureAccountCurrency": 14.998304441691,
+                                "initialExposureAssetCurrency": 13.71398934,
+                                "addedFunds": 0,
+                                "marginAccountCurrency": 15,
+                                "marginAssetCurrency": 13.71553970648745,
+                                "remainingUnits": 0.070177,
+                                "remainingContracts": 0.070177,
+                                "stopLossRate": 0.01,
+                                "takeProfitRate": 0,
+                                "openingData": {
+                                    "openTime": "2026-11-27T15:51:12.81Z",
+                                    "orderId": 397023351,
+                                    "executionTime": "2026-11-27T15:51:12.91Z",
+                                    "units": 0.070177,
+                                    "contracts": 0.070177,
+                                    "avgPrice": 195.42,
+                                    "avgConversionRate": 1.09365,
+                                    "marketSpread": 0,
+                                    "markup": 0,
+                                    "priceId": 0,
+                                    "fees": 1,
+                                    "taxes": 0
+                                }
+                            }
+                        ],
+                        "requestTime": "2026-11-27T15:51:12.87Z",
+                        "lastUpdate": "2026-11-27T15:51:12.963Z",
+                        "openActionType": "customer",
+                        "requestType": "byAmount"
+                    },
+                    "fees": [
+                        {
+                            "cost": 1,
+                            "currency": "USD"
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit the stop loss and the take profit of a position",
+                "method": "editOrder",
+                "input": [
+                    "3651292146",
+                    "SAP.DE/EUR",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "stopLossPrice": 156.34,
+                        "takeProfitPrice": 234.5
+                    }
+                ],
+                "httpResponse": {
+                    "operationId": "b7238e76-882a-4e22-8b81-733e6bf0e5d4",
+                    "positionId": 3651292146,
+                    "referenceId": "07f0972c-9ac3-4bf5-afdc-71da7ababa9b"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "operationId": "b7238e76-882a-4e22-8b81-733e6bf0e5d4",
+                        "positionId": 3651292146,
+                        "referenceId": "07f0972c-9ac3-4bf5-afdc-71da7ababa9b"
+                    },
+                    "id": "3651292146",
+                    "clientOrderId": "07f0972c-9ac3-4bf5-afdc-71da7ababa9b",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "SAP.DE/EUR",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": 156.34,
+                    "takeProfitPrice": 234.5,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "status": "open",
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ]
+    }
+}

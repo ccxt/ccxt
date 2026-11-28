@@ -99,6 +99,7 @@ import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import dydx from  './src/dydx.js'
+import etoro from  './src/etoro.js'
 import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
@@ -190,6 +191,7 @@ import deepcoinPro from  './src/pro/deepcoin.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
 import dydxPro from  './src/pro/dydx.js'
+import etoroPro from  './src/pro/etoro.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
 import gateeuPro from  './src/pro/gateeu.js'
@@ -296,6 +298,7 @@ const exchanges = {
     'derive':                 derive,
     'digifinex':              digifinex,
     'dydx':                   dydx,
+    'etoro':                  etoro,
     'extended':               extended,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
@@ -387,6 +390,7 @@ const pro = {
     'deribit':                deribitPro,
     'derive':                 derivePro,
     'dydx':                   dydxPro,
+    'etoro':                  etoroPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
     'gateeu':                 gateeuPro,
@@ -674,6 +678,7 @@ export {
     derive,
     digifinex,
     dydx,
+    etoro,
     extended,
     fmfwio,
     foxbit,
