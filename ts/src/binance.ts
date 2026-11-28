@@ -3453,9 +3453,10 @@ export default class binance extends Exchange {
             rawFetchMarkets = this.safeList (this.options, 'fetchMarkets', defaultTypes);
         }
         const loadAllOptions: Bool = this.handleOption ('fetchMarkets', 'loadAllOptions', false);
+        let appendOption = false;
         if (loadAllOptions === true) {
             if (!this.inArray ('option', rawFetchMarkets)) {
-                rawFetchMarkets.push ('option');
+                appendOption = true;
             }
         }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
@@ -3468,6 +3469,9 @@ export default class binance extends Exchange {
                 continue;
             }
             fetchMarkets.push (type);
+        }
+        if (appendOption && (!isDemoEnv)) {
+            fetchMarkets.push ('option');
         }
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
