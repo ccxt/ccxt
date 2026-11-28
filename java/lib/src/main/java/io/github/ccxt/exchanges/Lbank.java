@@ -3823,7 +3823,7 @@ public class Lbank extends LbankApi
                 put( "10701", "invalid asset code" );
                 put( "10702", "not allowed deposit" );
             }}, errorCode, this.json(response));
-            Object ErrorClass = this.safeValue(new HashMap<String, Object>() {{
+            this.throwExactlyMatchedException(new HashMap<String, Object>() {{
                 put( "10001", BadRequest.class );
                 put( "10002", AuthenticationError.class );
                 put( "10003", BadRequest.class );
@@ -3873,8 +3873,8 @@ public class Lbank extends LbankApi
                 put( "10601", ExchangeError.class );
                 put( "10701", BadSymbol.class );
                 put( "10702", PermissionDenied.class );
-            }}, errorCode, ExchangeError.class);
-            Helpers.throwDynamicException(ErrorClass, message);return null;
+            }}, errorCode, message);
+            throw new ExchangeError(message) ;
         }
         return null;
     }

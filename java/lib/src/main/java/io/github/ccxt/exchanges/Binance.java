@@ -5056,11 +5056,12 @@ public class Binance extends BinanceApi
             rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
         boolean loadAllOptions = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "loadAllOptions", false));
+        Boolean appendOption = false;
         if (loadAllOptions)
         {
             if (!this.inArray("option", rawFetchMarkets))
             {
-                ((List<Object>)rawFetchMarkets).add("option");
+                appendOption = true;
             }
         }
         Boolean sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -5075,6 +5076,10 @@ public class Binance extends BinanceApi
                 continue;
             }
             fetchMarkets.add(type);
+        }
+        if (Boolean.TRUE.equals(appendOption) && (!Boolean.TRUE.equals(isDemoEnv)))
+        {
+            fetchMarkets.add("option");
         }
         Boolean fetchMargins = this.safeBool(this.options, "fetchMargins", false);
         for (var i = 0; i < fetchMarkets.size(); i++)
@@ -15624,12 +15629,13 @@ public class Binance extends BinanceApi
             }
         } catch(Exception e)
         {
+            Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
             // not an error
             // https://github.com/ccxt/ccxt/issues/11268
             // https://github.com/ccxt/ccxt/pull/11624
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
-            if (Helpers.isInstance(e, MarginModeAlreadySet.class))
+            if ((eCause instanceof MarginModeAlreadySet))
             {
                 boolean throwMarginModeAlreadySet = Boolean.TRUE.equals(this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false));
                 if (throwMarginModeAlreadySet)
@@ -18345,7 +18351,7 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    tradingLimits.put(symbol, Helpers.GetValue(Helpers.GetValue(market, "limits"), "amount"));
+                    tradingLimits.put(symbol, this.safeDict(this.safeDict(market, "limits", null), "amount", null));
                 }
             }
         }

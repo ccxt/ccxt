@@ -40,7 +40,8 @@ public class TestWatchOrderBook extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !((eCause instanceof InvalidNonce)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

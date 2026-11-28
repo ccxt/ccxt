@@ -1371,7 +1371,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     String formattedAsk = "";
                     if ((currentAskLength != null && currentAskLength > 1))
                     {
-                        formattedAsk = (this.formatNumber((String) ((currentAsk == null || 0 >= ((List<?>)currentAsk).size() ? null : ((List<?>)currentAsk).get(0)))) + this.formatNumber((String) ((currentAsk == null || 1 >= ((List<?>)currentAsk).size() ? null : ((List<?>)currentAsk).get(1)))));
+                        formattedAsk = (this.formatNumber(this.safeString(currentAsk, 0, "")) + this.formatNumber(this.safeString(currentAsk, 1, "")));
                     }
                     payloadArray.add(formattedAsk);
                 }
@@ -1382,7 +1382,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     String formattedBid = "";
                     if ((currentBidLength != null && currentBidLength > 1))
                     {
-                        formattedBid = (this.formatNumber((String) ((currentBid == null || 0 >= ((List<?>)currentBid).size() ? null : ((List<?>)currentBid).get(0)))) + this.formatNumber((String) ((currentBid == null || 1 >= ((List<?>)currentBid).size() ? null : ((List<?>)currentBid).get(1)))));
+                        formattedBid = (this.formatNumber(this.safeString(currentBid, 0, "")) + this.formatNumber(this.safeString(currentBid, 1, "")));
                     }
                     payloadArray.add(formattedBid);
                 }

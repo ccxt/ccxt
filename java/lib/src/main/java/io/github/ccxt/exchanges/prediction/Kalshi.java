@@ -548,9 +548,10 @@ public class Kalshi extends KalshiApi
                 response = (this.kalshiPublicGetMarketsTicker(mapLiteral2)).join();
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
                 // fall through to the search-driven base resolution; let network failures propagate
-                if (!(Helpers.isInstance(e, BadSymbol.class)))
+                if (!((eCause instanceof BadSymbol)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -593,9 +594,10 @@ public class Kalshi extends KalshiApi
                     (this.fetchEvents(mapLiteral3)).join();
                 } catch(Exception e)
                 {
+                    Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                     // an unknown series is a plain miss — the free-text fallback below still runs;
                     // let network failures propagate
-                    if (!(Helpers.isInstance(e, BadSymbol.class)))
+                    if (!((eCause instanceof BadSymbol)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -2911,7 +2913,8 @@ public class Kalshi extends KalshiApi
                 rawEvents.add(fullEvent);
             } catch(Exception e)
             {
-                if (!(Helpers.isInstance(e, BadSymbol.class)))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if (!((eCause instanceof BadSymbol)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

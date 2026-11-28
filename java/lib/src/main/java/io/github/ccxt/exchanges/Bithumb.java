@@ -1182,7 +1182,7 @@ public class Bithumb extends BithumbApi
             {
                 return result;
             }
-            List<Object> marketIdsChunks = new ArrayList<Object>(Arrays.asList());
+            List<String> singleMarketIds = new ArrayList<String>(Arrays.asList());
             List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             // the exchange rejects more than 200 market ids per request
             Long maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
@@ -1199,7 +1199,13 @@ public class Bithumb extends BithumbApi
                 Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
                 if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                 {
-                    marketIdsChunks.add(marketIdsChunk);
+                    if (java.util.Objects.equals(marketIdsChunkLength, 1))
+                    {
+                        singleMarketIds.add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    } else
+                    {
+                        singleMarketIds.add("");
+                    }
                     request.put("markets", String.join(",", (List<String>)marketIdsChunk));
                     promises.add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = new ArrayList<String>(Arrays.asList());
@@ -1246,13 +1252,7 @@ public class Bithumb extends BithumbApi
                 {
                     response = this.safeValue(response, "data");
                 }
-                String expectedMarketId = null;
-                List<Object> requestedMarketIds = this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
-                String firstMarketId = this.safeString(requestedMarketIds, 0);
-                if ((!java.util.Objects.equals(firstMarketId, null)) && (java.util.Objects.equals(this.safeString(requestedMarketIds, 1), null)))
-                {
-                    expectedMarketId = firstMarketId;
-                }
+                String expectedMarketId = this.safeString(singleMarketIds, i);
                 Object tickers = new ArrayList<Object>(Arrays.asList());
                 if ((response instanceof List))
                 {

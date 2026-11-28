@@ -52,10 +52,11 @@ public class TestWatchBidsAsks extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchBidsAsks", new Object[]{TestHelpers.toStringListArg(argSymbols), new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
+                if (((eCause instanceof ArgumentsRequired)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
                 {
                     // todo: provide random symbols to try
                     // return false;

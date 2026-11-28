@@ -9145,7 +9145,11 @@ public class Okx extends OkxApi
             String accountId = this.safeString(parameters, "accountId");
             if (java.util.Objects.equals(accountId, null))
             {
-                Object accountIds = this.getListFromObjectValues(accounts, "id");
+                List<String> accountIds = new ArrayList<String>(Arrays.asList());
+                for (var i = 0; (length != null && i < length); i++)
+                {
+                    accountIds.add(this.safeString(this.safeDict(accounts, i, null), "id", ""));
+                }
                 throw new ExchangeError(((this.id + " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ") + String.join(", ", (List<String>)accountIds))) ;
             } else
             {

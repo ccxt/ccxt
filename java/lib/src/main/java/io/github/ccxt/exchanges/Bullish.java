@@ -1634,7 +1634,8 @@ public class Bullish extends BullishApi
                 }
             } catch(Exception e)
             {
-                if (Helpers.isInstance(e, RateLimitExceeded.class))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if ((eCause instanceof RateLimitExceeded))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

@@ -2263,7 +2263,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                     client.future(unsubHash).getFuture().join();
                 } catch(Exception e)
                 {
-                    if (!(Helpers.isInstance(e, RequestTimeout.class)))
+                    Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                    if (!((eCause instanceof RequestTimeout)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }

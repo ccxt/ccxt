@@ -1651,7 +1651,7 @@ public class Paradex extends ParadexApi
                 } else
                 {
                     Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-                    if (java.util.Objects.equals(market.get("type"), marketType))
+                    if (java.util.Objects.equals(this.safeString(market, "type"), marketType))
                     {
                         result.add(summary);
                     }

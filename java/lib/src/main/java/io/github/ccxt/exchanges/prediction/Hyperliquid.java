@@ -602,7 +602,7 @@ public class Hyperliquid extends HyperliquidApi
         Integer szDecimals = 4; // outcomes use 4 decimal places
         Boolean active = true;
         Map<String, Object> outcomePrecision = new HashMap<String, Object>() {{
-            put( "amount", Hyperliquid.this.parseNumber(Hyperliquid.this.parsePrecision(String.valueOf(szDecimals))) );
+            put( "amount", Hyperliquid.this.parseNumber(Hyperliquid.this.parsePrecision(Hyperliquid.this.numberToString(szDecimals))) );
             put( "price", 0.0001 );
         }};
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();

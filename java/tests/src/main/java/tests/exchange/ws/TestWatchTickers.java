@@ -53,11 +53,12 @@ public class TestWatchTickers extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{TestHelpers.toStringListArg(argSymbols), new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 // for some exchanges, specifically watchTickers method not subscribe
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
+                if (((eCause instanceof ArgumentsRequired)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
                 {
                     // todo: provide random symbols to try
                     // return;

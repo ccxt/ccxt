@@ -5466,7 +5466,7 @@ public Map<String, Object> describe()
         return this.filterByLimit(result, limit, java.util.Objects.requireNonNullElse(key, "timestamp"), shouldFilterFromStart);
     }
 
-    public List<Object> filterByValueSinceLimit(Object array, Object field, Object value, Long since, Long limit, Object key, Boolean tail)
+    public List<Object> filterByValueSinceLimit(Object array, Object field, String value, Long since, Long limit, Object key, Boolean tail)
     {
         Boolean valueIsDefined = this.valueIsDefined(value);
         Boolean sinceIsDefined = !java.util.Objects.equals(since, null) && !java.util.Objects.equals(since, null);
@@ -5479,9 +5479,9 @@ public Map<String, Object> describe()
             for (var i = 0; i < parsedArray.size(); i++)
             {
                 Object entry = (parsedArray == null || i < 0 || i >= parsedArray.size() ? null : parsedArray.get(i));
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                Boolean entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
+                Boolean entryFiledEqualValue = java.util.Objects.equals(this.safeString(entry, field), value);
                 Boolean firstCondition = !Boolean.TRUE.equals(valueIsDefined) || Boolean.TRUE.equals(entryFiledEqualValue);
                 Long entryKeyValue = this.safeInteger(entry, java.util.Objects.requireNonNullElse(key, "timestamp"));
                 Boolean entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && ((entryKeyValue == null || entryKeyValue != 0)) && (!java.util.Objects.equals(since, null)) && (((entryKeyValue != null && entryKeyValue >= since)));
@@ -6129,8 +6129,8 @@ public Map<String, Object> describe()
     {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        Object res = this.parseToNumeric((((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; if (!(j37a instanceof String || j37a instanceof Long || j37a instanceof Integer || j37a instanceof Double)) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) % j37d.applyAsDouble(j37b); }).apply(value, 1)));
-        return Helpers.isEqual(res, 0);
+        String remainder = this.numberToString(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; if (!(j37a instanceof String || j37a instanceof Long || j37a instanceof Integer || j37a instanceof Double)) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) % j37d.applyAsDouble(j37b); }).apply(value, 1));
+        return (java.util.Objects.equals(remainder, "0")) || (java.util.Objects.equals(remainder, "-0"));
     }
 
     public Boolean isEmptyString(Object value)
@@ -7691,9 +7691,10 @@ public Map<String, Object> describe()
         //     ]
         //
         Map<String, Map<String, Object>> reduced = new HashMap<String, Map<String, Object>>();
-        for (var i = 0; i < (fees == null ? 0 : fees.size()); i++)
+        List<Object> feesList = this.toArray(fees);
+        for (var i = 0; i < feesList.size(); i++)
         {
-            Object fee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
+            Object fee = (feesList == null || i < 0 || i >= feesList.size() ? null : feesList.get(i));
             String code = this.safeString(fee, "currency");
             String feeCurrencyCode = (((!java.util.Objects.equals(code, null)))) ? code : String.valueOf(i);
             if (!java.util.Objects.equals(feeCurrencyCode, null))
@@ -7711,7 +7712,8 @@ public Map<String, Object> describe()
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
                 if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v6 -> ((Object)(rateKey)) != null && j39v6.contains(rateKey); case Map<?, ?> j39v5 -> ((Object)(rateKey)) instanceof String && j39v5.containsKey(rateKey); case null, default -> false; }))
                 {
-                    Helpers.addElementToObject((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost", Precise.stringAdd(Helpers.GetValue((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost"), cost));
+                    String previousCost = this.safeString((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost");
+                    Helpers.addElementToObject((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost", Precise.stringAdd(previousCost, cost));
                 } else
                 {
                     Map<String, Object> newRateFee = new HashMap<String, Object>();
@@ -8189,19 +8191,19 @@ public Map<String, Object> describe()
             Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             if (java.util.Objects.requireNonNullElse(sameTypeOnly, false) && (!java.util.Objects.equals(marketType, null)))
             {
-                if (!java.util.Objects.equals(market.get("type"), marketType))
+                if (!java.util.Objects.equals(this.safeString(market, "type"), marketType))
                 {
                     throw new BadRequest((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + market.get("type")) + ".")) ;
                 }
             }
             if (java.util.Objects.requireNonNullElse(sameSubTypeOnly, false) && (!java.util.Objects.equals(isLinearSubType, null)))
             {
-                if (!java.util.Objects.equals(market.get("linear"), isLinearSubType))
+                if (!java.util.Objects.equals(this.safeBool(market, "linear", null), isLinearSubType))
                 {
                     throw new BadRequest((this.id + " symbols must be of the same subType, either linear or inverse.")) ;
                 }
             }
-            if (!java.util.Objects.equals(type, null) && !java.util.Objects.equals(market.get("type"), type))
+            if (!java.util.Objects.equals(type, null) && !java.util.Objects.equals(this.safeString(market, "type"), type))
             {
                 throw new BadRequest((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
@@ -8349,7 +8351,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < aliasKeys.size(); i++)
         {
             String alias = (aliasKeys == null || i < 0 || i >= aliasKeys.size() ? null : aliasKeys.get(i));
-            if ((java.util.Objects.equals((aliases == null || alias == null ? null : aliases.get(alias)), unifiedCode)) && (networkIdsByCodes.containsKey(alias)))
+            if ((java.util.Objects.equals(this.safeString(aliases, alias), unifiedCode)) && (networkIdsByCodes.containsKey(alias)))
             {
                 return (String) (networkIdsByCodes == null || alias == null ? null : networkIdsByCodes.get(alias));
             }
@@ -9288,7 +9290,7 @@ public Map<String, Object> describe()
     {
         List<Object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (Helpers.isEqual(values, 0)) || (java.util.Objects.equals(values, "")))
+        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (java.util.Objects.equals(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (java.util.Objects.requireNonNullElse(indexed, true))
@@ -9319,7 +9321,7 @@ public Map<String, Object> describe()
     {
         List<Object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (Helpers.isEqual(values, 0)) || (java.util.Objects.equals(values, "")))
+        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (java.util.Objects.equals(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (java.util.Objects.requireNonNullElse(indexed, true))
@@ -9404,12 +9406,13 @@ public Map<String, Object> describe()
                 return response;
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 if (!java.util.Objects.equals(fetchData, null))
                 {
                     fetchData.put("error", e);
                     this.addFetchCache(fetchData);
                 }
-                if (Helpers.isInstance(e, OperationFailed.class))
+                if ((eCause instanceof OperationFailed))
                 {
                     if ((retriesMaxRetriesOnFailure != null && i < retriesMaxRetriesOnFailure))
                     {
@@ -10053,6 +10056,8 @@ public Map<String, Object> describe()
         List<Object> res = (List<Object>) this.handleOptionAndParams(new HashMap<String, Object>() {{}}, methodName, optionName, defaultValue);
         return this.safeValue(res, 0);
     }
+
+
 
 
 
@@ -11942,7 +11947,8 @@ public Map<String, Object> describe()
                 }
             } catch(Exception e)
             {
-                if (Helpers.isInstance(e, RateLimitExceeded.class))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if ((eCause instanceof RateLimitExceeded))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -12081,7 +12087,7 @@ public Map<String, Object> describe()
                 Object response = null;
                 if (java.util.Objects.equals(method, "fetchAccounts"))
                 {
-                    response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { paramsOmitted })).join();
+                    response = (this.fetchAccounts(paramsOmitted)).join();
                 } else if (java.util.Objects.equals(method, "getLeverageTiersPaginated") || java.util.Objects.equals(method, "fetchPositions"))
                 {
                     response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paramsOmitted })).join();

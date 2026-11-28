@@ -469,17 +469,17 @@ public class TestMain extends BaseTest
                     dump(this.addPadding("[INFO] TESTING FAILED", 25), exchange.id, methodName);
                     Object e = getRootException(ex);
                     Boolean isLoadMarkets = (java.util.Objects.equals(methodName, "loadMarkets"));
-                    Boolean isAuthError = (Helpers.isInstance(e, AuthenticationError.class));
-                    Boolean isNotSupported = (Helpers.isInstance(e, NotSupported.class));
-                    Boolean isOperationFailed = (Helpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                    Boolean isAuthError = (TestHelpers.isInstance(e, AuthenticationError.class));
+                    Boolean isNotSupported = (TestHelpers.isInstance(e, NotSupported.class));
+                    Boolean isOperationFailed = (TestHelpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                     String lastUrlMsg = ((TestHelpers.isTrue(this.wsTests))) ? "" : ((" (Last url: " + this.getLastRequestUrl(exchange)) + " )");
                     if (Boolean.TRUE.equals(isOperationFailed))
                     {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
                         if ((i == (((long) maxRetries) - 1L)))
                         {
-                            Boolean isOnMaintenance = (Helpers.isInstance(e, OnMaintenance.class));
-                            Boolean isExchangeNotAvailable = (Helpers.isInstance(e, ExchangeNotAvailable.class));
+                            Boolean isOnMaintenance = (TestHelpers.isInstance(e, OnMaintenance.class));
+                            Boolean isExchangeNotAvailable = (TestHelpers.isInstance(e, ExchangeNotAvailable.class));
                             Boolean shouldFail = null;
                             Boolean retSuccess = null;
                             if (Boolean.TRUE.equals(isLoadMarkets))
@@ -2357,7 +2357,7 @@ public class TestMain extends BaseTest
                 }
             } catch(Exception e)
             {
-                if (!(Helpers.isInstance(e, InvalidProxySettings.class)))
+                if (!(TestHelpers.isInstance(e, InvalidProxySettings.class)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -3473,7 +3473,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrders", new Object[]{linearConditionalOrders, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                linearConditionalBatchNotSupported = (Helpers.isInstance(e, NotSupported.class));
+                linearConditionalBatchNotSupported = (TestHelpers.isInstance(e, NotSupported.class));
             }
             Assert(linearConditionalBatchNotSupported, "binance createOrders - linear conditional order must throw NotSupported");
             // inverse conditional orders are batched in the regular (non-algo) format
@@ -3494,7 +3494,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrders", new Object[]{inverseConditionalOrders, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                inverseConditionalBatchNotSupported = (Helpers.isInstance(e, NotSupported.class));
+                inverseConditionalBatchNotSupported = (TestHelpers.isInstance(e, NotSupported.class));
                 inverseConditionalBatchRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Assert(!Boolean.TRUE.equals(inverseConditionalBatchNotSupported), "binance createOrders - inverse conditional order must not throw NotSupported");

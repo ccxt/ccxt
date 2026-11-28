@@ -1738,9 +1738,10 @@ public class Mudrex extends MudrexApi
         for (var i = 0; i < transactions.size(); i++)
         {
             String rebate = null;
+            String transactionKey = this.safeString(transactionKeys, i);
             for (var j = 0; j < rebateKeys.size(); j++)
             {
-                if (java.util.Objects.equals((rebateKeys == null || j < 0 || j >= rebateKeys.size() ? null : rebateKeys.get(j)), (transactionKeys == null || i < 0 || i >= transactionKeys.size() ? null : transactionKeys.get(i))))
+                if (java.util.Objects.equals(this.safeString(rebateKeys, j), transactionKey))
                 {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

@@ -4615,17 +4615,17 @@ public class Gate extends GateApi
         result.put("info", response);
         Boolean isolated = java.util.Objects.equals(marginMode, "margin") && java.util.Objects.equals(type, "spot");
         Object data = response;
-        if (((Map<?, ?>)data).containsKey("balances"))
+        Map<String, Object> balances = this.safeDict(data, "balances", null);
+        if (!java.util.Objects.equals(balances, null))
         {
             List<Object> flatBalances = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> balances = this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             List<String> keys = new ArrayList<String>(balances.keySet());
             for (var i = 0; i < keys.size(); i++)
             {
                 String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> content = this.extend(new HashMap<String, Object>() {{}}, (balances == null || currencyId == null ? null : balances.get(currencyId)));
+                Map<String, Object> content = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}}));
                 content.put("currency", currencyId);
                 flatBalances.add(content);
             }

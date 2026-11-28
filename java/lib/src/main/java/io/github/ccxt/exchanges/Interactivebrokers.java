@@ -1360,7 +1360,8 @@ public class Interactivebrokers extends InteractivebrokersApi
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, ExchangeClosedByUser.class))
+            Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+            if ((eCause instanceof ExchangeClosedByUser))
             {
                 return null;
             }
@@ -1458,7 +1459,8 @@ public class Interactivebrokers extends InteractivebrokersApi
             }
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, ExchangeClosedByUser.class))
+            Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+            if ((eCause instanceof ExchangeClosedByUser))
             {
                 this.options.put("gatewayKeepAliveStarted", false);
                 return null;
@@ -2180,8 +2182,17 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> cmeSymbols = new ArrayList<Object>(cryptoCmeFutureSymbols.keySet());
         List<Object> cfeSymbols = new ArrayList<Object>(cryptoCboeFutureSymbols.keySet());
         List<Object> targetSymbols = this.arraysConcat(new ArrayList<Object>(Arrays.asList(coinbaseDerivSymbols, cmeSymbols, cfeSymbols)));
-        Object symbols = this.unique(targetSymbols);
-        String joined = String.join(",", (List<String>)(List<String>)(symbols)); // c# fix, todo investigate
+        List<String> symbols = new ArrayList<String>(Arrays.asList());
+        Integer targetSymbolsLength = targetSymbols.size();
+        for (var i = 0; (targetSymbolsLength != null && i < targetSymbolsLength); i++)
+        {
+            String targetSymbol = this.safeString(targetSymbols, i, "");
+            if (!this.inArray(targetSymbol, symbols))
+            {
+                symbols.add(targetSymbol);
+            }
+        }
+        String joined = String.join(",", (List<String>)symbols);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbols", joined );
         }};
@@ -2204,9 +2215,9 @@ public class Interactivebrokers extends InteractivebrokersApi
         // (for swaps, the date is "20301220")
         //
         Map<String, Object> entries = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
-            List<Object> contracts = this.safeList(response, (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)), new ArrayList<Object>(Arrays.asList()));
+            List<Object> contracts = this.safeList(response, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)), new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < contracts.size(); j++)
             {
                 Object contract = (contracts == null || j < 0 || j >= contracts.size() ? null : contracts.get(j));
@@ -2748,7 +2759,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 }
             } catch(Exception e)
             {
-                if (Helpers.isInstance(e, NullResponse.class))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if ((eCause instanceof NullResponse))
                 {
                     data = defaultValue;
                 }
@@ -4505,11 +4517,12 @@ public class Interactivebrokers extends InteractivebrokersApi
             response = (this.webapiGetV1ApiIserverAccountOrderStatusOrderId(this.extend(request, parameters))).join();
         } catch(Exception ex)
         {
-            if (Helpers.isInstance(ex, InvalidProxySettings.class))
+            Throwable exCause = (ex instanceof java.util.concurrent.CompletionException && ex.getCause() != null) ? ex.getCause() : ex;
+            if ((exCause instanceof InvalidProxySettings))
             {
                 throw (ex instanceof RuntimeException ? (RuntimeException)ex : new RuntimeException(ex));
             }
-            if (Helpers.isInstance(ex, OperationFailed.class))
+            if ((exCause instanceof OperationFailed))
             {
                 throw (ex instanceof RuntimeException ? (RuntimeException)ex : new RuntimeException(ex));
             }

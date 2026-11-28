@@ -636,6 +636,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
             String timeframeString = this.safeString(symbolAndTimeframe, 1, "");
             String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (java.util.Objects.equals(interval, null))
+            {
+                continue;
+            }
             if (!(marketIdsByInterval.containsKey(interval)))
             {
                 marketIdsByInterval.put(interval, new ArrayList<Object>(Arrays.asList()));
@@ -727,6 +731,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
             String timeframeString = this.safeString(symbolAndTimeframe, 1, "");
             String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (java.util.Objects.equals(interval, null))
+            {
+                continue;
+            }
             if (!(marketIdsByInterval.containsKey(interval)))
             {
                 marketIdsByInterval.put(interval, new ArrayList<Object>(Arrays.asList()));

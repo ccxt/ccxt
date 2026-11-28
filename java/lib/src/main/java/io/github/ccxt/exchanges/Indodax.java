@@ -1755,7 +1755,7 @@ public class Indodax extends IndodaxApi
                     }
                     if (((String)networkId).indexOf(",") >= 0)
                     {
-                        network = new ArrayList<Object>(Arrays.asList());
+                        List<Object> networkCodes = new ArrayList<Object>(Arrays.asList());
                         if (java.util.Objects.equals(networkId, null))
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddresses() missing networkId")) ;
@@ -1766,9 +1766,10 @@ public class Indodax extends IndodaxApi
                             String _netIdTmp = this.networkIdToCode(java.util.Objects.toString((networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j)), null), code);
                             if (!java.util.Objects.equals(_netIdTmp, null))
                             {
-                                ((List<Object>)network).add(_netIdTmp.toUpperCase());
+                                networkCodes.add(_netIdTmp.toUpperCase());
                             }
                         }
+                        network = networkCodes;
                     } else
                     {
                         String _netIdTmp = this.networkIdToCode(networkId, code);

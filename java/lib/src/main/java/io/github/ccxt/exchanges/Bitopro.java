@@ -1086,7 +1086,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public List<Object> insertMissingCandles(List<Object> candles, Object distanceInMs, Long since, Long limit)
+    public List<Object> insertMissingCandles(List<Object> candles, Long distanceInMs, Long since, Long limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
@@ -1111,10 +1111,9 @@ public class Bitopro extends BitoproApi
         Integer resultLength = 0;
         while (((limit != null && (resultLength == null || resultLength < limit))) && ((candleLength != null && (i == null || i < candleLength))))
         {
-            List<Object> candle = this.safeList(candles, i, new ArrayList<Object>(Arrays.asList()));
-            if (Helpers.isEqual((candle == null || 0 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(0)), timestamp))
+            if (Helpers.isEqual(this.safeInteger(this.safeList(candles, i, new ArrayList<Object>(Arrays.asList())), 0), timestamp))
             {
-                result.add(candle);
+                result.add(this.safeList(candles, i, new ArrayList<Object>(Arrays.asList())));
                 i = (i + 1L);
             } else
             {

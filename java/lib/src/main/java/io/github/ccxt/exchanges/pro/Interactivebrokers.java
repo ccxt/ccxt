@@ -578,7 +578,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < marketSymbols.size(); i++)
         {
             Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
-            (this.ibkrUnsubscribeMarketData(client, (String) (market.get("id")))).join();
+            (this.ibkrUnsubscribeMarketData(client, this.safeString(market, "id"))).join();
         }
         return true;
 
@@ -758,7 +758,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(unifiedSymbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
         }};
         (this.ibkrUnsubscribe(client, subHashes, null, subscription)).join();
-        (this.ibkrUnsubscribeMarketData(client, (String) (market.get("id")))).join();
+        (this.ibkrUnsubscribeMarketData(client, historyMarketId)).join();
         return true;
 
     }

@@ -38,8 +38,9 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBookForSymbols", new Object[]{symbols, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 // interim workaround for InvalidNonce raised by the c# runtime
-                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !((eCause instanceof InvalidNonce)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

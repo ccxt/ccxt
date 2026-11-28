@@ -29,7 +29,7 @@ public class TestSharedMethods extends BaseTest {
     }
     public static Object isTemporaryFailure(Object e)
     {
-        return (Helpers.isInstance(e, OperationFailed.class)) && (!(Helpers.isInstance(e, OnMaintenance.class)));
+        return (TestHelpers.isInstance(e, OperationFailed.class)) && (!(TestHelpers.isInstance(e, OnMaintenance.class)));
     }
     public static Object stringValue(Object value)
     {

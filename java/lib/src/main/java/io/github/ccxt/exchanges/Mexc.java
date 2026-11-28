@@ -3100,14 +3100,8 @@ public class Mexc extends MexcApi
         {
             throw new InvalidOrder((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
         }
-        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), parameters);
-        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
-        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         Long orderType = 0L; // typed seed, every branch below assigns it
-        if (Boolean.TRUE.equals(postOnly))
-        {
-            orderType = 2L;
-        } else if (java.util.Objects.equals(type, "limit"))
+        if (java.util.Objects.equals(type, "limit"))
         {
             orderType = 1L;
         } else if (java.util.Objects.equals(type, "market"))
@@ -3116,6 +3110,13 @@ public class Mexc extends MexcApi
         } else
         {
             orderType = this.parseToInt(type);
+        }
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), (orderType != null && orderType == 2), parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            orderType = 2L;
         }
         String volString = this.amountToPrecision(symbol, amount);
         if (java.util.Objects.equals(volString, null))

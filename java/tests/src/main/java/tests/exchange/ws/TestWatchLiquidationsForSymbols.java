@@ -58,7 +58,8 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
                 }
             } catch(Exception e)
             {
-                if (!(Helpers.isInstance(e, NetworkError.class)))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if (!((eCause instanceof NetworkError)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

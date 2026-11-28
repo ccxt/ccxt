@@ -1930,7 +1930,8 @@ public class Whitebit extends WhitebitApi
                 }
             } catch(Exception error)
             {
-                if (!(Helpers.isInstance(error, OrderNotFound.class)))
+                Throwable errorCause = (error instanceof java.util.concurrent.CompletionException && error.getCause() != null) ? error.getCause() : error;
+                if (!((errorCause instanceof OrderNotFound)))
                 {
                     throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
                 }
@@ -1962,7 +1963,8 @@ public class Whitebit extends WhitebitApi
                 }
             } catch(Exception error)
             {
-                if (!(Helpers.isInstance(error, OrderNotFound.class)))
+                Throwable errorCause = (error instanceof java.util.concurrent.CompletionException && error.getCause() != null) ? error.getCause() : error;
+                if (!((errorCause instanceof OrderNotFound)))
                 {
                     throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
                 }

@@ -2329,8 +2329,10 @@ public class Phemex extends PhemexApi
             Long amountIndex = (((long) tradeLength) - 1L);
             priceString = this.safeString(trade, priceIndex);
             amountString = this.safeString(trade, amountIndex);
-            Object priceAmount = Helpers.GetValue(trade, priceIndex);
-            if ((priceAmount instanceof Long || priceAmount instanceof Integer || priceAmount instanceof Float || priceAmount instanceof Double))
+            // v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            String tradeSettle = this.safeString(marketResolved, "settle");
+            Boolean isStableSettled = (java.util.Objects.equals(tradeSettle, "USDT")) || (java.util.Objects.equals(tradeSettle, "USDC"));
+            if (!Boolean.TRUE.equals(isStableSettled))
             {
                 priceString = this.fromEp(this.safeString(trade, priceIndex), marketResolved);
                 amountString = this.fromEv(this.safeString(trade, amountIndex), marketResolved);
@@ -3934,7 +3936,8 @@ public class Phemex extends PhemexApi
             }
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, OrderNotFound.class))
+            Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+            if ((eCause instanceof OrderNotFound))
             {
                 return new ArrayList<Object>(Arrays.asList());
             }

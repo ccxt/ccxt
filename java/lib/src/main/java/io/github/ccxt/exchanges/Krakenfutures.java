@@ -2343,33 +2343,32 @@ public class Krakenfutures extends KrakenfuturesApi
 
     public void verifyOrderActionSuccess(String status, String method, Object omit)
     {
-        Map<String, Object> errors = new HashMap<String, Object>() {{
-            put( "invalidOrderType", InvalidOrder.class );
-            put( "invalidSide", InvalidOrder.class );
-            put( "invalidSize", InvalidOrder.class );
-            put( "invalidPrice", InvalidOrder.class );
-            put( "insufficientAvailableFunds", InsufficientFunds.class );
-            put( "selfFill", ExchangeError.class );
-            put( "tooManySmallOrders", ExchangeError.class );
-            put( "maxPositionViolation", BadRequest.class );
-            put( "marketSuspended", ExchangeNotAvailable.class );
-            put( "marketInactive", ExchangeNotAvailable.class );
-            put( "clientOrderIdAlreadyExist", DuplicateOrderId.class );
-            put( "clientOrderIdTooLong", BadRequest.class );
-            put( "outsidePriceCollar", InvalidOrder.class );
-            put( "postWouldExecute", OrderImmediatelyFillable.class );
-            put( "iocWouldNotExecute", OrderNotFillable.class );
-            put( "wouldNotReducePosition", ExchangeError.class );
-            put( "orderForEditNotFound", OrderNotFound.class );
-            put( "orderForEditNotAStop", InvalidOrder.class );
-            put( "filled", OrderNotFound.class );
-            put( "notFound", OrderNotFound.class );
-        }};
         if (!java.util.Objects.equals(status, null))
         {
-            if ((errors.containsKey(status)) && !this.inArray(status, omit))
+            if (!this.inArray(status, omit))
             {
-                Helpers.throwDynamicException((errors == null || status == null ? null : errors.get(status)), ((((this.id + ": ") + method) + " failed due to ") + status));
+                this.throwExactlyMatchedException(new HashMap<String, Object>() {{
+                    put( "invalidOrderType", InvalidOrder.class );
+                    put( "invalidSide", InvalidOrder.class );
+                    put( "invalidSize", InvalidOrder.class );
+                    put( "invalidPrice", InvalidOrder.class );
+                    put( "insufficientAvailableFunds", InsufficientFunds.class );
+                    put( "selfFill", ExchangeError.class );
+                    put( "tooManySmallOrders", ExchangeError.class );
+                    put( "maxPositionViolation", BadRequest.class );
+                    put( "marketSuspended", ExchangeNotAvailable.class );
+                    put( "marketInactive", ExchangeNotAvailable.class );
+                    put( "clientOrderIdAlreadyExist", DuplicateOrderId.class );
+                    put( "clientOrderIdTooLong", BadRequest.class );
+                    put( "outsidePriceCollar", InvalidOrder.class );
+                    put( "postWouldExecute", OrderImmediatelyFillable.class );
+                    put( "iocWouldNotExecute", OrderNotFillable.class );
+                    put( "wouldNotReducePosition", ExchangeError.class );
+                    put( "orderForEditNotFound", OrderNotFound.class );
+                    put( "orderForEditNotAStop", InvalidOrder.class );
+                    put( "filled", OrderNotFound.class );
+                    put( "notFound", OrderNotFound.class );
+                }}, status, ((((this.id + ": ") + method) + " failed due to ") + status));
             }
         }
     }

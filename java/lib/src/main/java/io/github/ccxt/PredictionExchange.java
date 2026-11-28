@@ -1110,9 +1110,10 @@ public Map<String, Object> describe()
                 (this.fetchEvents(mapLiteral1)).join();
             } catch(Exception e)
             {
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                 // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
                 // plain miss (the guidance-rich throw below); let real transport errors propagate
-                if (!(Helpers.isInstance(e, BadSymbol.class)))
+                if (!((eCause instanceof BadSymbol)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

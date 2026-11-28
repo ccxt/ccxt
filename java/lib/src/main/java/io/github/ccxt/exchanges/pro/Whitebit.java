@@ -1347,7 +1347,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Long id = this.safeInteger(message, "id");
         if (!java.util.Objects.equals(id, null))
         {
-            this.handleSubscriptionStatus(client, message, id);
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         Map<String, String> methods = new HashMap<String, String>() {{
@@ -1379,8 +1379,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
     }
 
-    public void handleSubscriptionStatus(Client client, Map<String, Object> message, Object id)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
+        Long id = this.safeInteger(message, "id");
         // not every method stores its subscription
         // as an object so we can't do indeById here
         Map<String, Object> subs = client.subscriptions;
@@ -1391,7 +1392,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (!java.util.Objects.equals(subscription, true))
             {
                 Long subId = this.safeInteger(subscription, "id");
-                if ((!java.util.Objects.equals(subId, null)) && (Helpers.isEqual(subId, id)))
+                if ((!java.util.Objects.equals(subId, null)) && (java.util.Objects.equals(subId, id)))
                 {
                     boolean method = (this.safeValue(subscription, "method")) != null;
                     if (method)

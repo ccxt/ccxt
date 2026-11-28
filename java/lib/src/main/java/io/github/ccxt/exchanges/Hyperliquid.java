@@ -2470,7 +2470,8 @@ public class Hyperliquid extends HyperliquidApi
                 }
             } catch(Exception e)
             {
-                if (Helpers.isInstance(e, InvalidProxySettings.class))
+                Throwable eCause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
+                if ((eCause instanceof InvalidProxySettings))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

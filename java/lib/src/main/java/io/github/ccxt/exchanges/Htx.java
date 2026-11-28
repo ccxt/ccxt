@@ -7645,6 +7645,7 @@ public class Htx extends HtxApi
             }
             Object clientOrderIds = this.safeValue2(query, "client_order_id", "clientOrderId");
             clientOrderIds = this.safeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds);
+            String clientOrderIdsString = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("client_order_ids", "clientOrderIds", "client_order_id", "clientOrderId")));
             query = this.omit(query, new ArrayList<Object>(Arrays.asList("client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds")));
             if (!Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
@@ -7670,9 +7671,9 @@ public class Htx extends HtxApi
                     request.put("order_id", ids);
                 } else
                 {
-                    if ((clientOrderIds instanceof String))
+                    if (!java.util.Objects.equals(clientOrderIdsString, null))
                     {
-                        request.put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIds).split(java.util.regex.Pattern.quote(",")))));
+                        request.put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIdsString).split(java.util.regex.Pattern.quote(",")))));
                     } else
                     {
                         request.put("client_order_id", clientOrderIds);

@@ -3063,7 +3063,7 @@ public class Tokocrypto extends TokocryptoApi
     public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Map<String, Object> restUrls = this.extend(new HashMap<String, Object>() {{}}, ((Map<String, Object>)this.urls.get("api")).get("rest"));
+        Map<String, Object> restUrls = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(this.urls.get("api"), "rest", new HashMap<String, Object>() {{}}));
         if (!(restUrls.containsKey(apiName)))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
