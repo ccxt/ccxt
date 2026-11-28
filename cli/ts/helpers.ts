@@ -623,6 +623,15 @@ async function loadSettingsAndCreateExchange (
         if (cliOptions.keys) {
             // check auth keys in env var
             const requiredCredentials = exchange.requiredCredentials;
+            // CCXT_APIKEYS is an optional JSON object env var, e.g. {"BINANCE_APIKEY":"...","BINANCE_SECRET":"..."}
+            let ccxtApiKeys: Record<string, string> = {};
+            if (process.env.CCXT_APIKEYS) {
+                try {
+                    ccxtApiKeys = JSON.parse (process.env.CCXT_APIKEYS);
+                } catch (e) {
+                    log.red ('CCXT_APIKEYS env var is not valid JSON, ignoring it');
+                }
+            }
             for (const [ credential, isRequired ] of Object.entries (
                 requiredCredentials
             )) {
@@ -632,7 +641,7 @@ async function loadSettingsAndCreateExchange (
             + '_'
             + credential
                     ).toUpperCase (); // example: KRAKEN_APIKEY
-                    let credentialValue = process.env[credentialEnvName] || process.env.CCXT_APIKEYS?.[credentialEnvName];
+                    let credentialValue = process.env[credentialEnvName] || ccxtApiKeys?.[credentialEnvName];
                     if (credentialValue) {
                         if (credentialValue.indexOf ('---BEGIN') > -1) {
                             credentialValue = (credentialValue as any).replaceAll (

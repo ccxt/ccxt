@@ -399,8 +399,35 @@ func SetCredential(instance ccxt.ICoreExchange, key string, value string) {
 	}
 }
 
+// loadCcxtApiKeys parses the optional CCXT_APIKEYS env var, a JSON object such as
+// {"BINANCE_APIKEY":"...","BINANCE_SECRET":"..."}, used as a fallback for credentials
+func loadCcxtApiKeys() map[string]string {
+	result := map[string]string{}
+	raw := os.Getenv("CCXT_APIKEYS")
+	if raw == "" {
+		return result
+	}
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		fmt.Println("CCXT_APIKEYS env var is not valid JSON, ignoring it")
+		return result
+	}
+	for k, v := range parsed {
+		if v == nil {
+			continue
+		}
+		if s, ok := v.(string); ok {
+			result[k] = s
+		} else {
+			result[k] = fmt.Sprintf("%v", v)
+		}
+	}
+	return result
+}
+
 func SetCredentials(instance ccxt.ICoreExchange) {
 	credentials := instance.GetRequiredCredentials()
+	ccxtApiKeys := loadCcxtApiKeys()
 
 	for key, value := range credentials {
 		valBool := value.(bool)
@@ -408,6 +435,9 @@ func SetCredentials(instance ccxt.ICoreExchange) {
 			parsedKey := strings.ToUpper(instance.GetId()) + "_" + strings.ToUpper(key)
 
 			res := os.Getenv(parsedKey)
+			if res == "" {
+				res = ccxtApiKeys[parsedKey]
+			}
 			if res != "" {
 				SetCredential(instance, key, res)
 			}

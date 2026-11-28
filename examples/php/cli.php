@@ -106,10 +106,24 @@ $main = function() use ($argv) {
 
             if (!$no_keys) {
                 // check auth keys in env var
+                // CCXT_APIKEYS is an optional JSON object env var, e.g. {"BINANCE_APIKEY":"...","BINANCE_SECRET":"..."}
+                $ccxt_api_keys = array();
+                $ccxt_api_keys_raw = getenv('CCXT_APIKEYS');
+                if ($ccxt_api_keys_raw) {
+                    $decoded = json_decode($ccxt_api_keys_raw, true);
+                    if (is_array($decoded)) {
+                        $ccxt_api_keys = $decoded;
+                    } else {
+                        echo "CCXT_APIKEYS env var is not valid JSON, ignoring it\n";
+                    }
+                }
                 foreach ($exchange->requiredCredentials as $credential => $is_required) {
                     if ($is_required && !$exchange->$credential ) {
                         $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
                         $credential_value = getenv($credential_var);
+                        if (!$credential_value && isset($ccxt_api_keys[$credential_var])) {
+                            $credential_value = (string) $ccxt_api_keys[$credential_var];
+                        }
                         if ($credential_value) {
                             if (str_contains($credential_value, "---BEGIN")) {
                                 $credential_value = str_replace('\n', "\n", $credential_value);
