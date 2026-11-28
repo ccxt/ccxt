@@ -4297,7 +4297,8 @@ public partial class kucoin : Exchange
         string? code = null;
         if ((currency != null))
         {
-            code = this.safeCurrencyCode((currency != null && currency.ContainsKey("id") ? currency["id"] : null));
+            string? currencyId = this.safeString(currency, "id");
+            code = this.safeCurrencyCode(currencyId);
             if (code != "NIM")
             {
                 // contains spaces

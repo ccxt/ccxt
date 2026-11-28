@@ -1895,7 +1895,7 @@ public partial class kucoin : ccxt.kucoin
                 for (int i = 0; i < subscriptions.Count; i++)
                 {
                     string? key = ((string)subscriptions[i]);
-                    if (((key?.IndexOf(topicSymbol, StringComparison.Ordinal) ?? -1) >= 0) && ((key?.IndexOf(topicChannel, StringComparison.Ordinal) ?? -1) >= 0))
+                    if (((topicSymbol != null)) && ((topicChannel != null)) && ((key?.IndexOf(topicSymbol, StringComparison.Ordinal) ?? -1) >= 0) && ((key?.IndexOf(topicChannel, StringComparison.Ordinal) ?? -1) >= 0))
                     {
                         subscription = (client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key) ? client.subscriptions[key] : null);
                         break;

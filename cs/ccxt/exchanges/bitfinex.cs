@@ -901,8 +901,8 @@ public partial class bitfinex : Exchange
         if (id.IndexOf(":", StringComparison.Ordinal) >= 0)
         {
             List<object> parts = id.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-            baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-            quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
         } else
         {
             baseId = ((id == null) ? null : id.Substring(0, Math.Min(3, id.Length)));
@@ -1115,7 +1115,7 @@ public partial class bitfinex : Exchange
 
     public virtual Dictionary<string, object> parseCurrenciesCustom(IList<object> ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
-        List<object> allowedIds = new List<object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             string? id = this.safeString(ids, i, "");
@@ -1123,20 +1123,14 @@ public partial class bitfinex : Exchange
             {
                 continue;
             }
-            allowedIds.Add(id);
-        }
-        Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> arr = allowedIds;
-        for (int i = 0; i < (arr?.Count ?? 0); i++)
-        {
-            Dictionary<string, object> parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
+            Dictionary<string, object> parsed = this.parseCurrencyCustom(id, indexed, indexedNetworks);
             string? code = this.safeString(parsed, "code", "");
             result[(string)code] = parsed;
         }
         return result;
     }
 
-    public virtual Dictionary<string, object> parseCurrencyCustom(object id, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrencyCustom(string id, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
         string? code = this.safeCurrencyCode(id);
         List<object> label = this.safeList((indexed != null && indexed.ContainsKey("label") ? indexed["label"] : null), id, new List<object>() {});
@@ -1144,7 +1138,7 @@ public partial class bitfinex : Exchange
         List<object> pool = this.safeList((indexed != null && indexed.ContainsKey("pool") ? indexed["pool"] : null), id, new List<object>() {});
         string? rawType = this.safeString(pool, 1);
         IDictionary<string, object> explorer = this.safeDict(indexed, "explorer", new Dictionary<string, object>() {});
-        bool isCryptoCoin = ((rawType != null)) || ((explorer != null && id is string inOpKey0 && explorer.ContainsKey(inOpKey0))); // "hacky" solution
+        bool isCryptoCoin = ((rawType != null)) || ((explorer != null && explorer.ContainsKey(id))); // "hacky" solution
         string? type = isCryptoCoin ? "crypto" : null;
         List<object> feeValues = this.safeList((indexed != null && indexed.ContainsKey("fees") ? indexed["fees"] : null), id, new List<object>() {});
         List<object> fees = this.safeList(feeValues, 1, new List<object>() {});

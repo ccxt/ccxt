@@ -588,8 +588,10 @@ public partial class bitso : Exchange
             List<object> parts = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? baseId = this.safeString(parts, 0, "");
             string? quoteId = this.safeString(parts, 1, "");
-            string? bs = this.safeCurrencyCode(baseId.ToUpper());
-            string? quote = this.safeCurrencyCode(quoteId.ToUpper());
+            string baseIdUpper = baseId.ToUpper();
+            string quoteIdUpper = quoteId.ToUpper();
+            string? bs = this.safeCurrencyCode(baseIdUpper);
+            string? quote = this.safeCurrencyCode(quoteIdUpper);
             if (((bs == null)) || ((quote == null)))
             {
                 continue;

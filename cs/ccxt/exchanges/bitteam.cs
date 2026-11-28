@@ -2320,7 +2320,8 @@ public partial class bitteam : Exchange
             string? free = this.safeString(currencyBalance, "free");
             string? used = this.safeString(currencyBalance, "used");
             string? total = this.safeString(currencyBalance, "total");
-            string? currencyCode = this.safeCurrencyCode(rawCurrencyId.ToLower());
+            string rawCurrencyIdLower = rawCurrencyId.ToLower();
+            string? currencyCode = this.safeCurrencyCode(rawCurrencyIdLower);
             if ((currencyCode != null))
             {
                 balance[(string)currencyCode] = new Dictionary<string, object>() {

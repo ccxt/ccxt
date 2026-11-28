@@ -2644,23 +2644,26 @@ public partial class htx : Exchange
                 {
                     marketType = "swap";
                     List<object> parts = contractId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-                    baseId = this.safeStringLower(market, "symbol");
-                    quoteId = this.safeStringLower(parts, 1);
+                    string? swapBaseId = this.safeStringLower(market, "symbol");
+                    string? swapQuoteId = this.safeStringLower(parts, 1);
+                    baseId = swapBaseId;
+                    quoteId = swapQuoteId;
                     if ((inverse == true))
                     {
-                        settleId = baseId;
+                        settleId = swapBaseId;
                     } else
                     {
-                        settleId = quoteId;
+                        settleId = swapQuoteId;
                     }
                 } else if (future)
                 {
                     marketType = "future";
-                    baseId = this.safeStringLower(market, "symbol");
+                    string? futureBaseId = this.safeStringLower(market, "symbol");
+                    baseId = futureBaseId;
                     if ((inverse == true))
                     {
                         quoteId = "USD";
-                        settleId = baseId;
+                        settleId = futureBaseId;
                     } else
                     {
                         string? pair = this.safeString(market, "pair");
@@ -2669,8 +2672,9 @@ public partial class htx : Exchange
                             throw new ExchangeError ((this.id + " method() missing pair")) ;
                         }
                         List<object> parts = pair.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-                        quoteId = this.safeStringLower(parts, 1);
-                        settleId = quoteId;
+                        string? futureQuoteId = this.safeStringLower(parts, 1);
+                        quoteId = futureQuoteId;
+                        settleId = futureQuoteId;
                     }
                 }
             } else
@@ -2959,7 +2963,7 @@ public partial class htx : Exchange
         string? askVolume = null;
         if ((ticker != null && ticker.ContainsKey("bid")))
         {
-            if (((ticker["bid"]) is var hxArr120025 && ((hxArr120025 is IList<object>) || (hxArr120025 is not null && hxArr120025.GetType().IsGenericType && hxArr120025.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((ticker["bid"]) is var hxArr120265 && ((hxArr120265 is IList<object>) || (hxArr120265 is not null && hxArr120265.GetType().IsGenericType && hxArr120265.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 bid = this.safeString(ticker["bid"], 0);
                 bidVolume = this.safeString(ticker["bid"], 1);
@@ -2971,7 +2975,7 @@ public partial class htx : Exchange
         }
         if ((ticker != null && ticker.ContainsKey("ask")))
         {
-            if (((ticker["ask"]) is var hxArr120392 && ((hxArr120392 is IList<object>) || (hxArr120392 is not null && hxArr120392.GetType().IsGenericType && hxArr120392.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((ticker["ask"]) is var hxArr120632 && ((hxArr120632 is IList<object>) || (hxArr120632 is not null && hxArr120632.GetType().IsGenericType && hxArr120632.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 ask = this.safeString(ticker["ask"], 0);
                 askVolume = this.safeString(ticker["ask"], 1);

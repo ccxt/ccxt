@@ -602,7 +602,7 @@ public partial class bithumb : Exchange
                     List<object> parts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = this.safeString(parts, 1);
-                    quoteId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+                    quoteId = this.safeString(parts, 0);
                     bs = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);
                 }

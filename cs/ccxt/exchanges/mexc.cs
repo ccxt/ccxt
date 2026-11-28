@@ -5760,7 +5760,7 @@ public partial class mexc : Exchange
         if ((currencyWithNetwork != null))
         {
             List<object> currencyParts = currencyWithNetwork.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            currencyId = ((string)(currencyParts != null && 0 < currencyParts.Count ? currencyParts[0] : null));
+            currencyId = this.safeString(currencyParts, 0);
         }
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? network = null;

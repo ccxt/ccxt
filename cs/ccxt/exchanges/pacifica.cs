@@ -3727,6 +3727,7 @@ public partial class pacifica : Exchange
         };
         string? eventType = this.safeString(transaction, "event_type");
         string? amount = this.safeString(transaction, "amount");
+        string? currencyCode = this.safeCurrencyCode("USDC", currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", null },
@@ -3742,7 +3743,7 @@ public partial class pacifica : Exchange
             { "tagFrom", null },
             { "type", this.safeString(types, eventType) },
             { "amount", this.parseNumber(Precise.stringAbs(amount)) },
-            { "currency", this.safeCurrencyCode("USDC", currency) },
+            { "currency", currencyCode },
             { "status", null },
             { "updated", null },
             { "comment", null },

@@ -3530,7 +3530,7 @@ public partial class bullish : Exchange
         string? type = this.safeString(response, "type");
         if (((codeError != null) && codeError != "0" && codeError != "1001") || ((type != null) && type == "HttpInvalidParameterException"))
         {
-            string? message = "";
+            string? message = null;
             string? errorCodeName = this.safeString(response, "errorCodeName");
             if ((errorCodeName != null))
             {
