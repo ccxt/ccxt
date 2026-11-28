@@ -13,7 +13,7 @@ namespace StarkNet;
 
 use StarkNet\Utils;
 use StarkNet\Constants;
-use phpseclib\Math\BigInteger;
+use phpseclib3\Math\BigInteger;
 
 class Poseidon
 {
