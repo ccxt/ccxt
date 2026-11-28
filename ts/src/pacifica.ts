@@ -3272,6 +3272,7 @@ export default class pacifica extends Exchange {
         };
         const eventType = this.safeString (transaction, 'event_type');
         const amount = this.safeString (transaction, 'amount');
+        const currencyCode = this.safeCurrencyCode ('USDC', currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -3287,7 +3288,7 @@ export default class pacifica extends Exchange {
             'tagFrom': undefined,
             'type': this.safeString (types, eventType),
             'amount': this.parseNumber (Precise.stringAbs (amount)),
-            'currency': this.safeCurrencyCode ('USDC', currency),
+            'currency': currencyCode,
             'status': undefined,
             'updated': undefined,
             'comment': undefined,

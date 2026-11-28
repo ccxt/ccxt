@@ -179,7 +179,6 @@ func binaryShims() []binaryShim {
 		{"IsEqual", func(a, b any) any { return IsEqual(a, b) }},
 		{"GetValue", func(a, b any) any { return GetValue(a, b) }},
 		{"InOp", func(a, b any) any { return InOp(a, b) }},
-		{"GetIndexOf", func(a, b any) any { return GetIndexOf(a, b) }},
 		// AddElementToObject derefs its key and value operands; the observation is the
 		// mutated container.
 		{"AddElementToObject", func(a, b any) any {

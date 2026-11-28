@@ -3125,12 +3125,12 @@ export default class bullish extends Exchange {
         const codeError = this.safeString (response, 'errorCode');
         const type = this.safeString (response, 'type');
         if ((codeError !== undefined && codeError !== '0' && codeError !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
-            let message = '';
+            let message: Str = undefined;
             const errorCodeName = this.safeString (response, 'errorCodeName');
             if (errorCodeName !== undefined) {
                 message = errorCodeName;
             } else {
-                message = type as string;
+                message = type;
             }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

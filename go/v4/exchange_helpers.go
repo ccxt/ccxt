@@ -849,41 +849,6 @@ func InOp(dict any, key any) bool {
 	// return false
 }
 
-func GetIndexOf(str any, target any) int {
-	str = derefScalar(str)
-	target = derefScalar(target)
-	switch v := str.(type) {
-	case []string:
-		t, ok := target.(string)
-		if !ok {
-			return -1
-		}
-		for i, s := range v {
-			if s == t {
-				return i
-			}
-		}
-	case []int:
-		t, ok := target.(int)
-		if !ok {
-			return -1
-		}
-		for i, n := range v {
-			if n == t {
-				return i
-			}
-		}
-	case string:
-		t, ok := target.(string)
-		if !ok {
-			return -1
-		}
-		return strings.Index(v, t)
-	}
-
-	return -1
-}
-
 // IsString checks if the input is a string
 func IsString(v any) bool {
 	v = derefScalar(v)

@@ -5261,7 +5261,7 @@ export default class mexc extends Exchange {
         const currencyWithNetwork = this.safeString (transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
             const currencyParts = currencyWithNetwork.split ('-');
-            currencyId = currencyParts[0];
+            currencyId = this.safeString (currencyParts, 0);
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         let network: Str = undefined;

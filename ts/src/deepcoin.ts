@@ -526,7 +526,11 @@ export default class deepcoin extends Exchange {
         let isLinear: Bool = undefined;
         if (swap) {
             isLinear = (quoteId !== 'USD');
-            settleId = isLinear ? quoteId : baseId;
+            if (isLinear) {
+                settleId = quoteId;
+            } else {
+                settleId = baseId;
+            }
             settle = this.safeCurrencyCode (settleId);
             if (settle === undefined) {
                 return undefined;

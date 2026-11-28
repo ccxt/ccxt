@@ -501,7 +501,7 @@ type IDerivedExchange interface {
 	SetSandboxMode(enabled bool)
 	Market(symbol *string) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
-	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
+	SafeCurrencyCode(currencyId *string, optionalArgs ...any) *string
 	HandleErrors(statusCode int64, statusText string, url string, method string, responseHeaders map[string]any, responseBody string, response any, requestHeaders map[string]any, requestBody *string) *bool
 	// HandleMessage is not here: a venue declares its ws frame shape (map[string]any for an
 	// object frame, any for an array/text frame), so the dispatch loop binds it by assertion.

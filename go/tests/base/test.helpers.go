@@ -334,7 +334,37 @@ func InOp(dict interface{}, key interface{}) bool {
 }
 
 func GetIndexOf(str interface{}, target interface{}) int {
-	return ccxt.GetIndexOf(str, target)
+	str = ccxt.DerefScalar(str)
+	target = ccxt.DerefScalar(target)
+	switch v := str.(type) {
+	case []string:
+		t, ok := target.(string)
+		if !ok {
+			return -1
+		}
+		for i, s := range v {
+			if s == t {
+				return i
+			}
+		}
+	case []int:
+		t, ok := target.(int)
+		if !ok {
+			return -1
+		}
+		for i, n := range v {
+			if n == t {
+				return i
+			}
+		}
+	case string:
+		t, ok := target.(string)
+		if !ok {
+			return -1
+		}
+		return strings.Index(v, t)
+	}
+	return -1
 }
 
 func IsBool(v interface{}) bool {

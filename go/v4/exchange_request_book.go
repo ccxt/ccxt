@@ -31,7 +31,7 @@ type requestBookSnapshot struct {
 	requestBody     any
 	requestUrl      any
 	responseHeaders any
-	httpResponse    any
+	httpResponse    *string
 }
 
 // handOffRequestBook applies one bookkeeping write.
@@ -104,6 +104,6 @@ func (this *BaseExchange) nextNonce(current int64) int64 {
 }
 
 // GetLast_http_response returns the last raw http response.
-func (this *BaseExchange) GetLast_http_response() any {
+func (this *BaseExchange) GetLast_http_response() *string {
 	return this.readRequestBook().httpResponse
 }

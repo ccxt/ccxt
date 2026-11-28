@@ -640,12 +640,12 @@ export default class bitfinex extends Exchange {
             type = 'spot';
         }
         const swap = type === 'swap';
-        let baseId: Str = undefined;
-        let quoteId: Str = undefined;
+        let baseId = '';
+        let quoteId = '';
         if ((id as string).indexOf (':') >= 0) {
             const parts = (id as string).split (':');
-            baseId = parts[0];
-            quoteId = parts[1];
+            baseId = this.safeString (parts, 0, '');
+            quoteId = this.safeString (parts, 1, '');
         } else {
             baseId = (id as string).slice (0, 3);
             quoteId = (id as string).slice (3, 6);
@@ -863,26 +863,24 @@ export default class bitfinex extends Exchange {
     }
 
     parseCurrenciesCustom (ids: any[], indexed: Dict, indexedNetworks: Dict): Dict {
-        const allowedIds: Str[] = [];
+        const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = this.safeString (ids, i, '');
             if (id.endsWith ('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
-            allowedIds.push (id);
-        }
-        const result: Dict = {};
-        const arr = this.toArray (allowedIds);
-        for (let i = 0; i < arr.length; i++) {
-            const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks);
+            const parsed = this.parseCurrencyCustom (id, indexed, indexedNetworks);
             const code = this.safeString (parsed, 'code', '');
             result[code] = parsed;
         }
         return result;
     }
 
-    parseCurrencyCustom (id: string, indexed: Dict, indexedNetworks: Dict): Currency {
+    parseCurrencyCustom (id: Str, indexed: Dict, indexedNetworks: Dict): Currency {
+        if (id === undefined) {
+            return undefined;
+        }
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);

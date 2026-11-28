@@ -2195,7 +2195,8 @@ export default class bitteam extends Exchange {
             const free = this.safeString (currencyBalance, 'free');
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
-            const currencyCode = this.safeCurrencyCode (rawCurrencyId.toLowerCase ());
+            const rawCurrencyIdLower = rawCurrencyId.toLowerCase ();
+            const currencyCode = this.safeCurrencyCode (rawCurrencyIdLower);
             if (currencyCode !== undefined) {
                 balance[currencyCode] = {
                     'free': free,

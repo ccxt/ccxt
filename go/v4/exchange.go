@@ -109,7 +109,7 @@ type BaseExchange struct {
 	Last_request_headers  any
 	Last_response_headers any
 	LastResponseHeaders   any
-	Last_http_response    any
+	Last_http_response    *string
 	LastRequestBody       any
 	Last_request_body     any
 	Last_request_url      any

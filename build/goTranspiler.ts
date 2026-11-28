@@ -5710,7 +5710,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable 
         + ' createStopLimitOrder createStopLimitOrderWs createStopMarketOrder createStopMarketOrderWs createTwapOrder editLimitBuyOrder'
         + ' editLimitSellOrder repayIsolatedMargin borrowIsolatedMargin fetchConvertQuote' ],
     [ [0,2], 'checkRequiredArgument withdraw withdrawWs deposit' ],
-    [ [1], 'handleTextMessage ethRpc signEvmTransaction mergeBalanceAccount' ],
+    [ [1], 'handleTextMessage ethRpc signEvmTransaction mergeBalanceAccount findMessageHashes' ],
     [ [0,1,2,3], 'editOrderWithClientOrderId editOrderWs editOrder' ],
     [ [1,2], 'calculateRateLimiterCost setTakeProfitAndStopLossParams' ],
     [ [1,2,3,5], 'handleErrors' ],
@@ -10252,7 +10252,7 @@ class NewTranspiler {
                 // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
                 // PredictionExchange Str params and BaseExchange.cleanUnsubscription/market/symbol/*ToPrecision: callers pass *string or addressable string
-                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ], "market": [ 0 ], "symbol": [ 0 ], "costToPrecision": [ 0 ], "priceToPrecision": [ 0 ], "amountToPrecision": [ 0 ], "feeToPrecision": [ 0 ], "okx.subscribe": [ 3 ] },
+                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ], "market": [ 0 ], "symbol": [ 0 ], "costToPrecision": [ 0 ], "priceToPrecision": [ 0 ], "amountToPrecision": [ 0 ], "feeToPrecision": [ 0 ], "findBroadlyMatchedKey": [ 1 ], "throwBroadlyMatchedException": [ 1 ], "safeCurrencyCode": [ 0 ], "okx.subscribe": [ 3 ] },
                 // Prediction-tier only required string/float64 params (separate from BaseExchange)
                 "predictionUnifiedStringParams": { "watchTrades": [ 0 ] },
                 "predictionUnifiedFloat64Params": { "createOrder": [ 3 ] },
@@ -13353,10 +13353,11 @@ function goFuncDeclaredType (fn: string, name: string): string | undefined {
     const body = fn.slice (header.length + 1);
     const decls = body.match (new RegExp ('\\bvar ' + name + ' ([\\w*.\\[\\]]+)(?= =|\\n)', 'g')) || [];
     const param = header.match (new RegExp ('[(,]\\s*' + name + ' ([\\w*.\\[\\]]+)\\s*[,)]'));
-    // a `:=`, closure parameter, range variable or `&x` could rebind or alias the name
-    const shadow = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
-    if (shadow || (decls.length + (param ? 1 : 0)) !== 1) { return undefined; }
-    return param ? param[1] : decls[0].replace (/^var \w+ /, '');
+    if ((decls.length + (param ? 1 : 0)) !== 1) { return undefined; }
+    const type = param ? param[1] : decls[0].replace (/^var \w+ /, '');
+    // a `:=`, closure parameter, or range variable could shadow the name; `&x` cannot change a Go `string`'s type or nil-ness
+    const shadow = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ' + ((type === 'string') ? '' : '|&' + name + '\\b')).test (body);
+    return shadow ? undefined : type;
 }
 
 // every write of a `*string` local is a SafeString* call with a literal default in the default slot: never nil
@@ -13460,6 +13461,7 @@ function goTypedShapeHelpersSelfTest (ok: SelfTestOk): void {
     ok (goTypedDictNarrowers ('\n' + narrower.replace ('return response', 'return nil') + user (''), 'ccxt.').includes ('var d any = this.InfoDict(r)'), 'other body untouched');
     const f = (sig: string, body: string, qual = '') => goTypedShapeHelpers ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n', qual);
     ok (f ('body string', '\tif IsString(body) {\n\t}\n').includes ('if true {'), 'string param IsString');
+    ok (f ('body string', '\tif IsString(body) {\n\t\tthis.F(&body)\n\t}\n').includes ('if true {'), 'addressed string param IsString');
     ok (f ('', '\tvar s []string = GetArgStringSlice(o, 0, nil)\n\tif !IsArray(s) {\n\t}\n').includes ('if (s == nil) {'), 'IsArray []string');
     ok (f ('', '\tvar r map[string]any = MapTyped(x)\n\tif IsArray(r) {\n\t}\n').includes ('if false {'), 'IsArray map');
     ok (f ('', '\tvar t *string = this.SafeString(o, "k", "")\n\tif GetLength(t) == 0 {\n\t}\n').includes ('len(*t) == 0'), 'defaulted SafeString');
@@ -14129,7 +14131,7 @@ export function goStringSliceIndexPtr (content: string): string {
 // element-unwritten []string local is `&xs[i]`, and `SafeStringPtr(p)` of a once-declared *string local is `p`
 function goStringPtrReaderArgs (content: string): string {
     if (content.indexOf ('SafeStringPtr(') < 0) { return content; }
-    const readerArg = /((?:this|this\.DerivedExchange|exchange)\.(?:Market|Symbol|PriceToPrecision|AmountToPrecision|CostToPrecision|FeeToPrecision)\()(?:ccxt\.)?SafeStringPtr\((\w+)(?:\[(\w+)\])?\)(?=[,)])/g;
+    const readerArg = /((?:this|this\.DerivedExchange|this\.Exchange|exchange)\.(?:Market|Symbol|PriceToPrecision|AmountToPrecision|CostToPrecision|FeeToPrecision|SafeCurrencyCode)\()(?:ccxt\.)?SafeStringPtr\((\w+)(?:\[(\w+)\])?\)(?=[,)])/g;
     return content.replace (readerArg, (all: string, head: string, name: string, i: string | undefined, at: number) => {
         const start = Math.max (0, content.lastIndexOf ('\nfunc ', at));
         const endAt = content.indexOf ('\n}\n', at);
