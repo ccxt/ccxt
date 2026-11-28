@@ -5490,10 +5490,12 @@ export default class hyperliquid extends Exchange {
         if (coin !== undefined) {
             marketId = this.coinToMarketId (coin);
         }
+        const openInterestAmount = this.safeString (interestValue, 'openInterest');
+        const markPrice = this.safeString (interestValue, 'markPx');
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (marketId),
-            'openInterestAmount': this.safeNumber (interestValue, 'openInterest'),
-            'openInterestValue': undefined,
+            'openInterestAmount': this.parseNumber (openInterestAmount),
+            'openInterestValue': this.parseNumber (Precise.stringMul (openInterestAmount, markPrice)),
             'timestamp': undefined,
             'datetime': undefined,
             'info': interestValue,

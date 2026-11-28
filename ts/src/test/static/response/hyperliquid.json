@@ -5128,7 +5128,7 @@
                 "parsedResponse": {
                     "symbol": "XYZ-XYZ100/USDC:USDC",
                     "openInterestAmount": 8867.2076,
-                    "openInterestValue": null,
+                    "openInterestValue": 274670622.6176,
                     "timestamp": null,
                     "datetime": null,
                     "info": {
