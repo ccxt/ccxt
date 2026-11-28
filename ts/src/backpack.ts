@@ -1802,8 +1802,8 @@ export default class backpack extends Exchange {
         const openInterest = this.safeNumber (interest, 'openInterest');
         return this.safeOpenInterest ({
             'symbol': this.safeString (market, 'symbol'),
-            'openInterestAmount': undefined,
-            'openInterestValue': openInterest,
+            'openInterestAmount': openInterest,
+            'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

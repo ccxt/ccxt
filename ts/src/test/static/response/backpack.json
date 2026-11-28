@@ -3630,8 +3630,8 @@
                 ],
                 "parsedResponse": {
                     "symbol": "ETH/USDC:USDC",
-                    "openInterestAmount": null,
-                    "openInterestValue": 27481.6232,
+                    "openInterestAmount": 27481.6232,
+                    "openInterestValue": null,
                     "timestamp": 1755006837991,
                     "datetime": "2025-08-12T13:53:57.991Z",
                     "info": {
