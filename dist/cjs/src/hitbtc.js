@@ -2486,10 +2486,11 @@ class hitbtc extends hitbtc$1["default"] {
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const isPostOnly = this.isPostOnly(type === 'market', false, params);
         const resolvedMarketType = this.safeString(market, 'type');
+        const marketSymbol = this.safeString(market, 'symbol');
         const request = {
             'type': type,
             'side': side,
-            'quantity': this.amountToPrecision(market['symbol'], amount),
+            'quantity': this.amountToPrecision(marketSymbol, amount),
             'symbol': this.safeString(market, 'id'),
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
@@ -2522,7 +2523,7 @@ class hitbtc extends hitbtc$1["default"] {
             if (price === undefined) {
                 throw new errors.ExchangeError(this.id + ' createOrder() requires a price argument for limit orders');
             }
-            request['price'] = this.priceToPrecision(market['symbol'], price);
+            request['price'] = this.priceToPrecision(marketSymbol, price);
         }
         if ((timeInForce === 'GTD')) {
             const expireTime = this.safeString(params, 'expire_time');
@@ -2531,7 +2532,7 @@ class hitbtc extends hitbtc$1["default"] {
             }
         }
         if (triggerPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision(market['symbol'], triggerPrice);
+            request['stop_price'] = this.priceToPrecision(marketSymbol, triggerPrice);
             if (isLimit) {
                 request['type'] = 'stopLimit';
             }

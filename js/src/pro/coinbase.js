@@ -116,11 +116,13 @@ export default class coinbase extends coinbaseRest {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
+        const subscriptionSymbols = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
             watchMessageHash = name + '::' + symbol;
             unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
             productIds = [this.safeString(market, 'id')];
+            subscriptionSymbols.push(market['symbol']);
         }
         const url = this.urls['api']['ws'];
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -134,7 +136,7 @@ export default class coinbase extends coinbaseRest {
             'subMessageHashes': [watchMessageHash],
             'topic': topic,
             'unsubscribe': true,
-            'symbols': [symbol],
+            'symbols': subscriptionSymbols,
         };
         if (isPrivate) {
             message = this.extend(message, this.createWSAuth(name, productIds));

@@ -3301,14 +3301,11 @@ class cryptocom extends cryptocom$1["default"] {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 1) {
                 throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            if (symbolsLength === 1) {
-                symbol = symbolsNormalized[0];
-            }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }

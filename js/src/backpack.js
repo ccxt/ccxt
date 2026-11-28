@@ -1147,10 +1147,11 @@ export default class backpack extends Exchange {
         }
         await this.loadMarkets();
         const market = this.rfqConversionMarket(fromCode, toCode);
+        const marketSymbol = this.safeString(market, 'symbol');
         const fromIsBase = fromCode === this.safeString(market, 'base');
         const side = (fromIsBase) ? 'sell' : 'buy';
         if (!fromIsBase) {
-            const initialQuote = await this.fetchStockIndicativeQuote(market['symbol'], side, 1, { 'stock': true });
+            const initialQuote = await this.fetchStockIndicativeQuote(marketSymbol, side, 1, { 'stock': true });
             const initialPrice = this.safeString(initialQuote, 'price');
             if (!this.safeBool(initialQuote, 'available', false) || (initialPrice === undefined)) {
                 throw new InvalidOrder(this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString(initialQuote, 'reason', 'priceUnavailable'));
@@ -1163,7 +1164,7 @@ export default class backpack extends Exchange {
                 throw new InvalidOrder(this.id + ' fetchConvertQuote() price must be positive');
             }
             const rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
-            const preciseQuantity = this.amountToPrecision(market['symbol'], this.parseNumber(rawQuantity));
+            const preciseQuantity = this.amountToPrecision(marketSymbol, this.parseNumber(rawQuantity));
             if (preciseQuantity === undefined) {
                 throw new InvalidOrder(this.id + ' fetchConvertQuote() could not determine a stock quantity');
             }
@@ -1172,7 +1173,7 @@ export default class backpack extends Exchange {
                 throw new InvalidOrder(this.id + ' fetchConvertQuote() amount is too small for one stock increment');
             }
         }
-        let quote = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(amountString), { 'stock': true });
+        let quote = await this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), { 'stock': true });
         if (!this.safeBool(quote, 'available', false) || (this.safeString(quote, 'price') === undefined)) {
             throw new InvalidOrder(this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString(quote, 'reason', 'priceUnavailable'));
         }
@@ -1186,7 +1187,7 @@ export default class backpack extends Exchange {
                     throw new InvalidOrder(this.id + ' fetchConvertQuote() amount is too small for one stock increment');
                 }
                 amountString = reducedQuantity;
-                quote = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(amountString), { 'stock': true });
+                quote = await this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), { 'stock': true });
                 if (!this.safeBool(quote, 'available', false) || (this.safeString(quote, 'price') === undefined)) {
                     throw new InvalidOrder(this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString(quote, 'reason', 'priceUnavailable'));
                 }

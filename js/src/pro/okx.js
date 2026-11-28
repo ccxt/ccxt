@@ -2082,13 +2082,12 @@ export default class okx extends okxRest {
         }
         await this.authenticate({ 'access': accessType });
         let market = undefined;
-        let symbolResolved = undefined;
         let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
             type = this.safeString(market, 'type');
         }
+        const symbolResolved = this.safeString(market, 'symbol');
         if (type === 'future') {
             type = 'futures';
         }

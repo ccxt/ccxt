@@ -1301,7 +1301,7 @@ export default class paradex extends paradexRest {
         const url = this.getWsUrl();
         const channels = [];
         const messageHashes = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
                 const marketId = this.safeString(market, 'id', '');
@@ -1343,7 +1343,7 @@ export default class paradex extends paradexRest {
         const channels = [];
         const subMessageHashes = [];
         const bidAskSymbols = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
                 const marketId = this.safeString(market, 'id', '');

@@ -175794,10 +175794,11 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         }
         await this.loadMarkets();
         const market = this.rfqConversionMarket(fromCode, toCode);
+        const marketSymbol = this.safeString(market, 'symbol');
         const fromIsBase = fromCode === this.safeString(market, 'base');
         const side = fromIsBase ? 'sell' : 'buy';
         if (!fromIsBase) {
-            const initialQuote = await this.fetchStockIndicativeQuote(market['symbol'], side, 1, {
+            const initialQuote = await this.fetchStockIndicativeQuote(marketSymbol, side, 1, {
                 'stock': true
             });
             const initialPrice = this.safeString(initialQuote, 'price');
@@ -175812,7 +175813,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() price must be positive');
             }
             const rawQuantity = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amountString, priceParam, 18);
-            const preciseQuantity = this.amountToPrecision(market['symbol'], this.parseNumber(rawQuantity));
+            const preciseQuantity = this.amountToPrecision(marketSymbol, this.parseNumber(rawQuantity));
             if (preciseQuantity === undefined) {
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() could not determine a stock quantity');
             }
@@ -175821,7 +175822,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                 throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() amount is too small for one stock increment');
             }
         }
-        let quote = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(amountString), {
+        let quote = await this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), {
             'stock': true
         });
         if (!this.safeBool(quote, 'available', false) || this.safeString(quote, 'price') === undefined) {
@@ -175837,7 +175838,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                     throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() amount is too small for one stock increment');
                 }
                 amountString = reducedQuantity;
-                quote = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(amountString), {
+                quote = await this.fetchStockIndicativeQuote(marketSymbol, side, this.parseNumber(amountString), {
                     'stock': true
                 });
                 if (!this.safeBool(quote, 'available', false) || this.safeString(quote, 'price') === undefined) {
@@ -216187,18 +216188,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
-            if (Array.isArray(symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if (symbolsLength === 1) {
-                    symbol = symbolsNormalized[0];
-                }
-            } else {
-                symbol = symbolsNormalized;
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
@@ -239731,10 +239725,8 @@ class bitflyer extends _abstract_bitflyer_js__rspack_import_0/* ["default"] */.A
             'count': limit
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        if (symbol !== undefined) {
-            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
-        }
-        return this.parseOrders(response, market, since, limit);
+        const marketSymbol = this.safeString(market, 'symbol');
+        return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', marketSymbol);
     }
     /**
      * @method
@@ -300729,28 +300721,21 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchPositions', symbols, undefined, undefined, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 200);
         }
+        const symbolsNormalized = this.marketSymbols(symbols);
         let symbol = undefined;
-        let symbolsNormalized = undefined;
-        if (symbols !== undefined && Array.isArray(symbols)) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 1) {
                 throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchPositions() does not accept an array with more than one symbol');
-            } else if (symbolsLength === 1) {
-                symbol = symbols[0];
             }
-            symbolsNormalized = this.marketSymbols(symbols);
-        } else if (symbols !== undefined) {
-            symbol = symbols;
-            symbolsNormalized = [
-                this.symbol(symbol)
-            ];
+            symbol = this.safeString(symbolsNormalized, 0);
         }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             const symbolMarket = this.market(symbol);
             market = symbolMarket;
-            symbol = symbolMarket['symbol'];
+            symbol = this.safeString(symbolMarket, 'symbol');
             request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchPositions', market, paramsPaginate);
@@ -316841,7 +316826,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         if (this.isNativeDeribitCredentials() && this.safeBool(market, 'contract', false)) {
             exchangeAmount = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(exchangeAmount, this.safeString(market, 'contractSize'));
         }
-        return this.amountToPrecision(market['symbol'], exchangeAmount);
+        return this.amountToPrecision(this.safeString(market, 'symbol'), exchangeAmount);
     }
     /**
      * @method
@@ -329618,14 +329603,11 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 1) {
                 throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            if (symbolsLength === 1) {
-                symbol = symbolsNormalized[0];
-            }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
@@ -333712,15 +333694,11 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const request = {
             'OrderSysID': id
         };
-        let market = undefined;
-        let symbolResolved = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            if (this.safeBool(market, 'spot', false)) {
-                throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for spot markets');
-            }
-            symbolResolved = this.safeString(market, 'symbol');
+        const market = this.market(symbol);
+        if (this.safeBool(market, 'spot', false)) {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for spot markets');
         }
+        const symbolResolved = this.safeString(market, 'symbol');
         const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
         const isTPSL = stopLossPrice !== undefined || takeProfitPrice !== undefined;
@@ -333730,10 +333708,10 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
                 throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
             if (stopLossPrice !== undefined) {
-                request['slTriggerPx'] = symbolResolved !== '' ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
+                request['slTriggerPx'] = symbolResolved !== undefined ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
             }
             if (takeProfitPrice !== undefined) {
-                request['tpTriggerPx'] = symbolResolved !== '' ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
+                request['tpTriggerPx'] = symbolResolved !== undefined ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
             const paramsOmitted = this.omit(params, [
                 'stopLossPrice',
@@ -335120,7 +335098,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = marketId !== undefined && (marketId.endsWith('-C') || marketId.endsWith('-P') || marketId.startsWith('C-') || marketId.startsWith('P-'));
-        if (isOption && (this.markets_by_id === undefined || !(marketId in this.markets_by_id))) {
+        if (marketId !== undefined && isOption && (this.markets_by_id === undefined || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -339766,7 +339744,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = marketId !== undefined && (marketId.endsWith('-C') || marketId.endsWith('-P'));
-        if (isOption && (this.markets_by_id === undefined || !(marketId in this.markets_by_id))) {
+        if (marketId !== undefined && isOption && (this.markets_by_id === undefined || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -351796,18 +351774,11 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         let market = undefined;
         let marketType = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
-            if (Array.isArray(symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if (symbolsLength === 1) {
-                    symbol = symbolsNormalized[0];
-                }
-            } else {
-                symbol = symbolsNormalized;
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
         }
         let paramsMarketType = undefined;
@@ -363834,7 +363805,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = marketId !== undefined && (marketId.indexOf('-C') > -1 || marketId.indexOf('-P') > -1);
-        if (isOption && (this.markets_by_id === undefined || !(marketId in this.markets_by_id))) {
+        if (marketId !== undefined && isOption && (this.markets_by_id === undefined || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -368508,11 +368479,12 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         if (isSpot) {
             const ordersRequests = [];
+            const marketSymbol = this.safeString(market, 'symbol', '');
             for(let i = 0; i < ids.length; i++){
                 const id = this.safeString(ids, i, '');
                 const orderItem = {
                     'id': id,
-                    'symbol': symbol
+                    'symbol': marketSymbol
                 };
                 ordersRequests.push(orderItem);
             }
@@ -376323,7 +376295,8 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         const legs = [];
         for(let i = 0; i < orderLegs.length; i++){
             const leg = orderLegs[i];
-            const market = this.market(leg['instrument']);
+            const instrument = this.safeString(leg, 'instrument');
+            const market = this.market(instrument);
             const precisionValue = this.precisionFromString(this.safeString(market['precision'], 'base'));
             const sizeMultiplier = Math.pow(10, precisionValue);
             const size = this.safeString(leg, 'size');
@@ -387507,10 +387480,11 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         ]);
         const isPostOnly = this.isPostOnly(type === 'market', false, params);
         const resolvedMarketType = this.safeString(market, 'type');
+        const marketSymbol = this.safeString(market, 'symbol');
         const request = {
             'type': type,
             'side': side,
-            'quantity': this.amountToPrecision(market['symbol'], amount),
+            'quantity': this.amountToPrecision(marketSymbol, amount),
             'symbol': this.safeString(market, 'id')
         };
         if (reduceOnly !== undefined) {
@@ -387532,7 +387506,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             if (price === undefined) {
                 throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' createOrder() requires a price argument for limit orders');
             }
-            request['price'] = this.priceToPrecision(market['symbol'], price);
+            request['price'] = this.priceToPrecision(marketSymbol, price);
         }
         if (timeInForce === 'GTD') {
             const expireTime = this.safeString(params, 'expire_time');
@@ -387541,7 +387515,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             }
         }
         if (triggerPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision(market['symbol'], triggerPrice);
+            request['stop_price'] = this.priceToPrecision(marketSymbol, triggerPrice);
             if (isLimit) {
                 request['type'] = 'stopLimit';
             } else if (type === 'market') {
@@ -406640,11 +406614,12 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         for(let i = 0; i < universe.length; i++){
             const asset = this.safeDict(universe, i, {});
             // the coin name resolves to the unified symbol, delisted assets have no market
-            const symbol = this.coinToMarketId(this.safeString(asset, 'name'));
-            const market = this.safeDict(this.markets, symbol);
+            const marketId = this.coinToMarketId(this.safeString(asset, 'name'));
+            const market = this.safeDict(this.markets, marketId);
             if (market === undefined) {
                 continue;
             }
+            const symbol = this.safeString(market, 'symbol', '');
             if (symbolsLength > 0 && !this.inArray(symbol, symbolsNormalized)) {
                 continue;
             }
@@ -408634,7 +408609,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (hip3Dict !== undefined) {
             const quote = this.safeString(hip3Dict, 'quote', 'USDC');
             const code = this.safeString(hip3Dict, 'code', coin);
-            return code + '/' + quote + ':' + quote;
+            if (code !== undefined) {
+                return code + '/' + quote + ':' + quote;
+            }
+            return undefined;
         }
         if (coin.indexOf('/') > -1 || coin.indexOf('@') > -1) {
             return coin; // spot
@@ -408644,7 +408622,11 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (coin.indexOf(':') > -1) {
             coinId = coin.replace(':', '-');
         }
-        return this.safeCurrencyCode(coinId) + '/USDC:USDC';
+        const currencyCode = this.safeCurrencyCode(coinId);
+        if (currencyCode !== undefined) {
+            return currencyCode + '/USDC:USDC';
+        }
+        return undefined;
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === null) {
@@ -418688,7 +418670,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
-            const parsedAmount = this.amountToPrecision(market['symbol'], amount);
+            const parsedAmount = this.amountToPrecision(this.safeString(market, 'symbol'), amount);
             const req = {
                 'type': side,
                 'ordertype': type,
@@ -439347,17 +439329,13 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
-        let symbolKnown = false;
+        let marketResolved = market;
         if (base !== undefined && quote !== undefined) {
             const knownSymbol = base + '/' + quote;
             if (this.markets !== undefined && knownSymbol in this.markets) {
-                symbolKnown = true;
+                marketResolved = this.market(knownSymbol);
             }
             symbol = knownSymbol;
-        }
-        let marketResolved = market;
-        if (symbolKnown) {
-            marketResolved = this.market(symbol);
         }
         const orderSide = this.safeString(order, 'side');
         let side = undefined;
@@ -554895,7 +554873,8 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
         if (base === undefined || quote === undefined) {
             return;
         }
-        const symbol = this.symbol(base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol(marketSymbol);
         const messageHash = this.safeString(message, 'event');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -554937,7 +554916,8 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if (base !== undefined && quote !== undefined) {
-            symbol = this.symbol(base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol(marketSymbol);
         }
         const marketResolved = this.safeMarket(symbol, market);
         const price = this.safeString(trade, 'price');
@@ -567652,6 +567632,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
+        const subscriptionSymbols = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
             watchMessageHash = name + '::' + symbol;
@@ -567659,6 +567640,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
             productIds = [
                 this.safeString(market, 'id')
             ];
+            subscriptionSymbols.push(market['symbol']);
         }
         const url = this.urls['api']['ws'];
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -567676,9 +567658,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
             ],
             'topic': topic,
             'unsubscribe': true,
-            'symbols': [
-                symbol
-            ]
+            'symbols': subscriptionSymbols
         };
         if (isPrivate) {
             message = this.extend(message, this.createWSAuth(name, productIds));
@@ -572000,7 +571980,8 @@ class coinone extends _coinone_js__rspack_import_0/* ["default"] */.A {
         if (base === undefined || quote === undefined) {
             return;
         }
-        const symbol = this.symbol(base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol(marketSymbol);
         const timestamp = this.safeInteger(data, 'timestamp');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -572123,7 +572104,8 @@ class coinone extends _coinone_js__rspack_import_0/* ["default"] */.A {
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if (base !== undefined && quote !== undefined) {
-            symbol = this.symbol(base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol(marketSymbol);
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -590085,7 +590067,8 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const market = this.market(this.singleBidAskSymbol('watchBidsAsks', symbols));
+        const bidAskSymbol = this.singleBidAskSymbol('watchBidsAsks', symbols);
+        const market = this.market(bidAskSymbol);
         const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'bidask:' + symbol;
         const url = this.urls['api']['ws']['public'];
@@ -590120,7 +590103,8 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const market = this.market(this.singleBidAskSymbol('unWatchBidsAsks', symbols));
+        const bidAskSymbol = this.singleBidAskSymbol('unWatchBidsAsks', symbols);
+        const market = this.market(bidAskSymbol);
         const symbol = this.safeString(market, 'symbol', '');
         const subMessageHash = 'bidask:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -612910,13 +612894,12 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'access': accessType
         });
         let market = undefined;
-        let symbolResolved = undefined;
         let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
             type = this.safeString(market, 'type');
         }
+        const symbolResolved = this.safeString(market, 'symbol');
         if (type === 'future') {
             type = 'futures';
         }
@@ -618591,7 +618574,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         const url = this.getWsUrl();
         const channels = [];
         const messageHashes = [];
-        if (symbolsLength > 0) {
+        if (symbolsNormalized !== undefined && symbolsLength > 0) {
             for(let i = 0; i < symbolsLength; i++){
                 const market = this.market(symbolsNormalized[i]);
                 const marketId = this.safeString(market, 'id', '');
@@ -618631,7 +618614,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         const channels = [];
         const subMessageHashes = [];
         const bidAskSymbols = [];
-        if (symbolsLength > 0) {
+        if (symbolsNormalized !== undefined && symbolsLength > 0) {
             for(let i = 0; i < symbolsLength; i++){
                 const market = this.market(symbolsNormalized[i]);
                 const marketId = this.safeString(market, 'id', '');
@@ -676376,7 +676359,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
             const formType = this.safeStringUpper(query, 'formType', 'ORDER_FORM');
             request['formType'] = formType;
-            request['amount'] = this.parseToNumeric(this.amountToPrecision(market['id'], amount));
+            request['amount'] = this.parseToNumeric(this.amountToPrecision(this.safeString(market, 'id'), amount));
             request['marginAsset'] = marginAsset;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;

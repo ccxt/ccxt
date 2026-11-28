@@ -811,10 +811,8 @@ export default class bitflyer extends Exchange {
             'count': limit,
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        if (symbol !== undefined) {
-            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
-        }
-        return this.parseOrders(response, market, since, limit);
+        const marketSymbol = this.safeString(market, 'symbol');
+        return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', marketSymbol);
     }
     /**
      * @method

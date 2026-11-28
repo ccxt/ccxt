@@ -1299,17 +1299,13 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
-        let symbolKnown = false;
+        let marketResolved = market;
         if ((base !== undefined) && (quote !== undefined)) {
             const knownSymbol = base + '/' + quote;
             if ((this.markets !== undefined) && (knownSymbol in this.markets)) {
-                symbolKnown = true;
+                marketResolved = this.market(knownSymbol);
             }
             symbol = knownSymbol;
-        }
-        let marketResolved = market;
-        if (symbolKnown) {
-            marketResolved = this.market(symbol);
         }
         const orderSide = this.safeString(order, 'side');
         let side = undefined;

@@ -2213,7 +2213,8 @@ export default class grvt extends Exchange {
         const legs = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
-            const market = this.market(leg['instrument']);
+            const instrument = this.safeString(leg, 'instrument');
+            const market = this.market(instrument);
             const precisionValue = this.precisionFromString(this.safeString(market['precision'], 'base'));
             const sizeMultiplier = Math.pow(10, precisionValue);
             const size = this.safeString(leg, 'size');

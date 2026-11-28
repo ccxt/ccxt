@@ -31,9 +31,9 @@ export default class lighter extends Exchange {
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
     changeApiKey(params?: Dict): Promise<any>;
     setSandboxMode(enable: boolean): void;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict[];
+    createOrderRequest(symbol: string, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict[];
     fetchNonce(accountIndex: any, apiKeyIndex: any, params?: Dict): Promise<Int>;
-    signAndCreateOrder(method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
+    signAndCreateOrder(method: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#createOrder

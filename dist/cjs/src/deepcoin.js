@@ -2316,15 +2316,11 @@ class deepcoin extends deepcoin$1["default"] {
         const request = {
             'OrderSysID': id,
         };
-        let market = undefined;
-        let symbolResolved = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            if (this.safeBool(market, 'spot', false)) {
-                throw new errors.NotSupported(this.id + ' editOrder() is not supported for spot markets');
-            }
-            symbolResolved = this.safeString(market, 'symbol');
+        const market = this.market(symbol);
+        if (this.safeBool(market, 'spot', false)) {
+            throw new errors.NotSupported(this.id + ' editOrder() is not supported for spot markets');
         }
+        const symbolResolved = this.safeString(market, 'symbol');
         const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
         const isTPSL = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
@@ -2334,10 +2330,10 @@ class deepcoin extends deepcoin$1["default"] {
                 throw new errors.BadRequest(this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
             if (stopLossPrice !== undefined) {
-                request['slTriggerPx'] = (symbolResolved !== '') ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
+                request['slTriggerPx'] = (symbolResolved !== undefined) ? this.priceToPrecision(symbolResolved, stopLossPrice) : this.numberToString(stopLossPrice);
             }
             if (takeProfitPrice !== undefined) {
-                request['tpTriggerPx'] = (symbolResolved !== '') ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
+                request['tpTriggerPx'] = (symbolResolved !== undefined) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
             const paramsOmitted = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, paramsOmitted));

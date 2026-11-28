@@ -348,7 +348,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const market = this.market(this.singleBidAskSymbol('watchBidsAsks', symbols));
+        const bidAskSymbol = this.singleBidAskSymbol('watchBidsAsks', symbols);
+        const market = this.market(bidAskSymbol);
         const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'bidask:' + symbol;
         const url = this.urls['api']['ws']['public'];
@@ -382,7 +383,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const market = this.market(this.singleBidAskSymbol('unWatchBidsAsks', symbols));
+        const bidAskSymbol = this.singleBidAskSymbol('unWatchBidsAsks', symbols);
+        const market = this.market(bidAskSymbol);
         const symbol = this.safeString(market, 'symbol', '');
         const subMessageHash = 'bidask:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;

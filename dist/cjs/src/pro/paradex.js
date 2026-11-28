@@ -1300,7 +1300,7 @@ class paradex extends paradex$1["default"] {
         const url = this.getWsUrl();
         const channels = [];
         const messageHashes = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
                 const marketId = this.safeString(market, 'id', '');
@@ -1342,7 +1342,7 @@ class paradex extends paradex$1["default"] {
         const channels = [];
         const subMessageHashes = [];
         const bidAskSymbols = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
                 const marketId = this.safeString(market, 'id', '');

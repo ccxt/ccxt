@@ -6839,28 +6839,21 @@ export default class bybit extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchPositions', symbols, undefined, undefined, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 200);
         }
+        const symbolsNormalized = this.marketSymbols(symbols);
         let symbol = undefined;
-        let symbolsNormalized = undefined;
-        if ((symbols !== undefined) && Array.isArray(symbols)) {
-            const symbolsLength = symbols.length;
+        if (symbolsNormalized !== undefined) {
+            const symbolsLength = symbolsNormalized.length;
             if (symbolsLength > 1) {
                 throw new ArgumentsRequired(this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            else if (symbolsLength === 1) {
-                symbol = symbols[0];
-            }
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        else if (symbols !== undefined) {
-            symbol = symbols;
-            symbolsNormalized = [this.symbol(symbol)];
+            symbol = this.safeString(symbolsNormalized, 0);
         }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             const symbolMarket = this.market(symbol);
             market = symbolMarket;
-            symbol = symbolMarket['symbol'];
+            symbol = this.safeString(symbolMarket, 'symbol');
             request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchPositions', market, paramsPaginate);

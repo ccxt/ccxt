@@ -12380,19 +12380,11 @@ export default class binance extends Exchange {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            let symbol = undefined;
-            if (Array.isArray(symbolsNormalized)) {
-                const symbolsLength = symbolsNormalized.length;
-                if (symbolsLength > 1) {
-                    throw new BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if (symbolsLength === 1) {
-                    symbol = symbolsNormalized[0];
-                }
+            const symbolsLength = symbolsNormalized.length;
+            if (symbolsLength > 1) {
+                throw new BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            else {
-                symbol = symbolsNormalized;
-            }
+            const symbol = this.safeString(symbolsNormalized, 0);
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }

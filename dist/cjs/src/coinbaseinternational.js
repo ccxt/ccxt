@@ -2130,7 +2130,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (this.isNativeDeribitCredentials() && (this.safeBool(market, 'contract', false))) {
             exchangeAmount = Precise["default"].stringMul(exchangeAmount, this.safeString(market, 'contractSize'));
         }
-        return this.amountToPrecision(market['symbol'], exchangeAmount);
+        return this.amountToPrecision(this.safeString(market, 'symbol'), exchangeAmount);
     }
     /**
      * @method

@@ -260,7 +260,8 @@ export default class bitopro extends bitoproRest {
         if ((base === undefined) || (quote === undefined)) {
             return;
         }
-        const symbol = this.symbol(base + '/' + quote);
+        const marketSymbol = base + '/' + quote;
+        const symbol = this.symbol(marketSymbol);
         const messageHash = this.safeString(message, 'event');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -302,7 +303,8 @@ export default class bitopro extends bitoproRest {
         const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
-            symbol = this.symbol(base + '/' + quote);
+            const marketSymbol = base + '/' + quote;
+            symbol = this.symbol(marketSymbol);
         }
         const marketResolved = this.safeMarket(symbol, market);
         const price = this.safeString(trade, 'price');

@@ -415,7 +415,7 @@ export default class delta extends Exchange {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')) || (marketId.startsWith('C-')) || (marketId.startsWith('P-')));
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if ((marketId !== undefined) && isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
