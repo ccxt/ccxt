@@ -706,12 +706,11 @@ class whitebit(ccxt.async_support.whitebit):
             await self.load_markets()
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'wallet:'
-        method = None
+        method = 'balanceMargin_subscribe'
         if type == 'spot':
             method = 'balanceSpot_subscribe'
             messageHash += 'spot'
         else:
-            method = 'balanceMargin_subscribe'
             messageHash += 'margin'
         url = self.safe_string(self.urls['api'], 'ws')
         client = self.client(url)
@@ -816,7 +815,7 @@ class whitebit(ccxt.async_support.whitebit):
             messageHash += 'margin'
         client.resolve(self.balance, messageHash)
 
-    async def watch_public(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
+    async def watch_public(self, messageHash: str, method: str, reqParams: list[object], params: dict = {}):
         url = self.safe_string(self.urls['api'], 'ws')
         id = self.incrementing_nonce()
         request = {
@@ -879,7 +878,7 @@ class whitebit(ccxt.async_support.whitebit):
                     del client.subscriptions[method]
                 return await self.watch(url, messageHash, resubRequest, method, subscription)
 
-    async def watch_private(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
+    async def watch_private(self, messageHash: str, method: str, reqParams: list[object], params: dict = {}):
         self.check_required_credentials()
         await self.authenticate()
         url = self.safe_string(self.urls['api'], 'ws')

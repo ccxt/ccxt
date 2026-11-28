@@ -1235,14 +1235,13 @@ class bybit(ccxt.async_support.bybit):
         timestamp = self.safe_integer_2(trade, 't', 'T')
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
-        m = self.safe_value(trade, 'm')
         if side is None:
             side = 'sell'
-            if m is True:
+            if self.safe_bool(trade, 'm', False):
                 side = 'buy'
         else:
             # spot private
-            takerOrMaker = m
+            takerOrMaker = self.safe_value(trade, 'm')
         price = self.safe_string(trade, 'p')
         amount = self.safe_string_2(trade, 'q', 'v')
         orderId = self.safe_string(trade, 'o')

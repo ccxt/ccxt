@@ -1666,15 +1666,13 @@ class kraken(ccxt.async_support.kraken):
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
             requestId = self.safe_string_2(message, 'reqid', 'req_id')
-            broad = self.exceptions['ws']['broad']
-            broadKey = self.find_broadly_matched_key(broad, errorMessage)
-            exception = None
-            if broadKey is None:
-                exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
-            else:
-                exception = broad[broadKey](errorMessage)
             if requestId is not None:
-                client.reject(exception, requestId)
+                broad = self.exceptions['ws']['broad']
+                try:
+                    self.throw_broadly_matched_exception(broad, errorMessage, errorMessage)
+                    raise ExchangeError(errorMessage)
+                except Exception as e:
+                    client.reject(e, requestId)
             return False
         return True
 
